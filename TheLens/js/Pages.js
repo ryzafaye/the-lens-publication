@@ -363,9 +363,9 @@ function manageAccounts() {
                         <div class="card" style="cursor:default">
                             <span class="k">${esc(usr.role.toUpperCase())}</span>
                             <h3>${esc(usr.name)}</h3>
-                            <p>${esc(usr.email)}</p>
+                            <p><b>ID:</b> ${esc(usr.student_id || 'N/A')}${usr.email ? ` · ${esc(usr.email)}` : ''}</p>
                             <div class="row" style="margin-top:1rem">
-                                <button class="ghost edit-user-btn" data-id="${usr.id}" data-name="${esc(usr.name)}" data-email="${esc(usr.email)}" data-role="${usr.role}">Edit</button>
+                                <button class="ghost edit-user-btn" data-id="${usr.id}" data-name="${esc(usr.name)}" data-student-id="${esc(usr.student_id || '')}" data-email="${esc(usr.email || '')}" data-role="${usr.role}">Edit</button>
                                 <button class="ghost delete-user-btn" data-id="${usr.id}" style="color:red">Delete</button>
                             </div>
                         </div>
@@ -410,7 +410,8 @@ function renderUserForm(editData = null) {
         <div class="form" style="margin-bottom: 2rem; border: 1px solid var(--border); padding: 1.5rem; border-radius: 6px;">
             <h3>${isEdit ? 'Edit User: ' + editData.name : 'Create New Account'}</h3>
             <label>Full Name</label><input id="usrName" value="${isEdit ? editData.name : ''}">
-            <label>Email Address</label><input id="usrEmail" type="email" value="${isEdit ? editData.email : ''}">
+            <label>Student ID (String)</label><input id="usrStudentId" type="text" placeholder="e.g. 2024-00123" value="${isEdit ? (editData.studentId || '') : ''}">
+            <label>Email Address (Optional)</label><input id="usrEmail" type="email" value="${isEdit ? (editData.email || '') : ''}">
             <label>Role</label>
             <select id="usrRole">
                 <option value="writer" ${isEdit && editData.role === 'writer' ? 'selected' : ''}>Writer</option>
@@ -432,8 +433,15 @@ function renderUserForm(editData = null) {
     });
 
     $('#saveUserBtn').on('click', () => {
+        const studentId = $('#usrStudentId').val().trim();
+        if (!studentId) {
+            $('#usrMsg').text('Student ID is required.');
+            return;
+        }
+
         const payload = {
             name: $('#usrName').val().trim(),
+            student_id: studentId,
             email: $('#usrEmail').val().trim(),
             role: $('#usrRole').val(),
             password: $('#usrPass').val()

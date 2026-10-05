@@ -32,20 +32,25 @@ function authBar() {
 function login() {
     $app.html(`<div class="login">
         <h2>Staff log in</h2>
-        <label>Email</label><input id="em" type="email">
-        <label>Password</label><input id="pw" type="password">
+        <label>Student ID</label><input id="sid" type="text" placeholder="Enter Student ID (e.g. 2024-00123)">
+        <label>Password</label><input id="pw" type="password" placeholder="Enter your password">
         <p class="err" id="err"></p>
         <button id="go" style="width:100%">Log in</button>
     </div>`);
 
     const submit = () => {
-        const email = $('#em').val().trim(), password = $('#pw').val();
+        const student_id = $('#sid').val().trim(), password = $('#pw').val();
         
+        if (!student_id || !password) {
+            $('#err').text('Student ID and password required.');
+            return;
+        }
+
         $.ajax({
             url: 'api/login.php',
             method: 'POST',
             contentType: 'application/json',
-            data: JSON.stringify({ email, password }),
+            data: JSON.stringify({ student_id, password }),
             success: function(res) {
                 if (res.success) {
                     currentUser = res.user;
@@ -54,9 +59,15 @@ function login() {
                 } else {
                     $('#err').text(res.message);
                 }
+            },
+            error: function() {
+                $('#err').text('Server error occurred during login.');
             }
         });
     };
 
     $('#go').on('click', submit);
+    $('#sid, #pw').on('keydown', function(e) {
+        if (e.key === 'Enter') submit();
+    });
 }

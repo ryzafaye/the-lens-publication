@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Member Login | The Lens Student Publication</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;1,400;1,600&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style2.css">
+
+    <!-- Tailwind custom colors and fonts configuration -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        wine: "#700f2b",
+                        burgundy: "#4a091b",
+                        darkbrown: "#4a091b"
+                    },
+                    fontFamily: {
+                        display: ['Playfair Display', 'serif'],
+                        body: ['DM Sans', 'sans-serif']
+                    }
+                }
+            }
+        };
+    </script>
+</head>
+
+<body class="bg-stone-100/70 text-stone-900 font-body min-h-screen flex flex-col justify-between selection:bg-rose-100 selection:text-wine">
+
+    <!-- ================= 1. TOP INFORMATION BAR ================= -->
+    <header class="w-full font-body border-b border-stone-200 bg-white shadow-sm">
+        <div class="bg-burgundy text-white py-2 px-6 border-b border-[#3a0715]">
+            <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2 text-xs font-medium tracking-wide">
+                
+                <!-- Date and Publication Badge -->
+                <div class="flex items-center gap-3">
+                    <span class="flex items-center gap-1.5">
+                        <i class="fa-regular fa-calendar"></i> 
+                        <span id="currentDate">OCT 16, 2026</span>
+                    </span>
+                    <span class="text-white/30">|</span>
+                    <span class="flex items-center gap-1.5">
+                        <i class="fa-regular fa-newspaper"></i> The Lens Publication Portal
+                    </span>
+                </div>
+
+                <!-- Back to Public Site Link -->
+                <div class="flex items-center gap-4">
+                    <div class="flex gap-4 text-sm">
+                        <a href="#" aria-label="Facebook" class="hover:text-rose-200 transition"><i class="fa-brands fa-facebook-f"></i></a>
+                        <a href="#" aria-label="X (Twitter)" class="hover:text-rose-200 transition"><i class="fa-brands fa-x-twitter"></i></a>
+                        <a href="#" aria-label="Instagram" class="hover:text-rose-200 transition"><i class="fa-brands fa-instagram"></i></a>
+                        <a href="#" aria-label="YouTube" class="hover:text-rose-200 transition"><i class="fa-brands fa-youtube"></i></a>
+                    </div>
+                    <span class="text-white/30 hidden sm:inline">|</span>
+                    <a href="index.html" class="border border-white/50 rounded-full px-4 py-1.5 flex items-center gap-2 hover:bg-white/10 hover:border-white transition text-xs font-medium">
+                        <i class="fa-solid fa-arrow-left"></i> Back to Publication
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Brand Banner Header -->
+        <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+            <a href="index.html" class="flex items-center gap-3 shrink-0 group">
+                <img src="images/logo.jpg" alt="The Lens Logo" class="w-12 h-12 md:w-14 md:h-14 object-cover rounded-full border-2 border-wine shadow-sm group-hover:scale-105 transition-transform duration-200">
+                <div>
+                    <h1 class="text-2xl md:text-3xl font-extrabold font-display text-wine tracking-tight group-hover:text-burgundy transition-colors">
+                        THE LENS
+                    </h1>
+                    <p class="text-[9px] md:text-[10px] tracking-[0.2em] font-bold text-wine/80 uppercase">
+                        Basta Lente, Abante!
+                    </p>
+                </div>
+            </a>
+
+            <div class="flex items-center gap-3 text-xs md:text-sm text-stone-600">
+                <span class="hidden sm:inline">Need editorial assistance?</span>
+                <a href="mailto:thelens@example.com" class="text-wine font-semibold hover:underline flex items-center gap-1.5">
+                    <i class="fa-regular fa-envelope"></i> Contact Adviser
+                </a>
+            </div>
+        </div>
+    </header>
+
+
+    <!-- ================= 2. MAIN LOGIN CONTAINER ================= -->
+    <main class="flex-1 flex items-center justify-center px-4 py-8 md:py-12">
+        <div class="max-w-5xl w-full bg-white rounded-2xl shadow-xl border border-stone-200/80 overflow-hidden grid grid-cols-1 lg:grid-cols-12 min-h-[580px]">
+            
+            <!-- LEFT PANEL: Publication Branding & Editorial Showcase -->
+            <div class="lg:col-span-5 bg-gradient-to-br from-burgundy via-wine to-[#380715] text-white p-8 md:p-10 flex flex-col justify-between relative overflow-hidden">
+                <!-- Background decorative elements -->
+                <div class="absolute -top-16 -right-16 w-52 h-52 rounded-full bg-white/5 blur-xl pointer-events-none"></div>
+                <div class="absolute -bottom-16 -left-16 w-52 h-52 rounded-full bg-rose-500/10 blur-xl pointer-events-none"></div>
+
+                <!-- Top of Left Panel -->
+                <div class="relative z-10">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-rose-200 text-xs font-semibold uppercase tracking-wider mb-6">
+                        <i class="fa-solid fa-feather-pointed"></i> Editorial Portal
+                    </div>
+
+                    <h2 class="font-display text-3xl md:text-4xl font-extrabold leading-tight tracking-tight text-white mb-4">
+                        Seeing stories clearly.
+                    </h2>
+                    
+                    <p class="text-rose-100/90 text-sm leading-relaxed mb-6">
+                        Welcome to the official member portal of <strong class="text-white font-semibold">The Lens</strong>. Sign in to submit articles, review draft queues, coordinate section coverage, and access publication assets.
+                    </p>
+
+                    <!-- Features List -->
+                    <div class="space-y-3.5 text-xs text-rose-100/90 border-t border-white/15 pt-5">
+                        <div class="flex items-start gap-3">
+                            <div class="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center shrink-0 text-rose-200 text-[11px] mt-0.5">
+                                <i class="fa-solid fa-pen-nib"></i>
+                            </div>
+                            <div>
+                                <span class="font-semibold text-white">Article Submission & Drafts</span>
+                                <p class="text-rose-200/70 text-[11px]">Submit news, features, opinions, and lit pieces.</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start gap-3">
+                            <div class="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center shrink-0 text-rose-200 text-[11px] mt-0.5">
+                                <i class="fa-solid fa-list-check"></i>
+                            </div>
+                            <div>
+                                <span class="font-semibold text-white">Editorial Review Queue</span>
+                                <p class="text-rose-200/70 text-[11px]">Section editors & copy editors review live drafts.</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start gap-3">
+                            <div class="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center shrink-0 text-rose-200 text-[11px] mt-0.5">
+                                <i class="fa-solid fa-camera-retro"></i>
+                            </div>
+                            <div>
+                                <span class="font-semibold text-white">Media & Photojournalism</span>
+                                <p class="text-rose-200/70 text-[11px]">Manage high-resolution photo archives and graphics.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bottom of Left Panel: Quote & Badge -->
+                <div class="relative z-10 mt-8 pt-6 border-t border-white/15">
+                    <p class="font-display italic text-xs text-rose-200">
+                        "Basta Lente, Abante! — Empowering the university community through fearless student journalism."
+                    </p>
+                    <div class="flex items-center gap-2 mt-3 text-[11px] text-rose-300 font-medium">
+                        <i class="fa-solid fa-shield-halved"></i> University Publication Authorized Access Only
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT PANEL: Sign-In Form -->
+            <div class="lg:col-span-7 p-8 md:p-12 flex flex-col justify-center bg-white">
+                <div class="max-w-md w-full mx-auto">
+                    
+                    <!-- Form Header -->
+                    <div class="mb-6">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="inline-block px-2.5 py-0.5 text-[11px] font-bold tracking-wider uppercase rounded-full bg-rose-50 text-wine border border-rose-200">
+                                Staff & Member Login
+                            </span>
+                            <span class="text-xs text-stone-400">
+                                Academic Year 2026–2027
+                            </span>
+                        </div>
+                        <h2 class="text-2xl md:text-3xl font-display font-extrabold text-stone-900 tracking-tight">
+                            Sign In to Portal
+                        </h2>
+                        <p class="text-sm text-stone-600 mt-1">
+                            Enter your registered Student Number and password to continue.
+                        </p>
+                    </div>
+
+                    <!-- Dynamic Alert Banner (Hidden by default, shown by JS) -->
+                    <div id="loginAlert" class="hidden mb-5 p-3.5 rounded-xl border text-sm flex items-start gap-3 transition-all" role="alert">
+                        <i id="loginAlertIcon" class="fa-solid fa-circle-exclamation text-red-500 mt-0.5 shrink-0"></i>
+                        <div class="flex-1 text-xs md:text-sm font-medium" id="loginAlertMessage">
+                            An error occurred.
+                        </div>
+                        <button type="button" id="closeAlertBtn" class="text-stone-400 hover:text-stone-600 text-xs ml-auto">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+
+                    <!-- Login Form -->
+                    <form id="loginForm" method="POST" action="/login" class="space-y-4">
+                        
+                        <!-- Student Number / ID -->
+                        <div>
+                            <label for="studentNumber" class="block text-xs font-bold uppercase tracking-wider text-stone-700 mb-1.5">
+                                Student Number / ID <span class="text-rose-600">*</span>
+                            </label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-stone-400 text-sm">
+                                    <i class="fa-regular fa-id-card"></i>
+                                </div>
+                                <input
+                                    type="text"
+                                    id="studentNumber"
+                                    name="student_number"
+                                    required
+                                    placeholder="e.g. 2024-00123"
+                                    autocomplete="username"
+                                    class="w-full pl-10 pr-4 py-2.5 bg-stone-50/50 border border-stone-300 rounded-xl text-sm text-stone-900 placeholder-stone-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-wine/20 focus:border-wine transition-all"
+                                >
+                            </div>
+                            <p class="text-[11px] text-stone-500 mt-1">
+                                Enter your university student number (e.g. 2024-00123) or editorial username.
+                            </p>
+                        </div>
+
+                        <!-- Password -->
+                        <div>
+                            <div class="flex justify-between items-center mb-1.5">
+                                <label for="password" class="block text-xs font-bold uppercase tracking-wider text-stone-700">
+                                    Password <span class="text-rose-600">*</span>
+                                </label>
+                                <a href="#" id="forgotPasswordLink" class="text-xs font-semibold text-wine hover:text-burgundy hover:underline transition">
+                                    Forgot password?
+                                </a>
+                            </div>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-stone-400 text-sm">
+                                    <i class="fa-solid fa-lock"></i>
+                                </div>
+                                <input
+                                    type="password"
+                                    id="password"
+                                    name="password"
+                                    required
+                                    placeholder="Enter your account password"
+                                    autocomplete="current-password"
+                                    class="w-full pl-10 pr-11 py-2.5 bg-stone-50/50 border border-stone-300 rounded-xl text-sm text-stone-900 placeholder-stone-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-wine/20 focus:border-wine transition-all"
+                                >
+                                <button
+                                    type="button"
+                                    id="togglePassword"
+                                    aria-label="Toggle password visibility"
+                                    class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-stone-400 hover:text-stone-700 transition"
+                                >
+                                    <i id="passwordEyeIcon" class="fa-regular fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Remember Me and Security Note -->
+                        <div class="flex items-center justify-between pt-1">
+                            <label class="flex items-center gap-2 cursor-pointer select-none">
+                                <input
+                                    type="checkbox"
+                                    id="rememberMe"
+                                    name="remember"
+                                    class="w-4 h-4 text-wine border-stone-300 rounded focus:ring-wine focus:ring-offset-0 transition accent-wine cursor-pointer"
+                                >
+                                <span class="text-xs text-stone-600 font-medium">Remember this device</span>
+                            </label>
+                            
+                            <span class="text-[11px] text-stone-400 flex items-center gap-1">
+                                <i class="fa-solid fa-lock text-[10px]"></i> 256-bit SSL Encrypted
+                            </span>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <button
+                            type="submit"
+                            id="loginSubmitBtn"
+                            class="w-full mt-2 py-3 px-5 bg-wine hover:bg-burgundy active:scale-[0.99] text-white font-bold rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 text-sm focus:outline-none focus:ring-2 focus:ring-wine/50"
+                        >
+                            <i id="loginSpinner" class="fa-solid fa-circle-notch fa-spin hidden"></i>
+                            <span id="loginBtnText">Sign In to Portal</span>
+                            <i class="fa-solid fa-arrow-right-to-bracket text-xs ml-1"></i>
+                        </button>
+                    </form>
+
+                    <!-- Fast Testing / Demo Credentials Accordion -->
+                    <div class="mt-6 pt-5 border-t border-stone-200">
+                        <details class="group rounded-xl bg-stone-50 border border-stone-200/80 p-3 text-xs">
+                            <summary class="font-bold text-stone-700 cursor-pointer list-none flex justify-between items-center select-none">
+                                <span class="flex items-center gap-2">
+                                    <i class="fa-solid fa-key text-wine"></i> Demo Test Accounts (Quick Access)
+                                </span>
+                                <i class="fa-solid fa-chevron-down text-stone-400 group-open:rotate-180 transition-transform"></i>
+                            </summary>
+                            
+                            <div class="mt-3 space-y-2 text-stone-600 pt-2 border-t border-stone-200/60">
+                                <p class="text-[11px]">Click any role below to pre-fill credentials for testing:</p>
+                                
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
+                                    <button
+                                        type="button"
+                                        class="demo-fill-btn text-left p-2 rounded-lg bg-white border border-stone-200 hover:border-wine hover:bg-rose-50/40 transition"
+                                        data-id="2024-00123"
+                                        data-password="password123"
+                                    >
+                                        <div class="font-bold text-wine text-[11px]">Editor-in-Chief</div>
+                                        <div class="text-[10px] text-stone-500 font-mono">ID: 2024-00123</div>
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        class="demo-fill-btn text-left p-2 rounded-lg bg-white border border-stone-200 hover:border-wine hover:bg-rose-50/40 transition"
+                                        data-id="2024-00456"
+                                        data-password="password123"
+                                    >
+                                        <div class="font-bold text-wine text-[11px]">Section Editor</div>
+                                        <div class="text-[10px] text-stone-500 font-mono">ID: 2024-00456</div>
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        class="demo-fill-btn text-left p-2 rounded-lg bg-white border border-stone-200 hover:border-wine hover:bg-rose-50/40 transition"
+                                        data-id="2024-00789"
+                                        data-password="password123"
+                                    >
+                                        <div class="font-bold text-wine text-[11px]">Staff Writer</div>
+                                        <div class="text-[10px] text-stone-500 font-mono">ID: 2024-00789</div>
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        class="demo-fill-btn text-left p-2 rounded-lg bg-white border border-stone-200 hover:border-wine hover:bg-rose-50/40 transition"
+                                        data-id="admin"
+                                        data-password="admin123"
+                                    >
+                                        <div class="font-bold text-wine text-[11px]">Administrator</div>
+                                        <div class="text-[10px] text-stone-500 font-mono">User: admin</div>
+                                    </button>
+                                </div>
+                            </div>
+                        </details>
+                    </div>
+
+                    <!-- Membership Support Notice -->
+                    <div class="mt-6 text-center text-xs text-stone-500">
+                        <p>
+                            Not yet a staff member? 
+                            <a href="index.html#feedback" class="text-wine font-semibold hover:underline">Inquire during recruitment</a> 
+                            or contact the <a href="mailto:thelens@example.com" class="text-wine font-semibold hover:underline">Editorial Board</a>.
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </main>
+
+
+    <!-- ================= 3. FORGOT PASSWORD MODAL ================= -->
+    <div id="forgotPasswordModal" class="hidden fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-sm items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border border-stone-200 relative animate-in fade-in zoom-in-95 duration-150">
+            
+            <button type="button" id="closeForgotModalBtn" class="absolute top-4 right-4 text-stone-400 hover:text-stone-700 p-1">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+
+            <div class="w-10 h-10 rounded-full bg-rose-100 text-wine flex items-center justify-center mb-3">
+                <i class="fa-solid fa-key text-base"></i>
+            </div>
+
+            <h3 class="text-xl font-display font-bold text-stone-900">
+                Reset Publication Password
+            </h3>
+            
+            <p class="text-xs text-stone-600 mt-1.5 leading-relaxed">
+                Enter your university student number or official publication email. Your editorial adviser or publication webmaster will verify your identity and generate a temporary reset credential.
+            </p>
+
+            <form id="forgotForm" class="mt-4 space-y-3">
+                <div>
+                    <label for="forgotStudentId" class="block text-xs font-bold uppercase tracking-wider text-stone-700 mb-1">
+                        Student Number or Email
+                    </label>
+                    <input
+                        type="text"
+                        id="forgotStudentId"
+                        required
+                        placeholder="e.g. 2024-00123 or member@thelens.edu"
+                        class="w-full px-3.5 py-2 text-sm border border-stone-300 rounded-xl focus:outline-none focus:border-wine focus:ring-1 focus:ring-wine"
+                    >
+                </div>
+
+                <div id="forgotStatusMsg" class="hidden p-3 rounded-lg bg-emerald-50 text-emerald-800 text-xs font-medium border border-emerald-200"></div>
+
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" id="cancelForgotBtn" class="px-4 py-2 text-xs font-semibold text-stone-600 hover:bg-stone-100 rounded-lg transition">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-4 py-2 text-xs font-bold text-white bg-wine hover:bg-burgundy rounded-lg transition">
+                        Request Reset
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- ================= 4. SITE FOOTER ================= -->
+    <footer class="site-footer mt-auto">
+        <div class="max-w-7xl mx-auto px-6 py-8 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-rose-100">
+            <div class="flex items-center gap-3">
+                <img src="images/logo.jpg" alt="The Lens Logo" class="w-8 h-8 rounded-full border border-white/30 object-cover">
+                <div>
+                    <span class="font-display font-bold text-white tracking-wide text-sm">THE LENS</span>
+                    <span class="text-white/40 mx-2">|</span>
+                    <span>Student Publication Member Portal</span>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-5 text-rose-200">
+                <a href="index.html" class="hover:text-white transition">Home</a>
+                <a href="archives.html" class="hover:text-white transition">Archives</a>
+                <a href="index.html#about" class="hover:text-white transition">About</a>
+                <a href="index.html#contact" class="hover:text-white transition">Contact</a>
+            </div>
+
+            <div>
+                <p>© <span id="copyrightYear">2026</span> The Lens. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Custom JavaScript for Login Logic -->
+    <script src="js/login.js"></script>
+</body>
+</html>
+

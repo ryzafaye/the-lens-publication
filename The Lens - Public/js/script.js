@@ -1055,6 +1055,46 @@ if (copyrightYear) {
 
 
 /* =========================================================
+   14B. ACTIVE MEMBER AUTH STATUS
+   Updates the "Login as Member" button when a user is signed in.
+   ========================================================= */
+
+try {
+    const rawUser = sessionStorage.getItem("thelens_active_user");
+    if (rawUser) {
+        const activeUser = JSON.parse(rawUser);
+        const loginBtn = document.getElementById("memberLoginBtn");
+        const mobileLoginBtn = document.getElementById("mobileMemberLoginBtn");
+
+        const loggedInHtml = `<span class="flex items-center gap-1.5"><i class="fa-solid fa-circle-user text-rose-300"></i> <span class="max-w-[140px] truncate">${activeUser.name}</span> <span class="opacity-75 text-[10px]">(${activeUser.role})</span></span> <button type="button" id="logoutActionBtn" title="Log out" class="ml-1.5 text-rose-200 hover:text-white transition"><i class="fa-solid fa-right-from-bracket"></i></button>`;
+
+        if (loginBtn) {
+            loginBtn.innerHTML = loggedInHtml;
+            loginBtn.removeAttribute("href");
+            loginBtn.classList.add("cursor-default");
+        }
+
+        if (mobileLoginBtn) {
+            mobileLoginBtn.innerHTML = loggedInHtml;
+            mobileLoginBtn.removeAttribute("href");
+        }
+
+        const logoutBtn = document.getElementById("logoutActionBtn");
+        if (logoutBtn) {
+            logoutBtn.addEventListener("click", (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                sessionStorage.removeItem("thelens_active_user");
+                window.location.reload();
+            });
+        }
+    }
+} catch (e) {
+    console.error("Auth status check:", e);
+}
+
+
+/* =========================================================
    15. INITIALIZE THE CURRENT PAGE
    Wrapped in a function so it can be re-run on seamless navigation.
    ========================================================= */

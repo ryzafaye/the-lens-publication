@@ -1,0 +1,74 @@
+/* Custom CSS for The Lens Category Pages */
+:root {
+    --wine: #700f2b;
+    --burgundy: #4a091b;
+}
+
+body {
+    background-color: #ffffff;
+    color: #1c1917;
+    font-family: 'DM Sans', sans-serif;
+}
+
+.font-display {
+    font-family: 'Playfair Display', serif;
+}
+
+/* Category Title with Left Vertical Line */
+.page-heading {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid #e7e5e4;
+    margin-bottom: 2rem;
+}
+
+.page-heading-line {
+    width: 4px;
+    height: 1.8rem;
+    background-color: var(--wine);
+    border-radius: 2px;
+}
+
+.page-heading h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: var(--burgundy);
+}
+
+/* Category Card */
+.article-card {
+    background: #ffffff;
+    border: 1px solid #e7e5e4;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    max-width: 24rem;
+    transition: all 0.2s ease-in-out;
+}
+
+.article-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* ================= SIDE MOBILE NAVIGATION DRAWER ================= */
+@media (max-width: 767px) {
+    #navigation {
+        position: fixed;
+        top: 0;
+        right: -100%; /* Hidden off-screen to the right */
+        width: 280px;
+        height: 100vh;
+        background-color: var(--wine);
+        z-index: 1000;
+        box-shadow: -5px 0 25px rgba(0, 0, 0, 0.3);
+        transition: right 0.3s ease-in-out;
+        overflow-y: auto;
+        padding-top: 5rem; /* Space for a close button if needed */
+    }
+
+    #navigation.mobile-open {
+        right: 0; /* Slides into view */
+    }
+}

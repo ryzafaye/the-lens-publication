@@ -963,6 +963,7 @@ document.querySelectorAll(".category-button").forEach(button => {
 
 const menuButton = document.getElementById("menuButton");
 const navigation = document.getElementById("navigation");
+const closeNavBtn = document.getElementById("closeNavBtn");
 
 if (menuButton && navigation) {
     menuButton.addEventListener("click", () => {
@@ -973,8 +974,16 @@ if (menuButton && navigation) {
         menuButton.setAttribute("aria-expanded", String(isOpen));
     });
 
+    // Close the menu when the close button is clicked.
+    if (closeNavBtn) {
+        closeNavBtn.addEventListener("click", () => {
+            navigation.classList.remove("mobile-open");
+            menuButton.setAttribute("aria-expanded", "false");
+        });
+    }
+
     // Close the menu when a navigation link is clicked.
-    navigation.querySelectorAll(".nav-link").forEach(link => {
+    navigation.querySelectorAll("a").forEach(link => {
         link.addEventListener("click", () => {
             navigation.classList.remove("mobile-open");
 
@@ -1107,4 +1116,5 @@ if (document.getElementById("archiveArticles")) {
 
         searchMessage.classList.remove("hidden");
     }
+
 }

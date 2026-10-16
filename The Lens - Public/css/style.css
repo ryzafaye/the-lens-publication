@@ -1152,3 +1152,24 @@ header h1 {
     border-radius: 8px;
     overflow: hidden;
 }
+
+/* ================= SIDE MOBILE NAVIGATION DRAWER ================= */
+@media (max-width: 767px) {
+    #navigation {
+        position: fixed;
+        top: 0;
+        right: -100%; /* Hidden off-screen to the right */
+        width: 280px;
+        height: 100vh;
+        background-color: var(--wine);
+        z-index: 1000;
+        box-shadow: -5px 0 25px rgba(0, 0, 0, 0.3);
+        transition: right 0.3s ease-in-out;
+        overflow-y: auto;
+        padding-top: 5rem; /* Space for a close button if needed */
+    }
+
+    #navigation.mobile-open {
+        right: 0; /* Slides into view */
+    }
+}

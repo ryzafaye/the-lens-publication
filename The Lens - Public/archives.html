@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Lens | Student Publication</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css">
+
+    <!-- Tailwind custom colors and fonts -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        wine: "#700f2b",
+                        burgundy: "#4a091b",
+                        darkbrown: "#4a091b"
+                    },
+                    fontFamily: {
+                        display: ['Playfair Display', 'serif'],
+                        body: ['DM Sans', 'sans-serif']
+                    }
+                }
+            }
+        };
+    </script>
+</head>
+
+<body class="bg-white text-stone-900 font-body">
+
+    <!-- ================= HEADER ================= -->
+    <header class="w-full font-body border-b border-stone-200 shadow-sm">
+
+        <!-- 1. Top Information Bar -->
+        <div class="bg-burgundy text-white py-2 px-6 border-b border-[#3a0715]">
+            <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2 text-xs font-medium tracking-wide">
+                <!-- Date and Publication -->
+                <div class="flex items-center gap-3">
+                    <span class="flex items-center gap-1.5">
+                        <i class="fa-regular fa-calendar"></i> 
+                        <span id="currentDate">Oct 15, 2026</span>
+                    </span>
+                    <span class="text-white/30">|</span>
+                    <span class="flex items-center gap-1.5">
+                        <i class="fa-regular fa-clock"></i> The Lens
+                    </span>
+                </div>
+
+                <!-- Socials and Login -->
+                <div class="flex items-center gap-4">
+                    <div class="flex gap-4 text-sm">
+                        <a href="#" aria-label="Facebook" class="hover:text-rose-200 transition"><i class="fa-brands fa-facebook-f"></i></a>
+                        <a href="#" aria-label="X (Twitter)" class="hover:text-rose-200 transition"><i class="fa-brands fa-x"></i></a>
+                        <a href="#" aria-label="Instagram" class="hover:text-rose-200 transition"><i class="fa-brands fa-instagram"></i></a>
+                        <a href="#" aria-label="YouTube" class="hover:text-rose-200 transition"><i class="fa-brands fa-youtube"></i></a>
+                    </div>
+                    <span class="text-white/30 hidden sm:inline">|</span>
+                    <a href="#" class="border border-white/50 rounded-full px-4 py-1.5 flex items-center gap-2 hover:bg-white/10 transition hidden sm:flex">
+                        <i class="fa-regular fa-user"></i> Login as Member
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Logo and Search Bar -->
+        <div class="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between gap-8">
+
+            <!-- Round Logo -->
+            <a href="#home" class="flex items-center gap-3 shrink-0">
+                <img src="images/logo.jpg" alt="The Lens Logo" class="w-14 h-14 object-cover rounded-full border-2 border-wine shadow-sm">
+                
+                <div>
+                    <h1 class="text-3xl md:text-4xl font-extrabold font-display text-wine tracking-tight">
+                        THE LENS
+                    </h1>
+                    <p class="text-[10px] tracking-[0.2em] font-bold text-wine/80 uppercase mt-0.5">
+                        Basta Lente, Abante!
+                    </p>
+                </div>
+            </a>
+
+            <!-- Search Bar with Automatic Sort & Filter Dropdown -->
+            <div class="flex-1 max-w-2xl hidden md:block relative">
+                <form id="searchForm" class="flex items-center border border-stone-300 rounded-full px-4 py-2 bg-stone-50/50 focus-within:border-wine focus-within:bg-white transition-all shadow-sm hover:shadow-md">
+                    <i class="fa-solid fa-magnifying-glass text-stone-400 text-sm"></i>
+                    <input
+                        type="search"
+                        id="searchInput"
+                        class="flex-1 border-none outline-none bg-transparent px-3 text-sm text-stone-700 placeholder-stone-400"
+                        placeholder="Search articles, topics, or keywords..."
+                        aria-label="Search articles"
+                    >
+                    <div class="h-5 w-[1px] bg-stone-300 mx-2"></div>
+                    <button type="button" id="sortFilterBtn" class="flex items-center gap-2 text-sm text-stone-600 hover:text-wine whitespace-nowrap font-medium px-1">
+                        <i class="fa-solid fa-sliders"></i> Sort & Filter <i class="fa-solid fa-chevron-down text-[10px] ml-1"></i>
+                    </button>
+                </form>
+
+                <!-- Automatic Sort & Filter Menu -->
+                <div id="filterDropdown" class="hidden absolute right-0 mt-2 w-72 bg-white rounded-xl shadow-xl border border-stone-200 p-4 z-50 text-sm text-stone-700">
+                    <div class="font-bold text-wine pb-2 border-b border-stone-100 flex justify-between items-center">
+                        <span>Sort & Filter Options</span>
+                        <button type="button" id="closeFilterBtn" class="text-stone-400 hover:text-stone-600 text-xs">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+
+                    <div class="mt-3 space-y-3">
+                        <div>
+                            <label for="sortSelect" class="block text-xs font-semibold text-stone-500 uppercase tracking-wider mb-1">Sort By</label>
+                            <select id="sortSelect" class="w-full bg-stone-50 border border-stone-200 rounded-lg px-3 py-2 text-stone-800 text-xs focus:outline-none focus:border-wine cursor-pointer">
+                                <option value="newest">Newest First</option>
+                                <option value="oldest">Oldest First</option>
+                                <option value="popular">Most Popular (Views)</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label for="categorySelect" class="block text-xs font-semibold text-stone-500 uppercase tracking-wider mb-1">Category</label>
+                            <select id="categorySelect" class="w-full bg-stone-50 border border-stone-200 rounded-lg px-3 py-2 text-stone-800 text-xs focus:outline-none focus:border-wine cursor-pointer">
+                                <option value="All">All Categories</option>
+                                <option value="News">News</option>
+                                <option value="Features">Features</option>
+                                <option value="Opinion">Opinion</option>
+                                <option value="Science and Technology">Science & Technology</option>
+                                <option value="Literature">Literature</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Links -->
+            <div class="hidden lg:flex items-center gap-5 text-sm font-medium text-stone-700 shrink-0">
+                <a href="#about" class="flex items-center gap-2 hover:text-wine transition"><i class="fa-regular fa-user"></i> About Us</a>
+                <span class="text-stone-300">|</span>
+                <a href="#contact" class="flex items-center gap-2 hover:text-wine transition"><i class="fa-regular fa-envelope"></i> Contact Us</a>
+            </div>
+
+            <!-- Mobile Navigation Button -->
+            <button id="menuButton" class="md:hidden text-wine text-2xl" aria-label="Toggle navigation">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+        </div>
+
+        <!-- 3. Primary Navigation Bar -->
+        <nav class="bg-wine" id="navigation">
+            <div class="max-w-7xl mx-auto px-6 overflow-x-auto">
+                <ul class="flex flex-col md:flex-row md:items-center gap-0 md:gap-8 text-sm font-bold tracking-wide">
+                    <li><a href="#home" class="block py-3.5 border-b-[3px] border-white text-white">Home</a></li>
+                    <li><a href="#latest" class="block py-3.5 border-b-[3px] border-transparent hover:border-white/50 text-white/90 hover:text-white transition">Latest</a></li>
+                    <li><a href="#news" class="block py-3.5 border-b-[3px] border-transparent hover:border-white/50 text-white/90 hover:text-white transition">News</a></li>
+                    <li><a href="#features" class="block py-3.5 border-b-[3px] border-transparent hover:border-white/50 text-white/90 hover:text-white transition">Features</a></li>
+                    <li><a href="#opinion" class="block py-3.5 border-b-[3px] border-transparent hover:border-white/50 text-white/90 hover:text-white transition">Opinion</a></li>
+                    <li><a href="#science" class="block py-3.5 border-b-[3px] border-transparent hover:border-white/50 text-white/90 hover:text-white transition">Science & Technology</a></li>
+                    <li><a href="#literature" class="block py-3.5 border-b-[3px] border-transparent hover:border-white/50 text-white/90 hover:text-white transition">Literature</a></li>
+                    <li><a href="archives.html" class="block py-3.5 border-b-[3px] border-transparent hover:border-white/50 text-white/90 hover:text-white transition">Archives</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+
+    <!-- MAIN ARCHIVES CONTENT -->
+    <main class="max-w-7xl mx-auto px-6 py-10">
+
+        <!-- Page introduction -->
+        <section class="mb-9">
+            <p class="text-xs tracking-widest text-wine font-bold mb-3">
+                THE LENS COLLECTION
+            </p>
+
+            <h2 class="font-display text-4xl md:text-5xl font-extrabold text-wine">
+                Article Archives
+            </h2>
+
+            <p class="mt-4 text-stone-600 max-w-2xl leading-relaxed">
+                Explore previously published stories from The Lens.
+                Browse by section or search for a particular topic, author, or article.
+            </p>
+        </section>
+
+        <!-- Search result message -->
+        <p id="searchMessage"
+           class="hidden mb-5 text-sm text-wine"
+           aria-live="polite"></p>
+
+        <!-- Category filter -->
+        <section class="border-t-2 border-wine pt-5">
+
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+
+                <h3 class="font-display text-2xl font-bold">
+                    Browse all stories
+                </h3>
+
+                <label class="flex items-center gap-3 text-sm">
+                    <span>Category:</span>
+
+                    <select id="archiveFilter" class="archive-select">
+                        <option value="All">All categories</option>
+                        <option value="News">News</option>
+                        <option value="Features">Features</option>
+                        <option value="Opinion">Opinion</option>
+                        <option value="Science and Technology">Science & Technology</option>
+                        <option value="Literature">Literature</option>
+                    </select>
+                </label>
+
+            </div>
+
+            <!-- JavaScript inserts the archived articles here -->
+            <div id="archiveArticles"
+                 class="grid grid-cols-1 md:grid-cols-2 gap-x-8">
+            </div>
+
+            <p id="archiveCount"
+               class="mt-6 text-xs text-stone-500"></p>
+
+        </section>
+
+        <!-- Return to homepage -->
+        <div class="mt-12">
+            <a href="index.html"
+               class="inline-block border border-wine px-5 py-3 text-wine text-sm font-bold rounded hover:bg-rose-50">
+                ← Back to Homepage
+            </a>
+        </div>
+
+    </main>
+
+
+    <!-- FOOTER -->
+    <footer class="site-footer mt-12">
+
+        <div class="max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-9">
+
+            <div>
+                <a href="index.html" class="flex items-center gap-3">
+                    <img src="images/logo.jpg" alt="The Lens Logo" class="footer-logo site-logo">
+
+                    <div>
+                        <h2 class="font-display text-2xl font-extrabold">
+                            THE LENS
+                        </h2>
+
+                        <p class="text-xs tracking-widest text-rose-200">
+                            SEEING STORIES CLEARLY
+                        </p>
+                    </div>
+                </a>
+
+                <p class="mt-5 text-sm text-rose-100 leading-relaxed">
+                    Stories from the campus, told with clarity, curiosity, and purpose.
+                </p>
+            </div>
+
+            <div>
+                <h3 class="footer-heading">Explore</h3>
+                <a href="index.html#news" class="footer-link">News</a>
+                <a href="index.html#features" class="footer-link">Features</a>
+                <a href="index.html#opinion" class="footer-link">Opinion</a>
+                <a href="index.html#science" class="footer-link">Science & Technology</a>
+                <a href="index.html#literature" class="footer-link">Literature</a>
+            </div>
+
+            <div>
+                <h3 class="footer-heading">For Readers</h3>
+                <a href="archives.html" class="footer-link">Article Archives</a>
+                <a href="index.html#feedback" class="footer-link">Send Feedback</a>
+                <a href="#" class="footer-link">Facebook</a>
+                <a href="#" class="footer-link">Instagram</a>
+            </div>
+
+            <div>
+                <h3 class="footer-heading">Contact Us</h3>
+                <a href="mailto:thelens@example.com" class="footer-link">
+                    thelens@example.com
+                </a>
+                <p class="text-sm text-rose-100 mt-3 leading-relaxed">
+                    Contact the editorial board for questions and concerns.
+                </p>
+            </div>
+
+        </div>
+
+        <div class="footer-bottom">
+            <div class="max-w-7xl mx-auto px-6 py-4 flex flex-col sm:flex-row justify-between gap-2">
+                <p>© <span id="copyrightYear"></span> The Lens. All rights reserved.</p>
+                <p>Student Journalism • Campus Community</p>
+            </div>
+        </div>
+
+    </footer>
+
+    <!-- Reuse your existing JavaScript file -->
+    <script src="js/script.js"></script>
+
+</body>
+</html>
+```

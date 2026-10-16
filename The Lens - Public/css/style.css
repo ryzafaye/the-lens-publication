@@ -1,0 +1,1154 @@
+/* =====================================================
+   THE LENS - CUSTOM STYLESHEET
+   HTML uses Tailwind CSS for basic layout and utilities.
+   This file handles the publication's custom appearance.
+   ===================================================== */
+
+/* 1. THEME COLORS
+   Change these values to update the colors across the site. */
+:root {
+    --wine: #571525;
+    --burgundy: #741b31;
+    --dark-wine: #48101f;
+    --brown: #592014;
+    --text: #21191b;
+    --muted: #776b6d;
+    --light-pink: #f8f0f2;
+    --border: #ded4d5;
+
+    --heading-font: "Playfair Display", Georgia, serif;
+    --body-font: "DM Sans", Arial, sans-serif;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 20px;
+}
+
+body {
+    margin: 0;
+    color: var(--text);
+    font-family: var(--body-font);
+    background: #fff;
+}
+
+button,
+input,
+textarea,
+select {
+    font: inherit;
+}
+
+button {
+    cursor: pointer;
+}
+
+a {
+    text-decoration: none;
+}
+
+/* 2. HEADER AND LOGO */
+
+.top-bar {
+    border-bottom: 1px solid #eee7e7;
+    color: var(--wine);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 2px;
+}
+
+.logo-circle,
+.footer-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 55px;
+    height: 55px;
+    flex-shrink: 0;
+    border: 2px solid var(--wine);
+    border-radius: 50%;
+    color: var(--wine);
+    font-family: var(--heading-font);
+    font-size: 34px;
+    font-weight: 800;
+}
+
+/* Official logo image */
+.site-logo {
+    width: 55px;
+    height: 55px;
+    object-fit: contain;
+    display: block;
+    flex-shrink: 0;
+}
+
+
+/* Navigation bar */
+
+.navigation {
+    border-top: 1px solid var(--border);
+    border-bottom: 3px solid var(--wine);
+}
+
+.nav-link {
+    display: inline-block;
+    padding: 16px 0 13px;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -3px;
+    color: #44383a;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+    transition: color 0.2s, border-color 0.2s;
+}
+
+.nav-link:hover,
+.nav-link.active {
+    color: var(--wine);
+    border-bottom-color: var(--wine);
+}
+
+.search-button {
+    padding: 10px 0;
+    border: none;
+    background: transparent;
+    color: var(--wine);
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.search-input {
+    min-width: 0;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    outline-color: var(--burgundy);
+}
+
+/* 3. BUTTONS */
+
+.main-button {
+    padding: 11px 17px;
+    border: 1px solid var(--wine);
+    border-radius: 4px;
+    background: var(--wine);
+    color: white;
+    font-size: 12px;
+    font-weight: 700;
+    transition: background 0.2s;
+}
+
+.main-button:hover {
+    background: var(--burgundy);
+}
+
+.secondary-button {
+    padding: 10px 15px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: white;
+    color: var(--wine);
+    font-size: 12px;
+}
+
+/* 4. SECTION HEADINGS */
+
+.section-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    margin-bottom: 17px;
+}
+
+.section-heading h2 {
+    margin: 0;
+    padding-left: 10px;
+    border-left: 4px solid var(--wine);
+    font-family: var(--heading-font);
+    font-size: 23px;
+    font-weight: 800;
+    line-height: 1.3;
+}
+
+.section-label {
+    padding-top: 10px;
+    border-top: 2px solid var(--text);
+    color: var(--wine);
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: 2px;
+}
+
+/* 5. ARTICLE IMAGE PLACEHOLDERS
+   Add real images through the image property in script.js.
+   Until then, the title appears over a burgundy background. */
+
+.article-image {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    width: 100%;
+    background: var(--wine);
+    color: white;
+    border-radius: 3px;
+}
+
+.article-image img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.image-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    padding: 20px;
+    background: var(--image-color, var(--wine));
+    color: #f4dfe4;
+    font-family: var(--heading-font);
+    font-size: 22px;
+    font-weight: 700;
+    text-align: center;
+}
+
+.featured-image {
+    aspect-ratio: 1.78 / 1;
+}
+
+.featured-image .image-placeholder {
+    font-size: clamp(24px, 3vw, 36px);
+}
+
+.latest-image {
+    aspect-ratio: 1 / 0.9;
+    cursor: pointer;
+}
+
+.latest-image .image-placeholder {
+    padding: 8px;
+    font-size: 12px;
+}
+
+.story-card-image {
+    aspect-ratio: 1.8 / 1;
+    cursor: pointer;
+}
+
+.story-card-image .image-placeholder {
+    justify-content: flex-end;
+    align-items: flex-end;
+    padding: 12px;
+    font-size: 13px;
+    text-align: left;
+}
+
+.small-image {
+    aspect-ratio: 1 / 1;
+    cursor: pointer;
+}
+
+.small-image .image-placeholder {
+    padding: 6px;
+    font-size: 10px;
+}
+
+/* 6. FEATURED ARTICLE */
+
+.article-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin: 15px 0 10px;
+    color: var(--muted);
+    font-size: 9px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.article-meta .category-name {
+    color: var(--wine);
+    font-weight: 800;
+}
+
+.featured-title {
+    margin: 0 0 12px;
+    color: var(--wine);
+    font-family: var(--heading-font);
+    font-size: clamp(31px, 4vw, 47px);
+    font-weight: 800;
+    line-height: 1.06;
+    letter-spacing: -1px;
+}
+
+.article-title-button {
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+}
+
+.article-title-button:hover {
+    color: var(--burgundy);
+}
+
+.featured-divider {
+    height: 4px;
+    margin-bottom: 14px;
+    background: var(--wine);
+}
+
+.featured-excerpt {
+    margin: 0;
+    color: #62585a;
+    font-family: var(--heading-font);
+    font-size: 15px;
+    line-height: 1.65;
+}
+
+.article-byline {
+    margin-top: 15px;
+    font-size: 9px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.article-byline strong {
+    color: var(--wine);
+}
+
+/* 7. LATEST RELEASES SIDEBAR */
+
+.latest-item {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 88px;
+    align-items: center;
+    gap: 14px;
+}
+
+.latest-category {
+    margin: 0;
+    color: var(--wine);
+    font-size: 8px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.latest-title {
+    margin: 7px 0 6px;
+    font-family: var(--heading-font);
+    font-size: 15px;
+    font-weight: 800;
+    line-height: 1.2;
+}
+
+.latest-views {
+    margin: 0;
+    color: var(--muted);
+    font-size: 10px;
+}
+
+/* 8. MORE STORIES CARDS */
+
+.story-card {
+    min-width: 0;
+}
+
+.story-card-title {
+    margin: 0 0 7px;
+    font-family: var(--heading-font);
+    font-size: 17px;
+    font-weight: 800;
+    line-height: 1.25;
+}
+
+.story-card-category {
+    margin: 9px 0 7px;
+    color: var(--wine);
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.story-card-excerpt {
+    margin: 0;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.65;
+}
+
+/* 9. CATEGORY SECTIONS */
+
+.category-section {
+    margin-top: 48px;
+}
+
+.category-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.category-card {
+    display: grid;
+    grid-template-columns: 85px minmax(0, 1fr);
+    align-items: start;
+    gap: 13px;
+}
+
+.category-card h3 {
+    margin: 5px 0;
+    font-family: var(--heading-font);
+    font-size: 15px;
+    font-weight: 800;
+    line-height: 1.3;
+}
+
+.category-card p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+.category-button {
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--wine);
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.category-button:hover {
+    text-decoration: underline;
+}
+
+/* 10. ARTICLE ARCHIVES */
+
+.archive-select {
+    padding: 9px 12px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: white;
+    color: var(--text);
+    font-size: 11px;
+}
+
+.archive-item {
+    display: grid;
+    grid-template-columns: 90px minmax(0, 1fr);
+    gap: 14px;
+    padding: 15px 0;
+    border-bottom: 1px solid #eee7e7;
+}
+
+.archive-image {
+    aspect-ratio: 1 / 1;
+}
+
+.archive-item h3 {
+    margin: 5px 0;
+    font-family: var(--heading-font);
+    font-size: 15px;
+    line-height: 1.3;
+}
+
+.archive-item p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+/* 11. READER FEEDBACK FORM */
+
+.feedback-section {
+    display: grid;
+    grid-template-columns: 0.9fr 1.1fr;
+    gap: 45px;
+    padding: 32px;
+    border-top: 3px solid var(--wine);
+    background: var(--light-pink);
+}
+
+.form-label {
+    display: block;
+    margin-top: 5px;
+    color: #44383a;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.form-input {
+    display: block;
+    width: 100%;
+    padding: 11px;
+    border: 1px solid #d8c8cc;
+    border-radius: 3px;
+    background: white;
+    font-size: 12px;
+    outline-color: var(--burgundy);
+}
+
+textarea.form-input {
+    resize: vertical;
+}
+
+/* 12. FOOTER */
+
+.site-footer {
+    background: #271c1f;
+    color: #fff8f7;
+}
+
+.footer-logo {
+    width: 45px;
+    height: 45px;
+    font-size: 28px;
+    color: white;
+    border-color: white;
+}
+
+.footer-heading {
+    margin-bottom: 12px;
+    font-family: var(--heading-font);
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.footer-link {
+    display: block;
+    margin-bottom: 10px;
+    color: #d3c4c7;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.footer-link:hover {
+    color: white;
+    text-decoration: underline;
+}
+
+.footer-bottom {
+    border-top: 1px solid #4b3b3f;
+    color: #c8b7bb;
+    font-size: 10px;
+}
+
+/* 13. ARTICLE DETAIL MODAL */
+
+.article-modal {
+    width: min(760px, calc(100% - 30px));
+    max-height: 88vh;
+    overflow-y: auto;
+    padding: 28px;
+    border: none;
+    border-radius: 6px;
+    color: var(--text);
+    box-shadow: 0 20px 70px #0004;
+}
+
+.article-modal::backdrop {
+    background: #1b1014b8;
+}
+
+.close-modal {
+    position: sticky;
+    top: 0;
+    float: right;
+    border: none;
+    background: white;
+    color: var(--wine);
+    font-size: 30px;
+    line-height: 1;
+}
+
+.modal-image {
+    aspect-ratio: 1.8 / 1;
+    margin: 10px 0 20px;
+}
+
+.modal-title {
+    margin: 0 0 12px;
+    color: var(--wine);
+    font-family: var(--heading-font);
+    font-size: clamp(27px, 5vw, 40px);
+    font-weight: 800;
+    line-height: 1.15;
+}
+
+.modal-body {
+    color: #514649;
+    font-size: 14px;
+    line-height: 1.85;
+}
+
+.share-button {
+    display: inline-block;
+    margin: 15px 5px 0 0;
+    padding: 9px 12px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: white;
+    color: var(--wine);
+    font-size: 11px;
+    font-weight: 700;
+}
+
+/* 14. RESPONSIVE DESIGN
+   These rules make the page fit tablets and mobile phones. */
+
+@media (max-width: 900px) {
+    .category-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .latest-item {
+        grid-template-columns: minmax(0, 1fr) 75px;
+    }
+
+    .featured-title {
+        font-size: clamp(30px, 5vw, 42px);
+    }
+}
+
+@media (max-width: 767px) {
+    .navigation > div {
+        display: none;
+        padding-top: 8px;
+        padding-bottom: 8px;
+    }
+
+    .navigation.mobile-open > div {
+        display: flex;
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .nav-link {
+        padding: 12px 0;
+        border-bottom: 1px solid #eee7e7;
+        margin: 0;
+        font-size: 12px;
+    }
+
+    .search-button {
+        text-align: left;
+    }
+
+    .featured-title {
+        font-size: clamp(30px, 8vw, 40px);
+    }
+
+    .category-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .category-card {
+        grid-template-columns: 80px minmax(0, 1fr);
+    }
+
+    .feedback-section {
+        grid-template-columns: 1fr;
+        gap: 25px;
+        padding: 22px;
+    }
+
+    .section-heading {
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .archive-select {
+        max-width: 100%;
+    }
+
+    .article-modal {
+        padding: 20px;
+    }
+}
+
+@media (max-width: 420px) {
+    .logo-circle {
+        width: 43px;
+        height: 43px;
+        font-size: 27px;
+    }
+
+    .archive-item {
+        grid-template-columns: 72px minmax(0, 1fr);
+    }
+}
+
+
+
+/* =====================================================
+   THE LENS — MAROON & WHITE THEME
+   Add this at the VERY BOTTOM of css/style.css
+   ===================================================== */
+
+/* 1. GLOBAL COLORS */
+:root {
+    --maroon: #700f2b;
+    --maroon-dark: #4a091b;
+    --maroon-light: #8d1b3d;
+    --maroon-pale: #f8edf0;
+    --white: #ffffff;
+    --off-white: #fcfafb;
+    --text-dark: #292126;
+    --text-muted: #756a70;
+    --border-color: #e6d8dd;
+}
+
+/* Global page appearance */
+body {
+    background-color: var(--white);
+    color: var(--text-dark);
+    font-family: 'DM Sans', Arial, sans-serif;
+    line-height: 1.6;
+}
+
+/* Headings: strong newspaper typography */
+h1,
+h2,
+h3,
+h4,
+.featured-title,
+.latest-title,
+.story-card-title {
+    color: var(--maroon);
+    font-family: 'Playfair Display', Georgia, serif;
+    font-weight: 1000;
+    line-height: 1.25;
+}
+
+/* Main publication title */
+header h1 {
+    color: var(--maroon);
+    font-weight: 800;
+    letter-spacing: -1px;
+}
+
+/* 2. TOP HEADER */
+.top-bar {
+    background-color: var(--maroon-dark);
+    color: var(--white);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+}
+
+/* Main logo image */
+.site-logo {
+    width: 55px;
+    height: 55px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+/* 3. NAVIGATION BAR */
+.navigation {
+    background-color: var(--maroon);
+    border-top: 1px solid var(--maroon-light);
+    border-bottom: 3px solid var(--maroon-dark);
+}
+
+.nav-link {
+    display: inline-flex;
+    align-items: center;
+    padding: 15px 0;
+    color: var(--white);
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    text-decoration: none;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.nav-link:hover,
+.nav-link.active {
+    color: var(--white);
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 7px;
+}
+
+/* Search button in the navigation */
+.search-button {
+    padding: 8px 14px;
+    color: var(--maroon);
+    background-color: var(--white);
+    border: 1px solid var(--white);
+    border-radius: 3px;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.search-button:hover {
+    background-color: var(--maroon-pale);
+}
+
+/* =====================================================
+   SECTION HEADINGS & ALIGNMENT FIX
+   ===================================================== */
+.section-heading {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    width: 100%;
+    margin-bottom: 20px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--border-color, #e6d8dd);
+}
+
+/* Remove any unwanted pseudo-elements breaking flex space-between */
+.section-heading::after,
+.section-heading::before {
+    display: none !important;
+    content: none !important;
+}
+
+.section-heading h2 {
+    margin: 0;
+    padding-left: 12px;
+    border-left: 4px solid #700f2b;
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 26px;
+    font-weight: 800;
+    color: #700f2b;
+}
+
+.section-heading a,
+.category-button {
+    margin-left: auto; /* Pushes button firmly to the far right */
+    color: #700f2b;
+    font-weight: 700;
+    font-size: 13px;
+    text-decoration: none;
+    transition: opacity 0.2s;
+}
+
+.section-heading a:hover,
+.category-button:hover {
+    opacity: 0.8;
+    text-decoration: underline;
+}
+
+
+/* 5. ARTICLE CATEGORY LABELS */
+.latest-category,
+.story-card-category,
+.category-name {
+    color: #700f2b !important; /* Force maroon color */
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+}
+
+
+
+/* Featured article headline */
+.featured-title {
+    margin-top: 12px;
+    font-size: clamp(28px, 4vw, 44px);
+    font-weight: 1000;
+    line-height: 1.15;
+}
+
+/* Article title buttons should look like headlines */
+.article-title-button {
+    color: black;
+    background: transparent;
+    border: 0;
+    padding: 0;
+    text-align: left;
+    font: inherit;
+    font-weight: 800;
+    line-height: inherit;
+    cursor: pointer;
+}
+
+.article-title-button:hover {
+    color: var(--maroon-light);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+}
+
+.latest-title {
+    font-size: 18px;
+    font-weight: 800;
+}
+
+.story-card-title {
+    font-size: 21px;
+    font-weight: 800;
+}
+
+.article-byline {
+    color: var(--text-muted);
+    font-size: 12px;
+}
+
+.article-byline strong {
+    color: var(--maroon);
+    font-weight: 800;
+}
+
+/* 6. ARTICLE IMAGES */
+.article-image {
+    position: relative;
+    overflow: hidden;
+    background-color: var(--maroon-pale);
+}
+
+.article-image img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.article-clickable:hover .article-image img {
+    transform: scale(1.03);
+}
+
+.image-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 150px;
+    padding: 20px;
+    background-color: var(--maroon);
+    color: var(--white);
+    font-weight: 800;
+    text-align: center;
+}
+
+/* 7. ARTICLE CARDS */
+.latest-item,
+.archive-item,
+.category-card,
+.story-card {
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 20px;
+    margin-bottom: 20px;
+}
+
+.latest-item h3,
+.archive-item h3,
+.category-card h3 {
+    margin: 8px 0;
+    color: var(--maroon);
+    font-weight: 800;
+}
+
+.latest-item p,
+.archive-item p,
+.category-card p,
+.story-card-excerpt {
+    color: var(--text-muted);
+    font-size: 14px;
+}
+
+.latest-views {
+    font-size: 11px !important;
+    font-weight: 800;
+}
+
+/* 8. BUTTONS AND FILTERS */
+.main-button {
+    padding: 10px 18px;
+    background-color: var(--maroon);
+    color: var(--white);
+    border: 1px solid var(--maroon);
+    border-radius: 3px;
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.main-button:hover {
+    background-color: var(--maroon-dark);
+}
+
+.secondary-button {
+    padding: 10px 18px;
+    color: var(--maroon);
+    background-color: var(--white);
+    border: 1px solid var(--maroon);
+    border-radius: 3px;
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.archive-select,
+.search-input {
+    padding: 10px 12px;
+    background-color: var(--white);
+    border: 1px solid var(--border-color);
+    border-radius: 3px;
+    color: var(--text-dark);
+    font-size: 13px;
+}
+
+.archive-select:focus,
+.search-input:focus {
+    outline: 2px solid var(--maroon);
+    outline-offset: 2px;
+}
+
+/* 9. FOOTER */
+.site-footer {
+    background-color: var(--maroon-dark);
+    color: var(--white);
+}
+
+.site-footer h2,
+.site-footer h3,
+.footer-heading {
+    color: var(--white);
+    font-weight: 800;
+}
+
+.footer-heading {
+    margin-bottom: 15px;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.footer-link {
+    display: block;
+    margin-bottom: 9px;
+    color: #f7e8ed;
+    font-size: 13px;
+    text-decoration: none;
+}
+
+.footer-link:hover {
+    color: var(--white);
+    text-decoration: underline;
+}
+
+.footer-bottom {
+    background-color: #350614;
+    color: #f7e8ed;
+    font-size: 11px;
+}
+
+/* Footer logo */
+.footer-logo.site-logo {
+    border: none;
+    border-radius: 0;
+    object-fit: contain;
+}
+
+/* 10. SEARCH PANEL */
+#searchContainer {
+    background-color: var(--maroon-pale);
+    border-bottom: 1px solid var(--border-color);
+}
+
+/* 11. MOBILE RESPONSIVENESS */
+@media (max-width: 767px) {
+    .navigation {
+        display: none;
+    }
+
+    .navigation.mobile-open {
+        display: block;
+    }
+
+    .nav-link {
+        display: flex;
+        padding: 12px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .section-heading h2 {
+        font-size: 24px;
+    }
+
+    .featured-title {
+        font-size: 30px;
+    }
+
+    .site-logo {
+        width: 45px;
+        height: 45px;
+    }
+}
+
+
+
+/* =====================================================
+   CARD CONTAINERS & PARTITIONS
+   ===================================================== */
+
+/* More Stories Grid Cards */
+.story-card {
+    background: #ffffff;
+    border: 1px solid #e2d8dc;
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.story-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(112, 15, 43, 0.08);
+    border-color: #700f2b;
+}
+
+/* Category Section Grid Cards */
+.category-card {
+    background: #fdfbfc;
+    border: 1px solid #e8dedf;
+    border-radius: 10px;
+    padding: 14px;
+    display: grid;
+    grid-template-columns: 85px 1fr;
+    gap: 14px;
+    align-items: center;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.category-card:hover {
+    background: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(112, 15, 43, 0.07);
+    border-color: #8d1b3d;
+}
+
+.category-card .article-image {
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.story-card-image {
+    border-radius: 8px;
+    overflow: hidden;
+}

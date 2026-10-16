@@ -1056,65 +1056,151 @@ if (copyrightYear) {
 
 /* =========================================================
    15. INITIALIZE THE CURRENT PAGE
-   Only render sections that exist on the current page.
+   Wrapped in a function so it can be re-run on seamless navigation.
    ========================================================= */
 
-// Homepage sections.
-if (document.getElementById("featuredArticle")) {
-    displayFeaturedArticle();
+function initLensPage() {
+    // Render Homepage Sections
+    if (document.getElementById("featuredArticle")) displayFeaturedArticle();
+    if (document.getElementById("latestArticles")) displayLatestArticles();
+    if (document.getElementById("moreArticles")) displayMoreArticles();
+
+    // Render Category Sections
+    displayCategory("News", "newsArticles");
+    displayCategory("Features", "featuresArticles");
+    displayCategory("Opinion", "opinionArticles");
+    displayCategory("Science and Technology", "scienceArticles");
+    displayCategory("Literature", "literatureArticles");
+
+    // Render Archive Page
+    if (document.getElementById("archiveArticles")) {
+        const urlParameters = new URLSearchParams(window.location.search);
+        const initialCategory = urlParameters.get("category") || "All";
+        const initialQuery = urlParameters.get("q") || "";
+
+        const categorySelect = document.getElementById("archiveFilter");
+        if (categorySelect) {
+            const validOption = Array.from(categorySelect.options)
+                .some(option => option.value === initialCategory);
+            categorySelect.value = validOption ? initialCategory : "All";
+        }
+
+        const searchInputBox = document.getElementById("searchInput");
+        if (searchInputBox && initialQuery) {
+            searchInputBox.value = initialQuery;
+        }
+
+        const count = displayArchives(
+            categorySelect ? categorySelect.value : "All",
+            initialQuery
+        );
+
+        const searchMessage = document.getElementById("searchMessage");
+        if (searchMessage && initialQuery) {
+            searchMessage.textContent = `${count} article(s) found for "${initialQuery}".`;
+            searchMessage.classList.remove("hidden");
+        }
+    }
 }
 
-if (document.getElementById("latestArticles")) {
-    displayLatestArticles();
+// Run this once when the script first loads
+initLensPage();
+
+
+/* =========================================================
+   16. SEAMLESS PAGE NAVIGATION & ACTIVE LINKS
+   Loads pages without full browser reloads and syncs the nav.
+   ========================================================= */
+
+// Function to highlight the correct navigation link
+function updateActiveNavLink() {
+    // Get the current page from the URL
+    let page = window.location.pathname.split("/").pop();
+    
+    // Default to index.html if on the root path
+    if (!page || page === "" || page === "/") {
+        page = "index.html";
+    }
+
+    // Find all links in the navigation
+    document.querySelectorAll('#navigation a').forEach(link => {
+        const href = link.getAttribute('href');
+        
+        // Check if the link matches the current page
+        if (href === page || (href === '#home' && page === 'index.html')) {
+            // Make Active (White border, white text)
+            link.classList.add('active', 'border-white', 'text-white');
+            link.classList.remove('border-transparent', 'text-white/90');
+        } else {
+            // Make Inactive (Transparent border, slightly faded text)
+            link.classList.remove('active', 'border-white', 'text-white');
+            link.classList.add('border-transparent', 'text-white/90');
+        }
+    });
 }
 
-if (document.getElementById("moreArticles")) {
-    displayMoreArticles();
-}
+// Intercept all clicks on the document
+document.addEventListener('click', async (e) => {
+    const link = e.target.closest('a');
+    if (!link) return;
 
-displayCategory("News", "newsArticles");
-displayCategory("Features", "featuresArticles");
-displayCategory("Opinion", "opinionArticles");
-displayCategory("Science and Technology", "scienceArticles");
-displayCategory("Literature", "literatureArticles");
+    const href = link.getAttribute('href');
 
-
-// Archive page: render articles and read URL parameters.
-if (document.getElementById("archiveArticles")) {
-    const urlParameters = new URLSearchParams(location.search);
-
-    const initialCategory = urlParameters.get("category") || "All";
-    const initialQuery = urlParameters.get("q") || "";
-
-    // Apply the category dropdown value from the URL.
-    const categorySelect = document.getElementById("archiveFilter");
-
-    if (categorySelect) {
-        const validOption = Array.from(categorySelect.options)
-            .some(option => option.value === initialCategory);
-
-        categorySelect.value = validOption ? initialCategory : "All";
+    // Ignore external links, mailto, anchor tags, or new tabs
+    if (!href || href.startsWith('http') || href.startsWith('mailto') || href.startsWith('#') || link.target === '_blank') {
+        return; 
     }
 
-    // Fill the search input from the URL.
-    if (searchInput && initialQuery) {
-        searchInput.value = initialQuery;
+    // Prevent default reload
+    e.preventDefault();
+
+    // Close mobile menu if it is open
+    const nav = document.getElementById('navigation');
+    if (nav && nav.classList.contains('mobile-open')) {
+        nav.classList.remove('mobile-open');
     }
 
-    // Display filtered articles.
-    const count = displayArchives(
-        categorySelect ? categorySelect.value : "All",
-        initialQuery
-    );
+    // Update URL bar
+    window.history.pushState({}, '', href);
 
-    // Display search feedback if a query was supplied.
-    const searchMessage = document.getElementById("searchMessage");
+    // Fetch and swap content
+    await loadPageWithoutReload(href);
+});
 
-    if (searchMessage && initialQuery) {
-        searchMessage.textContent =
-            `${count} article(s) found for "${initialQuery}".`;
+// Listen for browser Back/Forward buttons
+window.addEventListener('popstate', async () => {
+    await loadPageWithoutReload(window.location.pathname + window.location.search);
+});
 
-        searchMessage.classList.remove("hidden");
+// Fetch and swap the <main> content
+async function loadPageWithoutReload(url) {
+    try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('Page not found');
+        const htmlText = await response.text();
+
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(htmlText, 'text/html');
+
+        const newMain = doc.querySelector('main');
+        if (newMain) {
+            const currentMain = document.querySelector('main');
+            
+            // Swap the HTML content
+            currentMain.innerHTML = newMain.innerHTML;
+            currentMain.id = newMain.id;
+            currentMain.className = newMain.className;
+
+            // Update title and reset view
+            if (doc.title) document.title = doc.title;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            // RUN THE UPDATES
+            updateActiveNavLink(); // Move the white underline
+            initLensPage();        // Render the new articles
+        }
+    } catch (error) {
+        console.error('Seamless load failed:', error);
+        window.location.href = url; // Fallback to normal navigation
     }
-
 }

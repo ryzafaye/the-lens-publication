@@ -3,129 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Opinion | The Lens</title>
+    <title>The Lens Publication</title>
+
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Custom CSS -->
     <link rel="stylesheet" href="css/style.css">
+
+    <!-- Tailwind custom colors and fonts -->
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    colors: { wine: "#700f2b", burgundy: "#4a091b" },
-                    fontFamily: { display: ['Playfair Display', 'serif'], body: ['DM Sans', 'sans-serif'] }
+                    colors: {
+                        wine: "#700f2b",
+                        burgundy: "#4a091b",
+                        darkbrown: "#4a091b"
+                    },
+                    fontFamily: {
+                        display: ['Playfair Display', 'serif'],
+                        body: ['DM Sans', 'sans-serif']
+                    }
                 }
             }
         };
     </script>
 </head>
+
 <body class="bg-white text-stone-900 font-body">
 
-    <header class="w-full font-body border-b border-stone-200 shadow-sm relative">
-        <div class="bg-burgundy text-white py-2 px-6 border-b border-[#3a0715]">
-            <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2 text-xs font-medium tracking-wide">
-                <div class="flex items-center gap-3">
-                    <span class="flex items-center gap-1.5"><i class="fa-regular fa-calendar"></i> <span id="currentDate">Oct 16, 2026</span></span>
-                    <span class="text-white/30">|</span>
-                    <span class="flex items-center gap-1.5"><i class="fa-regular fa-clock"></i> The Lens</span>
-                </div>
-                <div class="flex items-center gap-4">
-                    <div class="flex gap-4 text-sm">
-                        <a href="#" class="hover:text-rose-200 transition"><i class="fa-brands fa-facebook-f"></i></a>
-                        <a href="#" class="hover:text-rose-200 transition"><i class="fa-brands fa-x-twitter"></i></a>
-                        <a href="#" class="hover:text-rose-200 transition"><i class="fa-brands fa-instagram"></i></a>
-                        <a href="#" class="hover:text-rose-200 transition"><i class="fa-brands fa-youtube"></i></a>
-                    </div>
-                    <span class="text-white/30 hidden sm:inline">|</span>
-                    <a href="#" class="border border-white/50 rounded-full px-4 py-1.5 flex items-center gap-2 hover:bg-white/10 transition hidden sm:flex">
-                        <i class="fa-regular fa-user"></i> Login as Member
-                    </a>
-                </div>
-            </div>
-        </div>
+    <!-- ================= DYNAMIC HEADER CONTAINER ================= -->
+    <header id="header-container" class="w-full font-body border-b border-stone-200 shadow-sm"></header>
 
-        <div class="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between gap-8">
-            <a href="index.html" class="flex items-center gap-3 shrink-0">
-                <img src="images/logo.jpg" alt="The Lens Logo" class="w-14 h-14 object-cover rounded-full border-2 border-wine shadow-sm">
-                <div>
-                    <h1 class="text-3xl md:text-4xl font-extrabold font-display text-wine tracking-tight">THE LENS</h1>
-                    <p class="text-[10px] tracking-[0.2em] font-bold text-wine/80 uppercase mt-0.5">Basta Lente, Abante!</p>
-                </div>
-            </a>
-
-            <div class="flex-1 max-w-2xl hidden md:block relative">
-                <form id="searchForm" class="flex items-center border border-stone-300 rounded-full px-4 py-2 bg-stone-50/50 focus-within:border-wine focus-within:bg-white transition-all shadow-sm hover:shadow-md">
-                    <i class="fa-solid fa-magnifying-glass text-stone-400 text-sm"></i>
-                    <input type="search" id="searchInput" class="flex-1 border-none outline-none bg-transparent px-3 text-sm text-stone-700 placeholder-stone-400" placeholder="Search articles, topics, or keywords...">
-                    <div class="h-5 w-[1px] bg-stone-300 mx-2"></div>
-                    <button type="button" id="sortFilterBtn" class="flex items-center gap-2 text-sm text-stone-600 hover:text-wine whitespace-nowrap font-medium px-1">
-                        <i class="fa-solid fa-sliders"></i> Sort & Filter <i class="fa-solid fa-chevron-down text-[10px] ml-1"></i>
-                    </button>
-                </form>
-
-                <div id="filterDropdown" class="hidden absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-2xl border border-stone-200 p-5 z-50 text-left">
-                    <div class="flex justify-between items-center pb-3 border-b border-stone-100 mb-4">
-                        <span class="font-bold text-xs uppercase tracking-wider text-stone-800">Sort & Filter Options</span>
-                        <button type="button" id="closeFilterBtn" class="text-stone-400 hover:text-stone-700 text-sm">
-                            <i class="fa-solid fa-xmark"></i>
-                        </button>
-                    </div>
-                    <div class="mb-4">
-                        <label class="block text-[11px] font-bold text-stone-500 uppercase tracking-wider mb-1.5">Sort By</label>
-                        <select id="sortSelect" class="w-full border border-stone-300 rounded-lg p-2 text-xs text-stone-700 bg-white focus:outline-none focus:border-wine">
-                            <option value="newest">Newest First</option>
-                            <option value="oldest">Oldest First</option>
-                            <option value="popular">Most Popular (Views)</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-bold text-stone-500 uppercase tracking-wider mb-1.5">Category</label>
-                        <select id="categorySelect" class="w-full border border-stone-300 rounded-lg p-2 text-xs text-stone-700 bg-white focus:outline-none focus:border-wine">
-                            <option value="All">All Categories</option>
-                            <option value="News">News</option>
-                            <option value="Features">Features</option>
-                            <option value="Opinion">Opinion</option>
-                            <option value="Science and Technology">Science & Technology</option>
-                            <option value="Literature">Literature</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            <div class="hidden lg:flex items-center gap-5 text-sm font-medium text-stone-700 shrink-0">
-                <a href="index.html#about" class="flex items-center gap-2 hover:text-wine transition"><i class="fa-regular fa-user"></i> About Us</a>
-                <span class="text-stone-300">|</span>
-                <a href="index.html#contact" class="flex items-center gap-2 hover:text-wine transition"><i class="fa-regular fa-envelope"></i> Contact Us</a>
-            </div>
-
-            <button id="menuButton" class="md:hidden text-wine text-2xl" aria-label="Toggle navigation">
-                <i class="fa-solid fa-bars"></i>
-            </button>
-        </div>
-
-        <nav class="bg-wine" id="navigation">
-            <div class="max-w-7xl mx-auto px-6 overflow-x-auto">
-
-                <div class="flex justify-end md:hidden pb-4 mb-2 border-b border-white/10">
-            <button type="button" id="closeNavBtn" aria-label="Close navigation" class="text-white text-2xl p-1 hover:opacity-80 transition">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-        </div>
-        
-                <ul class="flex flex-col md:flex-row md:items-center gap-0 md:gap-8 text-sm font-bold tracking-wide">
-                    <li><a href="index.html" class="block py-3.5 border-b-[3px] border-transparent hover:border-white/50 text-white/90 hover:text-white transition">Home</a></li>
-                    <li><a href="latest.html" class="block py-3.5 border-b-[3px] border-transparent hover:border-white/50 text-white/90 hover:text-white transition">Latest</a></li>
-                    <li><a href="news.html" class="block py-3.5 border-b-[3px] border-transparent hover:border-white/50 text-white/90 hover:text-white transition">News</a></li>
-                    <li><a href="features.html" class="block py-3.5 border-b-[3px] border-transparent hover:border-white/50 text-white/90 hover:text-white transition">Features</a></li>
-                    <li><a href="opinion.html" class="block py-3.5 border-b-[3px] border-white text-white">Opinion</a></li>
-                    <li><a href="science.html" class="block py-3.5 border-b-[3px] border-transparent hover:border-white/50 text-white/90 hover:text-white transition">Science & Technology</a></li>
-                    <li><a href="literature.html" class="block py-3.5 border-b-[3px] border-transparent hover:border-white/50 text-white/90 hover:text-white transition">Literature</a></li>
-                    <li><a href="archives.html" class="block py-3.5 border-b-[3px] border-transparent hover:border-white/50 text-white/90 hover:text-white transition">Archives</a></li>
-                </ul>
-            </div>
-        </nav>
-    </header>
-
+    <!-- ================= MAIN CONTENT ================= -->
     <main class="max-w-7xl mx-auto px-6 py-10">
         <div class="border-b border-stone-200 pb-8 mb-8">
             <p class="text-xs font-bold tracking-widest text-wine uppercase mb-2">THE LENS COLLECTION</p>
@@ -153,6 +70,78 @@
         </div>
     </main>
 
-    <script src="js/script.js"></script>
+    <!-- ================= DYNAMIC FOOTER CONTAINER ================= -->
+    <footer id="footer-container" class="site-footer"></footer>
+
+    <!-- ================= ARTICLE DETAIL MODAL ================= -->
+    <dialog id="articleModal" class="article-modal">
+        <button id="closeArticle" class="close-modal" aria-label="Close article">×</button>
+        <div id="articleDetails"></div>
+    </dialog>
+
+
+    <!-- ================= COMPONENT LOADER ================= -->
+    <!-- This script fetches the header/footer, highlights the active link, THEN loads script.js -->
+    <script>
+        async function loadComponents() {
+            try {
+                // 1. Fetch and insert Header
+                const headerResponse = await fetch('header.html');
+                if (headerResponse.ok) {
+                    document.getElementById('header-container').innerHTML = await headerResponse.text();
+                }
+
+                // 2. Fetch and insert Footer
+                const footerResponse = await fetch('footer.html');
+                if (footerResponse.ok) {
+                    document.getElementById('footer-container').innerHTML = await footerResponse.text();
+                }
+
+                // 3. Highlight the correct active link dynamically
+                setActiveLink();
+
+                // 4. IMPORTANT: Load the main script.js only AFTER HTML is injected
+                const mainScript = document.createElement('script');
+                mainScript.src = 'js/script.js';
+                document.body.appendChild(mainScript);
+                
+            } catch (error) {
+                console.error("Error loading header or footer:", error);
+            }
+        }
+
+        // Function to detect current page and update navigation styles
+        function setActiveLink() {
+            // Get the current file name (e.g., "news.html")
+            let path = window.location.pathname;
+            let page = path.split("/").pop();
+            
+            // If the URL is just the root folder (e.g., localhost:5500/), default to index.html
+            if (page === "" || page === "/") {
+                page = "index.html";
+            }
+
+            // Find all links inside the newly injected navigation menu
+            const navLinks = document.querySelectorAll('#navigation a');
+            
+            navLinks.forEach(link => {
+                const href = link.getAttribute('href');
+                
+                // If the link's destination matches the current page
+                if (href === page) {
+                    // Add active styling (White border & text)
+                    link.classList.remove('border-transparent', 'text-white/90');
+                    link.classList.add('border-white', 'text-white', 'active');
+                } else {
+                    // Ensure non-active styling (Transparent border & slightly faded text)
+                    link.classList.remove('border-white', 'text-white', 'active');
+                    link.classList.add('border-transparent', 'text-white/90');
+                }
+            });
+        }
+
+        // Initialize the loader
+        loadComponents();
+    </script>
 </body>
 </html>

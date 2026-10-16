@@ -1,0 +1,35 @@
+<!-- ================= READER FEEDBACK ================= -->
+        <section id="feedback" class="feedback-section mt-16">
+
+            <div>
+                <p class="text-xs tracking-widest text-wine font-bold mb-2">
+                    YOUR VOICE MATTERS
+                </p>
+
+                <h2 class="font-display text-3xl font-bold text-wine">
+                    Have feedback for The Lens?
+                </h2>
+
+                <p class="mt-4 text-stone-600 leading-relaxed">
+                    Send the editorial board your comments, suggestions, or concerns.
+                    We value feedback from our readers.
+                </p>
+            </div>
+
+            <form id="feedbackForm" class="space-y-3">
+
+                <label for="readerName" class="form-label">Name (optional)</label>
+                <input type="text" id="readerName" class="form-input" maxlength="100">
+
+                <label for="readerEmail" class="form-label">Email (optional)</label>
+                <input type="email" id="readerEmail" class="form-input" maxlength="150">
+
+                <label for="readerMessage" class="form-label">Message</label>
+                <textarea id="readerMessage" class="form-input" rows="4" maxlength="2000" required></textarea>
+
+                <button type="submit" class="main-button">Send feedback</button>
+
+                <p id="feedbackMessage" class="text-sm text-wine" aria-live="polite"></p>
+            </form>
+
+        </section>

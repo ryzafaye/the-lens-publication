@@ -216,13 +216,13 @@
                                     id="studentNumber"
                                     name="student_number"
                                     required
-                                    placeholder="e.g. 2024-00123"
+                                    placeholder="e.g. 2024-000XX-BN-0"
                                     autocomplete="username"
                                     class="w-full pl-10 pr-4 py-2.5 bg-stone-50/50 border border-stone-300 rounded-xl text-sm text-stone-900 placeholder-stone-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-wine/20 focus:border-wine transition-all"
                                 >
                             </div>
                             <p class="text-[11px] text-stone-500 mt-1">
-                                Enter your university student number (e.g. 2024-00123) or editorial username.
+                                Enter your university student number (e.g. 2024-000XX-BN-0) or editorial username.
                             </p>
                         </div>
 
@@ -260,7 +260,7 @@
                             </div>
                         </div>
 
-                        <!-- Remember Me and Security Note -->
+                        <!-- Remember Me -->
                         <div class="flex items-center justify-between pt-1">
                             <label class="flex items-center gap-2 cursor-pointer select-none">
                                 <input
@@ -271,10 +271,6 @@
                                 >
                                 <span class="text-xs text-stone-600 font-medium">Remember this device</span>
                             </label>
-                            
-                            <span class="text-[11px] text-stone-400 flex items-center gap-1">
-                                <i class="fa-solid fa-lock text-[10px]"></i> 256-bit SSL Encrypted
-                            </span>
                         </div>
 
                         <!-- Submit Button -->
@@ -288,64 +284,6 @@
                             <i class="fa-solid fa-arrow-right-to-bracket text-xs ml-1"></i>
                         </button>
                     </form>
-
-                    <!-- Fast Testing / Demo Credentials Accordion -->
-                    <div class="mt-6 pt-5 border-t border-stone-200">
-                        <details class="group rounded-xl bg-stone-50 border border-stone-200/80 p-3 text-xs">
-                            <summary class="font-bold text-stone-700 cursor-pointer list-none flex justify-between items-center select-none">
-                                <span class="flex items-center gap-2">
-                                    <i class="fa-solid fa-key text-wine"></i> Demo Test Accounts (Quick Access)
-                                </span>
-                                <i class="fa-solid fa-chevron-down text-stone-400 group-open:rotate-180 transition-transform"></i>
-                            </summary>
-                            
-                            <div class="mt-3 space-y-2 text-stone-600 pt-2 border-t border-stone-200/60">
-                                <p class="text-[11px]">Click any role below to pre-fill credentials for testing:</p>
-                                
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
-                                    <button
-                                        type="button"
-                                        class="demo-fill-btn text-left p-2 rounded-lg bg-white border border-stone-200 hover:border-wine hover:bg-rose-50/40 transition"
-                                        data-id="2024-00123"
-                                        data-password="password123"
-                                    >
-                                        <div class="font-bold text-wine text-[11px]">Editor-in-Chief</div>
-                                        <div class="text-[10px] text-stone-500 font-mono">ID: 2024-00123</div>
-                                    </button>
-
-                                    <button
-                                        type="button"
-                                        class="demo-fill-btn text-left p-2 rounded-lg bg-white border border-stone-200 hover:border-wine hover:bg-rose-50/40 transition"
-                                        data-id="2024-00456"
-                                        data-password="password123"
-                                    >
-                                        <div class="font-bold text-wine text-[11px]">Section Editor</div>
-                                        <div class="text-[10px] text-stone-500 font-mono">ID: 2024-00456</div>
-                                    </button>
-
-                                    <button
-                                        type="button"
-                                        class="demo-fill-btn text-left p-2 rounded-lg bg-white border border-stone-200 hover:border-wine hover:bg-rose-50/40 transition"
-                                        data-id="2024-00789"
-                                        data-password="password123"
-                                    >
-                                        <div class="font-bold text-wine text-[11px]">Staff Writer</div>
-                                        <div class="text-[10px] text-stone-500 font-mono">ID: 2024-00789</div>
-                                    </button>
-
-                                    <button
-                                        type="button"
-                                        class="demo-fill-btn text-left p-2 rounded-lg bg-white border border-stone-200 hover:border-wine hover:bg-rose-50/40 transition"
-                                        data-id="admin"
-                                        data-password="admin123"
-                                    >
-                                        <div class="font-bold text-wine text-[11px]">Administrator</div>
-                                        <div class="text-[10px] text-stone-500 font-mono">User: admin</div>
-                                    </button>
-                                </div>
-                            </div>
-                        </details>
-                    </div>
 
                     <!-- Membership Support Notice -->
                     <div class="mt-6 text-center text-xs text-stone-500">
@@ -413,25 +351,55 @@
 
     <!-- ================= 4. SITE FOOTER ================= -->
     <footer class="site-footer mt-auto">
-        <div class="max-w-7xl mx-auto px-6 py-8 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-rose-100">
-            <div class="flex items-center gap-3">
-                <img src="images/logo.jpg" alt="The Lens Logo" class="w-8 h-8 rounded-full border border-white/30 object-cover">
-                <div>
-                    <span class="font-display font-bold text-white tracking-wide text-sm">THE LENS</span>
-                    <span class="text-white/40 mx-2">|</span>
-                    <span>Student Publication Member Portal</span>
-                </div>
-            </div>
-
-            <div class="flex items-center gap-5 text-rose-200">
-                <a href="index.html" class="hover:text-white transition">Home</a>
-                <a href="archives.html" class="hover:text-white transition">Archives</a>
-                <a href="index.html#about" class="hover:text-white transition">About</a>
-                <a href="index.html#contact" class="hover:text-white transition">Contact</a>
-            </div>
-
+        <div class="max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-9">
+            <!-- Footer brand -->
             <div>
+                <a href="index.html" class="flex items-center gap-3">
+                    <img src="images/logo.jpg" alt="The Lens Logo" class="w-14 h-14 rounded-full object-cover border border-white/20">
+                    <div>
+                        <h2 class="font-display text-2xl font-extrabold text-white">THE LENS</h2>
+                        <p class="text-xs tracking-widest text-rose-200">SEEING STORIES CLEARLY</p>
+                    </div>
+                </a>
+                <p class="mt-5 text-sm text-rose-100 leading-relaxed">
+                    Stories from the campus, told with clarity, curiosity, and purpose.
+                </p>
+            </div>
+
+            <!-- Footer category links -->
+            <div>
+                <h3 class="footer-heading">Explore</h3>
+                <a href="index.html#news" class="footer-link">News</a>
+                <a href="index.html#features" class="footer-link">Features</a>
+                <a href="index.html#opinion" class="footer-link">Opinion</a>
+                <a href="index.html#science" class="footer-link">Science & Technology</a>
+                <a href="index.html#literature" class="footer-link">Literature</a>
+            </div>
+
+            <!-- Reader links -->
+            <div>
+                <h3 class="footer-heading">For Readers</h3>
+                <a href="archives.html" class="footer-link">Article Archives</a>
+                <a href="index.html#feedback" class="footer-link">Send Feedback</a>
+                <a href="#" class="footer-link">Facebook</a>
+                <a href="#" class="footer-link">Instagram</a>
+            </div>
+
+            <!-- Contact details -->
+            <div>
+                <h3 class="footer-heading">Contact Us</h3>
+                <a href="mailto:thelens@example.com" class="footer-link">thelens@example.com</a>
+                <p class="text-sm text-rose-100 mt-3 leading-relaxed">
+                    For questions, suggestions, or concerns, contact the editorial board.
+                </p>
+            </div>
+        </div>
+
+        <!-- Copyright -->
+        <div class="footer-bottom">
+            <div class="max-w-7xl mx-auto px-6 py-4 flex flex-col sm:flex-row justify-between gap-2">
                 <p>© <span id="copyrightYear">2026</span> The Lens. All rights reserved.</p>
+                <p>Student Journalism • Campus Community</p>
             </div>
         </div>
     </footer>

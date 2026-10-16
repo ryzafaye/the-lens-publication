@@ -101,8 +101,13 @@
 
     <!-- ================= ARTICLE DETAIL MODAL ================= -->
     <dialog id="articleModal" class="article-modal">
-        <button id="closeArticle" class="close-modal" aria-label="Close article">×</button>
-        <div id="articleDetails"></div>
+        <div class="modal-topbar">
+            <span class="modal-topbar-brand">
+                <i class="fa-solid fa-newspaper" style="margin-right:8px;"></i>The Lens
+            </span>
+            <button type="button" id="closeArticle" class="modal-topbar-close" aria-label="Close article">&times;</button>
+        </div>
+        <div id="articleDetails" class="modal-reader"></div>
     </dialog>
 
 

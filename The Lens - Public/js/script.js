@@ -738,11 +738,15 @@ function getArticleModal() {
         modal = document.createElement("dialog");
         modal.id = "articleModal";
         modal.className = "article-modal";
+        document.body.appendChild(modal);
+    }
 
+    // Ensure full-screen structure exists
+    if (!modal.querySelector(".modal-topbar") || !modal.querySelector("#articleDetails")) {
         modal.innerHTML = `
             <div class="modal-topbar">
                 <span class="modal-topbar-brand">
-                    <i class="fa-solid fa-newspaper" style="margin-right:6px;"></i>The Lens
+                    <i class="fa-solid fa-newspaper" style="margin-right:8px;"></i>The Lens
                 </span>
                 <button
                     type="button"
@@ -755,11 +759,12 @@ function getArticleModal() {
 
             <div id="articleDetails" class="modal-reader"></div>
         `;
+    }
 
-        document.body.appendChild(modal);
-
+    if (!document.getElementById("modalDynamicStyles")) {
         // Inline fallback styles (safety net in case CSS hasn't loaded yet).
         const modalStyle = document.createElement("style");
+        modalStyle.id = "modalDynamicStyles";
 
         modalStyle.textContent = `
             .article-modal {
@@ -823,37 +828,73 @@ function getArticleModal() {
             }
 
             .modal-reader {
-                max-width: 740px;
+                max-width: 720px;
                 margin: 0 auto;
-                padding: 36px 24px 80px;
+                padding: 32px 24px 80px;
+            }
+
+            .modal-figure {
+                margin: 18px 0 24px;
+                width: 100%;
             }
 
             .modal-image {
                 width: 100%;
+                max-height: 360px;
                 aspect-ratio: 16 / 9;
                 object-fit: cover;
                 border-radius: 6px;
-                margin: 20px 0 28px;
+                overflow: hidden;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: #571525;
+            }
+
+            .modal-image img {
+                width: 100%;
+                height: 100%;
+                max-height: 360px;
+                object-fit: cover;
                 display: block;
             }
 
+            .modal-image .image-placeholder {
+                max-height: 360px;
+                aspect-ratio: 16 / 9;
+                font-size: 20px;
+            }
+
+            .modal-caption {
+                margin-top: 8px;
+                font-size: 12px;
+                line-height: 1.4;
+                color: #78716c;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 12px;
+                border-bottom: 1px solid #f0ebeb;
+                padding-bottom: 8px;
+            }
+
             .modal-title {
-                font-size: clamp(28px, 4.5vw, 44px);
+                font-size: clamp(26px, 4vw, 38px);
                 font-weight: 800;
-                line-height: 1.15;
-                margin: 0 0 16px;
+                line-height: 1.22;
+                margin: 8px 0 14px;
                 color: #571525;
-                letter-spacing: -0.02em;
+                letter-spacing: -0.015em;
             }
 
             .modal-body {
-                line-height: 1.88;
-                font-size: 16px;
+                line-height: 1.85;
+                font-size: 16.5px;
                 color: #2b2426;
             }
 
             .modal-body p {
-                margin-bottom: 1.35rem;
+                margin-bottom: 1.4rem;
             }
 
             .copy-link-btn {
@@ -874,6 +915,17 @@ function getArticleModal() {
             .copy-link-btn:hover {
                 background: #fff1f3;
                 border-color: #571525;
+            }
+
+            @media (max-width: 640px) {
+                .modal-reader {
+                    padding: 20px 16px 60px;
+                }
+                .modal-image,
+                .modal-image img,
+                .modal-image .image-placeholder {
+                    max-height: 220px;
+                }
             }
         `;
 
@@ -899,7 +951,7 @@ function openArticle(articleId) {
     const paragraphs = escapeHTML(article.content)
         .split(/\n\s*\n/)
         .map(paragraph => `
-            <p class="mb-4 text-stone-800 leading-relaxed text-[15px] md:text-base">${paragraph.replace(/\n/g, "<br>")}</p>
+            <p class="mb-4 text-stone-800 leading-relaxed text-[15.5px] md:text-base">${paragraph.replace(/\n/g, "<br>")}</p>
         `)
         .join("");
 
@@ -913,32 +965,36 @@ function openArticle(articleId) {
         "#article-" + article.id;
 
     details.innerHTML = `
-        <div class="flex items-center justify-between pb-3 mb-4 border-b border-stone-200">
+        <div class="flex items-center justify-between pb-3 mb-3 border-b border-stone-200">
             <span class="text-xs font-bold tracking-widest uppercase text-wine flex items-center gap-1.5">
-                <i class="fa-solid fa-newspaper text-sm"></i> THE LENS STUDENT PUBLICATION
+                <i class="fa-solid fa-layer-group text-sm"></i> ${escapeHTML(article.category || "The Lens")}
             </span>
             <span class="text-xs text-stone-500 font-medium flex items-center gap-1.5">
                 <i class="fa-regular fa-clock"></i> ${readingTime} min read
             </span>
         </div>
 
-        <h2 class="modal-title font-display">
+        <h1 class="modal-title font-display">
             ${escapeHTML(article.title)}
-        </h2>
+        </h1>
 
-        ${articleMeta(article)}
-
-        <div class="flex items-center gap-3 py-3 my-4 border-y border-stone-100 text-xs text-stone-600 bg-stone-50/60 px-3 rounded-lg">
-            <div class="w-9 h-9 rounded-full bg-rose-100 text-wine flex items-center justify-center font-bold text-sm shrink-0 border border-rose-200">
-                ${article.author ? escapeHTML(article.author.charAt(0)) : "L"}
-            </div>
-            <div>
-                <p class="font-bold text-stone-900">${escapeHTML(article.author)}</p>
-                <p class="text-stone-500 text-[11px]">The Lens Campus Journalist • Staff Contributor</p>
-            </div>
+        <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-stone-600 mb-5 pb-3 border-b border-stone-100">
+            <span class="font-bold text-stone-900 flex items-center gap-1.5">
+                <i class="fa-solid fa-pen-nib text-wine text-[11px]"></i> By ${escapeHTML(article.author || "The Lens Staff")}
+            </span>
+            <span class="text-stone-300">•</span>
+            <span>Published ${escapeHTML(article.date)}</span>
+            <span class="text-stone-300">•</span>
+            <span>${Number(article.views || 0).toLocaleString()} views</span>
         </div>
 
-        ${createImage(article, "modal-image")}
+        <figure class="modal-figure mb-6">
+            ${createImage(article, "modal-image")}
+            <figcaption class="modal-caption text-[11.5px] text-stone-500 italic mt-2 flex items-center justify-between">
+                <span><i class="fa-solid fa-camera text-stone-400 mr-1.5"></i> ${escapeHTML(article.title)}</span>
+                <span class="not-italic text-[10.5px] uppercase tracking-wider text-stone-400 font-semibold shrink-0 ml-3">The Lens / File Photo</span>
+            </figcaption>
+        </figure>
 
         <div class="modal-body font-body">
             ${paragraphs}
@@ -1025,7 +1081,7 @@ document.addEventListener("keydown", event => {
 
 // Close the dialog using its close button.
 document.addEventListener("click", event => {
-    if (event.target.closest("#closeArticle") || event.target.closest(".close-modal") || event.target.closest(".close-article")) {
+    if (event.target.closest("#closeArticle") || event.target.closest(".close-modal") || event.target.closest(".close-article") || event.target.closest(".modal-topbar-close")) {
         const modal = document.getElementById("articleModal");
 
         if (modal?.open) {

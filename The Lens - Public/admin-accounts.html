@@ -14,71 +14,144 @@
         };
     </script>
 </head>
-<body class="bg-[#fcfbfb] text-stone-900 font-body">
-    <div class="flex min-h-screen">
-        <!-- Sidebar -->
-        <aside class="w-64 bg-[#3b0514] text-white flex flex-col justify-between fixed top-0 left-0 h-screen z-50 p-6 overflow-y-auto">
+<body class="bg-[#fcfbfb] text-stone-900 font-body relative">
+
+    <div class="flex min-h-screen w-full">
+        <!-- ================= PERMANENT SIDEBAR ================= -->
+        <aside class="w-72 bg-[#3b0514] text-white flex flex-col justify-between fixed top-0 left-0 h-screen z-40 p-7 overflow-y-auto shrink-0">
             <div>
-               <!-- Prominent Sidebar Branding Header -->
-                    <div class="mb-8 pb-4 border-b border-white/10">
-                        <a href="admin-dashboard.html" class="flex items-center gap-3.5">
-                            <img src="images/logo.jpg" alt="The Lens Logo" class="w-14 h-14 object-cover rounded-full border-2 border-rose-200/40 shadow-md shrink-0">
-                            <div>
-                                <h1 class="font-display text-2xl font-black tracking-tight text-white leading-none">The Lens</h1>
-                                <p class="text-[11px] tracking-[0.18em] text-rose-200/80 font-bold uppercase mt-1.5">Executive Portal</p>
-                            </div>
-                        </a>
-                    </div>
-                
-                <nav class="space-y-1 text-sm font-medium">
-                    <a href="admin-dashboard.html" class="block px-3 py-2.5 rounded-lg text-rose-100/80 hover:bg-[#4e091c] hover:text-white transition">Dashboard and analytics</a>
-                    <a href="admin-articles.html" class="flex items-center justify-between px-3 py-2.5 rounded-lg text-rose-100/80 hover:bg-[#4e091c] hover:text-white transition"><span>Articles</span><span class="bg-white text-[#3b0514] text-[11px] font-bold px-1.5 rounded-full">3</span></a>
-                    <a href="admin-write.html" class="block px-3 py-2.5 rounded-lg text-rose-100/80 hover:bg-[#4e091c] hover:text-white transition">Submit article</a>
-                    <a href="admin-accounts.html" class="flex items-center justify-between px-3 py-2.5 rounded-lg bg-[#550c20] text-white font-semibold">Accounts</a>
-                    <a href="admin-logs.html" class="block px-3 py-2.5 rounded-lg text-rose-100/80 hover:bg-[#4e091c] hover:text-white transition">Activity log</a>
-                    <a href="admin-transparency.html" class="block px-3 py-2.5 rounded-lg text-rose-100/80 hover:bg-[#4e091c] hover:text-white transition">Transparency</a>
+                <div class="mb-8 pb-4 border-b border-white/10">
+                    <a href="admin-dashboard.html" class="flex items-center gap-3.5">
+                        <img src="images/logo.jpg" alt="The Lens Logo" class="w-14 h-14 object-cover rounded-full border-2 border-rose-200/40 shadow-md shrink-0">
+                        <div>
+                            <h1 class="font-display text-2xl font-black tracking-tight text-white leading-none">The Lens</h1>
+                            <p class="text-[11px] tracking-[0.18em] text-rose-200/80 font-bold uppercase mt-1.5">Executive Portal</p>
+                        </div>
+                    </a>
+                </div>
+                <nav class="space-y-1.5 text-sm font-medium">
+                    <a href="admin-dashboard.html" class="block px-3.5 py-2.5 rounded-lg text-rose-100/80 hover:bg-[#4e091c] hover:text-white transition">Dashboard and analytics</a>
+                    <a href="admin-articles.html" class="block px-3.5 py-2.5 rounded-lg text-rose-100/80 hover:bg-[#4e091c] hover:text-white transition">Articles</a>
+                    <a href="admin-write.html" class="block px-3.5 py-2.5 rounded-lg text-rose-100/80 hover:bg-[#4e091c] hover:text-white transition">Submit article</a>
+                    <a href="admin-accounts.html" class="block px-3.5 py-2.5 rounded-lg bg-[#550c20] text-white font-semibold">Accounts</a>
+                    <a href="admin-logs.html" class="block px-3.5 py-2.5 rounded-lg text-rose-100/80 hover:bg-[#4e091c] hover:text-white transition">Activity log</a>
+                    <a href="admin-transparency.html" class="block px-3.5 py-2.5 rounded-lg text-rose-100/80 hover:bg-[#4e091c] hover:text-white transition">Transparency</a>
                 </nav>
             </div>
-            <div class="pt-6"><a href="index.html" class="block w-full border border-white/20 hover:bg-white/10 text-white text-xs font-medium py-2 rounded-lg text-center">View public site</a></div>
+            <div class="pt-6"><a href="index.html" class="block w-full border border-white/20 hover:bg-white/10 text-white text-xs font-medium py-2 rounded-lg transition text-center">View public site</a></div>
         </aside>
 
-        <!-- Main Content -->
-        <main class="ml-64 flex-1 p-10 max-w-7xl">
-            <div class="flex justify-between items-center mb-8">
+        <!-- ================= FULL-WIDTH MAIN CONTENT ================= -->
+        <main class="admin-main-fluid space-y-8">
+            <div class="flex justify-between items-center pb-4 border-b border-stone-200 w-full">
                 <div>
-                    <h1 class="font-display text-3xl font-extrabold text-stone-900">Manage Accounts</h1>
+                    <h1 class="font-display text-3xl font-extrabold text-stone-900 tracking-tight">Manage Accounts</h1>
                     <p class="text-sm text-stone-500 mt-1">Control contributor permissions, roles, and status.</p>
                 </div>
-                <button class="bg-wine text-white text-xs font-bold px-4 py-2.5 rounded-lg hover:bg-burgundy transition"><i class="fa-solid fa-user-plus mr-1.5"></i> Add User</button>
+                <button id="openAddUserModal" class="bg-wine text-white text-xs font-bold px-4 py-2.5 rounded-lg hover:bg-burgundy transition shadow-sm flex items-center gap-2">
+                    <i class="fa-solid fa-user-plus"></i> Add User
+                </button>
             </div>
 
-            <div class="bg-white border border-stone-200 rounded-xl overflow-hidden shadow-sm">
+            <!-- Accounts Table -->
+            <div class="bg-white border border-stone-200 rounded-xl overflow-hidden shadow-sm w-full">
                 <table class="w-full text-left text-xs">
                     <thead class="bg-stone-50 border-b border-stone-200 text-stone-500 uppercase tracking-wider font-semibold">
                         <tr>
-                            <th class="py-3.5 px-6">Name & Email</th>
-                            <th class="py-3.5 px-6">Role</th>
-                            <th class="py-3.5 px-6">Status</th>
-                            <th class="py-3.5 px-6 text-right">Actions</th>
+                            <th class="py-4 px-6">Name & Email</th>
+                            <th class="py-4 px-6">Role</th>
+                            <th class="py-4 px-6">Status</th>
+                            <th class="py-4 px-6 text-right">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-stone-100 font-medium text-stone-700">
-                        <tr>
-                            <td class="py-4 px-6"><p class="font-bold text-stone-900">Mara Villanueva</p><p class="text-[11px] text-stone-500">mara@thelens.org</p></td>
+                        <tr class="hover:bg-stone-50/50">
+                            <td class="py-4 px-6"><p class="font-bold text-stone-900 text-sm">Mara Villanueva</p><p class="text-[11px] text-stone-500">mara@thelens.org</p></td>
                             <td class="py-4 px-6">Staff Writer</td>
                             <td class="py-4 px-6"><span class="bg-blue-50 text-blue-700 px-2.5 py-1 rounded-full font-bold text-[10px]">Active</span></td>
-                            <td class="py-4 px-6 text-right"><button class="text-stone-600 hover:text-wine font-semibold">Edit</button></td>
+                            <td class="py-4 px-6 text-right"><button class="editUserBtn text-stone-600 hover:text-wine font-semibold">Edit</button></td>
                         </tr>
-                        <tr>
-                            <td class="py-4 px-6"><p class="font-bold text-stone-900">Paolo Santos</p><p class="text-[11px] text-stone-500">paolo@thelens.org</p></td>
+                        <tr class="hover:bg-stone-50/50">
+                            <td class="py-4 px-6"><p class="font-bold text-stone-900 text-sm">Paolo Santos</p><p class="text-[11px] text-stone-500">paolo@thelens.org</p></td>
                             <td class="py-4 px-6">Columnist</td>
                             <td class="py-4 px-6"><span class="bg-blue-50 text-blue-700 px-2.5 py-1 rounded-full font-bold text-[10px]">Active</span></td>
-                            <td class="py-4 px-6 text-right"><button class="text-stone-600 hover:text-wine font-semibold">Edit</button></td>
+                            <td class="py-4 px-6 text-right"><button class="editUserBtn text-stone-600 hover:text-wine font-semibold">Edit</button></td>
                         </tr>
                     </tbody>
                 </table>
             </div>
         </main>
     </div>
+
+    <!-- ================= ADD USER MODAL ================= -->
+    <div id="addUserModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-stone-950/40 backdrop-blur-md p-4 transition-all">
+        <div class="bg-white rounded-xl shadow-2xl border border-stone-200 w-full max-w-sm overflow-hidden">
+            <div class="bg-stone-50 px-5 py-4 border-b border-stone-200 flex justify-between items-center">
+                <h3 class="font-display font-bold text-stone-900 text-sm">Add New User Account</h3>
+                <button id="closeAddUserModal" class="text-stone-400 hover:text-stone-700 text-sm"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="addUserForm" class="p-5 space-y-3.5 text-xs">
+                <div><label class="block font-bold text-stone-600 uppercase tracking-wider mb-1 text-[10px]">Full Name</label><input type="text" required class="w-full border border-stone-300 rounded-lg px-3 py-2 focus:outline-none focus:border-wine" placeholder="Juan Cruz"></div>
+                <div><label class="block font-bold text-stone-600 uppercase tracking-wider mb-1 text-[10px]">Email Address</label><input type="email" required class="w-full border border-stone-300 rounded-lg px-3 py-2 focus:outline-none focus:border-wine" placeholder="user@thelens.org"></div>
+                <div>
+                    <label class="block font-bold text-stone-600 uppercase tracking-wider mb-1 text-[10px]">Role / Position</label>
+                    <select class="w-full border border-stone-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:border-wine">
+                        <option value="Staff Writer">Staff Writer</option>
+                        <option value="Section Editor">Section Editor</option>
+                        <option value="Columnist">Columnist</option>
+                    </select>
+                </div>
+                <div><label class="block font-bold text-stone-600 uppercase tracking-wider mb-1 text-[10px]">Temporary Password</label><input type="password" required class="w-full border border-stone-300 rounded-lg px-3 py-2 focus:outline-none focus:border-wine" placeholder="••••••••"></div>
+                <div class="flex items-center justify-end gap-2 pt-3 border-t border-stone-100">
+                    <button type="button" id="cancelAddUserModal" class="px-3.5 py-1.5 border border-stone-300 rounded-lg font-semibold text-stone-600 hover:bg-stone-50">Cancel</button>
+                    <button type="submit" class="px-4 py-1.5 bg-wine text-white rounded-lg font-bold hover:bg-burgundy shadow-sm">Create Account</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ================= EDIT USER MODAL WITH BLURRED BACKDROP ================= -->
+    <div id="editUserModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-stone-950/40 backdrop-blur-md p-4 transition-all">
+        <div class="bg-white rounded-xl shadow-2xl border border-stone-200 w-full max-w-sm overflow-hidden">
+            <div class="bg-stone-50 px-5 py-4 border-b border-stone-200 flex justify-between items-center">
+                <h3 class="font-display font-bold text-stone-900 text-sm">Edit User Account</h3>
+                <button id="closeEditUserModal" class="text-stone-400 hover:text-stone-700 text-sm"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="editUserForm" class="p-5 space-y-3.5 text-xs">
+                <div>
+                    <label class="block font-bold text-stone-600 uppercase tracking-wider mb-1 text-[10px]">Full Name</label>
+                    <input type="text" id="editName" value="Mara Villanueva" required class="w-full border border-stone-300 rounded-lg px-3 py-2 focus:outline-none focus:border-wine">
+                </div>
+                <div>
+                    <label class="block font-bold text-stone-600 uppercase tracking-wider mb-1 text-[10px]">Email Address</label>
+                    <input type="email" id="editEmail" value="mara@thelens.org" required class="w-full border border-stone-300 rounded-lg px-3 py-2 focus:outline-none focus:border-wine">
+                </div>
+                <div>
+                    <label class="block font-bold text-stone-600 uppercase tracking-wider mb-1 text-[10px]">Role / Position</label>
+                    <select id="editRole" class="w-full border border-stone-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:border-wine">
+                        <option value="Staff Writer" selected>Staff Writer</option>
+                        <option value="Section Editor">Section Editor</option>
+                        <option value="Columnist">Columnist</option>
+                        <option value="Photographer">Photographer</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-bold text-stone-600 uppercase tracking-wider mb-1 text-[10px]">Account Status</label>
+                    <select id="editStatus" class="w-full border border-stone-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:border-wine">
+                        <option value="Active" selected>Active</option>
+                        <option value="Inactive">Inactive</option>
+                    </select>
+                </div>
+                <div class="flex items-center justify-end gap-2 pt-3 border-t border-stone-100">
+                    <button type="button" id="cancelEditUserModal" class="px-3.5 py-1.5 border border-stone-300 rounded-lg font-semibold text-stone-600 hover:bg-stone-50">Cancel</button>
+                    <button type="submit" class="px-4 py-1.5 bg-wine text-white rounded-lg font-bold hover:bg-burgundy shadow-sm">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- External Admin JavaScript File -->
+    <script src="js/admin.js"></script>
+
 </body>
 </html>

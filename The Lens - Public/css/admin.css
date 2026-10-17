@@ -1,94 +1,21 @@
 /* =========================================================
-   THE LENS — ADMIN DASHBOARD STYLES
+   THE LENS — ADMIN DASHBOARD STYLES (FLUID / NO DEAD SPACE)
    File: css/admin.css
    ========================================================= */
 
 :root {
     --wine: #700f2b;
-    --burgundy: #4a091b;
+    --burgundy: #3b0514;
 }
 
 body {
     font-family: 'DM Sans', sans-serif;
-    background-color: #f7f6f5;
-    color: #292524;
+    background-color: #fcfbfb;
+    color: #1c1917;
     margin: 0;
     padding: 0;
-}
-
-/* Admin Layout Grid */
-.admin-layout {
-    display: flex;
-    min-height: 100vh;
-}
-
-/* Permanent Sidebar (Never collapses) */
-.admin-sidebar {
-    width: 260px;
-    background-color: var(--burgundy);
-    color: white;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    position: fixed;
-    top: 0;
-    left: 0;
-    height: 100vh;
-    z-index: 50;
-    box-shadow: 4px 0 15px rgba(0, 0, 0, 0.05);
-}
-
-.admin-sidebar-header {
-    padding: 24px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.admin-sidebar-nav {
-    padding: 20px 16px;
-    flex: 1;
-    overflow-y: auto;
-}
-
-.admin-nav-link {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 16px;
-    color: rgba(255, 255, 255, 0.8);
-    font-size: 14px;
-    font-weight: 500;
-    border-radius: 8px;
-    text-decoration: none;
-    transition: all 0.2s ease;
-    margin-bottom: 4px;
-}
-
-.admin-nav-link:hover,
-.admin-nav-link.active {
-    background-color: var(--wine);
-    color: white;
-}
-
-/* Main Content Area Offset */
-.admin-main {
-    margin-left: 260px;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    background-color: #ffffff;
-}
-
-/* Admin Header Bar */
-.admin-header {
-    background: white;
-    border-bottom: 1px solid #e7e5e4;
-    padding: 16px 32px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    position: sticky;
-    top: 0;
-    z-index: 40;
+    width: 100%;
+    overflow-x: hidden;
 }
 
 /* Typography Helpers */
@@ -96,15 +23,37 @@ body {
     font-family: 'Playfair Display', Georgia, serif;
 }
 
-/* Admin Dashboard Cards */
+.font-body {
+    font-family: 'DM Sans', sans-serif;
+}
+
+/* Permanent Fixed Sidebar */
+.admin-sidebar {
+    width: 288px; /* w-72 */
+    background-color: var(--burgundy);
+    color: white;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    z-index: 40;
+}
+
+/* Main Content Area: Fills remaining viewport width */
+.admin-main-fluid {
+    margin-left: 288px; /* Offset for sidebar */
+    width: calc(100% - 288px);
+    min-height: 100vh;
+    padding: 2.5rem; /* 40px padding around screen edges */
+    background-color: #fcfbfb;
+}
+
+/* Reusable Fluid Card */
 .admin-card {
     background: white;
     border: 1px solid #e7e5e4;
     border-radius: 12px;
     padding: 24px;
+    width: 100%;
     box-shadow: 0 1px 3px rgba(0,0,0,0.02);
-}
-
-.stat-card-border {
-    border-left: 4px solid var(--wine);
 }

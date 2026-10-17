@@ -308,4 +308,3 @@ document.addEventListener("DOMContentLoaded", () => {
         copyrightYear.textContent = new Date().getFullYear();
     }
 });
-

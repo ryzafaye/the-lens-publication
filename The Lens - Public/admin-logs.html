@@ -4,10 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Activity Log | The Lens Executive Portal</title>
+
+    <!-- Tailwind CSS & Google Fonts -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800;900&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Admin Stylesheet -->
     <link rel="stylesheet" href="css/admin.css">
+
     <script>
         tailwind.config = {
             theme: { extend: { colors: { wine: "#700f2b", burgundy: "#3b0514" } } }
@@ -15,47 +20,110 @@
     </script>
 </head>
 <body class="bg-[#fcfbfb] text-stone-900 font-body">
-    <div class="flex min-h-screen">
-        <!-- Sidebar -->
-        <aside class="w-64 bg-[#3b0514] text-white flex flex-col justify-between fixed top-0 left-0 h-screen z-50 p-6 overflow-y-auto">
+
+    <div class="flex min-h-screen w-full">
+        <!-- ================= PERMANENT SIDEBAR ================= -->
+        <aside class="w-72 bg-[#3b0514] text-white flex flex-col justify-between fixed top-0 left-0 h-screen z-40 p-7 overflow-y-auto shrink-0">
             <div>
                 <!-- Prominent Sidebar Branding Header -->
-                    <div class="mb-8 pb-4 border-b border-white/10">
-                        <a href="admin-dashboard.html" class="flex items-center gap-3.5">
-                            <img src="images/logo.jpg" alt="The Lens Logo" class="w-14 h-14 object-cover rounded-full border-2 border-rose-200/40 shadow-md shrink-0">
-                            <div>
-                                <h1 class="font-display text-2xl font-black tracking-tight text-white leading-none">The Lens</h1>
-                                <p class="text-[11px] tracking-[0.18em] text-rose-200/80 font-bold uppercase mt-1.5">Executive Portal</p>
-                            </div>
-                        </a>
-                    </div>
-                
-                <nav class="space-y-1 text-sm font-medium">
-                    <a href="admin-dashboard.html" class="block px-3 py-2.5 rounded-lg text-rose-100/80 hover:bg-[#4e091c] hover:text-white transition">Dashboard and analytics</a>
-                    <a href="admin-articles.html" class="flex items-center justify-between px-3 py-2.5 rounded-lg text-rose-100/80 hover:bg-[#4e091c] hover:text-white transition"><span>Articles</span><span class="bg-white text-[#3b0514] text-[11px] font-bold px-1.5 rounded-full">3</span></a>
-                    <a href="admin-write.html" class="block px-3 py-2.5 rounded-lg text-rose-100/80 hover:bg-[#4e091c] hover:text-white transition">Submit article</a>
-                    <a href="admin-accounts.html" class="block px-3 py-2.5 rounded-lg text-rose-100/80 hover:bg-[#4e091c] hover:text-white transition">Accounts</a>
-                    <a href="admin-logs.html" class="flex items-center justify-between px-3 py-2.5 rounded-lg bg-[#550c20] text-white font-semibold">Activity log</a>
-                    <a href="admin-transparency.html" class="block px-3 py-2.5 rounded-lg text-rose-100/80 hover:bg-[#4e091c] hover:text-white transition">Transparency</a>
+                <div class="mb-8 pb-4 border-b border-white/10">
+                    <a href="admin-dashboard.html" class="flex items-center gap-3.5">
+                        <img src="images/logo.jpg" alt="The Lens Logo" class="w-14 h-14 object-cover rounded-full border-2 border-rose-200/40 shadow-md shrink-0">
+                        <div>
+                            <h1 class="font-display text-2xl font-black tracking-tight text-white leading-none">The Lens</h1>
+                            <p class="text-[11px] tracking-[0.18em] text-rose-200/80 font-bold uppercase mt-1.5">Executive Portal</p>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Navigation Menu -->
+                <nav class="space-y-1.5 text-sm font-medium">
+                    <a href="admin-dashboard.html" class="block px-3.5 py-2.5 rounded-lg text-rose-100/80 hover:bg-[#4e091c] hover:text-white transition">Dashboard and analytics</a>
+                    <a href="admin-articles.html" class="block px-3.5 py-2.5 rounded-lg text-rose-100/80 hover:bg-[#4e091c] hover:text-white transition">Articles</a>
+                    <a href="admin-write.html" class="block px-3.5 py-2.5 rounded-lg text-rose-100/80 hover:bg-[#4e091c] hover:text-white transition">Submit article</a>
+                    <a href="admin-accounts.html" class="block px-3.5 py-2.5 rounded-lg text-rose-100/80 hover:bg-[#4e091c] hover:text-white transition">Accounts</a>
+                    <a href="admin-logs.html" class="block px-3.5 py-2.5 rounded-lg bg-[#550c20] text-white font-semibold">Activity log</a>
+                    <a href="admin-transparency.html" class="block px-3.5 py-2.5 rounded-lg text-rose-100/80 hover:bg-[#4e091c] hover:text-white transition">Transparency</a>
                 </nav>
             </div>
-            <div class="pt-6"><a href="index.html" class="block w-full border border-white/20 hover:bg-white/10 text-white text-xs font-medium py-2 rounded-lg text-center">View public site</a></div>
+
+            <!-- Bottom Action Link -->
+            <div class="pt-6">
+                <a href="index.html" class="block w-full border border-white/20 hover:bg-white/10 text-white text-xs font-medium py-2 rounded-lg transition text-center">View public site</a>
+            </div>
         </aside>
 
-        <!-- Main Content -->
-        <main class="ml-64 flex-1 p-10 max-w-7xl">
-            <div class="mb-8">
-                <h1 class="font-display text-3xl font-extrabold text-stone-900">Activity Log</h1>
-                <p class="text-sm text-stone-500 mt-1">Audit trail of system actions, edits, and administrative entries.</p>
+        <!-- ================= FULL-WIDTH MAIN CONTENT ================= -->
+        <main class="admin-main-fluid space-y-8">
+            <div class="pb-4 border-b border-stone-200 w-full flex justify-between items-center">
+                <div>
+                    <h1 class="font-display text-3xl font-extrabold text-stone-900 tracking-tight">Activity Log</h1>
+                    <p class="text-sm text-stone-500 mt-1">Audit trail of system actions, edits, user access, and administrative entries.</p>
+                </div>
+                <button class="border border-stone-300 text-stone-700 bg-white hover:bg-stone-50 text-xs font-bold px-4 py-2.5 rounded-lg transition shadow-sm flex items-center gap-2">
+                    <i class="fa-solid fa-download text-stone-500"></i> Export Audit Log
+                </button>
             </div>
 
-            <div class="bg-white border border-stone-200 rounded-xl p-6 shadow-sm divide-y divide-stone-100 text-xs">
-                <div class="py-3.5 flex justify-between items-center"><span class="text-stone-800 font-medium">Rhea Bautista: Published article</span><span class="text-stone-400">Today 9:40 AM</span></div>
-                <div class="py-3.5 flex justify-between items-center"><span class="text-stone-800 font-medium">Lia Ocampo: Approved draft</span><span class="text-stone-400">Today 9:14 AM</span></div>
-                <div class="py-3.5 flex justify-between items-center"><span class="text-stone-800 font-medium">Camille Ramos: Uploaded publication PDF</span><span class="text-stone-400">Yesterday 4:02 PM</span></div>
-                <div class="py-3.5 flex justify-between items-center"><span class="text-stone-800 font-medium">Miguel Dizon: Deactivated account</span><span class="text-stone-400">Yesterday 2:30 PM</span></div>
+            <!-- Full-Width Log Container -->
+            <div class="bg-white border border-stone-200 rounded-xl p-6 shadow-sm divide-y divide-stone-100 text-xs w-full">
+                <div class="py-4 flex justify-between items-center hover:bg-stone-50/50 px-3 rounded-lg transition">
+                    <div class="flex items-center gap-3">
+                        <span class="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-check"></i>
+                        </span>
+                        <div>
+                            <p class="text-stone-900 font-bold text-sm">Rhea Bautista published an article</p>
+                            <p class="text-stone-500 text-[11px]">"Inside the campus library's overnight study shift" was published to Features.</p>
+                        </div>
+                    </div>
+                    <span class="text-stone-400 font-medium shrink-0">Today 9:40 AM</span>
+                </div>
+
+                <div class="py-4 flex justify-between items-center hover:bg-stone-50/50 px-3 rounded-lg transition">
+                    <div class="flex items-center gap-3">
+                        <span class="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-file-signature"></i>
+                        </span>
+                        <div>
+                            <p class="text-stone-900 font-bold text-sm">Lia Ocampo approved a draft</p>
+                            <p class="text-stone-500 text-[11px]">Approved draft "Student council opens budget hearing" for final EIC review.</p>
+                        </div>
+                    </div>
+                    <span class="text-stone-400 font-medium shrink-0">Today 9:14 AM</span>
+                </div>
+
+                <div class="py-4 flex justify-between items-center hover:bg-stone-50/50 px-3 rounded-lg transition">
+                    <div class="flex items-center gap-3">
+                        <span class="w-8 h-8 rounded-full bg-rose-50 text-wine flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-file-pdf"></i>
+                        </span>
+                        <div>
+                            <p class="text-stone-900 font-bold text-sm">Camille Ramos uploaded a publication document</p>
+                            <p class="text-stone-500 text-[11px]">Uploaded "Q3 Financial Allocation Report.pdf" to Transparency records.</p>
+                        </div>
+                    </div>
+                    <span class="text-stone-400 font-medium shrink-0">Yesterday 4:02 PM</span>
+                </div>
+
+                <div class="py-4 flex justify-between items-center hover:bg-stone-50/50 px-3 rounded-lg transition">
+                    <div class="flex items-center gap-3">
+                        <span class="w-8 h-8 rounded-full bg-stone-100 text-stone-600 flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-user-minus"></i>
+                        </span>
+                        <div>
+                            <p class="text-stone-900 font-bold text-sm">Miguel Dizon deactivated an account</p>
+                            <p class="text-stone-500 text-[11px]">Account status for contributor (c.cruz@thelens.org) changed to inactive.</p>
+                        </div>
+                    </div>
+                    <span class="text-stone-400 font-medium shrink-0">Yesterday 2:30 PM</span>
+                </div>
             </div>
         </main>
     </div>
+
+    <!-- Admin Script File -->
+    <script src="js/admin.js"></script>
+
 </body>
 </html>

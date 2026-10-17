@@ -1,0 +1,86 @@
+/* 12. FOOTER */
+
+.site-footer {
+    background: #271c1f;
+    color: #fff8f7;
+}
+
+.footer-logo {
+    width: 45px;
+    height: 45px;
+    font-size: 28px;
+    color: white;
+    border-color: white;
+}
+
+.footer-heading {
+    margin-bottom: 12px;
+    font-family: var(--heading-font);
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.footer-link {
+    display: block;
+    margin-bottom: 10px;
+    color: #d3c4c7;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.footer-link:hover {
+    color: white;
+    text-decoration: underline;
+}
+
+.footer-bottom {
+    border-top: 1px solid #4b3b3f;
+    color: #c8b7bb;
+    font-size: 10px;
+}
+
+/* 9. FOOTER */
+.site-footer {
+    background-color: var(--maroon-dark);
+    color: var(--white);
+}
+
+.site-footer h2,
+.site-footer h3,
+.footer-heading {
+    color: var(--white);
+    font-weight: 800;
+}
+
+.footer-heading {
+    margin-bottom: 15px;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.footer-link {
+    display: block;
+    margin-bottom: 9px;
+    color: #f7e8ed;
+    font-size: 13px;
+    text-decoration: none;
+}
+
+.footer-link:hover {
+    color: var(--white);
+    text-decoration: underline;
+}
+
+.footer-bottom {
+    background-color: #350614;
+    color: #f7e8ed;
+    font-size: 11px;
+}
+
+/* Footer logo */
+.footer-logo.site-logo {
+    border: none;
+    border-radius: 0;
+    object-fit: contain;
+}

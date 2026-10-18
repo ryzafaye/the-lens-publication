@@ -198,7 +198,7 @@
             <!-- LEFT PAGE: Big Logo on Luxury Wine Page    -->
             <!-- (Exclusively the big logo, zero text)      -->
             <!-- ========================================== -->
-            <section class="relative lg:w-1/2 min-h-[340px] sm:min-h-[420px] lg:min-h-[580px] flex items-center justify-center p-8 sm:p-12 lg:p-14 overflow-hidden bg-gradient-to-br from-[#22020b] via-[#4a091b] to-[#120207] shadow-inner">
+            <section class="relative lg:w-1/2 py-6 px-4 sm:py-8 sm:px-6 lg:p-14 min-h-[140px] sm:min-h-[180px] lg:min-h-[580px] flex items-center justify-center overflow-hidden bg-gradient-to-br from-[#22020b] via-[#4a091b] to-[#120207] shadow-inner">
                 
                 <!-- Center Crease Shadow (Right Edge of Left Page) -->
                 <div class="left-page-spine-shadow pointer-events-none absolute right-0 top-0 bottom-0 w-12 hidden lg:block z-20"></div>
@@ -211,23 +211,23 @@
                 <div class="pointer-events-none absolute inset-0 opacity-[0.06]" style="background-image: radial-gradient(rgba(255, 255, 255, 0.9) 1px, transparent 1px); background-size: 20px 20px;"></div>
 
                 <!-- Page Margin Line (Embossed Book Border) -->
-                <div class="pointer-events-none absolute inset-4 sm:inset-6 rounded-2xl border border-white/10"></div>
+                <div class="pointer-events-none absolute inset-4 sm:inset-6 rounded-2xl border border-white/10 hidden sm:block"></div>
 
-                <!-- BIG LOGO CENTERPIECE -->
+                <!-- LOGO CENTERPIECE (Small on mobile/small screens, large centerpiece on desktop) -->
                 <div class="relative z-10 flex items-center justify-center">
                     <div class="relative group cursor-pointer">
                         
                         <!-- Glowing Aura Behind Logo -->
-                        <div class="absolute -inset-6 rounded-full bg-gradient-to-tr from-rose-600/50 via-wine/70 to-amber-500/35 blur-3xl animate-pulse-glow"></div>
+                        <div class="absolute -inset-3 sm:-inset-4 lg:-inset-6 rounded-full bg-gradient-to-tr from-rose-600/50 via-wine/70 to-amber-500/35 blur-xl sm:blur-2xl lg:blur-3xl animate-pulse-glow"></div>
                         
                         <!-- Decorative Rotating Orbit Ring -->
-                        <div class="absolute -inset-5 rounded-full border border-white/25 border-dashed animate-spin" style="animation-duration: 35s;"></div>
+                        <div class="absolute -inset-2.5 sm:-inset-3.5 lg:-inset-5 rounded-full border border-white/25 border-dashed animate-spin" style="animation-duration: 35s;"></div>
 
-                        <!-- Big Logo Frame with Glassmorphism -->
-                        <div class="relative w-56 h-56 sm:w-68 sm:h-68 md:w-76 md:h-76 lg:w-80 lg:h-80 rounded-full p-3 bg-gradient-to-b from-white/30 via-white/10 to-transparent shadow-2xl backdrop-blur-xl animate-float-logo">
-                            <div class="w-full h-full rounded-full overflow-hidden border-2 border-white/40 shadow-inner bg-[#4a091b] flex items-center justify-center">
+                        <!-- Logo Frame with Glassmorphism: Small on mobile, large on desktop -->
+                        <div class="relative w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 lg:w-80 lg:h-80 rounded-full p-1.5 sm:p-2 lg:p-3 bg-gradient-to-b from-white/30 via-white/10 to-transparent shadow-xl lg:shadow-2xl backdrop-blur-xl animate-float-logo">
+                            <div class="w-full h-full rounded-full overflow-hidden border border-white/40 lg:border-2 shadow-inner bg-[#4a091b] flex items-center justify-center">
                                 <img src="images/logo.jpg" 
-                                     alt="The Lens Big Logo" 
+                                     alt="The Lens Logo" 
                                      class="w-full h-full object-cover select-none transition-transform duration-700 group-hover:scale-105">
                             </div>
                         </div>
@@ -237,9 +237,9 @@
 
                 <!-- ======================================================== -->
                 <!-- REALISTIC CONTINUOUS FLIPPED / CURLED PAGE CORNER       -->
-                <!-- (Seamlessly attached to page edges, smooth 3D roll)     -->
+                <!-- (Only visible on large/desktop screens; removed on mobile) -->
                 <!-- ======================================================== -->
-                <div class="group/curl absolute bottom-0 left-0 w-36 h-36 sm:w-44 sm:h-44 lg:w-48 lg:h-48 z-30 pointer-events-auto cursor-pointer select-none" title="Turn page">
+                <div class="hidden lg:block group/curl absolute bottom-0 left-0 lg:w-48 lg:h-48 z-30 pointer-events-auto cursor-pointer select-none" title="Turn page">
                     <svg class="w-full h-full transition-transform duration-500 ease-out group-hover/curl:-rotate-1 group-hover/curl:scale-[1.03] group-hover/curl:translate-x-1 group-hover/curl:-translate-y-1 origin-bottom-left filter drop-shadow-md" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <defs>
                             <!-- Soft Diffusion Filter for Under-Roll Shadow -->
@@ -321,7 +321,7 @@
             <!-- ========================================== -->
             <!-- RIGHT PAGE: Evident, Clean Modern Form     -->
             <!-- ========================================== -->
-            <main class="lg:w-1/2 flex flex-col justify-center p-8 sm:p-12 lg:p-16 bg-[#ffffff] relative">
+            <main class="lg:w-1/2 flex flex-col justify-center p-6 sm:p-10 lg:p-16 bg-[#ffffff] relative">
 
                 <!-- Center Crease Shadow (Left Edge of Right Page) -->
                 <div class="right-page-spine-shadow pointer-events-none absolute left-0 top-0 bottom-0 w-10 hidden lg:block z-20"></div>
@@ -330,7 +330,7 @@
                 <div class="pointer-events-none absolute inset-4 sm:inset-6 rounded-2xl border border-stone-200/60 hidden sm:block"></div>
 
                 <!-- Top Corner Link: Return to Home -->
-                <div class="absolute top-6 right-6 sm:top-8 sm:right-8 z-30">
+                <div class="absolute top-4 right-4 sm:top-8 sm:right-8 z-30">
                     <a href="index.html" class="inline-flex items-center gap-2 text-xs sm:text-sm font-medium text-stone-500 hover:text-wine transition-colors duration-200 py-1.5 px-3 rounded-lg hover:bg-stone-100">
                         <i class="fa-solid fa-arrow-left text-xs transition-transform group-hover:-translate-x-1"></i>
                         <span>Back to site</span>
@@ -341,7 +341,7 @@
                 <div class="w-full max-w-sm mx-auto relative z-20">
                     
                     <!-- Card Header -->
-                    <div class="mb-8">
+                    <div class="mb-6 sm:mb-8 pt-4 sm:pt-0">
                         <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold tracking-widest uppercase bg-wine/10 text-wine mb-3">
                             Member Portal
                         </span>
@@ -405,7 +405,7 @@
                             </div>
                         </div>
 
-                        <!-- Field 3: Login Button Only -->
+                        <!-- Field 3: Login Button -->
                         <div class="pt-2">
                             <button type="submit" 
                                     id="login-button" 
@@ -421,6 +421,13 @@
                             </button>
                         </div>
 
+                        <!-- Forgot Password Link (UI element only) -->
+                        <div class="text-center pt-2">
+                            <a href="#" class="text-xs font-medium text-stone-500 hover:text-wine hover:underline transition-colors duration-200">
+                                Forgot Password?
+                            </a>
+                        </div>
+
                     </form>
 
                 </div>
@@ -429,94 +436,7 @@
         </div>
     </div>
 
-    <!-- Client Script for Interactive Experience -->
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const form = document.getElementById('login-form');
-            const studentInput = document.getElementById('student-number');
-            const passwordInput = document.getElementById('password');
-            const togglePasswordBtn = document.getElementById('toggle-password');
-            const togglePasswordIcon = document.getElementById('toggle-password-icon');
-            const loginBtn = document.getElementById('login-button');
-            const btnText = document.getElementById('btn-text');
-            const btnSpinner = document.getElementById('btn-spinner');
-            const statusMsg = document.getElementById('status-message');
-
-            // Toggle Password Visibility
-            togglePasswordBtn.addEventListener('click', () => {
-                const isPassword = passwordInput.getAttribute('type') === 'password';
-                passwordInput.setAttribute('type', isPassword ? 'text' : 'password');
-                togglePasswordIcon.classList.toggle('fa-eye', !isPassword);
-                togglePasswordIcon.classList.toggle('fa-eye-slash', isPassword);
-            });
-
-            // Auto-format student number formatting (YYYY-NNNNN-BN-0)
-            studentInput.addEventListener('input', (e) => {
-                let val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-                if (val.length > 4 && !val.includes('-')) {
-                    if (/^\d{4}/.test(val)) {
-                        let formatted = val.slice(0, 4);
-                        if (val.length > 4) formatted += '-' + val.slice(4, 9);
-                        if (val.length > 9) formatted += '-' + val.slice(9, 11);
-                        if (val.length > 11) formatted += '-' + val.slice(11, 12);
-                        e.target.value = formatted;
-                    }
-                }
-            });
-
-            // Form Submit Animation and Validation
-            form.addEventListener('submit', (e) => {
-                e.preventDefault();
-                const studentVal = studentInput.value.trim();
-                const passVal = passwordInput.value.trim();
-
-                if (!studentVal) {
-                    showStatus('Please enter your student number.', 'error');
-                    studentInput.focus();
-                    return;
-                }
-
-                if (!passVal) {
-                    showStatus('Please enter your password.', 'error');
-                    passwordInput.focus();
-                    return;
-                }
-
-                // Interactive Loading State
-                loginBtn.disabled = true;
-                btnText.classList.add('hidden');
-                btnSpinner.classList.remove('hidden');
-                btnSpinner.classList.add('flex');
-                statusMsg.classList.add('hidden');
-
-                // Simulate authentication transition
-                setTimeout(() => {
-                    loginBtn.disabled = false;
-                    btnText.classList.remove('hidden');
-                    btnSpinner.classList.add('hidden');
-                    btnSpinner.classList.remove('flex');
-
-                    showStatus('Welcome back, Member! Redirecting...', 'success');
-                    
-                    setTimeout(() => {
-                        window.location.href = 'index.html';
-                    }, 1100);
-                }, 850);
-            });
-
-            function showStatus(text, type) {
-                statusMsg.textContent = text;
-                statusMsg.className = 'mb-6 p-3.5 rounded-xl text-xs sm:text-sm font-medium transition-all duration-300';
-                if (type === 'error') {
-                    statusMsg.classList.add('bg-rose-50', 'text-rose-700', 'border', 'border-rose-200');
-                } else if (type === 'success') {
-                    statusMsg.classList.add('bg-emerald-50', 'text-emerald-700', 'border', 'border-emerald-200');
-                } else {
-                    statusMsg.classList.add('bg-amber-50', 'text-amber-800', 'border', 'border-amber-200');
-                }
-                statusMsg.classList.remove('hidden');
-            }
-        });
-    </script>
+    <!-- External Login Logic Script -->
+    <script src="js/login.js"></script>
 </body>
 </html>

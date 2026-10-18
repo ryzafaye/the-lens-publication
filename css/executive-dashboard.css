@@ -355,12 +355,12 @@ body.dashboard-body {
 }
 
 /* ==========================================================================
-   TOP HEADER BAR
+   TOP HEADER BAR (Dark Maroon Signature)
    ========================================================================== */
 .topbar {
     background-color: #ffffff;
     border-bottom: 1px solid var(--border-subtle);
-    padding: 20px 40px;
+    padding: 18px 36px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -396,7 +396,7 @@ body.dashboard-body {
     color: var(--text-primary);
     cursor: pointer;
     font-size: 0.95rem;
-    transition: background-color 0.15s ease;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
 .mobile-hamburger-btn:hover {
@@ -514,6 +514,7 @@ body.dashboard-body {
 .notification-label {
     font-size: 0.82rem;
     font-weight: 500;
+    color: var(--text-secondary);
 }
 
 .topbar-divider {
@@ -548,7 +549,7 @@ body.dashboard-body {
     object-fit: cover;
 }
 
-/* Small Role Badge with Maroon Border */
+/* Small Role Badge with Maroon Border on White Header */
 .topbar-role-badge {
     display: inline-flex;
     align-items: center;
@@ -572,8 +573,24 @@ body.dashboard-body {
 }
 
 /* ==========================================================================
-   CONTENT CONTAINER
+   PAGE TITLE & CONTENT CONTAINER
    ========================================================================== */
+.page-title-section {
+    margin: 0;
+    margin-bottom: 0;
+}
+
+.page-title {
+    font-family: var(--font-heading, 'Playfair Display', Georgia, serif);
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--text-primary, #101828);
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    margin: 0;
+    padding: 0;
+}
+
 .content-container {
     padding: 32px 40px;
     max-width: 1400px;
@@ -581,7 +598,7 @@ body.dashboard-body {
     margin: 0 auto;
     display: flex;
     flex-direction: column;
-    gap: 28px;
+    gap: 16px;
 }
 
 /* ==========================================================================
@@ -659,25 +676,50 @@ body.dashboard-body {
 }
 
 /* ==========================================================================
-   MAIN GRID (2 Columns: Left 1.7fr, Right 1fr)
+   MAIN GRID (2 Columns: Left expands 1fr, Right compact 295px)
    ========================================================================== */
 .main-grid {
     display: grid;
-    grid-template-columns: 1.7fr 1fr;
-    gap: 24px;
+    grid-template-columns: minmax(0, 1fr) 310px;
+    gap: 22px;
     align-items: start;
+    width: 100%;
 }
 
 .left-column-stack {
     display: flex;
     flex-direction: column;
     gap: 24px;
+    min-width: 0;
+    max-width: 100%;
 }
 
 .right-column-stack {
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: 22px;
+    min-width: 0;
+    max-width: 100%;
+}
+
+/* Compact tailored shell for right column widgets (Most Viewed & Journalists) */
+.right-column-stack .card-panel {
+    padding: 20px 18px;
+}
+
+.right-column-stack .panel-header {
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+}
+
+.right-column-stack .panel-title {
+    font-size: 0.90rem;
+    font-weight: 700;
+}
+
+.right-column-stack .panel-badge {
+    font-size: 0.68rem;
+    padding: 2px 7px;
 }
 
 /* Reusable Card Shell */
@@ -688,6 +730,9 @@ body.dashboard-body {
     padding: 24px;
     box-shadow: 0 1px 3px rgba(16, 24, 40, 0.03);
     transition: box-shadow 0.2s ease;
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
 }
 
 .card-panel:hover {
@@ -732,50 +777,70 @@ body.dashboard-body {
 }
 
 /* ==========================================================================
-   RECENT SUBMISSIONS TABLE
+   RECENT SUBMISSIONS TABLE (100% Visible, No Scroll, Proportional Columns)
    ========================================================================== */
 .table-responsive {
     width: 100%;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+    overflow: hidden; /* Strict: Zero horizontal or vertical scroll */
     border-radius: 8px;
     border: 1px solid var(--border-light);
 }
 
-.table-responsive::-webkit-scrollbar {
-    height: 6px;
-}
-.table-responsive::-webkit-scrollbar-thumb {
-    background: #d0d5dd;
-    border-radius: 4px;
-}
-
 .data-table {
-    width: 100%;
-    min-width: 620px;
+    width: 100% !important;
+    min-width: 0 !important;
+    table-layout: fixed !important;
     border-collapse: collapse;
-    font-size: 0.84rem;
+    font-size: 0.82rem;
     text-align: left;
 }
 
 .data-table th {
-    padding: 12px 16px;
+    padding: 11px 12px;
     font-size: 0.72rem;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.04em;
     color: var(--text-muted);
-    font-weight: 600;
+    font-weight: 700;
     border-bottom: 1px solid var(--border-subtle);
-    background-color: #fafafa;
+    background-color: #fafbfc;
     white-space: nowrap;
 }
 
 .data-table td {
-    padding: 14px 16px;
+    padding: 12px 12px;
     border-bottom: 1px solid var(--border-light);
     color: var(--text-primary);
     vertical-align: middle;
     transition: background-color 0.15s ease;
+}
+
+/* Proportional Column Widths: Perfectly balanced with multi-line titles and badges */
+.data-table th:first-child,
+.data-table td:first-child {
+    width: 36%;
+    padding-left: 16px;
+}
+
+.data-table th:nth-child(2),
+.data-table td:nth-child(2) {
+    width: 18%;
+}
+
+.data-table th:nth-child(3),
+.data-table td:nth-child(3) {
+    width: 17%;
+}
+
+.data-table th:nth-child(4),
+.data-table td:nth-child(4) {
+    width: 15%;
+}
+
+.data-table th:nth-child(5),
+.data-table td:nth-child(5) {
+    width: 14%;
+    padding-right: 16px;
 }
 
 .data-table tbody tr {
@@ -786,41 +851,73 @@ body.dashboard-body {
     background-color: #f9fafb;
 }
 
-.table-article-link {
-    font-weight: 500;
+.table-article-link,
+.table-article-btn {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 0.88rem;
     color: var(--text-primary);
     text-decoration: none;
-    max-width: 260px;
-    display: block;
-    white-space: nowrap;
+    width: 100%;
+    max-width: 100%;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
     overflow: hidden;
-    text-overflow: ellipsis;
+    white-space: normal;
+    word-break: normal;
+    overflow-wrap: break-word;
+    line-height: 1.35;
     transition: color 0.15s ease;
+    background: none;
+    border: none;
+    padding: 0;
+    text-align: left;
+    cursor: pointer;
 }
 
-.table-article-link:hover {
+.table-article-link:hover,
+.table-article-btn:hover {
     color: var(--sidebar-maroon);
+    text-decoration: underline;
 }
 
 .table-author {
     color: var(--text-secondary);
-    font-size: 0.82rem;
+    font-size: 0.80rem;
+    display: block;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
 }
 
 .table-section-tag {
-    font-size: 0.76rem;
+    font-size: 0.72rem;
+    font-weight: 600;
     color: var(--text-secondary);
     background: #f2f4f7;
     padding: 3px 8px;
     border-radius: 6px;
-    white-space: nowrap;
+    display: inline-block;
+    white-space: normal;
+    line-height: 1.25;
+    text-align: center;
+    max-width: 100%;
+}
+
+.table-section-tag.section-tag-multiline {
+    padding: 3px 7px;
+    font-size: 0.70rem;
+    line-height: 1.2;
+    text-align: center;
 }
 
 .table-date {
     color: var(--text-muted);
-    font-size: 0.78rem;
+    font-size: 0.76rem;
     white-space: nowrap;
+    display: inline-block;
 }
 
 /* Subdued Status Badges */
@@ -979,9 +1076,21 @@ body.dashboard-body {
     min-width: 0;
 }
 
-.ranked-title {
-    font-size: 0.84rem;
-    font-weight: 600;
+.ranked-category-tag {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--sidebar-maroon);
+    margin-bottom: 3px;
+    line-height: 1.2;
+}
+
+.ranked-title,
+.ranked-title-btn {
+    font-family: var(--font-heading);
+    font-size: 0.92rem;
+    font-weight: 700;
     color: var(--text-primary);
     text-decoration: none;
     line-height: 1.35;
@@ -990,19 +1099,37 @@ body.dashboard-body {
     -webkit-box-orient: vertical;
     overflow: hidden;
     transition: color 0.15s ease;
+    background: none;
+    border: none;
+    padding: 0;
+    text-align: left;
+    cursor: pointer;
+    width: 100%;
 }
 
-.ranked-title:hover {
+.ranked-title:hover,
+.ranked-title-btn:hover {
     color: var(--sidebar-maroon);
+    text-decoration: underline;
 }
 
 .ranked-meta-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 8px;
     margin-top: 5px;
     font-size: 0.74rem;
     color: var(--text-muted);
+}
+
+.ranked-author {
+    color: var(--text-secondary);
+    font-weight: 500;
+    font-size: 0.74rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .ranked-author-category {
@@ -1033,83 +1160,90 @@ body.dashboard-body {
     color: var(--border-subtle);
 }
 
-/* 2. Top 5 Journalists Leaderboard */
-.journalists-list {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+/* 2. Top Performing Journalists Table (Author & Article Count Table) */
+.journalists-table-wrap {
+    width: 100%;
+    overflow: hidden;
+    border-radius: 8px;
+    border: 1px solid var(--border-light);
 }
 
-.journalist-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 8px 10px;
-    border-radius: 8px;
+.journalists-table {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    border-collapse: collapse;
+    table-layout: fixed !important;
+    font-size: 0.81rem;
+}
+
+.journalists-table th {
+    padding: 9px 10px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--text-muted);
+    background-color: #fafbfc;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.journalists-table th.col-author,
+.journalists-table td.col-author-name {
+    width: 52% !important;
+    text-align: left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding-left: 12px;
+}
+
+.journalists-table th.col-article-count,
+.journalists-table td.col-article-count {
+    width: 48% !important;
+    text-align: right;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+    padding-right: 12px;
+    overflow: visible;
+}
+
+.journalists-table td {
+    padding: 10px 10px;
+    border-bottom: 1px solid var(--border-light);
+    vertical-align: middle;
+}
+
+.journalists-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.journalists-table tbody tr {
     transition: background-color 0.15s ease;
 }
 
-.journalist-item:hover {
-    background-color: #f8f9fa;
+.journalists-table tbody tr:hover td {
+    background-color: #f9fafb;
 }
 
-.journalist-left {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.journalist-rank {
-    font-size: 0.82rem;
-    font-weight: 700;
-    color: var(--text-muted);
-    min-width: 14px;
-}
-
-.journalist-avatar {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    overflow: hidden;
-    background: #f2f4f7;
-    border: 1px solid var(--border-subtle);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.journalist-avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.journalist-name {
-    font-size: 0.84rem;
+.journalists-table td.col-author-name {
     font-weight: 600;
     color: var(--text-primary);
 }
 
-.journalist-count-badge {
-    font-size: 0.74rem;
-    font-weight: 600;
-    color: var(--text-secondary);
-    background-color: #f2f4f7;
-    padding: 3px 9px;
-    border-radius: 9999px;
+.journalists-table td.col-article-count {
+    font-weight: 700;
+    color: var(--sidebar-maroon);
 }
 
 /* ==========================================================================
-   MOBILE VIEW RULES (max-width: 768px)
-   Strictly as instructed: NO sliding off-canvas drawer.
-   Accordion dropdown directly below header.
-   2 cards per row on metrics.
-   Simplified table without horizontal scroll.
+   INTERMEDIATE BREAKPOINT (max-width: 1024px: Tablets)
+   Ensure 2 columns stack smoothly on tablets while preserving desktop 2-col.
    ========================================================================== */
 @media (max-width: 1024px) {
     .main-grid {
-        grid-template-columns: 1fr;
-        gap: 24px;
+        grid-template-columns: 1fr !important;
+        gap: 20px;
     }
 }
 
@@ -1124,13 +1258,16 @@ body.dashboard-body {
         width: 100% !important;
     }
 
-    /* 2. TOP HEADER BAR (MOBILE) */
+    /* 2. TOP HEADER BAR (MOBILE: Dark Maroon Background) */
     .topbar {
+        background-color: var(--sidebar-maroon) !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;
         padding: 10px 14px !important;
         min-height: 52px;
         justify-content: space-between !important;
         flex-wrap: nowrap !important;
         gap: 6px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25) !important;
     }
 
     /* Hide Real-time Date and Time entirely on mobile */
@@ -1150,15 +1287,20 @@ body.dashboard-body {
         width: 30px;
         height: 30px;
         font-size: 0.9rem;
+        background: rgba(255, 255, 255, 0.12) !important;
+        border: 1px solid rgba(255, 255, 255, 0.25) !important;
+        color: #ffffff !important;
     }
 
     .mobile-logo-square {
         width: 22px;
         height: 22px;
+        border: 1px solid rgba(255, 255, 255, 0.4) !important;
     }
 
     .mobile-brand-title {
         font-size: 0.84rem;
+        color: #ffffff !important;
     }
 
     /* Right Side: Notification Icon + Small Avatar + Role Badge */
@@ -1177,6 +1319,17 @@ body.dashboard-body {
 
     .topbar-notification-btn {
         padding: 5px 8px;
+        background: rgba(255, 255, 255, 0.12) !important;
+        border: 1px solid rgba(255, 255, 255, 0.22) !important;
+        color: #ffffff !important;
+    }
+
+    .topbar-notification-btn .notification-icon-wrapper i {
+        color: #ffffff !important;
+    }
+
+    .topbar-notification-btn .notification-badge-dot {
+        background-color: #ff4d4f !important;
     }
 
     .topbar-user-profile {
@@ -1186,6 +1339,8 @@ body.dashboard-body {
     .topbar-avatar-circle {
         width: 26px;
         height: 26px;
+        background: #3e0610 !important;
+        border: 1.5px solid rgba(255, 255, 255, 0.4) !important;
     }
 
     .topbar-role-badge {
@@ -1195,6 +1350,10 @@ body.dashboard-body {
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+        background-color: rgba(255, 255, 255, 0.18) !important;
+        border: 1px solid rgba(255, 255, 255, 0.4) !important;
+        color: #ffffff !important;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15) !important;
     }
 
     /* 3. MOBILE NAVIGATION (NOT FULL SCREEN, FIT-CONTENT TO TEXT LENGTH) */
@@ -1439,13 +1598,16 @@ body.dashboard-body {
         padding-left: 4px !important;
     }
 
-    .table-article-link {
-        display: block !important;
-        white-space: nowrap !important;
+    .table-article-link,
+    .table-article-btn {
+        display: -webkit-box !important;
+        -webkit-line-clamp: 2 !important;
+        -webkit-box-orient: vertical !important;
         overflow: hidden !important;
-        text-overflow: ellipsis !important;
-        max-width: 150px !important; /* Strict truncation */
-        font-size: 0.80rem !important;
+        white-space: normal !important;
+        max-width: 100% !important;
+        font-size: 0.82rem !important;
+        line-height: 1.3 !important;
     }
 
     .table-author {

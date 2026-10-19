@@ -65,22 +65,22 @@
                     <span>Submit article</span>
                 </a>
 
-                <a href="#accounts" class="sidebar-nav-item">
+                <a href="manage-accounts.html" class="sidebar-nav-item">
                     <i class="fa-solid fa-user-group"></i>
-                    <span>Accounts</span>
+                    <span>Manage Accounts</span>
                 </a>
 
-                <a href="#activity" class="sidebar-nav-item">
+                <a href="activity-logs.html" class="sidebar-nav-item" data-page="activity-logs.html">
                     <i class="fa-solid fa-clock-rotate-left"></i>
                     <span>Activity log</span>
                 </a>
 
-                <a href="#transparency" class="sidebar-nav-item">
+                <a href="transparency.html" class="sidebar-nav-item">
                     <i class="fa-solid fa-file-invoice-dollar"></i>
                     <span>Transparency</span>
                 </a>
 
-                <a href="#feedback" class="sidebar-nav-item">
+                <a href="feedback-inbox.html" class="sidebar-nav-item">
                     <i class="fa-regular fa-comments"></i>
                     <span>Feedback</span>
                 </a>
@@ -89,7 +89,7 @@
 
         <!-- Bottom of Sidebar: Profile Settings, View Public Site, Logout -->
         <div class="sidebar-footer">
-            <a href="#settings" class="sidebar-footer-link">
+            <a href="profile-settings.html" class="sidebar-footer-link">
                 <i class="fa-solid fa-sliders"></i>
                 <span>Profile Settings</span>
             </a>
@@ -189,26 +189,26 @@
                     <i class="fa-solid fa-feather-pointed"></i>
                     <span>Submit article</span>
                 </a>
-                <a href="#accounts" class="mobile-nav-link">
+                <a href="manage-accounts.html" class="mobile-nav-link">
                     <i class="fa-solid fa-user-group"></i>
-                    <span>Accounts</span>
+                    <span>Manage Accounts</span>
                 </a>
-                <a href="#activity" class="mobile-nav-link">
+                <a href="activity-logs.html" class="mobile-nav-link">
                     <i class="fa-solid fa-clock-rotate-left"></i>
                     <span>Activity log</span>
                 </a>
-                <a href="#transparency" class="mobile-nav-link">
+                <a href="transparency.html" class="mobile-nav-link">
                     <i class="fa-solid fa-file-invoice-dollar"></i>
                     <span>Transparency</span>
                 </a>
-                <a href="#feedback" class="mobile-nav-link">
+                <a href="feedback-inbox.html" class="mobile-nav-link">
                     <i class="fa-regular fa-comments"></i>
                     <span>Feedback</span>
                 </a>
             </div>
 
             <div class="mobile-nav-footer">
-                <a href="#settings" class="mobile-nav-footer-link">
+                <a href="profile-settings.html" class="mobile-nav-footer-link">
                     <i class="fa-solid fa-sliders"></i>
                     <span>Profile Settings</span>
                 </a>
@@ -519,6 +519,9 @@
 
     <!-- Toast Notification Container -->
     <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+    <!-- Reusable Executive Shell Controller (Navigation, Role, Clock, Mobile Burger) -->
+    <script src="js/executive-shell.js"></script>
 
     <!-- Strictly Separated JavaScript (ES Module) -->
     <script type="module" src="js/manage-articles.js"></script>

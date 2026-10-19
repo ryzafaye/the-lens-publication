@@ -12,21 +12,6 @@
 
 document.addEventListener('DOMContentLoaded', () => {
 
-    // =========================================================================
-    // 1. AUTHENTICATION & ROLE VERIFICATION
-    // =========================================================================
-    const userRole = localStorage.getItem('userRole') || 'President';
-    if (!localStorage.getItem('userRole')) {
-        localStorage.setItem('userRole', 'President');
-    }
-
-    const topbarRoleBadge = document.getElementById('topbar-user-role');
-    const sidebarRoleText = document.getElementById('sidebar-user-role');
-    const mobileRoleText = document.getElementById('mobile-user-role');
-
-    if (topbarRoleBadge) topbarRoleBadge.textContent = userRole;
-    if (sidebarRoleText) sidebarRoleText.textContent = userRole;
-    if (mobileRoleText) mobileRoleText.textContent = userRole;
 
     // =========================================================================
     // 2. DATASET (Articles Awaiting Executive / EIC Decision)
@@ -456,70 +441,6 @@ Through the quiet corridors of the Science Pavilion, veteran custodian Mang Rodr
 
     // =========================================================================
     // 9. REAL-TIME CLOCK (Desktop)
-    // =========================================================================
-    const clockEl = document.getElementById('topbar-clock-display');
-    function updateClock() {
-        if (!clockEl) return;
-        const now = new Date();
-        const datePart = now.toLocaleDateString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            year: 'numeric'
-        });
-        const timePart = now.toLocaleTimeString('en-US', {
-            hour: 'numeric',
-            minute: '2-digit',
-            hour12: true
-        });
-        clockEl.textContent = `${datePart} | ${timePart}`;
-    }
-    updateClock();
-    setInterval(updateClock, 1000);
-
-    // =========================================================================
-    // 10. MOBILE ACCORDION DROPDOWN
-    // =========================================================================
-    const mobileHamburgerBtn = document.getElementById('mobile-hamburger-btn');
-    const mobileNavDropdown = document.getElementById('mobile-nav-dropdown');
-
-    if (mobileHamburgerBtn && mobileNavDropdown) {
-        mobileHamburgerBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const isOpen = mobileNavDropdown.classList.contains('active');
-            if (isOpen) {
-                mobileNavDropdown.classList.remove('active');
-                mobileHamburgerBtn.setAttribute('aria-expanded', 'false');
-            } else {
-                mobileNavDropdown.classList.add('active');
-                mobileHamburgerBtn.setAttribute('aria-expanded', 'true');
-            }
-        });
-
-        document.addEventListener('click', (e) => {
-            if (mobileNavDropdown.classList.contains('active')) {
-                if (!mobileNavDropdown.contains(e.target) && !mobileHamburgerBtn.contains(e.target)) {
-                    mobileNavDropdown.classList.remove('active');
-                    mobileHamburgerBtn.setAttribute('aria-expanded', 'false');
-                }
-            }
-        });
-    }
-
-    // =========================================================================
-    // 11. LOGOUT
-    // =========================================================================
-    function handleLogout(e) {
-        e.preventDefault();
-        localStorage.removeItem('userRole');
-        localStorage.removeItem('studentNumber');
-        window.location.href = 'login.html';
-    }
-
-    const logoutBtn = document.getElementById('logout-btn');
-    const mobileLogoutBtn = document.getElementById('mobile-logout-btn');
-    if (logoutBtn) logoutBtn.addEventListener('click', handleLogout);
-    if (mobileLogoutBtn) mobileLogoutBtn.addEventListener('click', handleLogout);
-
-    // Initial render
+    // =========================================================================    // Initial render
     renderReviewBoxes();
 });

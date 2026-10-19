@@ -34,95 +34,8 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
-    // Populate userRole into top-right badge, sidebar profile, and mobile dropdown
-    const topbarRoleBadge = document.getElementById('topbar-user-role');
-    const sidebarRoleText = document.getElementById('sidebar-user-role');
-    const mobileRoleText = document.getElementById('mobile-user-role');
-
-    if (topbarRoleBadge) topbarRoleBadge.textContent = userRole;
-    if (sidebarRoleText) sidebarRoleText.textContent = userRole;
-    if (mobileRoleText) mobileRoleText.textContent = userRole;
-
     // =========================================================================
-    // 2. MOBILE ACCORDION DROPDOWN NAVIGATION (NO Off-Canvas Drawer)
-    // =========================================================================
-    const mobileHamburgerBtn = document.getElementById('mobile-hamburger-btn');
-    const mobileNavDropdown = document.getElementById('mobile-nav-dropdown');
-
-    if (mobileHamburgerBtn && mobileNavDropdown) {
-        mobileHamburgerBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const isOpen = mobileNavDropdown.classList.toggle('open');
-            mobileHamburgerBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-        });
-
-        // Close dropdown when tapping anywhere outside
-        document.addEventListener('click', (e) => {
-            if (!mobileNavDropdown.contains(e.target) && !mobileHamburgerBtn.contains(e.target)) {
-                if (mobileNavDropdown.classList.contains('open')) {
-                    mobileNavDropdown.classList.remove('open');
-                    mobileHamburgerBtn.setAttribute('aria-expanded', 'false');
-                }
-            }
-        });
-
-        // Close dropdown on Escape key
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && mobileNavDropdown.classList.contains('open')) {
-                mobileNavDropdown.classList.remove('open');
-                mobileHamburgerBtn.setAttribute('aria-expanded', 'false');
-            }
-        });
-    }
-
-    // =========================================================================
-    // 3. REAL-TIME CLOCK (Date | Time in PH: "Oct 18, 2026 | 1:15 PM")
-    // =========================================================================
-    const clockEl = document.getElementById('topbar-clock-display');
-
-    function updateRealTimeClock() {
-        if (!clockEl) return;
-
-        const now = new Date();
-
-        // Format Date: e.g. "Oct 18, 2026"
-        const datePart = now.toLocaleDateString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            year: 'numeric'
-        });
-
-        // Format Time: e.g. "1:15 PM"
-        const timePart = now.toLocaleTimeString('en-US', {
-            hour: 'numeric',
-            minute: '2-digit',
-            hour12: true
-        });
-
-        clockEl.textContent = `${datePart} | ${timePart}`;
-    }
-
-    updateRealTimeClock();
-    setInterval(updateRealTimeClock, 1000);
-
-    // =========================================================================
-    // 4. LOGOUT FUNCTIONALITY (Desktop Sidebar & Mobile Accordion)
-    // =========================================================================
-    function handleLogout(e) {
-        e.preventDefault();
-        localStorage.removeItem('userRole');
-        localStorage.removeItem('studentNumber');
-        window.location.href = 'login.html';
-    }
-
-    const logoutBtn = document.getElementById('logout-btn');
-    const mobileLogoutBtn = document.getElementById('mobile-logout-btn');
-
-    if (logoutBtn) logoutBtn.addEventListener('click', handleLogout);
-    if (mobileLogoutBtn) mobileLogoutBtn.addEventListener('click', handleLogout);
-
-    // =========================================================================
-    // 5. HELPER UTILITIES: ESCAPE HTML & TOAST NOTIFICATIONS
+    // 2. HELPER UTILITIES: ESCAPE HTML & TOAST NOTIFICATIONS
     // =========================================================================
     function escapeHTML(str) {
         if (!str) return '';
@@ -197,37 +110,42 @@ document.addEventListener('DOMContentLoaded', () => {
         {
             user: "Juan Dela Cruz",
             avatar: "images/member-placeholder.svg",
-            action: "updated an article",
+            action: "approved",
+            subjectType: "Article",
             target: "Academic Freedom in the Digital Era",
-            time: "25m ago"
+            time: "12m ago"
         },
         {
             user: "Maria Santos",
             avatar: "images/member-placeholder.svg",
-            action: "submitted a new draft for",
-            target: "News Section",
+            action: "submitted",
+            subjectType: "Article",
+            target: "Digital divide persists as student WiFi coverage drops in outer colleges",
+            time: "45m ago"
+        },
+        {
+            user: "Juan Dela Cruz",
+            avatar: "images/member-placeholder.svg",
+            action: "created",
+            subjectType: "Account",
+            target: "Joshua Hernandez (BN-0)",
             time: "2h ago"
         },
         {
             user: "Carlo Ramos",
             avatar: "images/member-placeholder.svg",
-            action: "uploaded photo assets for",
-            target: "Science & Tech Feature",
-            time: "4h ago"
+            action: "uploaded",
+            subjectType: "Photo Asset",
+            target: "Central University Library Modernization Gallery",
+            time: "3h ago"
         },
         {
             user: "Finance Desk",
             avatar: "images/member-placeholder.svg",
-            action: "approved transparency report",
-            target: "Q1 Liquidation Report",
-            time: "Yesterday"
-        },
-        {
-            user: "Elena Cruz",
-            avatar: "images/member-placeholder.svg",
-            action: "revised literary folio submission",
-            target: "Courtyard Poetry Folio",
-            time: "2 days ago"
+            action: "verified",
+            subjectType: "Transparency Report",
+            target: "Q3 Publication Operating Budget Liquidation",
+            time: "5h ago"
         }
     ];
 
@@ -297,17 +215,37 @@ document.addEventListener('DOMContentLoaded', () => {
             `).join('');
         }
 
-        // B. Activity Log (Top 5 with Circular Profile Avatars)
+        // B. Activity Log (Top 5 Recent with Causer Action Subject Format)
         const activityContainer = document.getElementById('recent-activity-list');
         if (activityContainer) {
-            activityContainer.innerHTML = ACTIVITY_LOG_DATA.map(item => `
-                <div class="activity-item">
+            let logsToDisplay = ACTIVITY_LOG_DATA;
+            try {
+                const storedLogs = localStorage.getItem('executiveActivityLogs_v1');
+                if (storedLogs) {
+                    const parsed = JSON.parse(storedLogs);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        logsToDisplay = parsed.slice(0, 5).map(item => ({
+                            user: item.causer,
+                            avatar: item.causerAvatar || 'images/member-placeholder.svg',
+                            action: item.action,
+                            subjectType: item.subjectType || 'Article',
+                            target: item.subjectName,
+                            time: item.timestampText
+                        }));
+                    }
+                }
+            } catch (e) {
+                // Fallback to default
+            }
+
+            activityContainer.innerHTML = logsToDisplay.map(item => `
+                <div class="activity-item" onclick="window.location.href='activity-logs.html'" style="cursor: pointer;" title="Open Activity Log">
                     <div class="activity-avatar">
                         <img src="${item.avatar}" alt="${escapeHTML(item.user)}">
                     </div>
                     <div class="activity-details">
                         <p class="activity-text">
-                            <strong>${escapeHTML(item.user)}</strong> ${escapeHTML(item.action)} <em>${escapeHTML(item.target)}</em>
+                            <strong>${escapeHTML(item.user)}</strong> ${escapeHTML(item.action)} the ${escapeHTML(item.subjectType || 'Article')} <em>"${escapeHTML(item.target)}"</em> <span style="color:#667085; font-size:0.75rem; margin-left:3px;">${escapeHTML(item.time)}.</span>
                         </p>
                         <span class="activity-time">${escapeHTML(item.time)}</span>
                     </div>

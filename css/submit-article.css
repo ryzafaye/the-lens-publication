@@ -394,6 +394,8 @@
     resize: vertical;
     min-height: 52px;
     box-sizing: border-box;
+    text-align: justify;
+    text-justify: inter-word;
 }
 
 .excerpt-input::placeholder {
@@ -497,6 +499,8 @@
     line-height: 1.75;
     color: #1f2937;
     word-break: break-word;
+    text-align: justify;
+    text-justify: inter-word;
     scrollbar-width: thin;
     scrollbar-color: #cbd5e1 transparent;
 }
@@ -525,8 +529,15 @@
     display: block;
 }
 
-.rich-editor-content p {
-    margin: 0 0 16px 0;
+.rich-editor-content p,
+.rich-editor-content div {
+    margin: 0;
+    margin-block-start: 0;
+    margin-block-end: 0;
+    padding: 0;
+    line-height: inherit;
+    text-align: justify;
+    text-justify: inter-word;
 }
 
 .rich-editor-content h2 {
@@ -694,6 +705,7 @@
     justify-content: space-between;
     align-items: center;
     gap: 20px;
+    cursor: pointer;
     transition: transform 0.2s ease, box-shadow 0.15s ease, border-color 0.15s ease, opacity 0.22s ease;
 }
 
@@ -776,8 +788,10 @@
 .draft-box-excerpt {
     font-size: 0.84rem;
     color: #667085;
-    line-height: 1.45;
+    line-height: 1.5;
     margin: 0;
+    text-align: justify;
+    text-justify: inter-word;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
@@ -867,32 +881,45 @@
 }
 
 /* --------------------------------------------------------------------------
-   9. RESPONSIVE BEHAVIOR (MOBILE: max-width: 768px)
+   9. RESPONSIVE BEHAVIOR (TABLET & MOBILE: max-width: 768px)
    -------------------------------------------------------------------------- */
 @media (max-width: 768px) {
     .writing-canvas-container {
-        padding: 20px 16px;
+        padding: 16px 14px;
         border-radius: 10px;
         margin-bottom: 24px;
     }
 
     .headline-box-wrapper {
-        padding: 12px 14px;
+        padding: 10px 12px;
+        margin-bottom: 12px;
     }
 
     .headline-input {
-        font-size: 1.40rem;
+        font-size: 1.15rem;
+        line-height: 1.35;
+        min-height: 38px;
+        max-height: 115px;
+        overflow-y: auto;
+    }
+
+    .headline-helper-row {
+        margin-top: 4px;
+        font-size: 0.70rem;
     }
 
     .meta-controls-row {
         flex-direction: column;
         align-items: flex-start;
-        gap: 12px;
-        padding-bottom: 14px;
+        gap: 10px;
+        padding-bottom: 12px;
+        margin-bottom: 14px;
     }
 
     .category-select-wrapper {
         width: 100%;
+        display: flex;
+        align-items: center;
         justify-content: space-between;
     }
 
@@ -903,35 +930,72 @@
 
     .category-dropdown-select {
         width: 100%;
+        padding: 6px 28px 6px 10px;
+        font-size: 0.80rem;
     }
 
-    .excerpt-box-wrapper {
-        padding: 12px 14px;
-    }
-
-    .editor-toolbar {
-        top: 60px;
-        padding: 4px;
-    }
-
-    .tool-btn {
-        padding: 5px 7px;
+    .author-byline-display {
         font-size: 0.78rem;
     }
 
+    .excerpt-box-wrapper {
+        padding: 10px 12px;
+        margin-bottom: 14px;
+    }
+
+    .excerpt-label {
+        font-size: 0.72rem;
+        margin-bottom: 6px;
+    }
+
+    .excerpt-input {
+        font-size: 0.86rem;
+        min-height: 44px;
+    }
+
+    .editor-toolbar {
+        top: 56px;
+        padding: 4px;
+        gap: 2px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+
+    .editor-toolbar::-webkit-scrollbar {
+        display: none;
+    }
+
+    .tool-btn {
+        padding: 5px 6px;
+        font-size: 0.75rem;
+        min-width: 28px;
+        height: 28px;
+    }
+
+    .toolbar-divider {
+        height: 14px;
+        margin: 0 2px;
+    }
+
     .rich-editor-content {
-        font-size: 0.98rem;
-        min-height: 280px;
+        font-size: 0.95rem;
+        min-height: 240px;
+        max-height: 360px;
+        line-height: 1.65;
     }
 
     .editor-footer-bar {
         flex-direction: column;
         align-items: stretch;
-        gap: 14px;
+        gap: 12px;
+        margin-top: 14px;
+        padding-top: 12px;
     }
 
     .editor-metrics-left {
         justify-content: space-between;
+        font-size: 0.72rem;
     }
 
     .editor-actions-right {
@@ -951,8 +1015,12 @@
     .draft-box {
         flex-direction: column;
         align-items: flex-start;
-        padding: 16px;
-        gap: 14px;
+        padding: 14px;
+        gap: 12px;
+    }
+
+    .draft-box-title {
+        font-size: 0.96rem;
     }
 
     .draft-box-actions {
@@ -964,6 +1032,58 @@
     .draft-box-actions button {
         flex: 1;
         justify-content: center;
+    }
+}
+
+/* --------------------------------------------------------------------------
+   10. EXTRA COMPACT SCREENS (SMALL SMARTPHONES: max-width: 480px)
+   -------------------------------------------------------------------------- */
+@media (max-width: 480px) {
+    .writing-canvas-container {
+        padding: 14px 10px;
+    }
+
+    .headline-box-wrapper {
+        padding: 8px 10px;
+        margin-bottom: 10px;
+    }
+
+    .headline-input {
+        font-size: 1.02rem;
+        min-height: 34px;
+        max-height: 100px;
+        line-height: 1.35;
+    }
+
+    .headline-char-count {
+        font-size: 0.68rem;
+    }
+
+    .category-select-wrapper {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+
+    .select-styled-container {
+        max-width: 100%;
+        width: 100%;
+    }
+
+    .excerpt-box-wrapper {
+        padding: 8px 10px;
+        margin-bottom: 10px;
+    }
+
+    .excerpt-input {
+        font-size: 0.82rem;
+        min-height: 40px;
+    }
+
+    .rich-editor-content {
+        font-size: 0.90rem;
+        min-height: 200px;
+        max-height: 300px;
     }
 }
 

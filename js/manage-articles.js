@@ -30,87 +30,8 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('userRole', 'President');
     }
 
-    // Populate userRole into topbar and sidebar
-    const topbarRoleBadge = document.getElementById('topbar-user-role');
-    const sidebarRoleText = document.getElementById('sidebar-user-role');
-    const mobileRoleText = document.getElementById('mobile-user-role');
-
-    if (topbarRoleBadge) topbarRoleBadge.textContent = userRole;
-    if (sidebarRoleText) sidebarRoleText.textContent = userRole;
-    if (mobileRoleText) mobileRoleText.textContent = userRole;
-
     // =========================================================================
-    // 2. MOBILE NAVIGATION DROPDOWN (Left-aligned, fit-content)
-    // =========================================================================
-    const mobileHamburgerBtn = document.getElementById('mobile-hamburger-btn');
-    const mobileNavDropdown = document.getElementById('mobile-nav-dropdown');
-
-    if (mobileHamburgerBtn && mobileNavDropdown) {
-        mobileHamburgerBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const isOpen = mobileNavDropdown.classList.toggle('open');
-            mobileHamburgerBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-        });
-
-        document.addEventListener('click', (e) => {
-            if (!mobileNavDropdown.contains(e.target) && !mobileHamburgerBtn.contains(e.target)) {
-                if (mobileNavDropdown.classList.contains('open')) {
-                    mobileNavDropdown.classList.remove('open');
-                    mobileHamburgerBtn.setAttribute('aria-expanded', 'false');
-                }
-            }
-        });
-
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && mobileNavDropdown.classList.contains('open')) {
-                mobileNavDropdown.classList.remove('open');
-                mobileHamburgerBtn.setAttribute('aria-expanded', 'false');
-            }
-        });
-    }
-
-    // =========================================================================
-    // 3. REAL-TIME CLOCK (Date | Time in PH: "Oct 18, 2026 | 1:15 PM")
-    // =========================================================================
-    const clockEl = document.getElementById('topbar-clock-display');
-
-    function updateRealTimeClock() {
-        if (!clockEl) return;
-        const now = new Date();
-        const datePart = now.toLocaleDateString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            year: 'numeric'
-        });
-        const timePart = now.toLocaleTimeString('en-US', {
-            hour: 'numeric',
-            minute: '2-digit',
-            hour12: true
-        });
-        clockEl.textContent = `${datePart} | ${timePart}`;
-    }
-
-    updateRealTimeClock();
-    setInterval(updateRealTimeClock, 1000);
-
-    // =========================================================================
-    // 4. LOGOUT FUNCTIONALITY
-    // =========================================================================
-    function handleLogout(e) {
-        e.preventDefault();
-        localStorage.removeItem('userRole');
-        localStorage.removeItem('studentNumber');
-        window.location.href = 'login.html';
-    }
-
-    const logoutBtn = document.getElementById('logout-btn');
-    const mobileLogoutBtn = document.getElementById('mobile-logout-btn');
-
-    if (logoutBtn) logoutBtn.addEventListener('click', handleLogout);
-    if (mobileLogoutBtn) mobileLogoutBtn.addEventListener('click', handleLogout);
-
-    // =========================================================================
-    // 5. DATA STORE: SHARED ARTICLES DATASET (Connected with public/executive)
+    // 2. DATA STORE: SHARED ARTICLES DATASET (Connected with public/executive)
     // =========================================================================
     function getStoredArticles() {
         try {

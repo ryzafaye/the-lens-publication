@@ -22,6 +22,13 @@
 
 document.addEventListener('DOMContentLoaded', () => {
 
+    // Ensure contenteditable uses <div> consistently on Enter across all Chromium browsers
+    try {
+        document.execCommand('defaultParagraphSeparator', false, 'div');
+    } catch (e) {
+        // Ignore if not supported in environment
+    }
+
     // =========================================================================
     // 1. DOM ELEMENT REFERENCES
     // =========================================================================
@@ -76,6 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
         authorNameDisplay.textContent = currentUserName;
     }
 
+
     // =========================================================================
     // 3. TOAST NOTIFICATION HELPER (Default Green Bullet Dot Style)
     // =========================================================================
@@ -122,7 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
             excerpt: "An inquiry into supplier monopolies, collegiate uniform fees, and student budget impact across multiple departments.",
             date: "Oct 18, 2026",
             rawDate: "2026-10-18",
-            content: `<p>An inquiry into supplier monopolies, collegiate uniform fees, and student budget impact across campuses.</p><p>Students from multiple departments have voiced concerns over recurring price hikes without transparent vendor biddings.</p>`
+            content: `<div>An inquiry into supplier monopolies, collegiate uniform fees, and student budget impact across campuses.</div><div><br></div><div>Students from multiple departments have voiced concerns over recurring price hikes without transparent vendor biddings.</div>`
         },
         {
             id: 'draft-02',
@@ -131,7 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
             excerpt: "Bandwidth testing across student dormitories and satellite laboratories reveals stark regional disparities in high-speed access.",
             date: "Oct 17, 2026",
             rawDate: "2026-10-17",
-            content: `<p>Bandwidth testing across student dormitories and satellite laboratories reveals stark regional disparities in high-speed internet access.</p>`
+            content: `<div>Bandwidth testing across student dormitories and satellite laboratories reveals stark regional disparities in high-speed internet access.</div>`
         }
     ];
 
@@ -211,11 +219,17 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!headlineInput) return;
         headlineInput.style.height = 'auto';
         const scrollH = headlineInput.scrollHeight;
-        const calculatedHeight = Math.max(44, scrollH);
-        const clampedHeight = Math.min(160, calculatedHeight);
+
+        // Dynamically compute responsive bounds based on viewport width
+        const width = window.innerWidth;
+        const minH = width <= 480 ? 34 : (width <= 768 ? 38 : 44);
+        const maxH = width <= 480 ? 100 : (width <= 768 ? 115 : 160);
+
+        const calculatedHeight = Math.max(minH, scrollH);
+        const clampedHeight = Math.min(maxH, calculatedHeight);
         headlineInput.style.height = `${clampedHeight}px`;
 
-        if (scrollH > 160) {
+        if (scrollH > maxH) {
             headlineInput.style.overflowY = 'auto';
         } else {
             headlineInput.style.overflowY = 'hidden';
@@ -235,6 +249,9 @@ document.addEventListener('DOMContentLoaded', () => {
             headlineWrapper.classList.remove('input-invalid');
         }
     }
+
+    // Recalculate on screen resize or device orientation change
+    window.addEventListener('resize', autoResizeHeadline);
 
     if (headlineWrapper && headlineInput) {
         headlineWrapper.addEventListener('click', () => {
@@ -487,20 +504,22 @@ document.addEventListener('DOMContentLoaded', () => {
         `).join('');
     }
 
-    // Event delegation on Drafts List
+    // Event delegation on Drafts List (Clicking draft card or title or edit button loads it)
     if (draftsListContainer) {
         draftsListContainer.addEventListener('click', (e) => {
-            const btn = e.target.closest('[data-action]');
-            if (!btn) return;
+            const deleteBtn = e.target.closest('[data-action="delete"]');
+            if (deleteBtn) {
+                e.stopPropagation();
+                deleteDraftAction(deleteBtn.dataset.id);
+                return;
+            }
 
-            const action = btn.dataset.action;
-            const id = btn.dataset.id;
-            if (!id) return;
-
-            if (action === 'edit') {
-                editDraftAction(id);
-            } else if (action === 'delete') {
-                deleteDraftAction(id);
+            const draftBox = e.target.closest('.draft-box');
+            if (draftBox) {
+                const id = draftBox.dataset.id;
+                if (id) {
+                    editDraftAction(id);
+                }
             }
         });
     }
@@ -523,6 +542,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (editorContent) {
             editorContent.innerHTML = '';
+            editorContent.style.textAlign = 'justify';
             updateEditorMetrics();
         }
         if (headlineWrapper) headlineWrapper.classList.remove('input-invalid');
@@ -604,23 +624,36 @@ document.addEventListener('DOMContentLoaded', () => {
         // Switch to Write Article tab FIRST so elements are visible and layout dimensions exist
         switchTab('write');
 
-        // Load draft data into form fields
+        // Load draft data into form fields with identical layout & spacing
         if (headlineInput) {
             headlineInput.value = draft.title || '';
+            headlineInput.style.height = 'auto';
             requestAnimationFrame(() => {
                 autoResizeHeadline();
             });
             setTimeout(autoResizeHeadline, 40);
+            setTimeout(autoResizeHeadline, 120);
         }
         if (categorySelect) {
             categorySelect.value = draft.category || '';
+            categorySelect.classList.remove('input-invalid');
         }
         if (excerptInput) {
             excerptInput.value = draft.excerpt || '';
+            excerptInput.style.textAlign = 'justify';
             handleExcerptInput();
         }
         if (editorContent) {
-            editorContent.innerHTML = draft.content || '';
+            let contentHtml = draft.content || '';
+            // If draft contains <p> tags from older saves or defaults, normalize them into standard <div> blocks
+            if (contentHtml.includes('<p>') || contentHtml.includes('<p ') || contentHtml.includes('</p>')) {
+                contentHtml = contentHtml
+                    .replace(/<\/p>\s*<p[^>]*>/gi, '</div><div><br></div><div>')
+                    .replace(/<p[^>]*>/gi, '<div>')
+                    .replace(/<\/p>/gi, '</div>');
+            }
+            editorContent.innerHTML = contentHtml;
+            editorContent.style.textAlign = 'justify';
             updateEditorMetrics();
         }
 

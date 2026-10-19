@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feedback Inbox | The Lens Executive Portal</title>
+    
+    <!-- Typography: DM Sans & Playfair Display -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,600;1,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Modular CSS Architecture -->
+    <link rel="stylesheet" href="css/executive-dashboard.css">
+    <link rel="stylesheet" href="css/feedback-inbox.css">
+</head>
+<body class="dashboard-body">
+
+    <!-- ====================================================================== -->
+    <!-- SIDEBAR: Left - Desktop Fixed Full-Height Maroon (#5c0a18)             -->
+    <!-- ====================================================================== -->
+    <aside id="sidebar" class="sidebar" aria-label="Executive Portal Sidebar">
+        
+        <div class="sidebar-top-section">
+            <!-- Sidebar Header with Square Logo & "The Lens Publication" -->
+            <div class="sidebar-header">
+                <div class="sidebar-brand-lockup">
+                    <div class="sidebar-logo-square">
+                        <img src="images/logo.jpg" alt="The Lens Logo">
+                    </div>
+                    <span class="sidebar-brand-name">The Lens Publication</span>
+                </div>
+            </div>
+
+            <!-- Profile Section: Avatar + Name + Role -->
+            <div class="sidebar-profile">
+                <div class="profile-avatar">
+                    <img src="images/member-placeholder.svg" alt="Juan Dela Cruz Avatar">
+                </div>
+                <div class="profile-name">Juan Dela Cruz</div>
+                <div id="sidebar-user-role" class="profile-role-text">President</div>
+            </div>
+
+            <!-- Main Navigation Links -->
+            <nav class="sidebar-nav" aria-label="Executive navigation">
+                <a href="executive-dashboard.html" class="sidebar-nav-item">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </a>
+
+                <a href="manage-articles.html" class="sidebar-nav-item">
+                    <i class="fa-regular fa-newspaper"></i>
+                    <span>Manage Articles</span>
+                </a>
+
+                <a href="review-articles.html" class="sidebar-nav-item">
+                    <i class="fa-solid fa-clipboard-check"></i>
+                    <span>Review Article</span>
+                </a>
+
+                <a href="submit-article.html" class="sidebar-nav-item">
+                    <i class="fa-solid fa-feather-pointed"></i>
+                    <span>Submit article</span>
+                </a>
+
+                <a href="manage-accounts.html" class="sidebar-nav-item">
+                    <i class="fa-solid fa-user-group"></i>
+                    <span>Manage Accounts</span>
+                </a>
+
+                <a href="activity-logs.html" class="sidebar-nav-item">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <span>Activity log</span>
+                </a>
+
+                <a href="transparency.html" class="sidebar-nav-item">
+                    <i class="fa-solid fa-file-invoice-dollar"></i>
+                    <span>Transparency</span>
+                </a>
+
+                <a href="feedback-inbox.html" class="sidebar-nav-item active">
+                    <i class="fa-regular fa-comments"></i>
+                    <span>Feedback</span>
+                </a>
+            </nav>
+        </div>
+
+        <!-- Bottom of Sidebar: Profile Settings, View Public Site, Logout -->
+        <div class="sidebar-footer" id="sidebar-footer">
+            <a href="profile-settings.html" class="sidebar-footer-link">
+                <i class="fa-solid fa-sliders"></i>
+                <span>Profile Settings</span>
+            </a>
+
+            <a href="index.html" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                <span>View public site</span>
+            </a>
+
+            <button type="button" id="logout-btn" class="sidebar-footer-link logout-btn">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span>Logout</span>
+            </button>
+        </div>
+
+    </aside>
+
+    <!-- ====================================================================== -->
+    <!-- MAIN CONTENT AREA: Right                                              -->
+    <!-- ====================================================================== -->
+    <div class="main-wrapper">
+
+        <!-- Top Header Bar -->
+        <header class="topbar">
+            
+            <!-- Left Side: Mobile Hamburger before Logo + The Lens -->
+            <div class="topbar-left">
+                <div class="mobile-header-brand">
+                    <button type="button" id="mobile-hamburger-btn" class="mobile-hamburger-btn" aria-label="Toggle navigation menu" aria-expanded="false">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <div class="mobile-brand-lockup">
+                        <div class="mobile-logo-square">
+                            <img src="images/logo.jpg" alt="The Lens Logo">
+                        </div>
+                        <span class="mobile-brand-title">The Lens</span>
+                    </div>
+                </div>
+
+                <!-- Desktop Real-time Clock (Hidden on mobile) -->
+                <div class="topbar-clock">
+                    <i class="fa-regular fa-clock"></i>
+                    <span id="topbar-clock-display">Loading date &amp; time…</span>
+                </div>
+            </div>
+
+            <!-- Right Side: Notification + Circular Profile Picture + Responsive Role Badge -->
+            <div class="topbar-right">
+                
+                <button type="button" class="topbar-notification-btn" aria-label="Notifications">
+                    <div class="notification-icon-wrapper">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="notification-badge-dot"></span>
+                    </div>
+                    <span class="notification-label">Notification</span>
+                </button>
+
+                <div class="topbar-divider"></div>
+
+                <!-- User Profile Lockup -->
+                <div class="topbar-user-profile">
+                    <div class="topbar-avatar-circle" title="User Profile">
+                        <img src="images/member-placeholder.svg" alt="User Profile Picture">
+                    </div>
+                    <span id="topbar-user-role" class="topbar-role-badge">President</span>
+                </div>
+
+            </div>
+
+        </header>
+
+        <!-- Mobile Accordion Dropdown -->
+        <nav id="mobile-nav-dropdown" class="mobile-nav-dropdown" aria-label="Mobile Navigation Menu">
+            <div class="mobile-nav-profile">
+                <div class="mobile-nav-avatar">
+                    <img src="images/member-placeholder.svg" alt="Juan Dela Cruz Avatar">
+                </div>
+                <div class="mobile-nav-user-info">
+                    <div class="mobile-nav-name">Juan Dela Cruz</div>
+                    <div id="mobile-user-role" class="mobile-nav-role">President</div>
+                </div>
+            </div>
+
+            <div class="mobile-nav-links">
+                <a href="executive-dashboard.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="manage-articles.html" class="mobile-nav-link">
+                    <i class="fa-regular fa-newspaper"></i>
+                    <span>Manage Articles</span>
+                </a>
+                <a href="review-articles.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-clipboard-check"></i>
+                    <span>Review Article</span>
+                </a>
+                <a href="submit-article.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-feather-pointed"></i>
+                    <span>Submit article</span>
+                </a>
+                <a href="manage-accounts.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-user-group"></i>
+                    <span>Manage Accounts</span>
+                </a>
+                <a href="activity-logs.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <span>Activity log</span>
+                </a>
+                <a href="transparency.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-file-invoice-dollar"></i>
+                    <span>Transparency</span>
+                </a>
+                <a href="feedback-inbox.html" class="mobile-nav-link active">
+                    <i class="fa-regular fa-comments"></i>
+                    <span>Feedback</span>
+                </a>
+            </div>
+
+            <div class="mobile-nav-footer">
+                <a href="profile-settings.html" class="mobile-nav-footer-link">
+                    <i class="fa-solid fa-sliders"></i>
+                    <span>Profile Settings</span>
+                </a>
+                <a href="index.html" target="_blank" rel="noopener noreferrer" class="mobile-nav-footer-link">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    <span>View public site</span>
+                </a>
+                <button type="button" id="mobile-logout-btn" class="mobile-nav-footer-link mobile-logout-btn">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span>Logout</span>
+                </button>
+            </div>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="content-container">
+
+            <div class="feedback-inbox-container">
+                
+                <!-- Page Header -->
+                <div class="feedback-header-row">
+                    <div class="feedback-title-wrap">
+                        <h1>Feedback Inbox</h1>
+                        <p>Receiving area for reader feedback, editorial inquiries, and community messages.</p>
+                    </div>
+                </div>
+
+                <!-- Search, Filter, and Sort Controls Bar -->
+                <div class="feedback-controls-bar">
+                    <div class="feedback-search-box">
+                        <i class="fa-solid fa-magnifying-glass feedback-search-icon"></i>
+                        <input 
+                            type="text" 
+                            id="feedback-search-input" 
+                            class="feedback-search-input" 
+                            placeholder="Search by sender name, subject, or message content..."
+                            aria-label="Search feedback messages"
+                        >
+                        <button type="button" id="feedback-search-clear" class="feedback-search-clear" aria-label="Clear search">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+
+                    <div class="feedback-filters-and-sort">
+                        <!-- Read Status Tabs -->
+                        <div class="feedback-filter-tabs" id="feedback-filter-tabs" role="tablist">
+                            <button type="button" class="tab-filter-btn active" data-tab="all" role="tab" aria-selected="true">
+                                <span>All</span>
+                                <span class="tab-pill-count" id="count-tab-all">0</span>
+                            </button>
+                            <button type="button" class="tab-filter-btn" data-tab="unread" role="tab" aria-selected="false">
+                                <span>Unread</span>
+                                <span class="tab-pill-count" id="count-tab-unread">0</span>
+                            </button>
+                        </div>
+
+                        <!-- Sort Dropdown (Newest / Oldest) -->
+                        <div class="feedback-sort-wrap">
+                            <label for="feedback-sort-select" class="feedback-sort-label">
+                                <i class="fa-solid fa-arrow-down-short-wide"></i>
+                                <span>Sort:</span>
+                            </label>
+                            <select id="feedback-sort-select" class="feedback-sort-select" aria-label="Sort feedback messages">
+                                <option value="newest" selected>Newest</option>
+                                <option value="oldest">Oldest</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Master-Detail Split Inbox Layout -->
+                <div class="inbox-split-grid">
+                    
+                    <!-- Left: Scrollable Message List -->
+                    <div class="inbox-list-pane">
+                        <div class="inbox-list-header">
+                            <span>All Submissions</span>
+                        </div>
+                        <div class="inbox-scroll-list" id="inbox-scroll-list" role="listbox" aria-label="Feedback message list">
+                            <!-- Populated dynamically by feedback-inbox.js -->
+                        </div>
+                    </div>
+
+                    <!-- Right: Reading Detail Pane -->
+                    <div class="inbox-detail-pane" id="inbox-detail-pane" aria-live="polite">
+                        <!-- Populated dynamically by feedback-inbox.js -->
+                    </div>
+
+                </div>
+
+            </div>
+
+        </main>
+
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+    <!-- Reusable Executive Shell Controller (Navigation, Role, Clock, Mobile Burger) -->
+    <script src="js/executive-shell.js"></script>
+
+    <!-- Modular Script -->
+    <script src="js/feedback-inbox.js"></script>
+</body>
+</html>
+

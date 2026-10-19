@@ -282,7 +282,7 @@ Through the quiet corridors of the Science Pavilion, veteran custodian Mang Rodr
             reviewList = reviewList.filter(a => a.id !== id);
             savePendingQueue(reviewList);
             renderReviewBoxes();
-            showToast(`"${item.title.slice(0, 40)}..." approved and forwarded to the Media & Publication Committee (M&PC).`, 'success');
+            showToast('Article approved and forwarded to the Media & Publication Committee (M&PC).', 'success');
         }, 220);
     }
 
@@ -299,7 +299,7 @@ Through the quiet corridors of the Science Pavilion, veteran custodian Mang Rodr
             reviewList = reviewList.filter(a => a.id !== id);
             savePendingQueue(reviewList);
             renderReviewBoxes();
-            showToast(`Story returned to ${item.author} for revision.`, 'warning');
+            showToast('Article returned to writer for revision.', 'warning');
         }, 220);
     }
 

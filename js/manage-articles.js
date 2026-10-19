@@ -725,7 +725,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     article.isArchived = true;
                     saveArticles(articles);
                     renderArticlesGrid();
-                    showToast(`"${article.title}" moved to Archive.`, 'info');
+                    showToast('Article moved to Archive.', 'info');
                 }
             );
         } else if (action === 'restore') {
@@ -738,7 +738,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     article.isArchived = false;
                     saveArticles(articles);
                     renderArticlesGrid();
-                    showToast(`"${article.title}" restored to Active Articles.`, 'success');
+                    showToast('Article restored to Active Articles.', 'success');
                 }
             );
         } else if (action === 'delete') {

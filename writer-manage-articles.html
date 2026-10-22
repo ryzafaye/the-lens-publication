@@ -369,6 +369,32 @@
         </div>
     </div>
 
+    <!-- ====================================================================== -->
+    <!-- MODAL 3: Delete Draft Confirmation Modal                               -->
+    <!-- ====================================================================== -->
+    <div id="delete-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="delete-heading">
+        <div class="modal-card delete-modal-card">
+            <div class="delete-icon-wrapper">
+                <i class="fa-solid fa-trash-can"></i>
+            </div>
+            <h2 id="delete-heading" class="delete-modal-title">Delete Draft Manuscript?</h2>
+            <p class="delete-modal-desc">
+                Are you sure you want to permanently delete <strong id="delete-article-title">this draft</strong>? This action cannot be undone.
+            </p>
+            <div class="delete-modal-actions">
+                <button type="button" id="cancel-delete-btn" class="btn-cancel">
+                    <span>Keep Draft</span>
+                </button>
+                <button type="button" id="confirm-delete-btn" class="btn-delete-confirm">
+                    <span>Yes, Delete</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+
     <!-- Dedicated Writer Shell Controller -->
     <script src="js/writer-shell.js"></script>
 

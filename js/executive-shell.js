@@ -30,7 +30,7 @@
         const footerSlot = document.querySelector('[data-include="executive-sidebar-footer.html"], [data-slot="sidebar-footer"]');
         if (footerSlot && footerSlot.children.length === 0) {
             footerSlot.innerHTML = `
-                <a href="profile-settings.html" class="sidebar-footer-link" data-page="profile-settings.html">
+                <a href="executive-profile-settings.html" class="sidebar-footer-link" data-page="executive-profile-settings.html">
                     <i class="fa-solid fa-sliders"></i>
                     <span>Profile Settings</span>
                 </a>

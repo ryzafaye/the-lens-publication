@@ -60,6 +60,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeRemarksModalBtn = document.getElementById('close-remarks-modal-btn');
     const btnEditFromRemarks = document.getElementById('btn-edit-from-remarks');
 
+    // DOM Elements - Delete Draft Confirmation Modal & Toast
+    const deleteModal = document.getElementById('delete-modal');
+    const deleteArticleTitle = document.getElementById('delete-article-title');
+    const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
+    const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+    const toastContainer = document.getElementById('toast-container');
+    let pendingDeleteId = null;
+
     // State Variables
     let currentTab = 'all';
     let searchQuery = '';
@@ -130,6 +138,23 @@ document.addEventListener('DOMContentLoaded', () => {
             default:
                 return 'status-draft';
         }
+    }
+
+    function showToast(message, type = 'success') {
+        if (!toastContainer) return;
+
+        const existing = toastContainer.querySelectorAll('.toast-message');
+        existing.forEach(t => t.remove());
+
+        const toast = document.createElement('div');
+        toast.className = `toast-message ${type}`;
+        toast.innerHTML = `<span class="toast-bullet-dot"></span><span>${escapeHTML(message)}</span>`;
+        toastContainer.appendChild(toast);
+
+        setTimeout(() => {
+            toast.classList.add('toast-dismissing');
+            setTimeout(() => toast.remove(), 260);
+        }, 3400);
     }
 
     // =========================================================================
@@ -223,7 +248,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             return `
                 <article class="writer-article-card" data-id="${item.id}" tabindex="0" role="button" aria-label="View article: ${escapeHTML(item.title)}">
-                    <div class="article-card-main">
+                    <div class="article-card-header">
                         <div class="article-card-meta">
                             <span class="article-card-category">${escapeHTML(item.category || 'General')}</span>
                             <span class="meta-dot">&bull;</span>
@@ -243,33 +268,59 @@ document.addEventListener('DOMContentLoaded', () => {
                                 </span>
                             ` : ''}
                         </div>
+                        <div class="article-card-status-top">
+                            <span class="status-badge ${badgeClass}">${escapeHTML(item.status)}</span>
+                        </div>
+                    </div>
+
+                    <div class="article-card-body">
                         <h3 class="article-card-title">${escapeHTML(item.title)}</h3>
                         ${item.excerpt ? `
-                            <p style="margin: 4px 0 0 0; font-size: 0.84rem; color: #667085; line-height: 1.45;">
+                            <p class="article-card-excerpt">
                                 ${escapeHTML(item.excerpt)}
                             </p>
                         ` : ''}
                     </div>
-                    <div class="article-card-actions">
-                        <span class="status-badge ${badgeClass}">${escapeHTML(item.status)}</span>
 
-                        ${item.status === 'Draft' ? `
-                            <a href="writer-submit-article.html?draftId=${encodeURIComponent(item.id)}" class="btn-box-view" style="text-decoration: none;" title="Edit draft in editor" onclick="event.stopPropagation()">
-                                <i class="fa-solid fa-pen-to-square"></i>
-                                <span>Edit</span>
-                            </a>
-                        ` : ''}
+                    ${(item.status === 'Draft' || item.status === 'For Revision') ? `
+                        <div class="article-card-footer">
+                            ${item.status === 'Draft' ? `
+                                <a href="writer-submit-article.html?draftId=${encodeURIComponent(item.id)}" class="btn-box-view" style="text-decoration: none;" title="Edit draft in editor" onclick="event.stopPropagation()">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                    <span>Edit</span>
+                                </a>
+                                <button type="button" class="btn-box-view btn-delete-draft" data-id="${item.id}" data-title="${escapeHTML(item.title)}" style="color: #b42318;" title="Delete draft" onclick="event.stopPropagation()">
+                                    <i class="fa-regular fa-trash-can"></i>
+                                </button>
+                            ` : ''}
 
-                        ${item.status === 'For Revision' ? `
-                            <a href="writer-submit-article.html?draftId=${encodeURIComponent(item.id)}" class="btn-box-view" style="text-decoration: none;" title="Edit and revise manuscript" onclick="event.stopPropagation()">
-                                <i class="fa-solid fa-pen-to-square"></i>
-                                <span>Revise</span>
-                            </a>
-                        ` : ''}
-                    </div>
+                            ${item.status === 'For Revision' ? `
+                                <a href="writer-submit-article.html?draftId=${encodeURIComponent(item.id)}" class="btn-box-view" style="text-decoration: none;" title="Edit and revise manuscript" onclick="event.stopPropagation()">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                    <span>Revise</span>
+                                </a>
+                            ` : ''}
+                        </div>
+                    ` : ''}
                 </article>
             `;
         }).join('');
+
+        attachCardEventListeners();
+    }
+
+    function attachCardEventListeners() {
+        if (!articlesListContainer) return;
+        const deleteButtons = articlesListContainer.querySelectorAll('.btn-delete-draft');
+        deleteButtons.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                pendingDeleteId = btn.getAttribute('data-id');
+                const title = btn.getAttribute('data-title') || 'this draft';
+                if (deleteArticleTitle) deleteArticleTitle.textContent = `"${title}"`;
+                if (deleteModal) deleteModal.classList.remove('hidden');
+            });
+        });
     }
 
     // =========================================================================
@@ -499,11 +550,50 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Delete Draft Modal Handlers
+    if (cancelDeleteBtn) {
+        cancelDeleteBtn.addEventListener('click', () => {
+            pendingDeleteId = null;
+            if (deleteModal) deleteModal.classList.add('hidden');
+        });
+    }
+
+    if (confirmDeleteBtn) {
+        confirmDeleteBtn.addEventListener('click', () => {
+            if (!pendingDeleteId) return;
+
+            if (typeof loadAllWriterArticles === 'function' && typeof saveAllWriterArticles === 'function') {
+                const all = loadAllWriterArticles();
+                const filtered = all.filter(a => a.id !== pendingDeleteId);
+                saveAllWriterArticles(filtered);
+            }
+
+            if (deleteModal) deleteModal.classList.add('hidden');
+            pendingDeleteId = null;
+
+            filterAndSortArticles();
+            showToast('Draft manuscript deleted successfully.', 'success');
+        });
+    }
+
+    if (deleteModal) {
+        deleteModal.addEventListener('click', (e) => {
+            if (e.target === deleteModal) {
+                pendingDeleteId = null;
+                deleteModal.classList.add('hidden');
+            }
+        });
+    }
+
     // Global ESC key listener to close modals
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             closeArticleViewer();
             closeRemarksModal();
+            if (deleteModal && !deleteModal.classList.contains('hidden')) {
+                pendingDeleteId = null;
+                deleteModal.classList.add('hidden');
+            }
         }
     });
 

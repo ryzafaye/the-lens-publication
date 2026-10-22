@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================================================================
     const activeRole = localStorage.getItem('userRole') || '';
     if (activeRole && activeRole !== 'Writer' && !activeRole.toLowerCase().includes('writer') && !activeRole.toLowerCase().includes('contributor')) {
-        window.location.replace('profile-settings.html');
+        window.location.replace('executive-profile-settings.html');
         return;
     }
 

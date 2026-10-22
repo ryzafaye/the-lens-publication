@@ -157,13 +157,13 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Render Top 7 Horizontal Cards (Click entire card to view, no redundant View button)
+        // Render Top 7 Horizontal Cards (Status badge on upper right)
         articlesListEl.innerHTML = top7Articles.map(item => {
             const badgeClass = getStatusBadgeClass(item.status);
 
             return `
                 <article class="writer-article-card" data-id="${item.id}" tabindex="0" role="button" aria-label="View article: ${escapeHTML(item.title)}">
-                    <div class="article-card-main">
+                    <div class="article-card-header">
                         <div class="article-card-meta">
                             <span class="article-card-category">${escapeHTML(item.category || 'General')}</span>
                             <span class="meta-dot">&bull;</span>
@@ -173,17 +173,26 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <span class="article-card-date"><i class="fa-regular fa-eye"></i> ${formatNumber(item.views)} views</span>
                             ` : ''}
                         </div>
-                        <h3 class="article-card-title">${escapeHTML(item.title)}</h3>
+                        <div class="article-card-status-top">
+                            <span class="status-badge ${badgeClass}">${escapeHTML(item.status)}</span>
+                        </div>
                     </div>
-                    <div class="article-card-actions">
-                        <span class="status-badge ${badgeClass}">${escapeHTML(item.status)}</span>
-                        ${(item.status !== 'Published' && item.status !== 'Pending Review') ? `
+                    <div class="article-card-body">
+                        <h3 class="article-card-title">${escapeHTML(item.title)}</h3>
+                        ${item.excerpt ? `
+                            <p class="article-card-excerpt">
+                                ${escapeHTML(item.excerpt)}
+                            </p>
+                        ` : ''}
+                    </div>
+                    ${(item.status !== 'Published' && item.status !== 'Pending Review') ? `
+                        <div class="article-card-footer">
                             <a href="writer-submit-article.html?draftId=${encodeURIComponent(item.id)}" class="btn-box-edit" onclick="event.stopPropagation()" title="Edit manuscript" aria-label="Edit article ${escapeHTML(item.title)}">
                                 <i class="fa-solid fa-pen-to-square"></i>
                                 <span>Edit</span>
                             </a>
-                        ` : ''}
-                    </div>
+                        </div>
+                    ` : ''}
                 </article>
             `;
         }).join('');

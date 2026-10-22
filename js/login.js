@@ -5,17 +5,20 @@
 
 document.addEventListener('DOMContentLoaded', () => {
     // ----------------------------------------------------
-    // Dummy Accounts Dictionary
+    // Dummy Accounts Dictionary (Executive & Writer Staff)
     // ----------------------------------------------------
     const DUMMY_ACCOUNTS = {
-        "2024-00001-BN-0": "President",
-        "2024-00002-BN-0": "Vice President",
-        "2024-00003-BN-0": "Secretary",
-        "2024-00004-BN-0": "Associate Secretary",
-        "2024-00005-BN-0": "Associate Secretary",
-        "2024-00006-BN-0": "Treasurer",
-        "2024-00007-BN-0": "Auditor",
-        "2024-00008-BN-0": "Public Relations Officer"
+        "2024-00001-BN-0": { role: "President", name: "Juan Dela Cruz", isWriter: false },
+        "2024-00002-BN-0": { role: "Vice President", name: "Maria Clara Santos", isWriter: false },
+        "2024-00003-BN-0": { role: "Secretary", name: "Christian Alcantara", isWriter: false },
+        "2024-00004-BN-0": { role: "Associate Secretary", name: "Althea Grace Mendoza", isWriter: false },
+        "2024-00005-BN-0": { role: "Associate Secretary", name: "Rafael Ramos", isWriter: false },
+        "2024-00006-BN-0": { role: "Treasurer", name: "Mara Villanueva", isWriter: false },
+        "2024-00007-BN-0": { role: "Auditor", name: "Gabriel Navarro", isWriter: false },
+        "2024-00008-BN-0": { role: "Public Relations Officer", name: "Patricia Reyes", isWriter: false },
+        "2024-00101-BN-0": { role: "Writer", name: "Sofia M. Alcaraz", writerId: "sofia-alcaraz", isWriter: true },
+        "2024-00102-BN-0": { role: "Writer", name: "Marco L. Valderrama", writerId: "marco-valderrama", isWriter: true },
+        "2024-00103-BN-0": { role: "Writer", name: "Camille Joy Perez", writerId: "sofia-alcaraz", isWriter: true }
     };
 
     const REQUIRED_PASSWORD = "password123";
@@ -88,14 +91,40 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Validate against dummy accounts & required password
-        const matchedRole = DUMMY_ACCOUNTS[studentVal];
+        const account = (typeof DUMMY_ACCOUNTS[studentVal] === 'object') 
+            ? DUMMY_ACCOUNTS[studentVal] 
+            : (DUMMY_ACCOUNTS[studentVal] ? { role: DUMMY_ACCOUNTS[studentVal], name: DUMMY_ACCOUNTS[studentVal].includes('Writer') ? 'Sofia M. Alcaraz' : 'Juan Dela Cruz', isWriter: DUMMY_ACCOUNTS[studentVal].toLowerCase().includes('writer') } : null);
+
         const isPasswordCorrect = (passVal === REQUIRED_PASSWORD);
 
-        if (matchedRole && isPasswordCorrect) {
-            // SUCCESSFUL LOGIN
-            // Save role in localStorage as userRole
-            localStorage.setItem('userRole', matchedRole);
-            localStorage.setItem('studentNumber', studentVal);
+        if (account && isPasswordCorrect) {
+            // Determine if writer or executive
+            const isWriter = account.isWriter || account.role.toLowerCase().includes('writer') || account.role.toLowerCase().includes('contributor');
+            const targetPage = isWriter ? 'writer-dashboard.html' : 'executive-dashboard.html';
+            const portalName = isWriter ? 'Writer Dashboard' : 'Executive Dashboard';
+
+            // Fully isolate session storage per persona to prevent data bleed
+            if (isWriter) {
+                localStorage.setItem('userRole', 'Writer');
+                localStorage.setItem('userName', account.name);
+                localStorage.setItem('studentNumber', studentVal);
+                localStorage.setItem('writerName', account.name);
+                localStorage.setItem('writerRole', 'Writer');
+                localStorage.setItem('writerStudentNumber', studentVal);
+                localStorage.setItem('writerId', account.writerId || 'sofia-alcaraz');
+                const avatar = localStorage.getItem('writerAvatar') || 'images/member-placeholder.svg';
+                localStorage.setItem('userAvatar', avatar);
+            } else {
+                // Executive Login
+                localStorage.setItem('userRole', account.role);
+                localStorage.setItem('userName', account.name);
+                localStorage.setItem('studentNumber', studentVal);
+                localStorage.setItem('executiveRole', account.role);
+                localStorage.setItem('executiveName', account.name);
+                localStorage.setItem('executiveStudentNumber', studentVal);
+                const avatar = localStorage.getItem('executiveAvatar') || 'images/member-placeholder.svg';
+                localStorage.setItem('userAvatar', avatar);
+            }
 
             // UI Loading Feedback
             if (loginBtn) loginBtn.disabled = true;
@@ -105,11 +134,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 btnSpinner.classList.add('flex');
             }
 
-            showStatus(`Welcome, ${matchedRole}! Redirecting to Executive Dashboard...`, 'success');
+            showStatus(`Welcome, ${account.role}! Redirecting to ${portalName}...`, 'success');
 
-            // Redirect to executive-dashboard.html
+            // Redirect
             setTimeout(() => {
-                window.location.href = 'executive-dashboard.html';
+                window.location.href = targetPage;
             }, 850);
 
         } else {
@@ -147,4 +176,3 @@ document.addEventListener('DOMContentLoaded', () => {
         statusMsg.classList.remove('hidden');
     }
 });
-

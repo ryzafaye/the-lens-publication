@@ -5,8 +5,15 @@
  * ============================================================================
  */
 
+/* Prevent horizontal layout shifts across view states */
+html {
+    scrollbar-gutter: stable;
+    overflow-y: scroll;
+}
+
 .feedback-inbox-container {
     max-width: 1200px;
+    width: 100%;
     margin: 0 auto;
     padding-bottom: 48px;
 }
@@ -18,7 +25,7 @@
     justify-content: space-between;
     gap: 16px;
     margin-bottom: 14px;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
 }
 
 .feedback-page-title,
@@ -29,6 +36,7 @@
     color: #101828;
     margin: 0;
     line-height: 1.25;
+    white-space: nowrap;
 }
 
 /* Filter & Search Bar */
@@ -38,7 +46,7 @@
     justify-content: space-between;
     gap: 12px;
     margin-bottom: 20px;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
 }
 
 .feedback-search-box {
@@ -114,6 +122,7 @@
     cursor: pointer;
     transition: all 0.15s ease;
     box-sizing: border-box;
+    flex-shrink: 0;
 }
 
 .tab-filter-btn:hover {
@@ -155,7 +164,7 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    flex-wrap: wrap;
+    flex-shrink: 0;
 }
 
 .feedback-sort-wrap {
@@ -168,6 +177,7 @@
     padding: 0 10px;
     height: 38px;
     box-sizing: border-box;
+    flex-shrink: 0;
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
@@ -202,24 +212,31 @@
     font-family: inherit;
 }
 
-/* Master-Detail Split Layout */
+/* Master-Detail Split Layout - Fixed, Stable Box Sizing */
 .inbox-split-grid {
     display: grid;
     grid-template-columns: 420px 1fr;
     gap: 20px;
     align-items: stretch;
+    height: 620px;
+    min-height: 620px;
+    max-height: 620px;
+    box-sizing: border-box;
 }
 
-/* Left Pane: Message List (Equal Height with Detail Pane) */
+/* Left Pane: Message List (Fixed Height with Detail Pane) */
 .inbox-list-pane {
     background: #ffffff;
     border: 1px solid var(--sidebar-maroon, #5c0a18);
     border-radius: 14px;
     overflow: hidden;
     box-shadow: 0 1px 3px rgba(16, 24, 40, 0.04);
-    min-height: 560px;
+    height: 100%;
+    min-height: 100%;
+    max-height: 100%;
     display: flex;
     flex-direction: column;
+    box-sizing: border-box;
 }
 
 .inbox-list-header {
@@ -237,10 +254,11 @@
 
 .inbox-scroll-list {
     flex: 1;
+    min-height: 0;
     display: flex;
     flex-direction: column;
-    max-height: 640px;
     overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .inbox-item-card {
@@ -365,16 +383,20 @@
     margin: 0;
 }
 
-/* Right Pane: Reading Detail View (No maroon border) */
+/* Right Pane: Reading Detail View (Fixed Height with List Pane) */
 .inbox-detail-pane {
     background: #ffffff;
     border: 1px solid #eaecf0;
     border-radius: 14px;
     padding: 28px;
     box-shadow: 0 1px 3px rgba(16, 24, 40, 0.04);
-    min-height: 480px;
+    height: 100%;
+    min-height: 100%;
+    max-height: 100%;
     display: flex;
     flex-direction: column;
+    box-sizing: border-box;
+    overflow: hidden;
 }
 
 /* Mobile Gmail-style Back Button */
@@ -393,6 +415,7 @@
     margin-bottom: 16px;
     align-self: flex-start;
     transition: all 0.15s ease;
+    flex-shrink: 0;
 }
 
 .btn-back-to-list:hover {
@@ -401,13 +424,16 @@
 }
 
 .detail-placeholder {
+    flex: 1;
+    height: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    height: 380px;
     text-align: center;
     color: #98a2b3;
+    padding: 32px 20px;
+    margin: auto 0;
 }
 
 .detail-placeholder i {
@@ -420,6 +446,7 @@
     padding-bottom: 20px;
     border-bottom: 1px solid #eaecf0;
     margin-bottom: 24px;
+    flex-shrink: 0;
 }
 
 .detail-subject-title {
@@ -513,15 +540,18 @@
     color: #912018;
 }
 
-/* Message Body Content */
+/* Message Body Content (Scrolls smoothly inside fixed detail box) */
 .detail-message-body {
     flex: 1;
+    min-height: 0;
     font-size: 0.95rem;
     line-height: 1.7;
     color: #1f2937;
     word-break: break-word;
     white-space: pre-line;
-    margin-bottom: 24px;
+    margin-bottom: 0;
+    overflow-y: auto;
+    padding-right: 8px;
 }
 
 .detail-footer-note {
@@ -532,11 +562,13 @@
     justify-content: space-between;
     font-size: 0.76rem;
     color: #98a2b3;
+    flex-shrink: 0;
 }
 
-/* Empty State (Centered inside full-height list pane) */
+/* Empty State (Centered inside fixed full-height list pane) */
 .inbox-empty-box {
     flex: 1;
+    height: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -553,19 +585,51 @@
     margin-bottom: 10px;
 }
 
+/* Clean Custom Scrollbars for scroll areas */
+.inbox-scroll-list::-webkit-scrollbar,
+.detail-message-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.inbox-scroll-list::-webkit-scrollbar-track,
+.detail-message-body::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.inbox-scroll-list::-webkit-scrollbar-thumb,
+.detail-message-body::-webkit-scrollbar-thumb {
+    background-color: #d0d5dd;
+    border-radius: 6px;
+}
+
+.inbox-scroll-list::-webkit-scrollbar-thumb:hover,
+.detail-message-body::-webkit-scrollbar-thumb:hover {
+    background-color: #98a2b3;
+}
+
 /* Responsive Gmail-Style Mobile Adjustments */
 @media (max-width: 900px) {
     .inbox-split-grid {
         grid-template-columns: 1fr;
+        height: auto;
+        min-height: 540px;
+        max-height: none;
     }
 
     /* By default on mobile: show list, hide detail */
     .inbox-split-grid .inbox-list-pane {
-        display: block;
+        display: flex;
+        flex-direction: column;
+        height: 560px;
+        min-height: 560px;
+        max-height: 560px;
     }
 
     .inbox-split-grid .inbox-detail-pane {
         display: none;
+        height: 560px;
+        min-height: 560px;
+        max-height: 560px;
     }
 
     /* Gmail style: When viewing message on mobile, hide list and show only message */
@@ -581,12 +645,18 @@
 
     .inbox-split-grid.mobile-viewing-message .btn-back-to-list {
         display: inline-flex !important;
+        flex-shrink: 0;
+    }
+
+    .feedback-header-row {
+        flex-wrap: wrap;
     }
 
     .feedback-controls-bar {
         flex-direction: column;
         align-items: stretch;
         gap: 10px;
+        flex-wrap: wrap;
     }
 
     .feedback-search-box {
@@ -597,6 +667,7 @@
     .feedback-filters-and-sort {
         width: 100%;
         justify-content: space-between;
+        flex-shrink: 1;
     }
 }
 
@@ -668,4 +739,3 @@
         align-items: center;
     }
 }
-

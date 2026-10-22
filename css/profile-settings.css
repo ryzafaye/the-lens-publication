@@ -6,7 +6,8 @@
  */
 
 .profile-settings-container {
-    max-width: 1100px;
+    max-width: 1280px;
+    width: 100%;
     margin: 0 auto;
     padding-bottom: 56px;
 }
@@ -35,7 +36,7 @@
 .profile-settings-grid {
     display: grid;
     grid-template-columns: 1.08fr 0.92fr;
-    gap: 24px;
+    gap: 28px;
     align-items: start;
 }
 

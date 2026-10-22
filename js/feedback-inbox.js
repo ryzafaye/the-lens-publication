@@ -249,6 +249,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             `;
             renderDetail(null);
+            const grid = document.querySelector('.inbox-split-grid');
+            if (grid) grid.classList.remove('mobile-viewing-message');
             return;
         }
 
@@ -344,6 +346,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 ${escapeHTML(item.message)}
             </div>
         `;
+
+        const msgBody = detailPane.querySelector('.detail-message-body');
+        if (msgBody) msgBody.scrollTop = 0;
 
         // Attach action handlers
         const btnBack = document.getElementById('btn-back-to-list');
@@ -451,4 +456,3 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initial render
     renderList();
 });
-

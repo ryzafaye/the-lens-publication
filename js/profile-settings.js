@@ -1,6 +1,6 @@
 /**
  * ============================================================================
- * THE LENS — PROFILE SETTINGS LOGIC (EXECUTIVE PORTAL)
+ * THE LENS - PROFILE SETTINGS LOGIC (EXECUTIVE PORTAL)
  * Manages Officer Profile Details, Avatar Upload, and Password Security
  * ============================================================================
  */
@@ -8,16 +8,35 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     // =========================================================================
-    // 1. AUTHENTICATION & ROLE VERIFICATION
+    // 0. ROLE GUARD: REDIRECT WRITERS TO DEDICATED WRITER PROFILE SETTINGS
     // =========================================================================
-    let userRole = localStorage.getItem('userRole') || 'President';
-    let userName = localStorage.getItem('userName') || 'Juan Dela Cruz';
-    let studentNumber = localStorage.getItem('studentNumber') || '2022-01452-BN-0';
-    let userAvatar = localStorage.getItem('userAvatar') || 'images/member-placeholder.svg';
+    const activeRole = localStorage.getItem('userRole') || '';
+    if (activeRole === 'Writer' || activeRole.toLowerCase().includes('writer') || activeRole.toLowerCase().includes('contributor')) {
+        window.location.replace('writer-profile-settings.html');
+        return;
+    }
 
-    if (!localStorage.getItem('userRole')) localStorage.setItem('userRole', userRole);
-    if (!localStorage.getItem('userName')) localStorage.setItem('userName', userName);
-    if (!localStorage.getItem('studentNumber')) localStorage.setItem('studentNumber', studentNumber);
+    // =========================================================================
+    // 1. AUTHENTICATION & ROLE VERIFICATION (EXECUTIVE PORTAL)
+    // =========================================================================
+    let userRole = localStorage.getItem('executiveRole') || (activeRole !== 'Writer' ? activeRole : null) || 'President';
+    
+    // Guard against writer name pollution in executive session
+    let rawStoredName = localStorage.getItem('userName');
+    let userName = localStorage.getItem('executiveName') || (rawStoredName && !['Sofia M. Alcaraz', 'Marco L. Valderrama', 'Camille Joy Perez'].includes(rawStoredName) ? rawStoredName : 'Juan Dela Cruz');
+    
+    let rawStoredNum = localStorage.getItem('studentNumber');
+    let studentNumber = localStorage.getItem('executiveStudentNumber') || (rawStoredNum && !['2024-00101-BN-0', '2024-00102-BN-0', '2024-00103-BN-0'].includes(rawStoredNum) ? rawStoredNum : '2024-00001-BN-0');
+    
+    let userAvatar = localStorage.getItem('executiveAvatar') || 'images/member-placeholder.svg';
+
+    // Cache clean executive credentials
+    localStorage.setItem('userRole', userRole);
+    localStorage.setItem('userName', userName);
+    localStorage.setItem('studentNumber', studentNumber);
+    localStorage.setItem('executiveRole', userRole);
+    localStorage.setItem('executiveName', userName);
+    localStorage.setItem('executiveStudentNumber', studentNumber);
 
     // Sync roles across DOM
     const topbarRoleBadge = document.getElementById('topbar-user-role');
@@ -130,7 +149,8 @@ document.addEventListener('DOMContentLoaded', () => {
             reader.onload = (loadEvt) => {
                 const dataUrl = loadEvt.target.result;
                 try {
-                    localStorage.setItem('userAvatar', dataUrl);
+                                        localStorage.setItem('userAvatar', dataUrl);
+                    localStorage.setItem('executiveAvatar', dataUrl);
                     userAvatar = dataUrl;
                     updateAllAvatars(dataUrl);
                     showToast('Profile photo updated.');
@@ -177,8 +197,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             // Save to localStorage
-            localStorage.setItem('userName', newName);
+                        localStorage.setItem('userName', newName);
             localStorage.setItem('studentNumber', newStudentNum);
+            localStorage.setItem('executiveName', newName);
+            localStorage.setItem('executiveStudentNumber', newStudentNum);
             userName = newName;
             studentNumber = newStudentNum;
 

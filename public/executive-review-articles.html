@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Review Articles | The Lens Executive Portal</title>
+    
+    <!-- Typography: DM Sans & Playfair Display -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,600;1,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Strictly Separated Modular CSS -->
+    <link rel="stylesheet" href="css/executive-dashboard.css">
+    <link rel="stylesheet" href="css/executive-review-articles.css">
+    <link rel="stylesheet" href="css/executive-modals.css">
+</head>
+<body class="dashboard-body">
+
+    <!-- ====================================================================== -->
+    <!-- SIDEBAR: Left - Desktop Fixed Full-Height Maroon (#5c0a18)             -->
+    <!-- ====================================================================== -->
+    <aside id="sidebar" class="sidebar" aria-label="Executive Portal Sidebar">
+        
+        <div class="sidebar-top-section">
+            <!-- Sidebar Header with Square Logo & "The Lens Publication" -->
+            <div class="sidebar-header">
+                <div class="sidebar-brand-lockup">
+                    <div class="sidebar-logo-square">
+                        <img src="images/logo.jpg" alt="The Lens Logo">
+                    </div>
+                    <span class="sidebar-brand-name">The Lens Publication</span>
+                </div>
+            </div>
+
+            <!-- Profile Section -->
+            <div class="sidebar-profile">
+                <div class="profile-avatar">
+                    <img src="images/member-placeholder.svg" alt="Juan Dela Cruz Avatar">
+                </div>
+                <div class="profile-name">Juan Dela Cruz</div>
+                <div id="sidebar-user-role" class="profile-role-text">Officer</div>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="sidebar-nav" aria-label="Main Navigation">
+                <a href="executive-dashboard.html" class="sidebar-nav-item">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </a>
+
+                <a href="executive-manage-articles.html" class="sidebar-nav-item">
+                    <i class="fa-regular fa-newspaper"></i>
+                    <span>Manage Articles</span>
+                </a>
+
+                <a href="executive-manage-my-articles.html" class="sidebar-nav-item">
+                    <i class="fa-solid fa-file-pen"></i>
+                    <span>Manage My Articles</span>
+                </a>
+
+                <a href="executive-review-articles.html" class="sidebar-nav-item active">
+                    <i class="fa-solid fa-clipboard-check"></i>
+                    <span>Review Article</span>
+                </a>
+
+                <a href="executive-submit-article.html" class="sidebar-nav-item">
+                    <i class="fa-solid fa-feather-pointed"></i>
+                    <span>Submit article</span>
+                </a>
+
+                <a href="executive-manage-accounts.html" class="sidebar-nav-item">
+                    <i class="fa-solid fa-user-group"></i>
+                    <span>Manage Accounts</span>
+                </a>
+
+                <a href="executive-activity-logs.html" class="sidebar-nav-item" data-page="executive-activity-logs.html">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <span>Activity log</span>
+                </a>
+
+                <a href="executive-transparency.html" class="sidebar-nav-item">
+                    <i class="fa-solid fa-file-invoice-dollar"></i>
+                    <span>Transparency</span>
+                </a>
+
+                <a href="executive-feedback-inbox.html" class="sidebar-nav-item">
+                    <i class="fa-regular fa-comments"></i>
+                    <span>Feedback</span>
+                </a>
+            </nav>
+        </div>
+
+        <!-- Bottom of Sidebar: Profile Settings, View Public Site, Logout -->
+        <div class="sidebar-footer">
+            <a href="executive-profile-settings.html" class="sidebar-footer-link">
+                <i class="fa-solid fa-sliders"></i>
+                <span>Profile Settings</span>
+            </a>
+
+            <a href="index.html" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                <span>View public site</span>
+            </a>
+
+            <button type="button" id="logout-btn" class="sidebar-footer-link logout-btn">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span>Logout</span>
+            </button>
+        </div>
+
+    </aside>
+
+    <!-- ====================================================================== -->
+    <!-- MAIN CONTENT AREA: Right                                              -->
+    <!-- ====================================================================== -->
+    <div class="main-wrapper">
+
+        <!-- Top Header Bar (White on desktop with clock, Maroon on mobile with hamburger) -->
+        <header class="topbar">
+            
+            <!-- Left Side: Mobile Hamburger before Logo + The Lens -->
+            <div class="topbar-left">
+                <div class="mobile-header-brand">
+                    <button type="button" id="mobile-hamburger-btn" class="mobile-hamburger-btn" aria-label="Toggle navigation menu" aria-expanded="false">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <div class="mobile-brand-lockup">
+                        <div class="mobile-logo-square">
+                            <img src="images/logo.jpg" alt="The Lens Logo">
+                        </div>
+                        <span class="mobile-brand-title">The Lens</span>
+                    </div>
+                </div>
+
+                <!-- Desktop Real-time Clock (Hidden on mobile) -->
+                <div class="topbar-clock">
+                    <i class="fa-regular fa-clock"></i>
+                    <span id="topbar-clock-display">Loading date &amp; time…</span>
+                </div>
+            </div>
+
+            <!-- Right Side: Notification + Circular Profile Picture + Small Role Badge -->
+            <div class="topbar-right">
+                
+                <button type="button" class="topbar-notification-btn" aria-label="Notifications">
+                    <div class="notification-icon-wrapper">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="notification-badge-dot"></span>
+                    </div>
+                    <span class="notification-label">Notification</span>
+                </button>
+
+                <div class="topbar-divider"></div>
+
+                <!-- User Profile Lockup -->
+                <div class="topbar-user-profile">
+                    <div class="topbar-avatar-circle" title="User Profile">
+                        <img src="images/member-placeholder.svg" alt="User Profile Picture">
+                    </div>
+                    <span id="topbar-user-role" class="topbar-role-badge">Officer</span>
+                </div>
+
+            </div>
+        </header>
+
+        <!-- Mobile Accordion Dropdown -->
+        <nav id="mobile-nav-dropdown" class="mobile-nav-dropdown" aria-label="Mobile Navigation Menu">
+            <div class="mobile-nav-profile">
+                <div class="mobile-nav-avatar">
+                    <img src="images/member-placeholder.svg" alt="Juan Dela Cruz Avatar">
+                </div>
+                <div class="mobile-nav-user-info">
+                    <div class="mobile-nav-name">Juan Dela Cruz</div>
+                    <div id="mobile-user-role" class="mobile-nav-role">Officer</div>
+                </div>
+            </div>
+
+            <div class="mobile-nav-links">
+                <a href="executive-dashboard.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="executive-manage-articles.html" class="mobile-nav-link">
+                    <i class="fa-regular fa-newspaper"></i>
+                    <span>Manage Articles</span>
+                </a>
+                <a href="executive-manage-my-articles.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-file-pen"></i>
+                    <span>Manage My Articles</span>
+                </a>
+                <a href="executive-review-articles.html" class="mobile-nav-link active">
+                    <i class="fa-solid fa-clipboard-check"></i>
+                    <span>Review Article</span>
+                </a>
+                <a href="executive-submit-article.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-feather-pointed"></i>
+                    <span>Submit article</span>
+                </a>
+                <a href="executive-manage-accounts.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-user-group"></i>
+                    <span>Manage Accounts</span>
+                </a>
+                <a href="executive-activity-logs.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <span>Activity log</span>
+                </a>
+                <a href="executive-transparency.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-file-invoice-dollar"></i>
+                    <span>Transparency</span>
+                </a>
+                <a href="executive-feedback-inbox.html" class="mobile-nav-link">
+                    <i class="fa-regular fa-comments"></i>
+                    <span>Feedback</span>
+                </a>
+            </div>
+
+            <div class="mobile-nav-footer">
+                <a href="executive-profile-settings.html" class="mobile-nav-footer-link">
+                    <i class="fa-solid fa-sliders"></i>
+                    <span>Profile Settings</span>
+                </a>
+                <a href="index.html" target="_blank" rel="noopener noreferrer" class="mobile-nav-footer-link">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    <span>View public site</span>
+                </a>
+                <button type="button" id="mobile-logout-btn" class="mobile-nav-footer-link mobile-logout-btn">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span>Logout</span>
+                </button>
+            </div>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="content-container">
+
+            <!-- Top Section: Header with Title and Sort Control -->
+            <div class="page-title-section">
+                <div class="page-header-row">
+                    <h1 class="page-title">Review Articles</h1>
+                    
+                    <div class="review-sort-container">
+                        <label for="review-sort-select" class="review-sort-label">
+                            <i class="fa-solid fa-arrow-down-wide-short"></i>
+                            <span>Sort:</span>
+                        </label>
+                        <div class="sort-select-wrapper">
+                            <select id="review-sort-select" class="review-sort-select" aria-label="Sort pending articles by date">
+                                <option value="newest" selected>Newest First</option>
+                                <option value="oldest">Oldest First</option>
+                            </select>
+                            <i class="fa-solid fa-chevron-down sort-chevron" aria-hidden="true"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Responsive Horizontal List Card Container directly under header -->
+            <div id="review-list-container" class="review-list-container">
+                <!-- Dynamically populated review-box cards generated by js/review-article.js -->
+            </div>
+
+            <!-- Empty Queue State -->
+            <div id="empty-queue-state" class="review-empty-queue" style="display: none;">
+                <i class="fa-regular fa-circle-check"></i>
+                <span>All caught up. No articles pending executive review.</span>
+            </div>
+
+        </main>
+
+    </div>
+
+    <!-- ====================================================================== -->
+    <!-- MODAL: Minimalist Manuscript Reader Modal                              -->
+    <!-- ====================================================================== -->
+    <div id="manuscript-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modal-headline">
+        <div class="modal-card manuscript-modal-card">
+            
+            <!-- Modal Header -->
+            <div class="manuscript-header">
+                <div class="manuscript-header-left">
+                    <span id="modal-section" class="review-box-category">News</span>
+                    <span>&bull;</span>
+                    <span id="modal-date" class="review-box-date">Oct 18, 2026</span>
+                </div>
+                <div class="manuscript-header-right">
+                    <button type="button" id="close-manuscript-btn" class="viewer-close-btn" aria-label="Close manuscript reader">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="manuscript-body">
+                <h2 id="modal-headline" class="manuscript-headline">Article Headline</h2>
+                
+                <div class="manuscript-byline-banner">
+                    <div class="manuscript-byline-author">
+                        <i class="fa-solid fa-pen-nib" aria-hidden="true"></i>
+                        <span>By <strong id="modal-writer">Author Name</strong></span>
+                    </div>
+                </div>
+
+                <!-- Story Text -->
+                <div id="modal-body" class="manuscript-text-content"></div>
+
+                <!-- Mandatory Revision Remarks Box -->
+                <div class="manuscript-remarks-section" id="manuscript-remarks-section">
+                    <label for="modal-remarks" class="remarks-label">
+                        <span class="remarks-label-text">
+                            <i class="fa-solid fa-comment-dots"></i>
+                            <span>Revision Remarks for Writer:</span>
+                        </span>
+                        <span class="required-badge">Required</span>
+                    </label>
+                    <textarea id="modal-remarks" class="remarks-textarea" placeholder="Enter mandatory revision feedback for the writer before returning this story..."></textarea>
+                    <div id="remarks-error-msg" class="remarks-error-msg hidden">
+                        <i class="fa-solid fa-circle-exclamation"></i>
+                        <span>Revision remarks are required. You cannot submit for revision without remarks.</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="manuscript-footer">
+                <div class="modal-footer-right">
+                    <button type="button" id="modal-revision-btn" class="btn-box-revision">
+                        <i class="fa-solid fa-rotate-left"></i>
+                        <span>For Revision</span>
+                    </button>
+                    <button type="button" id="modal-approve-btn" class="btn-box-approve">
+                        <i class="fa-solid fa-check"></i>
+                        <span>Approve for M&amp;PC</span>
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Clean Success Notification Toast Container -->
+    <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+    <!-- Reusable Executive Shell (Clock, Sidebar Footer, Mobile Nav, Logout) -->
+    <script src="js/executive-shell.js"></script>
+
+    <!-- Page Specific Review Articles Script -->
+    <script src="js/executive-review-articles.js"></script>
+</body>
+</html>

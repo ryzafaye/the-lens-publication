@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage My Articles | The Lens Writer Portal</title>
+
+    <!-- Typography: DM Sans & Playfair Display -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,600;1,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Modular CSS Architecture -->
+    <link rel="stylesheet" href="css/executive-dashboard.css">
+    <link rel="stylesheet" href="css/executive-modals.css">
+    <link rel="stylesheet" href="css/writer-dashboard.css">
+    <link rel="stylesheet" href="css/manage-articles.css">
+</head>
+<body class="dashboard-body">
+
+    <!-- ====================================================================== -->
+    <!-- DEDICATED WRITER SIDEBAR: Left - Desktop Fixed Maroon (#5c0a18)        -->
+    <!-- ====================================================================== -->
+    <aside id="sidebar" class="sidebar" aria-label="Writer Portal Sidebar">
+        
+        <div class="sidebar-top-section">
+            <!-- Brand Lockup -->
+            <div class="sidebar-header">
+                <div class="sidebar-brand-lockup">
+                    <div class="sidebar-logo-square">
+                        <img src="images/logo.jpg" alt="The Lens Logo">
+                    </div>
+                    <span class="sidebar-brand-name">The Lens Publication</span>
+                </div>
+            </div>
+
+            <!-- Profile Section -->
+            <div class="sidebar-profile">
+                <div class="profile-avatar">
+                    <img id="sidebar-avatar-img" src="images/member-placeholder.svg" alt="Writer Avatar">
+                </div>
+                <div id="sidebar-writer-name" class="profile-name">Sofia M. Alcaraz</div>
+                <div id="sidebar-user-role" class="profile-role-text">Writer</div>
+            </div>
+
+            <!-- Dedicated Writer Navigation Links -->
+            <nav class="sidebar-nav" aria-label="Writer Portal Navigation">
+                <a href="writer-dashboard.html" class="sidebar-nav-item">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </a>
+
+                <a href="writer-submit-article.html" class="sidebar-nav-item">
+                    <i class="fa-solid fa-feather-pointed"></i>
+                    <span>Submit Article</span>
+                </a>
+
+                <a href="writer-manage-articles.html" class="sidebar-nav-item active">
+                    <i class="fa-regular fa-newspaper"></i>
+                    <span>Manage My Articles</span>
+                </a>
+            </nav>
+        </div>
+
+        <!-- Bottom of Sidebar: Profile Settings, View Public Site, Logout -->
+        <div class="sidebar-footer" id="sidebar-footer">
+            <a href="writer-profile-settings.html" class="sidebar-footer-link">
+                <i class="fa-solid fa-sliders"></i>
+                <span>Profile Settings</span>
+            </a>
+
+            <a href="index.html" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                <span>View public site</span>
+            </a>
+
+            <button type="button" id="logout-btn" class="sidebar-footer-link logout-btn">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span>Logout</span>
+            </button>
+        </div>
+
+    </aside>
+
+    <!-- ====================================================================== -->
+    <!-- MAIN CONTENT AREA: Right                                              -->
+    <!-- ====================================================================== -->
+    <div class="main-wrapper">
+
+        <!-- Top Header Bar -->
+        <header class="topbar">
+            
+            <div class="topbar-left">
+                <div class="mobile-header-brand">
+                    <button type="button" id="mobile-hamburger-btn" class="mobile-hamburger-btn" aria-label="Toggle navigation menu" aria-expanded="false">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <div class="mobile-brand-lockup">
+                        <div class="mobile-logo-square">
+                            <img src="images/logo.jpg" alt="The Lens Logo">
+                        </div>
+                        <span class="mobile-brand-title">The Lens</span>
+                    </div>
+                </div>
+
+                <!-- Desktop Real-time Clock -->
+                <div class="topbar-clock">
+                    <i class="fa-regular fa-clock"></i>
+                    <span id="topbar-clock-display">Loading date &amp; time…</span>
+                </div>
+            </div>
+
+            <!-- Right Side: Notification + User Profile -->
+            <div class="topbar-right">
+                
+                <button type="button" class="topbar-notification-btn" aria-label="View notifications">
+                    <span class="notification-icon-wrapper">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="notification-badge-dot"></span>
+                    </span>
+                    <span class="notification-label">Notification</span>
+                </button>
+
+                <div class="topbar-divider"></div>
+
+                <div class="topbar-user-profile">
+                    <div class="topbar-avatar-circle" title="User Profile">
+                        <img src="images/member-placeholder.svg" alt="User Profile Picture">
+                    </div>
+                    <span id="topbar-user-role" class="topbar-role-badge">Writer</span>
+                </div>
+
+            </div>
+
+        </header>
+
+        <!-- Mobile Accordion Dropdown -->
+        <nav id="mobile-nav-dropdown" class="mobile-nav-dropdown" aria-label="Mobile Navigation Menu">
+            <div class="mobile-nav-profile">
+                <div class="mobile-nav-avatar">
+                    <img src="images/member-placeholder.svg" alt="Writer Avatar">
+                </div>
+                <div class="mobile-nav-user-info">
+                    <div id="mobile-writer-name" class="mobile-nav-name">Sofia M. Alcaraz</div>
+                    <div id="mobile-user-role" class="mobile-nav-role">Writer</div>
+                </div>
+            </div>
+
+            <div class="mobile-nav-links">
+                <a href="writer-dashboard.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="writer-submit-article.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-feather-pointed"></i>
+                    <span>Submit Article</span>
+                </a>
+                <a href="writer-manage-articles.html" class="mobile-nav-link active">
+                    <i class="fa-regular fa-newspaper"></i>
+                    <span>Manage My Articles</span>
+                </a>
+            </div>
+
+            <div class="mobile-nav-footer">
+                <a href="writer-profile-settings.html" class="mobile-nav-footer-link">
+                    <i class="fa-solid fa-sliders"></i>
+                    <span>Profile Settings</span>
+                </a>
+                <a href="index.html" target="_blank" rel="noopener noreferrer" class="mobile-nav-footer-link">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    <span>View public site</span>
+                </a>
+                <button type="button" id="mobile-logout-btn" class="mobile-nav-footer-link mobile-logout-btn">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span>Logout</span>
+                </button>
+            </div>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="content-container">
+
+            <!-- Page Title Section -->
+            <div class="writer-header-row animate-fade-in delay-1">
+                <div class="writer-header-left">
+                    <h1 class="page-title">Manage My Articles</h1>
+                </div>
+
+                <div class="writer-header-right">
+                    <a href="writer-submit-article.html" class="btn-primary-action">
+                        <i class="fa-solid fa-feather-pointed"></i>
+                        <span>New Article</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Tabs Navigation (All, Published, Pending, Revision, Drafts) -->
+            <div class="manage-tabs-container animate-fade-in delay-2" role="tablist" aria-label="Filter my articles">
+                <button type="button" class="manage-tab-btn active" data-tab="all" role="tab" aria-selected="true">
+                    <span>All Articles</span>
+                    <span id="badge-count-all" class="tab-count-badge">0</span>
+                </button>
+                <button type="button" class="manage-tab-btn" data-tab="published" role="tab" aria-selected="false">
+                    <span>Published</span>
+                    <span id="badge-count-published" class="tab-count-badge">0</span>
+                </button>
+                <button type="button" class="manage-tab-btn" data-tab="pending" role="tab" aria-selected="false">
+                    <span>Pending Review</span>
+                    <span id="badge-count-pending" class="tab-count-badge">0</span>
+                </button>
+                <button type="button" class="manage-tab-btn" data-tab="revision" role="tab" aria-selected="false">
+                    <span>For Revision</span>
+                    <span id="badge-count-revision" class="tab-count-badge">0</span>
+                </button>
+                <button type="button" class="manage-tab-btn" data-tab="drafts" role="tab" aria-selected="false">
+                    <span>Drafts</span>
+                    <span id="badge-count-drafts" class="tab-count-badge">0</span>
+                </button>
+            </div>
+
+            <!-- Search Bar & Sort Dropdown Toolbar -->
+            <div class="manage-toolbar animate-fade-in delay-2">
+                
+                <!-- Search Bar -->
+                <div class="manage-search-shell">
+                    <i class="fa-solid fa-magnifying-glass search-leading-icon" aria-hidden="true"></i>
+                    <input 
+                        type="search" 
+                        id="writer-search-input" 
+                        class="manage-search-input" 
+                        placeholder="Search my articles by title, section, or keyword..." 
+                        aria-label="Search my articles" 
+                        autocomplete="off"
+                    >
+                    <button type="button" id="clear-search-btn" class="clear-search-icon hidden" title="Clear search">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <!-- Sort Control -->
+                <div class="review-sort-container">
+                    <label for="writer-sort-select" class="review-sort-label">
+                        <i class="fa-solid fa-arrow-down-short-wide"></i>
+                        <span>Sort:</span>
+                    </label>
+                    <div class="sort-select-wrapper">
+                        <select id="writer-sort-select" class="review-sort-select" aria-label="Sort articles">
+                            <option value="newest" selected>Newest First</option>
+                            <option value="oldest">Oldest First</option>
+                            <option value="popular">Most Viewed</option>
+                            <option value="az">A–Z</option>
+                        </select>
+                        <i class="fa-solid fa-chevron-down sort-chevron" aria-hidden="true"></i>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Articles List Container -->
+            <section class="writer-articles-list animate-fade-in delay-3" id="writer-manage-list" aria-label="My articles list">
+                <!-- Populated dynamically by js/writer-manage-articles.js -->
+            </section>
+
+            <!-- Empty State -->
+            <div id="manage-empty-state" class="table-empty-state hidden">
+                <div class="empty-state-icon">
+                    <i class="fa-regular fa-folder-open"></i>
+                </div>
+                <div class="empty-state-title">No articles found</div>
+                <p class="empty-state-desc">No articles match your active search query or filter tab.</p>
+                <button type="button" id="reset-filters-btn" class="modal-btn modal-btn-cancel" style="margin-top: 8px;">
+                    <i class="fa-solid fa-rotate-left"></i> Reset Search &amp; Filters
+                </button>
+            </div>
+
+        </main>
+
+    </div>
+
+    <!-- ====================================================================== -->
+    <!-- MODAL 1: Full Article Viewer Modal (Executive Parity Design)             -->
+    <!-- ====================================================================== -->
+    <div id="article-viewer-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="viewer-title">
+        <div class="modal-card viewer-modal-card">
+            
+            <!-- Header matching Executive Viewer -->
+            <div class="viewer-modal-header">
+                <div class="viewer-meta-row">
+                    <span id="viewer-category" class="viewer-category-tag">News</span>
+                    <span class="viewer-dot">·</span>
+                    <span id="viewer-date" class="viewer-date">Oct 12, 2026</span>
+                </div>
+                <div class="viewer-header-right">
+                    <span class="viewer-reading-time"><i class="fa-regular fa-clock"></i> <span id="viewer-read-time">2 min read</span></span>
+                    <button type="button" id="close-viewer-btn" class="viewer-close-btn" aria-label="Close article preview">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Body matching Executive Viewer -->
+            <div class="viewer-modal-body">
+                <h1 id="viewer-title" class="viewer-title">Article Title</h1>
+                
+                <div class="viewer-byline-row">
+                    <div class="viewer-author-avatar">
+                        <img id="viewer-author-avatar-img" src="images/member-placeholder.svg" alt="Author avatar">
+                    </div>
+                    <div class="viewer-byline-text">
+                        <span class="viewer-by">By <strong id="viewer-author">Author Name</strong></span>
+                    </div>
+                </div>
+
+                <div id="viewer-banner-wrap" class="viewer-banner" style="display: none;">
+                    <img id="viewer-banner-img" src="images/maroon.jpg" alt="Article banner">
+                </div>
+
+                <div id="viewer-content" class="viewer-content-text">
+                    <!-- Paragraphs populated dynamically -->
+                </div>
+
+                <!-- Section Head Remarks Box (for articles with revision feedback) -->
+                <div id="viewer-remarks-wrap" class="remarks-alert-box" style="display: none; margin-top: 20px;">
+                    <div class="remarks-alert-title">
+                        <i class="fa-solid fa-comment-dots"></i>
+                        <span>Section Head Feedback:</span>
+                    </div>
+                    <p id="viewer-remarks-text" class="remarks-alert-text"></p>
+                </div>
+
+                <!-- Views & Shares Stats Bar (Visible ONLY if article is Published) -->
+                <div id="viewer-stats-bar" class="viewer-stats-bar" style="display: none;">
+                    <span class="stat-pill"><i class="fa-regular fa-eye"></i> <span id="viewer-views">0</span></span>
+                    <span class="stat-pill"><i class="fa-solid fa-share-nodes"></i> <span id="viewer-shares">0</span></span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ====================================================================== -->
+    <!-- MODAL 2: Revision Remarks Dedicated Modal                              -->
+    <!-- ====================================================================== -->
+    <div id="remarks-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="remarks-modal-title">
+        <div class="modal-card" style="max-width: 560px;">
+            <div class="manuscript-header">
+                <span class="status-badge status-revision">Revision Feedback</span>
+                <button type="button" id="close-remarks-modal-btn" class="viewer-close-btn" aria-label="Close revision modal">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="manuscript-body" style="padding: 24px;">
+                <h3 id="remarks-modal-title" style="font-size: 1.15rem; font-weight: 700; color: #101828; margin: 0 0 12px 0;">Article Title</h3>
+                <div class="remarks-alert-box" style="margin-top: 0;">
+                    <div class="remarks-alert-title">
+                        <i class="fa-solid fa-circle-exclamation"></i>
+                        <span>Section Head Feedback:</span>
+                    </div>
+                    <p id="remarks-modal-content" class="remarks-alert-text"></p>
+                </div>
+                <div style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
+                    <button type="button" id="btn-edit-from-remarks" class="btn-primary-action" style="height: 36px; padding: 0 14px;">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                        <span>Edit Manuscript</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====================================================================== -->
+    <!-- MODAL 3: Delete Draft Confirmation Modal                               -->
+    <!-- ====================================================================== -->
+    <div id="delete-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="delete-heading">
+        <div class="modal-card delete-modal-card">
+            <div class="delete-icon-wrapper">
+                <i class="fa-solid fa-trash-can"></i>
+            </div>
+            <h2 id="delete-heading" class="delete-modal-title">Delete Draft Manuscript?</h2>
+            <p class="delete-modal-desc">
+                Are you sure you want to permanently delete <strong id="delete-article-title">this draft</strong>? This action cannot be undone.
+            </p>
+            <div class="delete-modal-actions">
+                <button type="button" id="cancel-delete-btn" class="btn-cancel">
+                    <span>Keep Draft</span>
+                </button>
+                <button type="button" id="confirm-delete-btn" class="btn-delete-confirm">
+                    <span>Yes, Delete</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+    <!-- Dedicated Writer Shell Controller -->
+    <script src="js/writer-shell.js"></script>
+
+    <!-- Shared Writer Dataset Controller -->
+    <script src="js/writer-data.js"></script>
+
+    <!-- Writer Manage Articles Controller -->
+    <script src="js/writer-manage-articles.js"></script>
+</body>
+</html>
+

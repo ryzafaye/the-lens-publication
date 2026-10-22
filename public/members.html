@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Meet the officers, editors, section heads, and staffers of The Lens Publication.">
+    <title>Members | The Lens Publication</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="js/tailwind-config.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/main.css">
+</head>
+<body class="bg-white text-stone-900 font-body">
+    <header id="header-container" class="site-header w-full font-body border-b border-stone-200 shadow-sm" data-include="header.html"></header>
+    <main class="members-page page-shell">
+        <div class="members-sticky-toolbar">
+            <a class="members-back-button" href="about.html#leadership"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Go back</a>
+        </div>
+        <section class="members-page-hero" aria-labelledby="members-page-title">
+            <h1 id="members-page-title">THE LENS MEMBERS</h1>
+            <p>Meet the officers, editors, section heads, and staffers of The Lens Publication.</p>
+        </section>
+        <section class="members-list-section" aria-labelledby="leadership-list-title">
+            <div class="about-section-heading"><div><p class="about-section-kicker">01 / LEADERSHIP</p><h2 id="leadership-list-title">Officers, editors &amp; heads</h2></div></div>
+            <div id="all-leadership-grid" class="people-grid"></div>
+        </section>
+        <section class="members-list-section" aria-labelledby="staff-list-title">
+            <div class="about-section-heading"><div><p class="about-section-kicker">02 / STAFF</p><h2 id="staff-list-title">Publication staffers</h2><p class="about-section-lead">The reporters, writers, artists, photographers, and multimedia contributors who bring campus stories to life.</p></div></div>
+            <div id="staffer-grid" class="people-grid staffer-grid"></div>
+        </section>
+        <button type="button" id="members-back-to-top" class="members-back-to-top" aria-label="Back to top" title="Back to top"><i class="fa-solid fa-arrow-up" aria-hidden="true"></i></button>
+    </main>
+    <footer id="footer-container" class="site-footer" data-include="footer.html"></footer>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

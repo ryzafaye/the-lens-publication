@@ -1,0 +1,61 @@
+/* 5. ARTICLE CATEGORY LABELS */
+.latest-category,
+.story-card-category,
+.category-name {
+    color: #700f2b !important; /* Force maroon color */
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+}
+
+
+
+/* Featured article headline */
+.featured-title {
+    margin-top: 12px;
+    font-size: clamp(28px, 4vw, 44px);
+    font-weight: 1000;
+    line-height: 1.15;
+}
+
+/* Article title buttons should look like headlines */
+.article-title-button {
+    color: black;
+    background: transparent;
+    border: 0;
+    padding: 0;
+    text-align: left;
+    font: inherit;
+    font-weight: 800;
+    line-height: inherit;
+    cursor: pointer;
+}
+
+.article-title-button:hover {
+    color: var(--maroon, #700f2b);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+}
+
+.latest-title {
+    font-size: 18px;
+    font-weight: 800;
+}
+
+.story-card-title {
+    font-size: 21px;
+    font-weight: 800;
+}
+
+.article-byline {
+    color: var(--text-muted);
+    font-size: 12px;
+}
+
+.article-byline strong {
+    color: var(--maroon);
+    font-weight: 800;
+}

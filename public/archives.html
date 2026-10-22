@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Archives | The Lens</title>
+
+    <!-- Shared head: keep identical on every page -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="js/tailwind-config.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/main.css">
+</head>
+<body class="bg-white text-stone-900 font-body">
+
+    <header id="header-container" class="site-header w-full font-body border-b border-stone-200 shadow-sm" data-include="header.html"></header>
+
+    <main class="max-w-7xl mx-auto px-6 py-10">
+
+        <!-- Page introduction -->
+        <section class="mb-9">
+            <p class="text-xs tracking-widest text-wine font-bold mb-3">
+                THE LENS COLLECTION
+            </p>
+
+            <h2 class="font-display text-4xl md:text-5xl font-extrabold text-wine">
+                Article Archives
+            </h2>
+
+        </section>
+
+        <!-- Search result message -->
+        <p id="search-message"
+           class="hidden mb-5 text-sm text-wine"
+           aria-live="polite"></p>
+
+        <!-- Category filter -->
+        <section class="border-t-2 border-wine pt-5">
+
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+
+                <h3 class="font-display text-2xl font-bold">
+                    Browse archived stories
+                </h3>
+
+                <label class="flex items-center gap-3 text-sm">
+                    <span>Category:</span>
+
+                    <select id="archive-filter" class="archive-select">
+                        <option value="All">All categories</option>
+                        <option value="News">News</option>
+                        <option value="Features">Features</option>
+                        <option value="Opinion">Opinion</option>
+                        <option value="Science and Technology">Science & Technology</option>
+                        <option value="Literature">Literature</option>
+                    </select>
+                </label>
+
+            </div>
+
+            <!-- JavaScript inserts the archived articles here -->
+            <div id="archive-articles"
+                 class="grid grid-cols-1 md:grid-cols-2 gap-x-8">
+            </div>
+
+            <p id="archive-count"
+               class="mt-6 text-xs text-stone-500"></p>
+
+        </section>
+
+        <!-- Return to homepage -->
+        <div class="mt-12">
+            <a href="index.html"
+               class="inline-block border border-wine px-5 py-3 text-wine text-sm font-bold rounded hover:bg-rose-50">
+                ← Back to Homepage
+            </a>
+        </div>
+
+    </main>
+
+    <footer id="footer-container" class="site-footer" data-include="footer.html"></footer>
+
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

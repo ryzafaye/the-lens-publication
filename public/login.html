@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | The Lens</title>
+
+    <!-- Tailwind & Brand Fonts -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="js/tailwind-config.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,500;1,600&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* Open Book 3D Styling & Depth */
+        .book-wrapper {
+            perspective: 1600px;
+        }
+
+        .open-book {
+            transform-style: preserve-3d;
+            box-shadow: 
+                0 30px 60px -15px rgba(58, 6, 20, 0.22),
+                0 15px 35px -10px rgba(0, 0, 0, 0.12),
+                0 0 0 1px rgba(74, 9, 27, 0.08);
+            border-radius: 20px;
+            position: relative;
+        }
+
+        /* Stacked book page edges effect */
+        .book-edge-stack {
+            position: absolute;
+            bottom: -8px;
+            left: 20px;
+            right: 20px;
+            height: 10px;
+            background: linear-gradient(to bottom, #eae7e1, #d4cfc5);
+            border-radius: 0 0 16px 16px;
+            box-shadow: 
+                0 4px 10px rgba(0, 0, 0, 0.15),
+                0 1px 2px rgba(0, 0, 0, 0.1);
+            z-index: 0;
+        }
+        .book-edge-stack-sub {
+            position: absolute;
+            bottom: -14px;
+            left: 36px;
+            right: 36px;
+            height: 8px;
+            background: linear-gradient(to bottom, #ded9ce, #c5beb1);
+            border-radius: 0 0 14px 14px;
+            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
+            z-index: -1;
+        }
+
+        /* Center Spine Crease Shadows */
+        .left-page-spine-shadow {
+            background: linear-gradient(to left, rgba(0, 0, 0, 0.35) 0%, rgba(0, 0, 0, 0.15) 30%, transparent 100%);
+        }
+        .right-page-spine-shadow {
+            background: linear-gradient(to right, rgba(0, 0, 0, 0.14) 0%, rgba(0, 0, 0, 0.05) 35%, transparent 100%);
+        }
+
+        /* Silk Ribbon Bookmark */
+        .silk-ribbon {
+            position: absolute;
+            top: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 24px;
+            height: 84px;
+            background: linear-gradient(135deg, #8d1337 0%, #700f2b 50%, #4a091b 100%);
+            box-shadow: 0 6px 12px rgba(74, 9, 27, 0.35), 0 2px 4px rgba(0, 0, 0, 0.2);
+            z-index: 40;
+            border-radius: 3px 3px 0 0;
+            clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 82%, 0 100%);
+            transition: transform 0.3s ease;
+        }
+        .silk-ribbon:hover {
+            transform: translateX(-50%) translateY(4px);
+        }
+
+        /* Animations */
+        @keyframes floatLogo {
+            0%, 100% {
+                transform: translateY(0px) rotate(0deg);
+            }
+            50% {
+                transform: translateY(-10px) rotate(0.8deg);
+            }
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% {
+                opacity: 0.45;
+                transform: scale(0.96);
+            }
+            50% {
+                opacity: 0.85;
+                transform: scale(1.1);
+            }
+        }
+
+        @keyframes driftOrb1 {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(25px, -20px) scale(1.15); }
+        }
+
+        @keyframes driftOrb2 {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(-30px, 25px) scale(1.1); }
+        }
+
+        @keyframes shimmer {
+            100% { transform: translateX(100%); }
+        }
+
+        @keyframes bookEntrance {
+            0% {
+                opacity: 0;
+                transform: translateY(24px) scale(0.97);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .animate-float-logo {
+            animation: floatLogo 5.5s ease-in-out infinite;
+        }
+
+        .animate-pulse-glow {
+            animation: pulseGlow 4.5s ease-in-out infinite;
+        }
+
+        .animate-drift-1 {
+            animation: driftOrb1 12s ease-in-out infinite;
+        }
+
+        .animate-drift-2 {
+            animation: driftOrb2 14s ease-in-out infinite;
+        }
+
+        .animate-book {
+            animation: bookEntrance 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .shimmer-button {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .shimmer-button::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255, 255, 255, 0.28),
+                transparent
+            );
+            transition: 0.5s;
+        }
+
+        .shimmer-button:hover::after {
+            animation: shimmer 1.1s infinite;
+        }
+    </style>
+</head>
+<body class="min-h-full bg-white font-body text-stone-900 selection:bg-wine selection:text-white flex items-center justify-center p-4 sm:p-8 md:p-12 lg:p-16 relative overflow-x-hidden">
+
+    <!-- Subtle Clean Background Atmosphere -->
+    <div class="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_40%,rgba(112,15,43,0.04),transparent_70%)]"></div>
+
+    <!-- ======================================================== -->
+    <!-- OPEN BOOK WRAPPER (Spaced inside white canvas)           -->
+    <!-- ======================================================== -->
+    <div class="book-wrapper w-full max-w-4xl lg:max-w-5xl relative z-10 animate-book my-6">
+
+        <!-- Stacked paper page edges at the bottom -->
+        <div class="book-edge-stack hidden sm:block"></div>
+        <div class="book-edge-stack-sub hidden sm:block"></div>
+
+        <!-- The Open Book Container -->
+        <div class="open-book bg-stone-900 flex flex-col lg:flex-row rounded-2xl sm:rounded-3xl overflow-hidden relative border-4 border-[#3a0614] z-10">
+
+            <!-- Center Spine Silk Ribbon Bookmark -->
+            <div class="silk-ribbon hidden lg:block" title="The Lens Bookmark"></div>
+
+            <!-- ========================================== -->
+            <!-- LEFT PAGE: Big Logo on Luxury Wine Page    -->
+            <!-- (Exclusively the big logo, zero text)      -->
+            <!-- ========================================== -->
+            <section class="relative lg:w-1/2 py-6 px-4 sm:py-8 sm:px-6 lg:p-14 min-h-[140px] sm:min-h-[180px] lg:min-h-[580px] flex items-center justify-center overflow-hidden bg-gradient-to-br from-[#22020b] via-[#4a091b] to-[#120207] shadow-inner">
+                
+                <!-- Center Crease Shadow (Right Edge of Left Page) -->
+                <div class="left-page-spine-shadow pointer-events-none absolute right-0 top-0 bottom-0 w-12 hidden lg:block z-20"></div>
+
+                <!-- Animated Ambient Background Orbs -->
+                <div class="pointer-events-none absolute -top-16 -left-16 w-80 h-80 rounded-full bg-rose-600/25 blur-3xl animate-drift-1"></div>
+                <div class="pointer-events-none absolute -bottom-16 -right-16 w-80 h-80 rounded-full bg-wine/50 blur-3xl animate-drift-2"></div>
+
+                <!-- Subtle Dot Matrix / Book Texture -->
+                <div class="pointer-events-none absolute inset-0 opacity-[0.06]" style="background-image: radial-gradient(rgba(255, 255, 255, 0.9) 1px, transparent 1px); background-size: 20px 20px;"></div>
+
+                <!-- Page Margin Line (Embossed Book Border) -->
+                <div class="pointer-events-none absolute inset-4 sm:inset-6 rounded-2xl border border-white/10 hidden sm:block"></div>
+
+                <!-- LOGO CENTERPIECE (Small on mobile/small screens, large centerpiece on desktop) -->
+                <div class="relative z-10 flex items-center justify-center">
+                    <div class="relative group cursor-pointer">
+                        
+                        <!-- Glowing Aura Behind Logo -->
+                        <div class="absolute -inset-3 sm:-inset-4 lg:-inset-6 rounded-full bg-gradient-to-tr from-rose-600/50 via-wine/70 to-amber-500/35 blur-xl sm:blur-2xl lg:blur-3xl animate-pulse-glow"></div>
+                        
+                        <!-- Decorative Rotating Orbit Ring -->
+                        <div class="absolute -inset-2.5 sm:-inset-3.5 lg:-inset-5 rounded-full border border-white/25 border-dashed animate-spin" style="animation-duration: 35s;"></div>
+
+                        <!-- Logo Frame with Glassmorphism: Small on mobile, large on desktop -->
+                        <div class="relative w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 lg:w-80 lg:h-80 rounded-full p-1.5 sm:p-2 lg:p-3 bg-gradient-to-b from-white/30 via-white/10 to-transparent shadow-xl lg:shadow-2xl backdrop-blur-xl animate-float-logo">
+                            <div class="w-full h-full rounded-full overflow-hidden border border-white/40 lg:border-2 shadow-inner bg-[#4a091b] flex items-center justify-center">
+                                <img src="images/logo.jpg" 
+                                     alt="The Lens Logo" 
+                                     class="w-full h-full object-cover select-none transition-transform duration-700 group-hover:scale-105">
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- ======================================================== -->
+                <!-- REALISTIC CONTINUOUS FLIPPED / CURLED PAGE CORNER       -->
+                <!-- (Only visible on large/desktop screens; removed on mobile) -->
+                <!-- ======================================================== -->
+                <div class="hidden lg:block group/curl absolute bottom-0 left-0 lg:w-48 lg:h-48 z-30 pointer-events-auto cursor-pointer select-none" title="Turn page">
+                    <svg class="w-full h-full transition-transform duration-500 ease-out group-hover/curl:-rotate-1 group-hover/curl:scale-[1.03] group-hover/curl:translate-x-1 group-hover/curl:-translate-y-1 origin-bottom-left filter drop-shadow-md" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <!-- Soft Diffusion Filter for Under-Roll Shadow -->
+                            <filter id="softRollShadow" x="-30%" y="-30%" width="160%" height="160%">
+                                <feDropShadow dx="3" dy="-3" stdDeviation="5" flood-color="#000000" flood-opacity="0.55" />
+                            </filter>
+
+                            <!-- Cast Shadow of the Overhanging Roll onto the Dark Wine Page -->
+                            <filter id="pageCastShadow" x="-40%" y="-40%" width="180%" height="180%">
+                                <feGaussianBlur stdDeviation="8" />
+                            </filter>
+
+                            <!-- Parchment Texture for the Exposed Under-Page -->
+                            <linearGradient id="parchmentBase" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#ded8cb" />
+                                <stop offset="40%" stop-color="#ede7db" />
+                                <stop offset="85%" stop-color="#e2dacb" />
+                                <stop offset="100%" stop-color="#cfc7b4" />
+                            </linearGradient>
+
+                            <!-- Shadow on the Exposed Parchment Page (Deepest under the roll) -->
+                            <linearGradient id="creaseDepression" x1="100%" y1="100%" x2="0%" y2="0%">
+                                <stop offset="0%" stop-color="rgba(24, 3, 8, 0.45)" />
+                                <stop offset="35%" stop-color="rgba(30, 4, 10, 0.2)" />
+                                <stop offset="70%" stop-color="rgba(30, 4, 10, 0.05)" />
+                                <stop offset="100%" stop-color="transparent" />
+                            </linearGradient>
+
+                            <!-- Cylindrical Roll Gradient for the Curled Page Flap -->
+                            <linearGradient id="paperRollCylinder" x1="15%" y1="85%" x2="85%" y2="20%">
+                                <stop offset="0%" stop-color="#140207" />
+                                <stop offset="18%" stop-color="#28050e" />
+                                <stop offset="38%" stop-color="#4d091d" />
+                                <stop offset="60%" stop-color="#730f2c" />
+                                <stop offset="78%" stop-color="#9e183e" />
+                                <stop offset="90%" stop-color="#c94b6d" />
+                                <stop offset="96%" stop-color="#f0b6c5" />
+                                <stop offset="100%" stop-color="#ffffff" />
+                            </linearGradient>
+
+                            <!-- Rim Highlight Gradient -->
+                            <linearGradient id="rimLightGrad" x1="0%" y1="0%" x2="100%" y2="30%">
+                                <stop offset="0%" stop-color="rgba(255,255,255,0.2)" />
+                                <stop offset="60%" stop-color="rgba(255,255,255,0.85)" />
+                                <stop offset="100%" stop-color="rgba(255,255,255,0.95)" />
+                            </linearGradient>
+                        </defs>
+
+                        <!-- 1. The Exposed Under-Page (Revealed by the roll, smoothly fitted to corner) -->
+                        <path d="M 0 20 L 0 144 Q 0 160 16 160 L 150 160 C 112 120 54 62 0 20 Z" fill="url(#parchmentBase)" />
+
+                        <!-- Realistic Faint Printed Article Lines on the Exposed Under-Page -->
+                        <g opacity="0.65" stroke="#968c77" stroke-width="1.2" stroke-linecap="round" stroke-dasharray="2 3">
+                            <line x1="10" y1="52" x2="68" y2="110" />
+                            <line x1="12" y1="74" x2="58" y2="120" />
+                            <line x1="14" y1="96" x2="48" y2="130" />
+                            <line x1="18" y1="118" x2="38" y2="138" />
+                        </g>
+
+                        <!-- Soft Shadow on the Exposed Parchment under the roll -->
+                        <path d="M 0 20 L 0 144 Q 0 160 16 160 L 150 160 C 112 120 54 62 0 20 Z" fill="url(#creaseDepression)" />
+
+                        <!-- 2. Soft Cast Ambient Shadow of the Curled Flap onto the main page -->
+                        <path d="M 0 20 C 35 20 85 14 142 26 C 150 68 152 118 150 160 C 120 130 65 75 0 20 Z" fill="rgba(0,0,0,0.55)" filter="url(#pageCastShadow)" />
+
+                        <!-- 3. The Curled Page Roll (Continuous from Left Edge at 0,20 to Bottom Edge at 150,160) -->
+                        <path d="M 0 20 C 35 22 88 15 142 26 C 150 68 153 118 150 160 C 110 122 52 64 0 20 Z" fill="url(#paperRollCylinder)" filter="url(#softRollShadow)" />
+
+                        <!-- 4. Subtle Specular Highlight Curve along the rolled paper crest -->
+                        <path d="M 2 22 C 36 24 88 17 141 28" stroke="url(#rimLightGrad)" stroke-width="1.5" stroke-linecap="round" fill="none" opacity="0.9" />
+
+                        <!-- 5. Delicate Right Flap Rim Light -->
+                        <path d="M 141 28 C 149 70 152 118 149 158" stroke="rgba(255,255,255,0.4)" stroke-width="1" stroke-linecap="round" fill="none" opacity="0.75" />
+                    </svg>
+                </div>
+
+            </section>
+
+            <!-- ========================================== -->
+            <!-- RIGHT PAGE: Evident, Clean Modern Form     -->
+            <!-- ========================================== -->
+            <main class="lg:w-1/2 flex flex-col justify-center p-6 sm:p-10 lg:p-16 bg-[#ffffff] relative">
+
+                <!-- Center Crease Shadow (Left Edge of Right Page) -->
+                <div class="right-page-spine-shadow pointer-events-none absolute left-0 top-0 bottom-0 w-10 hidden lg:block z-20"></div>
+
+                <!-- Book Page Margin Line (Subtle Editorial Frame) -->
+                <div class="pointer-events-none absolute inset-4 sm:inset-6 rounded-2xl border border-stone-200/60 hidden sm:block"></div>
+
+                <!-- Top Corner Link: Return to Home -->
+                <div class="absolute top-4 right-4 sm:top-8 sm:right-8 z-30">
+                    <a href="index.html" class="inline-flex items-center gap-2 text-xs sm:text-sm font-medium text-stone-500 hover:text-wine transition-colors duration-200 py-1.5 px-3 rounded-lg hover:bg-stone-100">
+                        <i class="fa-solid fa-arrow-left text-xs transition-transform group-hover:-translate-x-1"></i>
+                        <span>Back to site</span>
+                    </a>
+                </div>
+
+                <!-- Form Card Content -->
+                <div class="w-full max-w-sm mx-auto relative z-20">
+                    
+                    <!-- Card Header -->
+                    <div class="mb-6 sm:mb-8 pt-4 sm:pt-0">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold tracking-widest uppercase bg-wine/10 text-wine mb-3">
+                            Member Portal
+                        </span>
+                        <h1 class="font-display text-2xl sm:text-3xl font-bold text-stone-900 tracking-tight">
+                            Sign In
+                        </h1>
+                        <p class="mt-1.5 text-sm text-stone-500">
+                            Enter your student number and password to proceed.
+                        </p>
+                    </div>
+
+                    <!-- Alert Message Banner (Dynamic) -->
+                    <div id="status-message" class="hidden mb-6 p-3.5 rounded-xl text-xs sm:text-sm font-medium transition-all duration-300"></div>
+
+                    <!-- Login Form: Student Number + Password + Login Button Only -->
+                    <form id="login-form" class="space-y-5" novalidate>
+                        
+                        <!-- Field 1: Student Number -->
+                        <div class="space-y-1.5">
+                            <label for="student-number" class="block text-xs font-semibold uppercase tracking-wider text-stone-800">
+                                Student Number
+                            </label>
+                            <div class="relative group">
+                                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-stone-400 group-focus-within:text-wine transition-colors">
+                                    <i class="fa-regular fa-id-card text-base"></i>
+                                </div>
+                                <input type="text" 
+                                       id="student-number" 
+                                       name="student_number"
+                                       required 
+                                       autocomplete="username"
+                                       placeholder="2024-00123-BN-0" 
+                                       class="w-full pl-10 pr-4 py-3 rounded-xl border-2 border-stone-200 bg-stone-50/60 text-stone-900 placeholder:text-stone-400 text-sm font-medium tracking-wide focus:outline-none focus:border-wine focus:bg-white focus:ring-4 focus:ring-wine/10 transition-all duration-200 shadow-sm">
+                            </div>
+                        </div>
+
+                        <!-- Field 2: Password -->
+                        <div class="space-y-1.5">
+                            <label for="password" class="block text-xs font-semibold uppercase tracking-wider text-stone-800">
+                                Password
+                            </label>
+                            <div class="relative group">
+                                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-stone-400 group-focus-within:text-wine transition-colors">
+                                    <i class="fa-solid fa-lock text-sm"></i>
+                                </div>
+                                <input type="password" 
+                                       id="password" 
+                                       name="password"
+                                       required 
+                                       autocomplete="current-password"
+                                       placeholder="••••••••••••" 
+                                       class="w-full pl-10 pr-11 py-3 rounded-xl border-2 border-stone-200 bg-stone-50/60 text-stone-900 placeholder:text-stone-400 text-sm focus:outline-none focus:border-wine focus:bg-white focus:ring-4 focus:ring-wine/10 transition-all duration-200 shadow-sm">
+                                
+                                <!-- Toggle Password Visibility -->
+                                <button type="button" 
+                                        id="toggle-password" 
+                                        class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-stone-400 hover:text-stone-700 focus:outline-none transition-colors"
+                                        aria-label="Toggle password visibility">
+                                    <i id="toggle-password-icon" class="fa-regular fa-eye text-sm"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Field 3: Login Button -->
+                        <div class="pt-2">
+                            <button type="submit" 
+                                    id="login-button" 
+                                    class="shimmer-button w-full flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl bg-gradient-to-r from-wine to-[#8d1337] hover:from-[#5e0c24] hover:to-wine text-white font-medium text-sm tracking-wide shadow-md hover:shadow-lg shadow-wine/25 transform active:scale-[0.99] transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-wine/25">
+                                <span id="btn-text" class="flex items-center gap-2">
+                                    <span>Log In</span>
+                                    <i class="fa-solid fa-arrow-right text-xs transition-transform group-hover:translate-x-0.5"></i>
+                                </span>
+                                <span id="btn-spinner" class="hidden items-center gap-2">
+                                    <i class="fa-solid fa-circle-notch fa-spin"></i>
+                                    <span>Signing In…</span>
+                                </span>
+                            </button>
+                        </div>
+
+                        <!-- Forgot Password Link (UI element only) -->
+                        <div class="text-center pt-2">
+                            <a href="#" class="text-xs font-medium text-stone-500 hover:text-wine hover:underline transition-colors duration-200">
+                                Forgot Password?
+                            </a>
+                        </div>
+
+                    </form>
+
+                </div>
+            </main>
+
+        </div>
+    </div>
+
+    <!-- External Login Logic Script -->
+    <script src="js/login.js"></script>
+</body>
+</html>

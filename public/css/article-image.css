@@ -1,0 +1,108 @@
+/* 5. ARTICLE IMAGE PLACEHOLDERS
+   Add real images through the image property in script.js.
+   Until then, the title appears over a burgundy background. */
+
+.article-image {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    width: 100%;
+    background: var(--wine);
+    color: white;
+    border-radius: 3px;
+}
+
+.article-image img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.image-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    padding: 20px;
+    background: var(--image-color, var(--wine));
+    color: #f4dfe4;
+    font-family: var(--heading-font);
+    font-size: 22px;
+    font-weight: 700;
+    text-align: center;
+}
+
+.featured-image {
+    aspect-ratio: 1.78 / 1;
+}
+
+.featured-image .image-placeholder {
+    font-size: clamp(24px, 3vw, 36px);
+}
+
+.latest-image {
+    aspect-ratio: 1 / 0.9;
+    cursor: pointer;
+}
+
+.latest-image .image-placeholder {
+    padding: 8px;
+    font-size: 12px;
+}
+
+.story-card-image {
+    aspect-ratio: 1.8 / 1;
+    cursor: pointer;
+}
+
+.story-card-image .image-placeholder {
+    justify-content: flex-end;
+    align-items: flex-end;
+    padding: 12px;
+    font-size: 13px;
+    text-align: left;
+}
+
+.small-image {
+    aspect-ratio: 1 / 1;
+    cursor: pointer;
+}
+
+.small-image .image-placeholder {
+    padding: 6px;
+    font-size: 10px;
+}
+
+/* 6. ARTICLE IMAGES */
+.article-image {
+    position: relative;
+    overflow: hidden;
+    background-color: var(--maroon-pale);
+}
+
+.article-image img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.article-clickable:hover .article-image img {
+    transform: scale(1.03);
+}
+
+.image-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 150px;
+    padding: 20px;
+    background-color: var(--maroon);
+    color: var(--white);
+    font-weight: 800;
+    text-align: center;
+}

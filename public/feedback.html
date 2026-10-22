@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Send feedback, suggestions, and concerns to The Lens Publication.">
+    <title>Feedback to the Editor | The Lens Publication</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="js/tailwind-config.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/main.css">
+</head>
+<body class="bg-white text-stone-900 font-body">
+    <header id="header-container" class="site-header w-full font-body border-b border-stone-200 shadow-sm" data-include="header.html"></header>
+    <main class="feedback-page page-shell" data-page="feedback">
+        <section class="feedback-main-grid" aria-labelledby="feedback-title">
+            <div class="feedback-intro-copy">
+                <p class="feedback-eyebrow">THE LENS PUBLICATION</p>
+                <h1 id="feedback-title">Feedback to the Editor</h1>
+                <p>Have a suggestion, concern, or thought about our coverage? Send a note to The Lens. We value respectful feedback that helps us serve the campus community better.</p>
+                <div class="feedback-intro-rule" aria-hidden="true"><span></span></div>
+                <div class="feedback-envelope-scene" aria-hidden="true">
+                    <span class="feedback-envelope-spark feedback-envelope-spark-one">✦</span>
+                    <span class="feedback-envelope-spark feedback-envelope-spark-two">✧</span>
+                    <span class="feedback-envelope-spark feedback-envelope-spark-three">✦</span>
+                    <div class="feedback-envelope-art">
+                        <div class="feedback-envelope-letter">
+                            <span></span><span></span><span></span>
+                            <i class="fa-regular fa-heart"></i>
+                        </div>
+                        <div class="feedback-envelope-back"></div>
+                        <div class="feedback-envelope-flap"></div>
+                        <div class="feedback-envelope-front"></div>
+                        <span class="feedback-envelope-seal"><i class="fa-regular fa-envelope"></i></span>
+                    </div>
+                </div>
+                <p class="feedback-small-note"><i class="fa-regular fa-envelope" aria-hidden="true"></i> Your feedback helps us keep campus journalism open, thoughtful, and accountable.</p>
+            </div>
+
+            <div class="feedback-form-card">
+                <form id="editor-feedback-form" class="editor-feedback-form" novalidate>
+                    <div class="feedback-form-heading"><span class="feedback-form-icon"><i class="fa-regular fa-paper-plane" aria-hidden="true"></i></span><div><h2>Send your message</h2><p>Fields marked required must be completed.</p></div></div>
+                    <div class="feedback-field">
+                        <label for="feedback-name">Name <span>(optional)</span></label>
+                        <input type="text" id="feedback-name" name="name" maxlength="80" autocomplete="name" placeholder="Your name">
+                    </div>
+                    <div class="feedback-field">
+                        <label for="feedback-subject">Subject <span class="required-indicator">*</span></label>
+                        <input type="text" id="feedback-subject" name="subject" maxlength="120" required placeholder="What is your feedback about?">
+                        <p class="feedback-field-error" data-error-for="feedback-subject"></p>
+                    </div>
+                    <div class="feedback-field">
+                        <div class="feedback-message-label-row"><label for="feedback-message">Message <span class="required-indicator">*</span></label><span id="feedback-message-count" class="feedback-character-count">0 / 3000</span></div>
+                        <textarea id="feedback-message" name="message" rows="6" maxlength="3000" required placeholder="Write your message here…"></textarea>
+                        <p class="feedback-field-error" data-error-for="feedback-message"></p>
+                    </div>
+                    <button type="submit" class="feedback-submit-button"><span>Submit feedback</span><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>
+                    <p class="feedback-privacy-note"><i class="fa-solid fa-lock" aria-hidden="true"></i> Please avoid including sensitive personal information.</p>
+                </form>
+
+                <section id="feedback-success" class="feedback-success" aria-live="polite" tabindex="-1" hidden>
+                    <span class="feedback-success-icon"><i class="fa-solid fa-check" aria-hidden="true"></i></span>
+                    <p class="feedback-success-eyebrow">MESSAGE PREPARED</p>
+                    <h2>Your feedback is recorded.</h2>
+                    <p class="feedback-success-copy">This static demo saves the message in this browser only. To ensure the editors receive it, open the email draft and press Send in your email app.</p>
+                    <a id="feedback-email-draft" class="feedback-submit-button feedback-email-draft" href="mailto:thelenspublicationpupbc@gmail.com"><i class="fa-regular fa-envelope" aria-hidden="true"></i><span>Email the editors</span></a>
+                    <button type="button" id="feedback-new-message" class="feedback-new-message">Send another message</button>
+                </section>
+            </div>
+        </section>
+
+        <section class="feedback-contact-section" aria-labelledby="feedback-contact-title">
+            <div class="feedback-contact-intro">
+                <p class="feedback-eyebrow">DIRECT CONTACT</p>
+                <h2 id="feedback-contact-title">Reach The Lens directly.</h2>
+                <p>You can also contact the publication through its official email or Facebook page.</p>
+            </div>
+            <div class="feedback-contact-methods">
+                <a class="feedback-contact-link" href="mailto:thelenspublicationpupbc@gmail.com" data-publication-link="email">
+                    <span class="feedback-contact-icon"><i class="fa-regular fa-envelope" aria-hidden="true"></i></span>
+                    <span><small>EMAIL US</small><strong>thelenspublicationpupbc@gmail.com</strong></span>
+                    <i class="fa-solid fa-arrow-up-right-from-square feedback-contact-arrow" aria-hidden="true"></i>
+                </a>
+                <a class="feedback-contact-link" href="https://www.facebook.com/profile.php?id=61560889387183" data-publication-link="facebook" target="_blank" rel="noopener noreferrer">
+                    <span class="feedback-contact-icon"><i class="fa-brands fa-facebook-f" aria-hidden="true"></i></span>
+                    <span><small>FACEBOOK PAGE</small><strong>The Lens Publication</strong></span>
+                    <i class="fa-solid fa-arrow-up-right-from-square feedback-contact-arrow" aria-hidden="true"></i>
+                </a>
+            </div>
+        </section>
+    </main>
+    <footer id="footer-container" class="site-footer" data-include="footer.html"></footer>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,111 @@
+/* 8. MORE STORIES CARDS */
+
+.story-card {
+    min-width: 0;
+}
+
+.story-card-title {
+    margin: 0 0 7px;
+    font-family: var(--heading-font);
+    font-size: 17px;
+    font-weight: 800;
+    line-height: 1.25;
+}
+
+.story-card-category {
+    margin: 9px 0 7px;
+    color: var(--wine);
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.story-card-excerpt {
+    margin: 0;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.65;
+}
+
+/* 7. ARTICLE CARDS */
+.latest-item,
+.archive-item,
+.category-card,
+.story-card {
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 20px;
+    margin-bottom: 20px;
+}
+
+.latest-item h3,
+.archive-item h3,
+.category-card h3 {
+    margin: 8px 0;
+    color: var(--maroon);
+    font-weight: 800;
+}
+
+.latest-item p,
+.archive-item p,
+.category-card p,
+.story-card-excerpt {
+    color: var(--text-muted);
+    font-size: 14px;
+}
+
+.latest-views {
+    font-size: 11px !important;
+    font-weight: 800;
+}
+
+/* =====================================================
+   CARD CONTAINERS & PARTITIONS
+   ===================================================== */
+
+/* More Stories Grid Cards */
+.story-card {
+    background: #ffffff;
+    border: 1px solid #e2d8dc;
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.story-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(112, 15, 43, 0.08);
+    border-color: #700f2b;
+}
+
+/* Category Section Grid Cards */
+.category-card {
+    background: #fdfbfc;
+    border: 1px solid #e8dedf;
+    border-radius: 10px;
+    padding: 14px;
+    display: grid;
+    grid-template-columns: 85px 1fr;
+    gap: 14px;
+    align-items: center;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.category-card:hover {
+    background: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(112, 15, 43, 0.07);
+    border-color: #8d1b3d;
+}
+
+.category-card .article-image {
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.story-card-image {
+    border-radius: 8px;
+    overflow: hidden;
+}

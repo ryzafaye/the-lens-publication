@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile Settings | The Lens Section Head Portal</title>
+    
+    <!-- Typography: DM Sans & Playfair Display -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,600;1,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Modular CSS Architecture -->
+    <link rel="stylesheet" href="css/section-head-dashboard.css">
+    <link rel="stylesheet" href="css/section-head-profile-settings.css">
+    <link rel="stylesheet" href="css/executive-modals.css">
+</head>
+<body class="dashboard-body">
+
+    <!-- ====================================================================== -->
+    <!-- SIDEBAR: Left - Desktop Fixed Full-Height Maroon (#5c0a18)             -->
+    <!-- ====================================================================== -->
+    <aside id="sidebar" class="sidebar" aria-label="Section Head Portal Sidebar">
+        
+        <div class="sidebar-top-section">
+            <div class="sidebar-header">
+                <div class="sidebar-brand-lockup">
+                    <div class="sidebar-logo-square">
+                        <img src="images/logo.jpg" alt="The Lens Logo">
+                    </div>
+                    <span class="sidebar-brand-name">The Lens Publication</span>
+                </div>
+            </div>
+
+            <!-- Profile Section -->
+            <div class="sidebar-profile">
+                <div class="profile-avatar">
+                    <img id="sidebar-avatar-img" src="images/member-placeholder.svg" alt="Section Head Avatar">
+                </div>
+                <div id="sidebar-user-name" class="profile-name">Danilo C. Ramos</div>
+                <div id="sidebar-user-role" class="profile-role-text">News Head</div>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="sidebar-nav" aria-label="Section Head navigation">
+                <a href="section-head-dashboard.html" class="sidebar-nav-item" data-page="section-head-dashboard.html">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </a>
+
+                <a href="section-head-manage-my-articles.html" class="sidebar-nav-item" data-page="section-head-manage-my-articles.html">
+                    <i class="fa-solid fa-file-pen"></i>
+                    <span>Manage My Articles</span>
+                </a>
+
+                <a href="section-head-review-articles.html" class="sidebar-nav-item" data-page="section-head-review-articles.html">
+                    <i class="fa-solid fa-clipboard-check"></i>
+                    <span>Review Article</span>
+                </a>
+
+                <a href="section-head-submit-article.html" class="sidebar-nav-item" data-page="section-head-submit-article.html">
+                    <i class="fa-solid fa-feather-pointed"></i>
+                    <span>Submit article</span>
+                </a>
+
+                <a href="section-head-activity-logs.html" class="sidebar-nav-item" data-page="section-head-activity-logs.html">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <span>Activity log</span>
+                </a>
+            </nav>
+        </div>
+
+        <div class="sidebar-footer">
+            <a href="section-head-profile-settings.html" class="sidebar-footer-link active" data-page="section-head-profile-settings.html">
+                <i class="fa-solid fa-sliders"></i>
+                <span>Profile Settings</span>
+            </a>
+
+            <a href="index.html" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                <span>View public site</span>
+            </a>
+
+            <button type="button" id="logout-btn" class="sidebar-footer-link logout-btn">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span>Logout</span>
+            </button>
+        </div>
+
+    </aside>
+
+    <!-- ====================================================================== -->
+    <!-- MAIN CONTENT AREA: Right                                              -->
+    <!-- ====================================================================== -->
+    <div class="main-wrapper">
+
+        <!-- Top Header Bar -->
+        <header class="topbar">
+            <div class="topbar-left">
+                <div class="mobile-header-brand">
+                    <button type="button" id="mobile-hamburger-btn" class="mobile-hamburger-btn" aria-label="Toggle navigation menu" aria-expanded="false">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <div class="mobile-brand-lockup">
+                        <div class="mobile-logo-square">
+                            <img src="images/logo.jpg" alt="The Lens Logo">
+                        </div>
+                        <span class="mobile-brand-title">The Lens</span>
+                    </div>
+                </div>
+
+                <div class="topbar-clock">
+                    <i class="fa-regular fa-clock"></i>
+                    <span id="topbar-clock-display">Loading date &amp; time…</span>
+                </div>
+            </div>
+
+            <div class="topbar-right">
+                <button type="button" class="topbar-notification-btn" aria-label="View notifications">
+                    <span class="notification-icon-wrapper">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="notification-badge-dot"></span>
+                    </span>
+                    <span class="notification-label">Notification</span>
+                </button>
+
+                <div class="topbar-divider"></div>
+
+                <div class="topbar-user-profile">
+                    <div class="topbar-avatar-circle" title="User Profile">
+                        <img src="images/member-placeholder.svg" alt="Section Head Profile Picture">
+                    </div>
+                    <span id="topbar-user-role" class="topbar-role-badge">News Head</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Mobile Accordion Dropdown -->
+        <nav id="mobile-nav-dropdown" class="mobile-nav-dropdown" aria-label="Mobile Navigation Menu">
+            <div class="mobile-nav-profile">
+                <div class="mobile-nav-avatar">
+                    <img src="images/member-placeholder.svg" alt="Section Head Avatar">
+                </div>
+                <div class="mobile-nav-user-info">
+                    <div id="mobile-user-name" class="mobile-nav-name">Danilo C. Ramos</div>
+                    <div id="mobile-user-role" class="mobile-nav-role">News Head</div>
+                </div>
+            </div>
+
+            <div class="mobile-nav-links">
+                <a href="section-head-dashboard.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="section-head-manage-my-articles.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-file-pen"></i>
+                    <span>Manage My Articles</span>
+                </a>
+                <a href="section-head-review-articles.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-clipboard-check"></i>
+                    <span>Review Article</span>
+                </a>
+                <a href="section-head-submit-article.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-feather-pointed"></i>
+                    <span>Submit article</span>
+                </a>
+                <a href="section-head-activity-logs.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <span>Activity log</span>
+                </a>
+            </div>
+
+            <div class="mobile-nav-footer">
+                <a href="section-head-profile-settings.html" class="mobile-nav-footer-link active">
+                    <i class="fa-solid fa-sliders"></i>
+                    <span>Profile Settings</span>
+                </a>
+                <a href="index.html" target="_blank" rel="noopener noreferrer" class="mobile-nav-footer-link">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    <span>View public site</span>
+                </a>
+                <button type="button" id="mobile-logout-btn" class="mobile-nav-footer-link logout-btn">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span>Logout</span>
+                </button>
+            </div>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="content-container">
+
+            <div class="profile-settings-container">
+                
+                <!-- Page Header -->
+                <div class="profile-header-row">
+                    <div class="profile-title-wrap">
+                        <h1>Profile Settings</h1>
+                        <p class="text-xs text-slate-500 mt-0.5">Manage your editorial credentials, assigned section desk, and security details.</p>
+                    </div>
+                </div>
+
+                <!-- 2-Column Responsive Settings Grid -->
+                <div class="profile-settings-grid">
+                    
+                    <!-- CARD 1: SECTION HEAD PROFILE INFORMATION -->
+                    <section class="settings-card" aria-labelledby="head-info-heading">
+                        <div class="settings-card-header">
+                            <div class="settings-card-icon">
+                                <i class="fa-regular fa-id-badge"></i>
+                            </div>
+                            <div class="settings-card-titles">
+                                <h2 id="head-info-heading">Section Head Profile</h2>
+                                <p>Personal credentials and editorial desk information.</p>
+                            </div>
+                        </div>
+
+                        <form id="profile-info-form" class="settings-card-body" novalidate>
+                            
+                            <!-- Profile Picture Upload Row -->
+                            <div class="profile-avatar-row">
+                                <div class="avatar-preview-wrapper">
+                                    <img id="avatar-preview-img" class="avatar-preview-img" src="images/member-placeholder.svg" alt="Section Head Avatar">
+                                </div>
+                                <div class="avatar-upload-info">
+                                    <span class="settings-label">Profile Picture</span>
+                                    <div class="avatar-actions-group">
+                                        <button type="button" id="btn-change-avatar" class="btn-upload-avatar">
+                                            <i class="fa-solid fa-arrow-up-from-bracket"></i>
+                                            <span>Upload Photo</span>
+                                        </button>
+                                        <button type="button" id="btn-reset-avatar" class="btn-reset-avatar" title="Reset to default placeholder">
+                                            <i class="fa-regular fa-trash-can"></i>
+                                            <span>Remove</span>
+                                        </button>
+                                        <input type="file" id="avatar-file-input" accept="image/png, image/jpeg, image/webp" style="display: none;" aria-label="Upload profile picture">
+                                    </div>
+                                    <p class="avatar-hint-text">Supported formats: JPG, PNG, or WEBP.</p>
+                                </div>
+                            </div>
+
+                            <!-- Student Number Field -->
+                            <div class="settings-field-group">
+                                <label for="input-student-number" class="settings-label">
+                                    <span>Student Number <span class="req">*</span></span>
+                                </label>
+                                <input 
+                                    type="text" 
+                                    id="input-student-number" 
+                                    class="settings-input" 
+                                    placeholder="Enter your student number" 
+                                    required 
+                                    maxlength="30"
+                                    autocomplete="off"
+                                >
+                            </div>
+
+                            <!-- Full Name Field -->
+                            <div class="settings-field-group">
+                                <label for="input-full-name" class="settings-label">
+                                    <span>Full Name <span class="req">*</span></span>
+                                </label>
+                                <input 
+                                    type="text" 
+                                    id="input-full-name" 
+                                    class="settings-input" 
+                                    placeholder="Enter your full name" 
+                                    required 
+                                    maxlength="80"
+                                    autocomplete="name"
+                                >
+                            </div>
+
+                            <!-- Role Field (Strictly called "Role") -->
+                            <div class="settings-field-group">
+                                <label for="input-officer-role" class="settings-label">
+                                    <span>Role</span>
+                                    <span class="optional-badge">Editorial Board</span>
+                                </label>
+                                <input 
+                                    type="text" 
+                                    id="input-officer-role" 
+                                    class="settings-input" 
+                                    readonly 
+                                    value="News Head"
+                                    aria-readonly="true"
+                                >
+                            </div>
+
+                            <!-- Submit Action -->
+                            <div class="card-actions-row">
+                                <button type="submit" id="btn-save-profile" class="btn-update-maroon">
+                                    <i class="fa-solid fa-check"></i>
+                                    <span>Save Profile</span>
+                                </button>
+                            </div>
+
+                        </form>
+                    </section>
+
+                    <!-- CARD 2: SECURITY & PASSWORD CHANGE -->
+                    <section class="settings-card" aria-labelledby="security-heading">
+                        <div class="settings-card-header">
+                            <div class="settings-card-icon">
+                                <i class="fa-solid fa-shield-halved"></i>
+                            </div>
+                            <div class="settings-card-titles">
+                                <h2 id="security-heading">Security &amp; Password</h2>
+                                <p>Manage your account password and security credentials.</p>
+                            </div>
+                        </div>
+
+                        <form id="password-form" class="settings-card-body" novalidate>
+                            
+                            <!-- Current Password -->
+                            <div class="settings-field-group">
+                                <label for="input-current-pass" class="settings-label">
+                                    <span>Current Password <span class="req">*</span></span>
+                                </label>
+                                <div class="password-input-wrapper">
+                                    <input 
+                                        type="password" 
+                                        id="input-current-pass" 
+                                        class="settings-input" 
+                                        placeholder="••••••••••••" 
+                                        required 
+                                        autocomplete="current-password"
+                                    >
+                                    <button type="button" class="btn-toggle-eye" data-target="input-current-pass" aria-label="Toggle password visibility">
+                                        <i class="fa-regular fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- New Password -->
+                            <div class="settings-field-group">
+                                <label for="input-new-pass" class="settings-label">
+                                    <span>New Password <span class="req">*</span></span>
+                                </label>
+                                <div class="password-input-wrapper">
+                                    <input 
+                                        type="password" 
+                                        id="input-new-pass" 
+                                        class="settings-input" 
+                                        placeholder="At least 8 characters" 
+                                        required 
+                                        minlength="8"
+                                        autocomplete="new-password"
+                                    >
+                                    <button type="button" class="btn-toggle-eye" data-target="input-new-pass" aria-label="Toggle password visibility">
+                                        <i class="fa-regular fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Confirm New Password -->
+                            <div class="settings-field-group">
+                                <label for="input-confirm-pass" class="settings-label">
+                                    <span>Confirm New Password <span class="req">*</span></span>
+                                </label>
+                                <div class="password-input-wrapper">
+                                    <input 
+                                        type="password" 
+                                        id="input-confirm-pass" 
+                                        class="settings-input" 
+                                        placeholder="Repeat new password" 
+                                        required 
+                                        autocomplete="new-password"
+                                    >
+                                    <button type="button" class="btn-toggle-eye" data-target="input-confirm-pass" aria-label="Toggle password visibility">
+                                        <i class="fa-regular fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Submit Password Update -->
+                            <div class="card-actions-row">
+                                <button type="submit" id="btn-save-password" class="btn-update-maroon">
+                                    <i class="fa-solid fa-key"></i>
+                                    <span>Update Password</span>
+                                </button>
+                            </div>
+
+                        </form>
+                    </section>
+
+                </div>
+
+            </div>
+
+        </main>
+
+    </div>
+
+    <!-- Notification Toast Container -->
+    <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+    <!-- Scripts -->
+    <script src="js/section-head-shell.js"></script>
+    <script src="js/section-head-profile-settings.js"></script>
+</body>
+</html>
+

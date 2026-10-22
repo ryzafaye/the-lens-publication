@@ -236,13 +236,24 @@
         <!-- Main Content Area -->
         <main class="content-container">
 
-            <!-- Page Title Section -->
+            <!-- Page Title Section with Total Views Counter & Action Button -->
             <div class="writer-header-row animate-fade-in delay-1">
                 <div class="writer-header-left">
                     <h1 class="page-title">Manage My Articles</h1>
                 </div>
 
                 <div class="writer-header-right">
+                    <!-- Total Views Header Metric Pill -->
+                    <div class="header-views-badge" title="Total Views Across Published Articles">
+                        <span class="views-badge-icon">
+                            <i class="fa-regular fa-eye"></i>
+                        </span>
+                        <span class="views-badge-content">
+                            <span class="views-badge-label">Total Views</span>
+                            <span id="stat-total-views" class="views-badge-val">0</span>
+                        </span>
+                    </div>
+
                     <a href="executive-submit-article.html" class="btn-primary-action">
                         <i class="fa-solid fa-feather-pointed"></i>
                         <span>New Article</span>
@@ -250,30 +261,7 @@
                 </div>
             </div>
 
-            <!-- Personal Analytics Cards (Exact Style & Logic of Writer Dashboard Cards) -->
-            <section class="writer-analytics-grid animate-fade-in delay-2" aria-label="Personal performance analytics">
-                <div class="writer-stat-card">
-                    <div class="stat-number" id="stat-total-views">0</div>
-                    <div class="stat-label">Total Views</div>
-                </div>
-
-                <div class="writer-stat-card">
-                    <div class="stat-number" id="stat-published-count">0</div>
-                    <div class="stat-label">Published Articles</div>
-                </div>
-
-                <div class="writer-stat-card">
-                    <div class="stat-number" id="stat-pending-count">0</div>
-                    <div class="stat-label">Pending Submissions</div>
-                </div>
-
-                <div class="writer-stat-card">
-                    <div class="stat-number" id="stat-drafts-count">0</div>
-                    <div class="stat-label">Drafts</div>
-                </div>
-            </section>
-
-            <!-- Tabs Navigation (All, Published, Pending, Revision, Drafts) -->
+            <!-- Tabs Navigation Adjusted Directly Under Page Title (All, Published, Pending, Revision, Drafts) -->
             <div class="manage-tabs-container animate-fade-in delay-2" role="tablist" aria-label="Filter my articles">
                 <button type="button" class="manage-tab-btn active" data-tab="all" role="tab" aria-selected="true">
                     <span>All Articles</span>
@@ -393,35 +381,23 @@
                     <img id="viewer-banner-img" src="images/maroon.jpg" alt="Article banner">
                 </div>
 
-                <!-- Views & Shares Stats Bar (Published Only) -->
-                <div id="viewer-stats-bar" class="viewer-stats-bar" style="display: none;">
-                    <div class="viewer-stat-item">
-                        <i class="fa-regular fa-eye"></i>
-                        <span id="viewer-views">0 views</span>
-                    </div>
-                    <div class="viewer-stat-divider">·</div>
-                    <div class="viewer-stat-item">
-                        <i class="fa-solid fa-share-nodes"></i>
-                        <span id="viewer-shares">0 shares</span>
-                    </div>
-                </div>
+                <!-- Clean Story Content Paragraphs -->
+                <div id="viewer-content" class="viewer-content-text"></div>
 
-                <!-- Editorial Remarks Box in Viewer -->
-                <div id="viewer-remarks-wrap" class="viewer-remarks-box" style="display: none;">
-                    <div class="viewer-remarks-header">
+                <!-- Editorial Remarks Alert Box (Displayed if feedback is present) -->
+                <div id="viewer-remarks-wrap" class="remarks-alert-box" style="display: none; margin-top: 20px;">
+                    <div class="remarks-alert-title">
                         <i class="fa-solid fa-comment-dots"></i>
-                        <span>Section Head Feedback</span>
+                        <span>Section Head Feedback:</span>
                     </div>
-                    <div id="viewer-remarks-text" class="viewer-remarks-content"></div>
+                    <p id="viewer-remarks-text" class="remarks-alert-text"></p>
                 </div>
 
-                <div id="viewer-content" class="viewer-story-content"></div>
-            </div>
-
-            <div class="viewer-modal-footer">
-                <button type="button" class="btn-viewer-secondary" onclick="document.getElementById('article-viewer-modal').classList.add('hidden')">
-                    <span>Close Preview</span>
-                </button>
+                <!-- Views & Shares Stats Bar (Visible ONLY if article is Published) -->
+                <div id="viewer-stats-bar" class="viewer-stats-bar" style="display: none;">
+                    <span class="stat-pill"><i class="fa-regular fa-eye"></i> <span id="viewer-views">0</span></span>
+                    <span class="stat-pill"><i class="fa-solid fa-share-nodes"></i> <span id="viewer-shares">0</span></span>
+                </div>
             </div>
 
         </div>

@@ -598,6 +598,24 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 draftsList.unshift(draftEntry);
             }
+
+            // Sync with executiveMyArticles_v1 if it originated there
+            try {
+                const rawMy = localStorage.getItem('executiveMyArticles_v1');
+                if (rawMy) {
+                    let myArts = JSON.parse(rawMy);
+                    if (Array.isArray(myArts)) {
+                        const mIndex = myArts.findIndex(a => String(a.id) === String(activeEditingDraftId));
+                        if (mIndex !== -1) {
+                            myArts[mIndex].title = draftEntry.title;
+                            myArts[mIndex].category = draftEntry.category;
+                            myArts[mIndex].excerpt = draftEntry.excerpt;
+                            myArts[mIndex].content = draftEntry.content;
+                            localStorage.setItem('executiveMyArticles_v1', JSON.stringify(myArts));
+                        }
+                    }
+                }
+            } catch (e) {}
         } else {
             // Prepend new draft
             draftsList.unshift(draftEntry);
@@ -617,9 +635,88 @@ document.addEventListener('DOMContentLoaded', () => {
         renderDraftsList();
     }
 
+    const DEFAULT_EXECUTIVE_SEED = [
+        {
+            id: 'exec-art-01',
+            title: 'The Future of University Press Freedom: A Presidential Address',
+            category: 'Opinion',
+            excerpt: 'Why defending independent campus journalism and transparent administration disclosures remains essential in an era of digital misinformation.',
+            content: `Student publications hold a unique mandate within democratic universities: to reflect the unvarnished realities of the student body without fear of administrative reprisal.\n\nOver the past academic cycle, our editorial staff has covered pivotal campus disputes, from facilities budget reallocations to faculty overload directives. Throughout each inquiry, our guiding philosophy has remained unwavering—freedom of expression is not an administrative privilege to be dispensed, but an institutional right won through decades of student advocacy.\n\nAs we inaugurate our new digital publishing systems, we reaffirm our commitment to ethical rigor, fact-checked reporting, and unwavering support for every campus beat reporter.`
+        },
+        {
+            id: 'exec-art-02',
+            title: 'Modernizing Collegiate Newsrooms: The Lens Strategic Roadmap',
+            category: 'Features',
+            excerpt: 'A comprehensive operational overview of our publication’s transition to digital-first investigative cycles and archival digitization.',
+            content: `In an era where news is consumed within seconds on mobile feeds, collegiate journalism must evolve without sacrificing depth. The Lens has spearheaded a systematic workflow modernization program designed to empower student writers and editors.\n\nBy unifying our editorial desk with modern draft revision queues and public transparency folios, we ensure that every story published meets international journalistic standards. Our upcoming initiatives include podcast audio digests and multimedia documentary fellowships for undergraduate contributors.`
+        },
+        {
+            id: 'exec-art-03',
+            title: 'Midyear Operational Review & Editorial Guidelines 2025',
+            category: 'Opinion',
+            excerpt: 'A retrospective evaluation of print distribution quotas and digital engagement strategies across regional university branches.',
+            content: `Looking back at the academic calendar of 2024–2025, our editorial staff conducted a comprehensive survey across the university student body regarding print vs digital readership preferences.\n\nResults demonstrated a notable 40% surge in web engagement via smartphone devices, prompting our pivot towards mobile-first newsroom publishing while maintaining high-quality archival print folios for university history.`
+        },
+        {
+            id: 'exec-art-04',
+            title: 'State of the Student Body: University Welfare Analysis 2026',
+            category: 'News',
+            excerpt: 'An evidence-based survey analyzing commuter transit subsidies, dormitory occupancy rates, and student meal allowance purchasing power.',
+            content: `Escalating living costs in the surrounding university district have placed renewed strain on undergraduate budgets. Surveying more than 1,200 dormitory residents and daily commuters, this investigation reveals key vulnerabilities in campus support systems.\n\nOver 68% of off-campus commuters report spending more than four hours daily in transit, while campus food concessionaires have raised average meal prices by 22% over the last twelve months. The editorial board is preparing recommendations for university welfare committee discussions next month.`
+        },
+        {
+            id: 'exec-art-05',
+            title: 'Ethical Standards for Student Investigative Reporting in Digital Spaces',
+            category: 'Opinion',
+            excerpt: 'Addressing attribution requirements, source confidentiality protocols, and cybersecurity hygiene for collegiate journalists.',
+            content: `When reporting on sensitive institutional matters, student journalists carry ethical responsibilities identical to those of seasoned professionals. Digital communication channels introduce both unprecedented research access and significant security vulnerabilities.\n\nEvery student journalist must adhere to rigorous source corroboration and encryption practices when handling whistleblower leaks or confidential financial records.`
+        }
+    ];
+
+    function findArticleOrDraft(id) {
+        if (!id) return null;
+
+        // 1. Check in draftsList (from executiveArticleDrafts)
+        let found = draftsList.find(d => String(d.id) === String(id));
+        if (found) return found;
+
+        // 2. Check in executiveMyArticles_v1 (personal articles for executive)
+        try {
+            const raw = localStorage.getItem('executiveMyArticles_v1');
+            if (raw) {
+                const list = JSON.parse(raw);
+                if (Array.isArray(list)) {
+                    found = list.find(a => String(a.id) === String(id));
+                    if (found) return found;
+                }
+            }
+        } catch (e) {}
+
+        // 3. Check in default seed
+        found = DEFAULT_EXECUTIVE_SEED.find(d => String(d.id) === String(id));
+        if (found) return found;
+
+        // 4. Check executiveArticles / theLensArticles
+        try {
+            const raw = localStorage.getItem('executiveArticles') || localStorage.getItem('theLensArticles');
+            if (raw) {
+                const list = JSON.parse(raw);
+                if (Array.isArray(list)) {
+                    found = list.find(a => String(a.id) === String(id));
+                    if (found) return found;
+                }
+            }
+        } catch (e) {}
+
+        return null;
+    }
+
     function editDraftAction(id) {
-        const draft = draftsList.find(d => d.id === id);
-        if (!draft) return;
+        const draft = findArticleOrDraft(id);
+        if (!draft) {
+            console.warn('Could not find draft or article with ID:', id);
+            return;
+        }
 
         // Switch to Write Article tab FIRST so elements are visible and layout dimensions exist
         switchTab('write');
@@ -644,15 +741,18 @@ document.addEventListener('DOMContentLoaded', () => {
             handleExcerptInput();
         }
         if (editorContent) {
-            let contentHtml = draft.content || '';
-            // If draft contains <p> tags from older saves or defaults, normalize them into standard <div> blocks
-            if (contentHtml.includes('<p>') || contentHtml.includes('<p ') || contentHtml.includes('</p>')) {
+            let contentHtml = draft.content || draft.excerpt || '';
+            // If raw text with newlines and without HTML tags, convert to paragraphs/divs
+            if (!contentHtml.includes('<p>') && !contentHtml.includes('<div>')) {
+                const paras = contentHtml.split(/\n\n+/).filter(p => p.trim());
+                contentHtml = paras.map(p => `<div>${escapeHTML(p.trim())}</div>`).join('<div><br></div>');
+            } else if (contentHtml.includes('<p>') || contentHtml.includes('<p ') || contentHtml.includes('</p>')) {
                 contentHtml = contentHtml
                     .replace(/<\/p>\s*<p[^>]*>/gi, '</div><div><br></div><div>')
                     .replace(/<p[^>]*>/gi, '<div>')
                     .replace(/<\/p>/gi, '</div>');
             }
-            editorContent.innerHTML = contentHtml;
+            editorContent.innerHTML = contentHtml || '<div>Start writing your manuscript here...</div>';
             editorContent.style.textAlign = 'justify';
             updateEditorMetrics();
         }
@@ -660,13 +760,13 @@ document.addEventListener('DOMContentLoaded', () => {
         activeEditingDraftId = draft.id;
 
         if (autoSaveStatusEl) {
-            autoSaveStatusEl.textContent = 'Editing draft';
+            autoSaveStatusEl.textContent = 'Editing manuscript';
             autoSaveStatusEl.style.color = '#e27219';
         }
 
         // Scroll smoothly to top of writing canvas
         window.scrollTo({ top: 0, behavior: 'smooth' });
-        showToast('Draft loaded into editor.', 'success');
+        showToast('Article manuscript loaded into editor.', 'success');
     }
 
     function deleteDraftAction(id) {
@@ -877,8 +977,28 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            // If we were editing an existing draft, remove it from drafts!
+            // If we were editing an existing draft or personal article, sync it!
             if (activeEditingDraftId) {
+                try {
+                    const rawMy = localStorage.getItem('executiveMyArticles_v1');
+                    if (rawMy) {
+                        let myArts = JSON.parse(rawMy);
+                        if (Array.isArray(myArts)) {
+                            const mIndex = myArts.findIndex(a => String(a.id) === String(activeEditingDraftId));
+                            if (mIndex !== -1) {
+                                myArts[mIndex].title = headline;
+                                myArts[mIndex].category = category;
+                                myArts[mIndex].excerpt = excerpt;
+                                myArts[mIndex].content = editorContent.innerText.trim();
+                                myArts[mIndex].status = 'Pending Review';
+                                myArts[mIndex].remarks = '';
+                                myArts[mIndex].date = currentDate;
+                                localStorage.setItem('executiveMyArticles_v1', JSON.stringify(myArts));
+                            }
+                        }
+                    }
+                } catch (e) {}
+
                 draftsList = draftsList.filter(d => d.id !== activeEditingDraftId);
                 saveDraftsToStorage(draftsList);
                 updateDraftsBadge();
@@ -890,9 +1010,9 @@ document.addEventListener('DOMContentLoaded', () => {
             // Clear form fields
             clearFormFields();
 
-            // Redirect smoothly to review articles queue after brief pause
+            // Redirect smoothly to manage my articles queue after brief pause
             setTimeout(() => {
-                window.location.href = 'review-articles.html';
+                window.location.href = 'executive-manage-my-articles.html';
             }, 1400);
 
         } catch (err) {
@@ -909,11 +1029,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // =========================================================================
-    // 14. INITIAL RENDER
+    // 14. INITIAL RENDER & URL PARAMETER HANDLING
     // =========================================================================
     autoResizeHeadline();
     handleExcerptInput();
     updateEditorMetrics();
     updateToolbarButtonStates();
     renderDraftsList();
+
+    // Check if URL has ?draftId=... or ?id=... or ?editId=...
+    const urlParams = new URLSearchParams(window.location.search);
+    const targetArticleId = urlParams.get('draftId') || urlParams.get('id') || urlParams.get('editId') || urlParams.get('articleId');
+    if (targetArticleId) {
+        editDraftAction(targetArticleId);
+    }
 });

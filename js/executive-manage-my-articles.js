@@ -272,7 +272,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return '<p style="color: #98a2b3; font-style: italic;">No content available for this manuscript.</p>';
         }
 
-        return paragraphs.map(p => `<p>${escapeHTML(p)}</p>`).join('');
+        return paragraphs.map(p => `<p class="viewer-paragraph">${escapeHTML(p)}</p>`).join('');
     }
 
     function showToast(message, type = 'success') {
@@ -394,7 +394,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             ` : ''}
                             ${item.remarks ? `
                                 <span class="meta-dot">&bull;</span>
-                                <span style="color: #b42318; font-size: 0.74rem; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
+                                <span class="btn-show-remarks" data-id="${item.id}" style="color: #b42318; font-size: 0.74rem; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; cursor: pointer;" title="View section head feedback">
                                     <i class="fa-solid fa-comment-dots"></i> Feedback
                                 </span>
                             ` : ''}
@@ -422,6 +422,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 </a>
                                 <button type="button" class="btn-box-view btn-delete-draft" data-id="${item.id}" data-title="${escapeHTML(item.title)}" style="color: #b42318;" title="Delete draft" onclick="event.stopPropagation()">
                                     <i class="fa-regular fa-trash-can"></i>
+                                    <span>Delete</span>
                                 </button>
                             ` : ''}
 
@@ -506,12 +507,34 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================================================================
     // 6. CARD INTERACTIONS & MODAL PREVIEW
     // =========================================================================
+    let activeRemarksArticleId = null;
+
+    function openRemarksModal(articleId) {
+        if (!remarksModal) return;
+        const article = allArticles.find(a => a.id === articleId);
+        if (!article) return;
+
+        activeRemarksArticleId = article.id;
+        if (remarksModalTitle) remarksModalTitle.textContent = article.title;
+        if (remarksModalContent) remarksModalContent.textContent = article.remarks || 'No remarks provided.';
+        remarksModal.classList.remove('hidden');
+    }
+
     function attachCardEventListeners() {
         const cards = articlesListContainer.querySelectorAll('.writer-article-card, .clickable-article-card');
         cards.forEach(card => {
             card.addEventListener('click', () => {
                 const articleId = card.getAttribute('data-id');
                 openArticleViewer(articleId);
+            });
+        });
+
+        const remarksBadges = articlesListContainer.querySelectorAll('.btn-show-remarks');
+        remarksBadges.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const articleId = btn.getAttribute('data-id');
+                if (articleId) openRemarksModal(articleId);
             });
         });
 
@@ -544,8 +567,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Stats Bar: Only on Published
         if (viewerStatsBar) {
             if (article.status === 'Published') {
-                if (viewerViews) viewerViews.textContent = `${formatNumber(article.views || 0)} views`;
-                if (viewerShares) viewerShares.textContent = `${formatNumber(article.shares || Math.round((article.views || 0) * 0.08))} shares`;
+                if (viewerViews) viewerViews.textContent = formatNumber(article.views || 0);
+                if (viewerShares) viewerShares.textContent = formatNumber(article.shares || Math.round((article.views || 0) * 0.08));
                 viewerStatsBar.style.display = 'flex';
             } else {
                 viewerStatsBar.style.display = 'none';
@@ -626,6 +649,27 @@ document.addEventListener('DOMContentLoaded', () => {
             if (e.target === deleteModal) {
                 pendingDeleteId = null;
                 deleteModal.classList.add('hidden');
+            }
+        });
+    }
+
+    if (closeRemarksModalBtn) {
+        closeRemarksModalBtn.addEventListener('click', () => {
+            if (remarksModal) remarksModal.classList.add('hidden');
+        });
+    }
+
+    if (remarksModal) {
+        remarksModal.addEventListener('click', (e) => {
+            if (e.target === remarksModal) remarksModal.classList.add('hidden');
+        });
+    }
+
+    if (btnEditFromRemarks) {
+        btnEditFromRemarks.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (activeRemarksArticleId) {
+                window.location.href = `executive-submit-article.html?draftId=${encodeURIComponent(activeRemarksArticleId)}`;
             }
         });
     }

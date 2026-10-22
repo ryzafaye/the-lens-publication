@@ -4,21 +4,30 @@
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-    // ----------------------------------------------------
-    // Dummy Accounts Dictionary (Executive & Writer Staff)
-    // ----------------------------------------------------
+    // -------------------------------------------------------------------------
+    // Dummy Accounts Dictionary (Executive, Section Heads & Writer Staff)
+    // -------------------------------------------------------------------------
     const DUMMY_ACCOUNTS = {
-        "2024-00001-BN-0": { role: "President", name: "Juan Dela Cruz", isWriter: false },
-        "2024-00002-BN-0": { role: "Vice President", name: "Maria Clara Santos", isWriter: false },
-        "2024-00003-BN-0": { role: "Secretary", name: "Christian Alcantara", isWriter: false },
-        "2024-00004-BN-0": { role: "Associate Secretary", name: "Althea Grace Mendoza", isWriter: false },
-        "2024-00005-BN-0": { role: "Associate Secretary", name: "Rafael Ramos", isWriter: false },
-        "2024-00006-BN-0": { role: "Treasurer", name: "Mara Villanueva", isWriter: false },
-        "2024-00007-BN-0": { role: "Auditor", name: "Gabriel Navarro", isWriter: false },
-        "2024-00008-BN-0": { role: "Public Relations Officer", name: "Patricia Reyes", isWriter: false },
-        "2024-00101-BN-0": { role: "Writer", name: "Sofia M. Alcaraz", writerId: "sofia-alcaraz", isWriter: true },
-        "2024-00102-BN-0": { role: "Writer", name: "Marco L. Valderrama", writerId: "marco-valderrama", isWriter: true },
-        "2024-00103-BN-0": { role: "Writer", name: "Camille Joy Perez", writerId: "sofia-alcaraz", isWriter: true }
+        // Executive Officers
+        "2024-00001-BN-0": { role: "President", name: "Juan Dela Cruz", isWriter: false, isSectionHead: false },
+        "2024-00002-BN-0": { role: "Vice President", name: "Maria Clara Santos", isWriter: false, isSectionHead: false },
+        "2024-00003-BN-0": { role: "Secretary", name: "Christian Alcantara", isWriter: false, isSectionHead: false },
+        "2024-00004-BN-0": { role: "Associate Secretary", name: "Althea Grace Mendoza", isWriter: false, isSectionHead: false },
+        "2024-00005-BN-0": { role: "Associate Secretary", name: "Rafael Ramos", isWriter: false, isSectionHead: false },
+        "2024-00006-BN-0": { role: "Treasurer", name: "Mara Villanueva", isWriter: false, isSectionHead: false },
+        "2024-00007-BN-0": { role: "Auditor", name: "Gabriel Navarro", isWriter: false, isSectionHead: false },
+        "2024-00008-BN-0": { role: "Public Relations Officer", name: "Patricia Reyes", isWriter: false, isSectionHead: false },
+
+        // Section Heads
+        "2024-00051-BN-0": { role: "News Head", name: "Danilo C. Ramos", section: "News", isWriter: false, isSectionHead: true },
+        "2024-00052-BN-0": { role: "Science and Technology Head", name: "Dr. Elena M. Romero", section: "Science and Technology", isWriter: false, isSectionHead: true },
+        "2024-00053-BN-0": { role: "Feature Head", name: "Bianca Rose Flores", section: "Features", isWriter: false, isSectionHead: true },
+        "2024-00054-BN-0": { role: "Literature Head", name: "Carlos Joaquin Luna", section: "Literature", isWriter: false, isSectionHead: true },
+
+        // Staff Writers
+        "2024-00101-BN-0": { role: "Writer", name: "Sofia M. Alcaraz", writerId: "sofia-alcaraz", isWriter: true, isSectionHead: false },
+        "2024-00102-BN-0": { role: "Writer", name: "Marco L. Valderrama", writerId: "marco-valderrama", isWriter: true, isSectionHead: false },
+        "2024-00103-BN-0": { role: "Writer", name: "Camille Joy Perez", writerId: "sofia-alcaraz", isWriter: true, isSectionHead: false }
     };
 
     const REQUIRED_PASSWORD = "password123";
@@ -98,13 +107,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const isPasswordCorrect = (passVal === REQUIRED_PASSWORD);
 
         if (account && isPasswordCorrect) {
-            // Determine if writer or executive
+            // Determine role persona: Writer, Section Head, or Executive
             const isWriter = account.isWriter || account.role.toLowerCase().includes('writer') || account.role.toLowerCase().includes('contributor');
-            const targetPage = isWriter ? 'writer-dashboard.html' : 'executive-dashboard.html';
-            const portalName = isWriter ? 'Writer Dashboard' : 'Executive Dashboard';
+            const isSectionHead = account.isSectionHead || account.role.toLowerCase().includes('head');
+
+            let targetPage = 'executive-dashboard.html';
+            let portalName = 'Executive Dashboard';
 
             // Fully isolate session storage per persona to prevent data bleed
             if (isWriter) {
+                targetPage = 'writer-dashboard.html';
+                portalName = 'Writer Dashboard';
                 localStorage.setItem('userRole', 'Writer');
                 localStorage.setItem('userName', account.name);
                 localStorage.setItem('studentNumber', studentVal);
@@ -114,8 +127,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 localStorage.setItem('writerId', account.writerId || 'sofia-alcaraz');
                 const avatar = localStorage.getItem('writerAvatar') || 'images/member-placeholder.svg';
                 localStorage.setItem('userAvatar', avatar);
+            } else if (isSectionHead) {
+                targetPage = 'section-head-dashboard.html';
+                portalName = 'Section Head Dashboard';
+                localStorage.setItem('userRole', account.role);
+                localStorage.setItem('userName', account.name);
+                localStorage.setItem('studentNumber', studentVal);
+                localStorage.setItem('sectionHeadRole', account.role);
+                localStorage.setItem('sectionHeadName', account.name);
+                localStorage.setItem('sectionHeadSection', account.section || 'General');
+                localStorage.setItem('sectionHeadStudentNumber', studentVal);
+                const avatar = localStorage.getItem('sectionHeadAvatar') || 'images/member-placeholder.svg';
+                localStorage.setItem('userAvatar', avatar);
             } else {
-                // Executive Login
+                targetPage = 'executive-dashboard.html';
+                portalName = 'Executive Dashboard';
                 localStorage.setItem('userRole', account.role);
                 localStorage.setItem('userName', account.name);
                 localStorage.setItem('studentNumber', studentVal);

@@ -291,6 +291,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 </a>
                                 <button type="button" class="btn-box-view btn-delete-draft" data-id="${item.id}" data-title="${escapeHTML(item.title)}" style="color: #b42318;" title="Delete draft" onclick="event.stopPropagation()">
                                     <i class="fa-regular fa-trash-can"></i>
+                                    <span>Delete</span>
                                 </button>
                             ` : ''}
 

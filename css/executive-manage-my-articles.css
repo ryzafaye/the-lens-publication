@@ -8,78 +8,140 @@
 @import 'writer-dashboard.css';
 @import 'executive-manage-articles.css';
 
-/* Content Container Rhythm */
+/* Content Container Rhythm - Sleek spacing directly connecting header to tabs */
 .content-container {
-    gap: 22px !important;
+    gap: 16px !important;
 }
 
-/* Ensure Analytics Cards match Writer Dashboard precisely */
-.writer-analytics-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 18px;
-    margin-bottom: 4px;
+/* Header Rhythm & Spacing */
+.writer-header-row {
+    margin-bottom: 0 !important;
+    padding-bottom: 2px !important;
 }
 
-.writer-stat-card {
+/* Total Views Header Metric Pill (Positioned right before New Article) */
+.header-views-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    height: 38px;
+    padding: 0 14px;
     background-color: #ffffff;
     border: 1px solid var(--sidebar-maroon, #5c0a18);
-    border-radius: 12px;
-    padding: 20px 24px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    min-height: 110px;
+    border-radius: 8px;
     box-shadow: 0 1px 3px rgba(92, 10, 24, 0.05);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-sizing: border-box;
+    transition: all 0.15s ease;
 }
 
-.writer-stat-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px -2px rgba(92, 10, 24, 0.12);
+.header-views-badge:hover {
+    box-shadow: 0 4px 12px rgba(92, 10, 24, 0.10);
+    transform: translateY(-1px);
 }
 
-.stat-number {
-    font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, sans-serif);
-    font-size: 1.95rem;
-    font-weight: 700;
-    color: var(--text-primary, #101828);
-    line-height: 1.05;
-    letter-spacing: -0.025em;
+.views-badge-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 5px;
+    background-color: #fdf2f2;
+    color: var(--sidebar-maroon, #5c0a18);
+    font-size: 0.82rem;
+    flex-shrink: 0;
 }
 
-.stat-label {
-    font-size: 0.78rem;
+.views-badge-content {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+}
+
+.views-badge-label {
+    font-size: 0.72rem;
     font-weight: 600;
-    color: var(--text-muted, #667085);
     text-transform: uppercase;
     letter-spacing: 0.04em;
+    color: var(--text-muted, #667085);
 }
 
-@media (max-width: 1024px) {
-    .writer-analytics-grid {
-        grid-template-columns: repeat(2, 1fr) !important;
-        gap: 14px !important;
-    }
+.views-badge-val {
+    font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, sans-serif);
+    font-size: 0.98rem;
+    font-weight: 700;
+    color: var(--text-primary, #101828);
+    line-height: 1;
+}
+
+/* Tabs Navigation Adjusted Directly Under Page Title */
+.manage-tabs-container {
+    margin-top: 0 !important;
+    margin-bottom: 4px !important;
+    border-bottom: 1px solid #eaecf0 !important;
+}
+
+.manage-tab-btn {
+    padding: 8px 16px 12px 16px !important;
+    font-size: 0.88rem !important;
 }
 
 @media (max-width: 640px) {
-    .writer-analytics-grid {
-        grid-template-columns: 1fr 1fr !important;
-        gap: 10px !important;
+    .writer-header-right {
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
     }
+    
+    .header-views-badge {
+        flex: 1;
+        min-width: 140px;
+        justify-content: center;
+    }
+    
+    .writer-header-right .btn-primary-action {
+        flex: 1;
+        justify-content: center;
+    }
+}
 
-    .writer-stat-card {
-        padding: 14px 16px !important;
-        min-height: 90px !important;
-    }
+/* Clean Article Viewer Content Text & Paragraphs */
+.viewer-content-text {
+    font-size: 0.96rem !important;
+    line-height: 1.8 !important;
+    color: #344054 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 16px !important;
+    margin-top: 10px !important;
+    margin-bottom: 20px !important;
+}
 
-    .stat-number {
-        font-size: 1.6rem !important;
-    }
+.viewer-content-text p,
+.viewer-paragraph {
+    margin: 0 !important;
+    line-height: 1.8 !important;
+    color: #344054 !important;
+    font-size: 0.96rem !important;
+    font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, sans-serif) !important;
+    text-align: left !important;
+}
 
-    .stat-label {
-        font-size: 0.74rem !important;
-        margin-top: 6px !important;
-    }
+/* Ensure Edit, Revise & Delete buttons share identical 32px height & alignment */
+.btn-box-view,
+.btn-box-edit,
+.btn-delete-draft {
+    height: 32px !important;
+    padding: 0 12px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    font-size: 0.80rem !important;
+    font-weight: 600 !important;
+    border-radius: 6px !important;
+    box-sizing: border-box !important;
+    line-height: 1 !important;
+    white-space: nowrap !important;
 }

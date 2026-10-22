@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Section Head Dashboard | The Lens</title>
+
+    <!-- Typography & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,600;1,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Strictly Separated Modular CSS -->
+    <link rel="stylesheet" href="css/section-head-dashboard.css">
+    <link rel="stylesheet" href="css/executive-modals.css">
+</head>
+<body class="dashboard-body">
+
+    <!-- ====================================================================== -->
+    <!-- SIDEBAR: Left - Desktop Fixed Full-Height Maroon (#5c0a18)             -->
+    <!-- (Excludes: Manage Articles, Manage Accounts, Feedback, Transparency)   -->
+    <!-- ====================================================================== -->
+    <aside id="sidebar" class="sidebar" aria-label="Section Head Portal Sidebar">
+        
+        <div class="sidebar-top-section">
+            <!-- Sidebar Header with Square Logo & "The Lens Publication" -->
+            <div class="sidebar-header">
+                <div class="sidebar-brand-lockup">
+                    <div class="sidebar-logo-square">
+                        <img src="images/logo.jpg" alt="The Lens Logo">
+                    </div>
+                    <span class="sidebar-brand-name">The Lens Publication</span>
+                </div>
+            </div>
+
+            <!-- Profile Section -->
+            <div class="sidebar-profile">
+                <div class="profile-avatar">
+                    <img id="sidebar-avatar-img" src="images/member-placeholder.svg" alt="Section Head Avatar">
+                </div>
+                <div id="sidebar-user-name" class="profile-name">Danilo C. Ramos</div>
+                <div id="sidebar-user-role" class="profile-role-text">News Head</div>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="sidebar-nav" aria-label="Main Navigation">
+                <a href="section-head-dashboard.html" class="sidebar-nav-item active" data-page="section-head-dashboard.html">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </a>
+
+                <a href="section-head-manage-my-articles.html" class="sidebar-nav-item" data-page="section-head-manage-my-articles.html">
+                    <i class="fa-solid fa-file-pen"></i>
+                    <span>Manage My Articles</span>
+                </a>
+
+                <a href="section-head-review-articles.html" class="sidebar-nav-item" data-page="section-head-review-articles.html">
+                    <i class="fa-solid fa-clipboard-check"></i>
+                    <span>Review Article</span>
+                </a>
+
+                <a href="section-head-submit-article.html" class="sidebar-nav-item" data-page="section-head-submit-article.html">
+                    <i class="fa-solid fa-feather-pointed"></i>
+                    <span>Submit article</span>
+                </a>
+
+                <a href="section-head-activity-logs.html" class="sidebar-nav-item" data-page="section-head-activity-logs.html">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <span>Activity log</span>
+                </a>
+            </nav>
+        </div>
+
+        <!-- Bottom of Sidebar: Profile Settings, View Public Site, Logout -->
+        <div class="sidebar-footer">
+            <a href="section-head-profile-settings.html" class="sidebar-footer-link" data-page="section-head-profile-settings.html">
+                <i class="fa-solid fa-sliders"></i>
+                <span>Profile Settings</span>
+            </a>
+
+            <a href="index.html" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                <span>View public site</span>
+            </a>
+
+            <button type="button" id="logout-btn" class="sidebar-footer-link logout-btn">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span>Logout</span>
+            </button>
+        </div>
+
+    </aside>
+
+    <!-- ====================================================================== -->
+    <!-- MAIN CONTENT AREA: Right                                              -->
+    <!-- ====================================================================== -->
+    <div class="main-wrapper">
+
+        <!-- Top Header Bar -->
+        <header class="topbar">
+            
+            <!-- Left Side: Mobile Hamburger + Logo + Real-time Clock -->
+            <div class="topbar-left">
+                <div class="mobile-header-brand">
+                    <button type="button" id="mobile-hamburger-btn" class="mobile-hamburger-btn" aria-label="Toggle navigation menu" aria-expanded="false">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <div class="mobile-brand-lockup">
+                        <div class="mobile-logo-square">
+                            <img src="images/logo.jpg" alt="The Lens Logo">
+                        </div>
+                        <span class="mobile-brand-title">The Lens</span>
+                    </div>
+                </div>
+
+                <!-- Desktop Real-time Clock -->
+                <div class="topbar-clock">
+                    <i class="fa-regular fa-clock"></i>
+                    <span id="topbar-clock-display">Loading date &amp; time…</span>
+                </div>
+            </div>
+
+            <!-- Right Side: Notification + Circular Profile Picture + Small Role Badge -->
+            <div class="topbar-right">
+                
+                <button type="button" class="topbar-notification-btn" aria-label="View notifications">
+                    <span class="notification-icon-wrapper">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="notification-badge-dot"></span>
+                    </span>
+                    <span class="notification-label">Notification</span>
+                </button>
+
+                <div class="topbar-divider"></div>
+
+                <!-- User Profile Lockup -->
+                <div class="topbar-user-profile">
+                    <div class="topbar-avatar-circle" title="User Profile">
+                        <img src="images/member-placeholder.svg" alt="Section Head Profile Picture">
+                    </div>
+                    <span id="topbar-user-role" class="topbar-role-badge">News Head</span>
+                </div>
+
+            </div>
+        </header>
+
+        <!-- Mobile Accordion Dropdown -->
+        <nav id="mobile-nav-dropdown" class="mobile-nav-dropdown" aria-label="Mobile Navigation Menu">
+            <div class="mobile-nav-profile">
+                <div class="mobile-nav-avatar">
+                    <img src="images/member-placeholder.svg" alt="Section Head Avatar">
+                </div>
+                <div class="mobile-nav-user-info">
+                    <div id="mobile-user-name" class="mobile-nav-name">Danilo C. Ramos</div>
+                    <div id="mobile-user-role" class="mobile-nav-role">News Head</div>
+                </div>
+            </div>
+
+            <div class="mobile-nav-links">
+                <a href="section-head-dashboard.html" class="mobile-nav-link active">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="section-head-manage-my-articles.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-file-pen"></i>
+                    <span>Manage My Articles</span>
+                </a>
+                <a href="section-head-review-articles.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-clipboard-check"></i>
+                    <span>Review Article</span>
+                </a>
+                <a href="section-head-submit-article.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-feather-pointed"></i>
+                    <span>Submit article</span>
+                </a>
+                <a href="section-head-activity-logs.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <span>Activity log</span>
+                </a>
+            </div>
+
+            <div class="mobile-nav-footer">
+                <a href="section-head-profile-settings.html" class="mobile-nav-footer-link">
+                    <i class="fa-solid fa-sliders"></i>
+                    <span>Profile Settings</span>
+                </a>
+                <a href="index.html" target="_blank" rel="noopener noreferrer" class="mobile-nav-footer-link">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    <span>View public site</span>
+                </a>
+                <button type="button" id="mobile-logout-btn" class="mobile-nav-footer-link logout-btn">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span>Logout</span>
+                </button>
+            </div>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="content-container">
+
+            <!-- Page Title Section with Section Badge -->
+            <div class="page-title-section animate-fade-in delay-1 flex items-center justify-between">
+                <div>
+                    <h1 class="page-title">Section Head Dashboard</h1>
+                    <div class="text-xs text-slate-500 mt-0.5">
+                        Editorial Desk: <span class="font-bold text-[#5c0a18] dynamic-section-name">News</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Metrics Row -->
+            <section id="metrics-grid" class="metrics-grid" aria-label="Operational metrics"></section>
+
+            <!-- Main Grid -->
+            <div class="main-grid">
+
+                <!-- Left Column (Submissions Stack) -->
+                <div class="left-column-stack">
+
+                    <!-- Section 1: Submissions Awaiting Section Review -->
+                    <section class="card-panel animate-fade-in delay-2" aria-labelledby="recent-submissions-heading">
+                        <div class="panel-header">
+                            <div>
+                                <h2 id="recent-submissions-heading" class="panel-title">Pending Section Submissions</h2>
+                                <span class="panel-badge dynamic-section-name">News</span>
+                            </div>
+                            <a href="section-head-review-articles.html" class="panel-action-link">Review Queue &rarr;</a>
+                        </div>
+                        
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Article Title</th>
+                                        <th>Author</th>
+                                        <th class="hide-on-mobile">Section</th>
+                                        <th>Status</th>
+                                        <th class="hide-on-mobile">Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="submissions-table-body"></tbody>
+                            </table>
+                        </div>
+                    </section>
+
+                    <!-- Section 2: Activity Log -->
+                    <section class="card-panel animate-fade-in delay-3" aria-labelledby="activity-log-heading">
+                        <div class="panel-header">
+                            <h2 id="activity-log-heading" class="panel-title">Section Activity Log</h2>
+                            <a href="section-head-activity-logs.html" class="panel-action-link">View all &rarr;</a>
+                        </div>
+                        <div id="recent-activity-list" class="activity-timeline"></div>
+                    </section>
+
+                </div>
+
+                <!-- Right Column (Widened Analytics Stack) -->
+                <div class="right-column-stack">
+
+                    <!-- Section 1: Most Viewed Articles in Section -->
+                    <section class="card-panel animate-fade-in delay-2" aria-labelledby="most-viewed-heading">
+                        <div class="panel-header">
+                            <h2 id="most-viewed-heading" class="panel-title">Top Read in Section</h2>
+                            <span id="most-viewed-month-badge" class="panel-badge">October</span>
+                        </div>
+                        <div id="most-viewed-list" class="ranked-list"></div>
+                    </section>
+
+                    <!-- Section 2: Contributing Writers -->
+                    <section class="card-panel animate-fade-in delay-3" aria-labelledby="top-journalists-heading">
+                        <div class="panel-header">
+                            <h2 id="top-journalists-heading" class="panel-title">Section Contributors</h2>
+                            <span class="panel-badge">Writers</span>
+                        </div>
+                        <div class="journalists-table-wrap">
+                            <table class="journalists-table">
+                                <thead>
+                                    <tr>
+                                        <th class="col-author">Author</th>
+                                        <th class="col-article-count">Published</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="top-journalists-table-body"></tbody>
+                            </table>
+                        </div>
+                    </section>
+
+                </div>
+
+            </div>
+
+        </main>
+
+    </div>
+
+    <!-- Article Viewer Modal -->
+    <div id="article-viewer-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="viewer-title">
+        <div class="modal-card viewer-modal-card">
+            <div class="viewer-modal-header">
+                <div class="viewer-meta-row">
+                    <span id="viewer-category" class="viewer-category-tag">News</span>
+                    <span class="viewer-dot">·</span>
+                    <span id="viewer-date" class="viewer-date">Oct 12, 2026</span>
+                </div>
+                <div class="viewer-header-right">
+                    <span class="viewer-reading-time"><i class="fa-regular fa-clock"></i> <span id="viewer-read-time">2 min read</span></span>
+                    <button type="button" id="close-viewer-btn" class="viewer-close-btn" aria-label="Close article preview">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="viewer-modal-body">
+                <h1 id="viewer-title" class="viewer-title">Article Title</h1>
+                
+                <div class="viewer-byline-row">
+                    <div class="viewer-author-avatar">
+                        <img id="viewer-author-img" src="images/member-placeholder.svg" alt="Author avatar">
+                    </div>
+                    <div class="viewer-author-details">
+                        <div id="viewer-author" class="viewer-author-name">Author Name</div>
+                        <div class="viewer-author-role">Staff Writer</div>
+                    </div>
+                </div>
+
+                <div class="viewer-banner-wrapper">
+                    <img id="viewer-banner-img" src="images/maroon.jpg" alt="Article banner">
+                </div>
+
+                <div id="viewer-content" class="viewer-content-text"></div>
+            </div>
+
+            <div class="viewer-modal-footer">
+                <button type="button" id="viewer-review-btn" class="btn-primary-action">
+                    <i class="fa-solid fa-clipboard-check"></i>
+                    <span>Open in Review Queue</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+    <!-- Scripts -->
+    <script src="js/section-head-shell.js"></script>
+    <script type="module" src="js/section-head-dashboard.js"></script>
+</body>
+</html>
+

@@ -1,22 +1,23 @@
 /**
- * THE LENS — REVIEW ARTICLES (SECTION HEAD QUEUE)
- * Clean, Reusable & Modular Implementation
+ * ============================================================================
+ * THE LENS — REVIEW ARTICLES (SECTION HEAD PORTAL)
+ * Exact Executive Queue Layout, Styling & Workflow Parity
+ * ============================================================================
  */
 
 document.addEventListener('DOMContentLoaded', () => {
+    'use strict';
 
-    const userRole = localStorage.getItem('userRole');
-    if (!userRole) {
-        window.location.href = 'login.html';
-        return;
-    }
-
+    // =========================================================================
+    // 1. AUTHENTICATION & SESSION
+    // =========================================================================
+    const userRole = localStorage.getItem('sectionHeadRole') || localStorage.getItem('userRole') || 'News Head';
     const currentSection = localStorage.getItem('sectionHeadSection') || 'News';
-    const sectionHeadName = localStorage.getItem('userName') || 'Danilo C. Ramos';
+    const sectionHeadName = localStorage.getItem('sectionHeadName') || localStorage.getItem('userName') || 'Danilo C. Ramos';
 
-    // -------------------------------------------------------------------------
-    // 1. DATASET
-    // -------------------------------------------------------------------------
+    // =========================================================================
+    // 2. DATASET (Pending Manuscripts Queue)
+    // =========================================================================
     const defaultPendingArticles = [
         {
             id: 'rev-01',
@@ -82,10 +83,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const raw = localStorage.getItem(QUEUE_STORAGE_KEY);
             if (raw) {
                 const parsed = JSON.parse(raw);
-                if (Array.isArray(parsed)) return parsed;
+                if (Array.isArray(parsed) && parsed.length > 0) return parsed;
             }
         } catch (e) {
-            console.warn('Could not read pending queue', e);
+            console.warn('Could not read pending queue from localStorage', e);
         }
         localStorage.setItem(QUEUE_STORAGE_KEY, JSON.stringify(defaultPendingArticles));
         return defaultPendingArticles;
@@ -95,51 +96,61 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             localStorage.setItem(QUEUE_STORAGE_KEY, JSON.stringify(queue));
         } catch (e) {
-            console.warn('Could not save pending queue', e);
+            console.warn('Could not save pending queue to localStorage', e);
         }
     }
 
-    let pendingArticles = getPendingQueue();
+    let reviewList = getPendingQueue();
     let currentSort = 'newest';
-    let currentReviewId = null;
+    let currentActiveId = null;
 
-    // Filter queue to this Section Head's section
+    // Filter queue matching this Section Head's desk
     function getSectionQueue() {
-        return pendingArticles.filter(item => {
+        const sec = currentSection.toLowerCase();
+        const filtered = reviewList.filter(item => {
             const cat = (item.category || '').toLowerCase();
-            const sec = currentSection.toLowerCase();
             if (sec.includes('science') || sec.includes('tech')) return cat.includes('science') || cat.includes('tech');
             if (sec.includes('feature')) return cat.includes('feature');
             if (sec.includes('literature')) return cat.includes('liter');
             if (sec.includes('news')) return cat.includes('news');
             return cat.includes(sec);
         });
+
+        // Fallback to all items if desk has no articles to keep interactive demo active
+        return filtered.length > 0 ? filtered : reviewList;
     }
 
-    // -------------------------------------------------------------------------
-    // 2. DOM ELEMENTS
-    // -------------------------------------------------------------------------
+    // =========================================================================
+    // 3. DOM ELEMENTS
+    // =========================================================================
     const listContainer = document.getElementById('review-list-container');
-    const emptyState = document.getElementById('empty-queue-state');
+    const emptyQueueState = document.getElementById('empty-queue-state');
     const sortSelect = document.getElementById('review-sort-select');
 
-    const modal = document.getElementById('manuscript-modal');
-    const closeBtn = document.getElementById('close-manuscript-btn');
+    // Manuscript Modal Elements
+    const manuscriptModal = document.getElementById('manuscript-modal');
+    const closeManuscriptBtn = document.getElementById('close-manuscript-btn');
+    const modalHeadline = document.getElementById('modal-headline');
     const modalSection = document.getElementById('modal-section');
     const modalDate = document.getElementById('modal-date');
-    const modalHeadline = document.getElementById('modal-headline');
     const modalWriter = document.getElementById('modal-writer');
     const modalBody = document.getElementById('modal-body');
-    const modalRemarks = document.getElementById('modal-remarks');
-    const remarksError = document.getElementById('remarks-error-msg');
-    const approveBtn = document.getElementById('modal-approve-btn');
-    const revisionBtn = document.getElementById('modal-revision-btn');
 
+    // Remarks Section Elements
+    const remarksSection = document.getElementById('manuscript-remarks-section');
+    const modalRemarks = document.getElementById('modal-remarks');
+    const remarksErrorMsg = document.getElementById('remarks-error-msg');
+
+    // Modal Actions
+    const modalApproveBtn = document.getElementById('modal-approve-btn');
+    const modalRevisionBtn = document.getElementById('modal-revision-btn');
+
+    // Notification Toast Container
     const toastContainer = document.getElementById('toast-container');
 
-    // -------------------------------------------------------------------------
-    // 3. UTILITIES
-    // -------------------------------------------------------------------------
+    // =========================================================================
+    // 4. UTILITIES & TOASTS
+    // =========================================================================
     function escapeHTML(str) {
         if (!str) return '';
         return String(str)
@@ -152,6 +163,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function showToast(message, type = 'success') {
         if (!toastContainer) return;
+
+        const existingToasts = toastContainer.querySelectorAll('.toast-message');
+        existingToasts.forEach(t => t.remove());
+
         const toast = document.createElement('div');
         toast.className = `toast-message ${type}`;
         toast.innerHTML = `<span class="toast-bullet-dot"></span><span>${escapeHTML(message)}</span>`;
@@ -160,158 +175,254 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => {
             toast.classList.add('toast-dismissing');
             setTimeout(() => toast.remove(), 260);
-        }, 3200);
+        }, 3400);
     }
 
-    // -------------------------------------------------------------------------
-    // 4. RENDER REVIEW LIST
-    // -------------------------------------------------------------------------
-    function renderReviewList() {
-        if (!listContainer) return;
+    function logActivity(action, target) {
+        try {
+            const raw = localStorage.getItem('executiveActivityLogs_v1');
+            let logs = raw ? JSON.parse(raw) : [];
+            logs.unshift({
+                causer: sectionHeadName,
+                causerAvatar: 'images/member-placeholder.svg',
+                action: action,
+                subjectType: 'Manuscript',
+                subjectName: target,
+                timestampText: 'Just now'
+            });
+            localStorage.setItem('executiveActivityLogs_v1', JSON.stringify(logs.slice(0, 30)));
+        } catch (e) {}
+    }
 
-        let queue = getSectionQueue();
-
-        // If no section-specific items, fallback to all pending to keep demo lively
-        if (queue.length === 0) {
-            queue = [...pendingArticles];
-        }
-
-        // Sort items
-        queue.sort((a, b) => {
+    // =========================================================================
+    // 5. RENDERING RESPONSIVE HORIZONTAL BOX LIST (Executive Parity)
+    // =========================================================================
+    function getSortedList() {
+        const pool = [...getSectionQueue()];
+        return pool.sort((a, b) => {
             const dateA = new Date(a.rawDate || a.date);
             const dateB = new Date(b.rawDate || b.date);
             return currentSort === 'newest' ? dateB - dateA : dateA - dateB;
         });
+    }
 
-        if (queue.length === 0) {
+    function renderReviewBoxes() {
+        if (!listContainer) return;
+
+        const sorted = getSortedList();
+
+        if (sorted.length === 0) {
             listContainer.innerHTML = '';
-            if (emptyState) emptyState.style.display = 'flex';
+            if (emptyQueueState) emptyQueueState.style.display = 'block';
             return;
         }
 
-        if (emptyState) emptyState.style.display = 'none';
+        if (emptyQueueState) emptyQueueState.style.display = 'none';
 
-        listContainer.innerHTML = queue.map(item => `
-            <div class="review-box-card" data-id="${item.id}">
-                <!-- Top Row: Category Pill & Submission Date -->
-                <div class="review-box-top">
-                    <span class="review-box-category">${escapeHTML(item.category || currentSection)}</span>
-                    <span class="review-box-divider">&bull;</span>
-                    <span class="review-box-date">${escapeHTML(item.date)}</span>
-                </div>
+        listContainer.innerHTML = sorted.map(item => `
+            <div class="review-box" id="box-${item.id}" data-id="${item.id}">
+                <!-- Left Stack: Meta Line, Bold Article Title, Author with Pen Nib Icon -->
+                <div class="review-box-content">
+                    <div class="review-box-meta">
+                        <span class="review-box-category">${escapeHTML(item.category || currentSection)}</span>
+                        <span class="review-box-date"><i class="fa-regular fa-calendar" aria-hidden="true"></i> ${escapeHTML(item.date)}</span>
+                    </div>
 
-                <!-- Middle: Headline -->
-                <div class="review-box-middle">
-                    <h3 class="review-box-title">${escapeHTML(item.title)}</h3>
-                </div>
+                    <button type="button" class="review-box-title" data-action="read" data-id="${item.id}" title="${escapeHTML(item.title)}">
+                        ${escapeHTML(item.title)}
+                    </button>
 
-                <!-- Bottom Row: Author Byline & Review Button -->
-                <div class="review-box-bottom">
-                    <div class="review-box-author">
+                    <p class="review-box-author">
                         <i class="fa-solid fa-pen-nib" aria-hidden="true"></i>
                         <span>By <strong>${escapeHTML(item.author)}</strong></span>
-                    </div>
+                    </p>
+                </div>
 
-                    <div class="review-box-actions">
-                        <button type="button" class="btn-box-review" data-id="${item.id}" aria-label="Review manuscript: ${escapeHTML(item.title)}">
-                            <i class="fa-solid fa-clipboard-check"></i>
-                            <span>Review Manuscript</span>
-                        </button>
-                    </div>
+                <!-- Right Actions: 3 small buttons in a row -->
+                <div class="review-box-actions">
+                    <button type="button" class="btn-box-read" data-action="read" data-id="${item.id}" title="Read full manuscript">
+                        <i class="fa-regular fa-eye"></i>
+                        <span>Read</span>
+                    </button>
+                    <button type="button" class="btn-box-revision" data-action="revision" data-id="${item.id}" title="Direct to revision remarks">
+                        <i class="fa-solid fa-rotate-left"></i>
+                        <span>For Revision</span>
+                    </button>
+                    <button type="button" class="btn-box-approve" data-action="approve" data-id="${item.id}" title="Approve manuscript">
+                        <i class="fa-solid fa-check"></i>
+                        <span>Approve Story</span>
+                    </button>
                 </div>
             </div>
         `).join('');
+    }
 
-        // Attach listeners
-        listContainer.querySelectorAll('.btn-box-review').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const id = btn.getAttribute('data-id');
-                openReviewModal(id);
-            });
+    // =========================================================================
+    // 6. ACTION HANDLERS
+    // =========================================================================
+    function approveStory(id) {
+        const item = reviewList.find(a => a.id === id);
+        if (!item) return;
+
+        const box = document.getElementById(`box-${id}`);
+        if (box) {
+            box.classList.add('box-fade-out');
+        }
+
+        setTimeout(() => {
+            reviewList = reviewList.filter(a => a.id !== id);
+            savePendingQueue(reviewList);
+            logActivity('approved', item.title);
+            renderReviewBoxes();
+            showToast(`Approved "${item.title}" for publication.`, 'success');
+        }, 220);
+    }
+
+    function returnStoryForRevision(id, remarks) {
+        const item = reviewList.find(a => a.id === id);
+        if (!item) return;
+
+        const box = document.getElementById(`box-${id}`);
+        if (box) {
+            box.classList.add('box-fade-out');
+        }
+
+        setTimeout(() => {
+            reviewList = reviewList.filter(a => a.id !== id);
+            savePendingQueue(reviewList);
+            logActivity('requested revision on', item.title);
+            renderReviewBoxes();
+            showToast(`Returned "${item.title}" to writer with revision remarks.`, 'warning');
+        }, 220);
+    }
+
+    // =========================================================================
+    // 7. MANUSCRIPT MODAL VIEWER
+    // =========================================================================
+    function openManuscript(id, options = {}) {
+        const item = reviewList.find(a => a.id === id);
+        if (!item || !manuscriptModal) return;
+
+        currentActiveId = id;
+        if (modalHeadline) modalHeadline.textContent = item.title;
+        if (modalSection) modalSection.textContent = item.category || currentSection;
+        if (modalDate) modalDate.textContent = item.date;
+        if (modalWriter) modalWriter.textContent = item.author;
+
+        // Reset remarks
+        if (modalRemarks) {
+            modalRemarks.value = item.remarks || '';
+            modalRemarks.classList.remove('input-invalid');
+            modalRemarks.classList.remove('pulse-focus');
+        }
+        if (remarksErrorMsg) remarksErrorMsg.classList.add('hidden');
+
+        if (modalBody) {
+            const raw = item.content || item.excerpt || 'No manuscript body content.';
+            const paragraphs = raw.split(/\n\n+/).filter(p => p.trim());
+            modalBody.innerHTML = paragraphs.map(p => `<p class="manuscript-paragraph">${escapeHTML(p.trim())}</p>`).join('');
+        }
+
+        manuscriptModal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+
+        // Direct-to-Remarks flow
+        if (options.focusRemarks) {
+            setTimeout(() => {
+                if (remarksSection) {
+                    remarksSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+                if (modalRemarks) {
+                    modalRemarks.focus();
+                    modalRemarks.classList.add('pulse-focus');
+                    setTimeout(() => modalRemarks.classList.remove('pulse-focus'), 1200);
+                }
+            }, 180);
+        } else {
+            const bodyEl = document.querySelector('.manuscript-body');
+            if (bodyEl) bodyEl.scrollTop = 0;
+        }
+    }
+
+    function closeManuscript() {
+        if (manuscriptModal) {
+            manuscriptModal.classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+        if (modalRemarks) {
+            modalRemarks.classList.remove('input-invalid');
+            modalRemarks.classList.remove('pulse-focus');
+        }
+        if (remarksErrorMsg) {
+            remarksErrorMsg.classList.add('hidden');
+        }
+        currentActiveId = null;
+    }
+
+    if (closeManuscriptBtn) closeManuscriptBtn.addEventListener('click', closeManuscript);
+    if (manuscriptModal) {
+        manuscriptModal.addEventListener('click', (e) => {
+            if (e.target === manuscriptModal) closeManuscript();
         });
+    }
 
-        listContainer.querySelectorAll('.review-box-card').forEach(card => {
-            card.addEventListener('click', (e) => {
-                if (e.target.closest('button')) return;
-                const id = card.getAttribute('data-id');
-                openReviewModal(id);
-            });
+    // Modal Button Listeners
+    if (modalApproveBtn) {
+        modalApproveBtn.addEventListener('click', () => {
+            if (!currentActiveId) return;
+            const targetId = currentActiveId;
+            closeManuscript();
+            approveStory(targetId);
         });
     }
 
-    // -------------------------------------------------------------------------
-    // 5. MODAL LOGIC
-    // -------------------------------------------------------------------------
-    function openReviewModal(id) {
-        const item = pendingArticles.find(a => a.id === id);
-        if (!item || !modal) return;
+    if (modalRevisionBtn) {
+        modalRevisionBtn.addEventListener('click', () => {
+            if (!currentActiveId) return;
 
-        currentReviewId = id;
-        modalSection.textContent = item.category || currentSection;
-        modalDate.textContent = item.date;
-        modalHeadline.textContent = item.title;
-        modalWriter.textContent = item.author;
-
-        // Render clean paragraphs
-        const paragraphs = (item.content || '').split(/\n\n+/).filter(p => p.trim());
-        modalBody.innerHTML = paragraphs.map(p => `<p class="manuscript-paragraph">${escapeHTML(p.trim())}</p>`).join('');
-
-        if (modalRemarks) modalRemarks.value = '';
-        if (remarksError) remarksError.classList.add('hidden');
-
-        modal.classList.remove('hidden');
-    }
-
-    function closeModal() {
-        if (!modal) return;
-        modal.classList.add('hidden');
-        currentReviewId = null;
-    }
-
-    if (closeBtn) closeBtn.addEventListener('click', closeModal);
-    if (modal) {
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) closeModal();
-        });
-    }
-
-    // Approve
-    if (approveBtn) {
-        approveBtn.addEventListener('click', () => {
-            if (!currentReviewId) return;
-            const item = pendingArticles.find(a => a.id === currentReviewId);
-            const title = item ? item.title : 'Manuscript';
-
-            pendingArticles = pendingArticles.filter(a => a.id !== currentReviewId);
-            savePendingQueue(pendingArticles);
-
-            closeModal();
-            renderReviewList();
-            showToast(`Approved "${title}" for publication.`, 'success');
-        });
-    }
-
-    // For Revision
-    if (revisionBtn) {
-        revisionBtn.addEventListener('click', () => {
-            if (!currentReviewId) return;
-
-            const remarksText = modalRemarks ? modalRemarks.value.trim() : '';
-            if (!remarksText) {
-                if (remarksError) remarksError.classList.remove('hidden');
-                if (modalRemarks) modalRemarks.focus();
+            const remarks = modalRemarks ? modalRemarks.value.trim() : '';
+            if (!remarks) {
+                if (modalRemarks) {
+                    modalRemarks.classList.add('input-invalid');
+                    modalRemarks.focus();
+                }
+                if (remarksErrorMsg) remarksErrorMsg.classList.remove('hidden');
                 return;
             }
 
-            const item = pendingArticles.find(a => a.id === currentReviewId);
-            const title = item ? item.title : 'Manuscript';
+            const targetId = currentActiveId;
+            closeManuscript();
+            returnStoryForRevision(targetId, remarks);
+        });
+    }
 
-            pendingArticles = pendingArticles.filter(a => a.id !== currentReviewId);
-            savePendingQueue(pendingArticles);
+    // Realtime remarks error clearing
+    if (modalRemarks) {
+        modalRemarks.addEventListener('input', () => {
+            if (modalRemarks.value.trim().length > 0) {
+                modalRemarks.classList.remove('input-invalid');
+                if (remarksErrorMsg) remarksErrorMsg.classList.add('hidden');
+            }
+        });
+    }
 
-            closeModal();
-            renderReviewList();
-            showToast(`Returned "${title}" to writer for revisions with feedback.`, 'success');
+    // Delegated click handler on review list
+    if (listContainer) {
+        listContainer.addEventListener('click', (e) => {
+            const actionBtn = e.target.closest('[data-action]');
+            if (!actionBtn) return;
+
+            const action = actionBtn.getAttribute('data-action');
+            const id = actionBtn.getAttribute('data-id');
+            if (!id) return;
+
+            if (action === 'read') {
+                openManuscript(id, { focusRemarks: false });
+            } else if (action === 'revision') {
+                openManuscript(id, { focusRemarks: true });
+            } else if (action === 'approve') {
+                approveStory(id);
+            }
         });
     }
 
@@ -319,11 +430,17 @@ document.addEventListener('DOMContentLoaded', () => {
     if (sortSelect) {
         sortSelect.addEventListener('change', (e) => {
             currentSort = e.target.value;
-            renderReviewList();
+            renderReviewBoxes();
         });
     }
 
-    // Initial render
-    renderReviewList();
-});
+    // Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeManuscript();
+        }
+    });
 
+    // Initial render
+    renderReviewBoxes();
+});

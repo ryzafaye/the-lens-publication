@@ -305,7 +305,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             ${escapeHTML(art.title)}
                         </button>
                         <div class="ranked-meta-row">
-                            <span class="ranked-author">By ${escapeHTML(art.author)}</span>
+                            <span class="ranked-author"><i class="fa-solid fa-pen-nib" aria-hidden="true" style="font-size: 0.70rem; margin-right: 4px; color: var(--text-muted, #667085);"></i>${escapeHTML(art.author)}</span>
                             <span class="ranked-stats">
                                 <span class="stat-metric" title="Views"><i class="fa-regular fa-eye"></i> ${Number(art.views || 0).toLocaleString()}</span>
                                 <span class="stat-sep">•</span>

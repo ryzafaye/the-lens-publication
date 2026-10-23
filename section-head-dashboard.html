@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Section Head Dashboard | The Lens</title>
+    <title id="doc-page-title">News Head Dashboard | The Lens</title>
 
     <!-- Typography & Icons -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -43,7 +43,7 @@
                 <div id="sidebar-user-role" class="profile-role-text">News Head</div>
             </div>
 
-            <!-- Navigation Links -->
+            <!-- Navigation Links (5 Sections) -->
             <nav class="sidebar-nav" aria-label="Main Navigation">
                 <a href="section-head-dashboard.html" class="sidebar-nav-item active" data-page="section-head-dashboard.html">
                     <i class="fa-solid fa-chart-pie"></i>
@@ -199,33 +199,25 @@
         <!-- Main Content Area -->
         <main class="content-container">
 
-            <!-- Page Title Section with Section Badge -->
-            <div class="page-title-section animate-fade-in delay-1 flex items-center justify-between">
-                <div>
-                    <h1 class="page-title">Section Head Dashboard</h1>
-                    <div class="text-xs text-slate-500 mt-0.5">
-                        Editorial Desk: <span class="font-bold text-[#5c0a18] dynamic-section-name">News</span>
-                    </div>
-                </div>
+            <!-- Page Title Section: (Category) Head Dashboard -->
+            <div class="page-title-section animate-fade-in delay-1">
+                <h1 class="page-title" id="page-title-heading">News Head Dashboard</h1>
             </div>
 
-            <!-- Metrics Row -->
-            <section id="metrics-grid" class="metrics-grid" aria-label="Operational metrics"></section>
+            <!-- Metrics Row (Executive Styling: Total Article Views, Section Articles, Pending Section Review) -->
+            <section id="metrics-grid" class="metrics-grid metrics-grid-3" aria-label="Operational metrics"></section>
 
             <!-- Main Grid -->
             <div class="main-grid">
 
-                <!-- Left Column (Submissions Stack) -->
+                <!-- Left Column (Submissions & Activity Stack) -->
                 <div class="left-column-stack">
 
-                    <!-- Section 1: Submissions Awaiting Section Review -->
+                    <!-- Section 1: Recent Submissions -->
                     <section class="card-panel animate-fade-in delay-2" aria-labelledby="recent-submissions-heading">
                         <div class="panel-header">
-                            <div>
-                                <h2 id="recent-submissions-heading" class="panel-title">Pending Section Submissions</h2>
-                                <span class="panel-badge dynamic-section-name">News</span>
-                            </div>
-                            <a href="section-head-review-articles.html" class="panel-action-link">Review Queue &rarr;</a>
+                            <h2 id="recent-submissions-heading" class="panel-title">Recent Submissions</h2>
+                            <a href="section-head-review-articles.html" class="panel-action-link">View all &rarr;</a>
                         </div>
                         
                         <div class="table-responsive">
@@ -244,10 +236,10 @@
                         </div>
                     </section>
 
-                    <!-- Section 2: Activity Log -->
+                    <!-- Section 2: Activity Log (Whole Website, Accessible to Executives & Editorials) -->
                     <section class="card-panel animate-fade-in delay-3" aria-labelledby="activity-log-heading">
                         <div class="panel-header">
-                            <h2 id="activity-log-heading" class="panel-title">Section Activity Log</h2>
+                            <h2 id="activity-log-heading" class="panel-title">Activity Log</h2>
                             <a href="section-head-activity-logs.html" class="panel-action-link">View all &rarr;</a>
                         </div>
                         <div id="recent-activity-list" class="activity-timeline"></div>
@@ -258,27 +250,27 @@
                 <!-- Right Column (Widened Analytics Stack) -->
                 <div class="right-column-stack">
 
-                    <!-- Section 1: Most Viewed Articles in Section -->
+                    <!-- Section 1: Most Viewed Articles -->
                     <section class="card-panel animate-fade-in delay-2" aria-labelledby="most-viewed-heading">
                         <div class="panel-header">
-                            <h2 id="most-viewed-heading" class="panel-title">Top Read in Section</h2>
+                            <h2 id="most-viewed-heading" class="panel-title">Most Viewed Articles</h2>
                             <span id="most-viewed-month-badge" class="panel-badge">October</span>
                         </div>
                         <div id="most-viewed-list" class="ranked-list"></div>
                     </section>
 
-                    <!-- Section 2: Contributing Writers -->
+                    <!-- Section 2: Top Performing Journalists (Section Contributors Leaderboard) -->
                     <section class="card-panel animate-fade-in delay-3" aria-labelledby="top-journalists-heading">
                         <div class="panel-header">
-                            <h2 id="top-journalists-heading" class="panel-title">Section Contributors</h2>
-                            <span class="panel-badge">Writers</span>
+                            <h2 id="top-journalists-heading" class="panel-title">Top Performing Journalists</h2>
+                            <span class="panel-badge">Leaderboard</span>
                         </div>
                         <div class="journalists-table-wrap">
                             <table class="journalists-table">
                                 <thead>
                                     <tr>
                                         <th class="col-author">Author</th>
-                                        <th class="col-article-count">Published</th>
+                                        <th class="col-article-count">Article Count</th>
                                     </tr>
                                 </thead>
                                 <tbody id="top-journalists-table-body"></tbody>
@@ -294,7 +286,7 @@
 
     </div>
 
-    <!-- Article Viewer Modal -->
+    <!-- Article Viewer Modal (Exact Executive Styling) -->
     <div id="article-viewer-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="viewer-title">
         <div class="modal-card viewer-modal-card">
             <div class="viewer-modal-header">
@@ -348,4 +340,3 @@
     <script type="module" src="js/section-head-dashboard.js"></script>
 </body>
 </html>
-

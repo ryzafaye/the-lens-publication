@@ -192,12 +192,12 @@
 
             <div class="activity-logs-container">
 
+                <!-- 1. Clean Title of the Page (Executive Parity) -->
                 <div class="activity-page-header">
                     <h1 class="activity-page-title">Activity Log</h1>
-                    <p class="text-xs text-slate-500 mt-1">Audit log of editorial decisions, review feedbacks, and article submissions.</p>
                 </div>
 
-                <!-- Filter Bar: Search + Date Range -->
+                <!-- 2. Filter Bar: Search + Date Range (Executive Parity) -->
                 <div class="activity-filter-bar">
                     <div class="activity-search-box">
                         <i class="fa-solid fa-magnifying-glass activity-search-icon"></i>
@@ -218,20 +218,31 @@
                             <option value="today">Today</option>
                             <option value="7days">Past 7 Days</option>
                             <option value="30days">Past 30 Days</option>
+                            <option value="specific">Specific Date</option>
                         </select>
+
+                        <div id="specific-date-wrapper" class="specific-date-wrapper hidden">
+                            <input 
+                                type="date" 
+                                id="specific-date-picker" 
+                                class="specific-date-input" 
+                                aria-label="Choose specific date">
+                        </div>
                     </div>
                 </div>
 
-                <!-- Status Results Counter -->
+                <!-- 3. Status Results Counter -->
                 <div id="activity-results-counter" class="activity-results-counter">
-                    Showing all logged section events
+                    Showing all <em>15</em> logged events
                 </div>
 
-                <!-- Timeline Stream -->
+                <!-- 4. Clean Timeline Stream -->
                 <section 
                     id="activity-stream-timeline" 
                     class="activity-stream-timeline" 
-                    aria-label="Activity events timeline"></section>
+                    aria-label="Activity events timeline">
+                    <!-- Populated dynamically via js/section-head-activity-logs.js -->
+                </section>
 
             </div>
 

@@ -210,12 +210,13 @@
                 </button>
             </div>
 
-            <!-- View 1: Write Article View (.write-view) -->
+            <!-- View 1: Write Article View (.write-view - Executive Parity) -->
             <div class="write-view view-container" id="write-view" role="tabpanel" aria-labelledby="tab-write-btn">
                 
+                <!-- Ultra-Minimalist Distraction-Free Writing Canvas (Notion / Medium Style) -->
                 <div class="writing-canvas-container">
 
-                    <!-- Headline Input -->
+                    <!-- 1. Big Box Headline Input (255 Max Characters) -->
                     <div class="headline-box-wrapper" id="headline-box-wrapper">
                         <textarea 
                             id="article-headline" 
@@ -232,7 +233,7 @@
                         </div>
                     </div>
 
-                    <!-- Section Dropdown & Author Byline -->
+                    <!-- 2. Section Dropdown & Author Byline -->
                     <div class="meta-controls-row">
                         <div class="category-select-wrapper">
                             <label for="article-category" class="category-label">
@@ -241,6 +242,7 @@
                             </label>
                             <div class="select-styled-container" id="category-select-container">
                                 <select id="article-category" class="category-dropdown-select" aria-label="Select section category" required>
+                                    <option value="" disabled selected>Select category...</option>
                                     <option value="News">News</option>
                                     <option value="Opinions">Opinions</option>
                                     <option value="Features">Features</option>
@@ -258,60 +260,109 @@
                         </div>
                     </div>
 
-                    <!-- Excerpt Field -->
+                    <!-- 3. Excerpt Field (255 Max Characters) -->
                     <div class="excerpt-box-wrapper" id="excerpt-box-wrapper">
                         <label for="article-excerpt" class="excerpt-label">
                             <i class="fa-solid fa-align-left"></i>
-                            <span>Article Excerpt / Subheading:</span>
+                            <span>Excerpt</span>
                         </label>
                         <textarea 
                             id="article-excerpt" 
                             class="excerpt-input" 
                             rows="2" 
-                            maxlength="255" 
-                            placeholder="Provide a concise 1-2 sentence lead or excerpt to engage readers..."
-                            aria-label="Article Excerpt"></textarea>
-                        
+                            maxlength="255"
+                            placeholder="Write a brief excerpt or teaser summarizing the article..."
+                            aria-label="Article Excerpt"
+                            required></textarea>
                         <div class="excerpt-helper-row">
-                            <span class="excerpt-hint">Concise lead displayed on index feeds and article cards</span>
+                            <span></span>
                             <span id="excerpt-char-count" class="excerpt-char-count">0 / 255</span>
                         </div>
                     </div>
 
-                    <!-- Main Story Content Editable Area -->
-                    <div class="editor-wrapper">
-                        <label class="editor-label">
-                            <i class="fa-regular fa-file-lines"></i>
-                            <span>Manuscript Content:</span>
-                        </label>
-                        <div 
-                            id="article-body-editor" 
-                            class="article-body-editor" 
-                            contenteditable="true" 
-                            role="textbox" 
-                            aria-multiline="true"
-                            aria-label="Story body text"
-                            data-placeholder="Start typing your manuscript story here..."></div>
+                    <!-- 4. Notion / Medium Rich Text Formatting Toolbar -->
+                    <div class="editor-toolbar" id="editor-toolbar" role="toolbar" aria-label="Text Formatting Toolbar">
+                        <button type="button" class="tool-btn" data-command="bold" title="Bold (Ctrl+B)">
+                            <i class="fa-solid fa-bold"></i>
+                        </button>
+                        <button type="button" class="tool-btn" data-command="italic" title="Italic (Ctrl+I)">
+                            <i class="fa-solid fa-italic"></i>
+                        </button>
+                        <button type="button" class="tool-btn" data-command="underline" title="Underline (Ctrl+U)">
+                            <i class="fa-solid fa-underline"></i>
+                        </button>
+                        <button type="button" class="tool-btn" data-command="strikeThrough" title="Strikethrough">
+                            <i class="fa-solid fa-strikethrough"></i>
+                        </button>
+
+                        <div class="toolbar-divider"></div>
+
+                        <button type="button" class="tool-btn" data-command="formatBlock" data-value="<h2>" title="Large Heading (H2)">
+                            <span>H2</span>
+                        </button>
+                        <button type="button" class="tool-btn" data-command="formatBlock" data-value="<h3>" title="Small Heading (H3)">
+                            <span>H3</span>
+                        </button>
+                        <button type="button" class="tool-btn" data-command="formatBlock" data-value="<blockquote>" title="Blockquote">
+                            <i class="fa-solid fa-quote-left"></i>
+                        </button>
+
+                        <div class="toolbar-divider"></div>
+
+                        <button type="button" class="tool-btn" data-command="insertUnorderedList" title="Bulleted List">
+                            <i class="fa-solid fa-list-ul"></i>
+                        </button>
+                        <button type="button" class="tool-btn" data-command="insertOrderedList" title="Numbered List">
+                            <i class="fa-solid fa-list-ol"></i>
+                        </button>
+
+                        <div class="toolbar-divider"></div>
+
+                        <button type="button" class="tool-btn" data-command="createLink" title="Insert Link">
+                            <i class="fa-solid fa-link"></i>
+                        </button>
+                        <button type="button" class="tool-btn" data-command="insertHorizontalRule" title="Horizontal Divider">
+                            <i class="fa-solid fa-minus"></i>
+                        </button>
+                        <button type="button" class="tool-btn" data-command="removeFormat" title="Clear Formatting">
+                            <i class="fa-solid fa-text-slash"></i>
+                        </button>
                     </div>
 
-                    <!-- Canvas Bottom Stats & Action Bar -->
-                    <div class="canvas-action-bar">
-                        <div class="action-bar-left">
-                            <span class="metric-counter" id="word-count-display">0 words</span>
-                            <span class="metric-dot">&bull;</span>
-                            <span class="metric-counter" id="read-time-display">0 min read</span>
-                            <span class="metric-dot">&bull;</span>
-                            <span class="autosave-status" id="autosave-status">Draft ready</span>
+                    <!-- 5. Rich Text Editor Body -->
+                    <div class="editor-body-wrapper" id="editor-body-wrapper">
+                        <div 
+                            id="editor-content" 
+                            class="rich-editor-content" 
+                            contenteditable="true" 
+                            spellcheck="true"
+                            role="textbox"
+                            aria-multiline="true"
+                            data-placeholder="Write your article here..."></div>
+                    </div>
+
+                    <!-- 6. Footer Action Bar & Real-Time Metrics -->
+                    <div class="editor-footer-bar">
+                        <div class="editor-metrics-left">
+                            <span class="metric-pill" title="Word count">
+                                <i class="fa-solid fa-font"></i>
+                                <span id="words-count">0 words</span>
+                            </span>
+                            <span class="metric-pill" title="Character count">
+                                <i class="fa-regular fa-keyboard"></i>
+                                <span id="chars-count">0 characters</span>
+                            </span>
                         </div>
 
-                        <div class="action-bar-right">
-                            <button type="button" id="btn-save-draft" class="btn-secondary-action">
+                        <div class="editor-actions-right">
+                            <button type="button" id="btn-save-draft" class="btn-secondary-action" title="Save draft locally">
                                 <i class="fa-regular fa-floppy-disk"></i>
                                 <span>Save Draft</span>
                             </button>
-                            <button type="button" id="btn-submit-manuscript" class="btn-primary-action">
+
+                            <button type="button" id="btn-submit-article" class="btn-submit-primary" title="Submit article to review queue">
                                 <i class="fa-solid fa-paper-plane"></i>
-                                <span>Submit Manuscript</span>
+                                <span>Submit Article</span>
                             </button>
                         </div>
                     </div>
@@ -320,15 +371,22 @@
 
             </div>
 
-            <!-- View 2: Drafts Drawer / View (.drafts-view) -->
+            <!-- View 2: Drafts View Container (.drafts-view - Review-Articles Layout) -->
             <div class="drafts-view view-container hidden" id="drafts-view" role="tabpanel" aria-labelledby="tab-drafts-btn">
-                <div class="drafts-container">
-                    <div class="drafts-header-row">
-                        <h2 class="drafts-title">Saved Manuscript Drafts</h2>
-                        <span class="drafts-subtitle">Click "Edit" to load any draft back into the writing canvas.</span>
+                <div class="drafts-view-container">
+                    
+                    <!-- Dynamic Responsive Horizontal List Card Container -->
+                    <div class="drafts-list-container" id="drafts-list-container">
+                        <!-- Rendered by js/section-head-submit-article.js -->
                     </div>
 
-                    <div id="drafts-stream-container" class="drafts-stream-container"></div>
+                    <!-- Empty State for Drafts -->
+                    <div id="empty-drafts-state" class="empty-drafts-box hidden">
+                        <i class="fa-regular fa-folder-open"></i>
+                        <h3 class="empty-drafts-title">No Drafts Saved</h3>
+                        <p class="empty-drafts-subtitle">Any articles you save as drafts will appear here for easy editing.</p>
+                    </div>
+
                 </div>
             </div>
 

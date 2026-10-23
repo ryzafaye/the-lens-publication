@@ -1,49 +1,71 @@
 /**
- * THE LENS — SUBMIT ARTICLE (SECTION HEAD PORTAL)
- * Clean, Reusable & Modular Implementation
+ * ============================================================================
+ * THE LENS — SUBMIT ARTICLE LOGIC (SECTION HEAD PORTAL)
+ * Notion / Medium Style Writing Interface with Exact Executive Parity
+ * ============================================================================
  */
 
 document.addEventListener('DOMContentLoaded', () => {
+    'use strict';
 
-    const userRole = localStorage.getItem('userRole');
-    if (!userRole) {
-        window.location.href = 'login.html';
-        return;
-    }
+    // Contenteditable default paragraph separator
+    try {
+        document.execCommand('defaultParagraphSeparator', false, 'div');
+    } catch (e) {}
 
-    const currentSection = localStorage.getItem('sectionHeadSection') || 'News';
-    const authorName = localStorage.getItem('userName') || 'Danilo C. Ramos';
-
-    // -------------------------------------------------------------------------
-    // 1. DOM ELEMENTS
-    // -------------------------------------------------------------------------
+    // =========================================================================
+    // 1. DOM ELEMENT REFERENCES
+    // =========================================================================
+    // Tabs Navigation
     const tabWriteBtn = document.getElementById('tab-write-btn');
     const tabDraftsBtn = document.getElementById('tab-drafts-btn');
     const writeView = document.getElementById('write-view');
     const draftsView = document.getElementById('drafts-view');
     const draftsCountBadge = document.getElementById('drafts-count-badge');
-    const draftsStreamContainer = document.getElementById('drafts-stream-container');
 
+    // Write View Elements
     const headlineInput = document.getElementById('article-headline');
+    const headlineWrapper = document.getElementById('headline-box-wrapper');
     const headlineCharCount = document.getElementById('headline-char-count');
+
     const categorySelect = document.getElementById('article-category');
     const authorNameDisplay = document.getElementById('author-name-display');
+
     const excerptInput = document.getElementById('article-excerpt');
+    const excerptWrapper = document.getElementById('excerpt-box-wrapper');
     const excerptCharCount = document.getElementById('excerpt-char-count');
-    const editorContent = document.getElementById('article-body-editor');
 
-    const wordCountDisplay = document.getElementById('word-count-display');
-    const readTimeDisplay = document.getElementById('read-time-display');
-    const autoSaveStatus = document.getElementById('autosave-status');
+    const editorContent = document.getElementById('editor-content');
+    const editorWrapper = document.getElementById('editor-body-wrapper');
+    const toolbar = document.getElementById('editor-toolbar');
 
-    const btnSaveDraft = document.getElementById('btn-save-draft');
-    const btnSubmit = document.getElementById('btn-submit-manuscript');
+    const wordsCountEl = document.getElementById('words-count');
+    const charsCountEl = document.getElementById('chars-count');
+
+    const saveDraftBtn = document.getElementById('btn-save-draft');
+    const submitArticleBtn = document.getElementById('btn-submit-article');
+
+    // Drafts View Elements
+    const draftsListContainer = document.getElementById('drafts-list-container');
+    const emptyDraftsState = document.getElementById('empty-drafts-state');
+
+    // Toast Container
     const toastContainer = document.getElementById('toast-container');
 
+    // Active state tracker for editing existing draft
     let activeEditingDraftId = null;
 
-    // Set author name display and default section
-    if (authorNameDisplay) authorNameDisplay.textContent = authorName;
+    // =========================================================================
+    // 2. AUTHOR BYLINE & ROLE INITIALIZATION
+    // =========================================================================
+    const userRole = localStorage.getItem('sectionHeadRole') || localStorage.getItem('userRole') || 'News Head';
+    const authorName = localStorage.getItem('sectionHeadName') || localStorage.getItem('userName') || 'Danilo C. Ramos';
+    const currentSection = localStorage.getItem('sectionHeadSection') || 'News';
+
+    if (authorNameDisplay) {
+        authorNameDisplay.textContent = authorName;
+    }
+
     if (categorySelect && currentSection) {
         for (let i = 0; i < categorySelect.options.length; i++) {
             if (categorySelect.options[i].value.toLowerCase().includes(currentSection.toLowerCase())) {
@@ -53,31 +75,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // -------------------------------------------------------------------------
-    // 2. STORAGE KEYS & HELPERS
-    // -------------------------------------------------------------------------
-    const DRAFTS_KEY = 'sectionHeadArticleDrafts';
-    const MY_ARTICLES_KEY = 'sectionHeadMyArticles_v1';
-
-    function getDrafts() {
-        try {
-            const raw = localStorage.getItem(DRAFTS_KEY);
-            if (raw) {
-                const parsed = JSON.parse(raw);
-                if (Array.isArray(parsed)) return parsed;
-            }
-        } catch (e) {}
-        return [];
-    }
-
-    function saveDrafts(list) {
-        try {
-            localStorage.setItem(DRAFTS_KEY, JSON.stringify(list));
-        } catch (e) {}
-    }
-
-    let draftsList = getDrafts();
-
+    // =========================================================================
+    // 3. TOAST NOTIFICATION HELPER
+    // =========================================================================
     function escapeHTML(str) {
         if (!str) return '';
         return String(str)
@@ -90,6 +90,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function showToast(message, type = 'success') {
         if (!toastContainer) return;
+
+        const existingToasts = toastContainer.querySelectorAll('.toast-message');
+        existingToasts.forEach(t => t.remove());
+
         const toast = document.createElement('div');
         toast.className = `toast-message ${type}`;
         toast.innerHTML = `<span class="toast-bullet-dot"></span><span>${escapeHTML(message)}</span>`;
@@ -98,52 +102,60 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => {
             toast.classList.add('toast-dismissing');
             setTimeout(() => toast.remove(), 260);
-        }, 3200);
+        }, 3400);
     }
 
-    // -------------------------------------------------------------------------
-    // 3. EDIT METRICS & AUTO-RESIZE
-    // -------------------------------------------------------------------------
-    function autoResizeHeadline() {
-        if (!headlineInput) return;
-        headlineInput.style.height = 'auto';
-        headlineInput.style.height = headlineInput.scrollHeight + 'px';
-        if (headlineCharCount) {
-            headlineCharCount.textContent = `${headlineInput.value.length} / 255`;
+    // =========================================================================
+    // 4. DRAFTS DATASET MANAGEMENT (localStorage)
+    // =========================================================================
+    const DRAFTS_STORAGE_KEY = 'sectionHeadArticleDrafts';
+
+    const defaultDrafts = [
+        {
+            id: 'sh-draft-01',
+            title: `Draft Outline: Semester-End ${currentSection} Retrospective`,
+            category: currentSection,
+            excerpt: "Curated collection of the most consequential stories, investigative disclosures, and student assembly triumphs documented this term.",
+            date: "Oct 22, 2026",
+            rawDate: "2026-10-22",
+            content: `<div>Preliminary notes and section breakdown for our publication's culminating printed folio and digital archival edition.</div>`
+        }
+    ];
+
+    function getStoredDrafts() {
+        try {
+            const raw = localStorage.getItem(DRAFTS_STORAGE_KEY);
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                if (Array.isArray(parsed)) return parsed;
+            }
+        } catch (e) {
+            console.warn('Could not read sectionHeadArticleDrafts', e);
+        }
+        return defaultDrafts;
+    }
+
+    function saveStoredDrafts(drafts) {
+        try {
+            localStorage.setItem(DRAFTS_STORAGE_KEY, JSON.stringify(drafts));
+        } catch (e) {
+            console.warn('Could not save sectionHeadArticleDrafts', e);
         }
     }
 
-    if (headlineInput) {
-        headlineInput.addEventListener('input', autoResizeHeadline);
+    let draftsList = getStoredDrafts();
+
+    function updateDraftsBadge() {
+        if (draftsCountBadge) {
+            draftsCountBadge.textContent = draftsList.length;
+        }
     }
 
-    if (excerptInput) {
-        excerptInput.addEventListener('input', () => {
-            if (excerptCharCount) {
-                excerptCharCount.textContent = `${excerptInput.value.length} / 255`;
-            }
-        });
-    }
-
-    function updateEditorMetrics() {
-        if (!editorContent) return;
-        const text = editorContent.innerText.trim();
-        const words = text ? text.split(/\s+/).length : 0;
-        const minutes = Math.max(1, Math.ceil(words / 200));
-
-        if (wordCountDisplay) wordCountDisplay.textContent = `${words} words`;
-        if (readTimeDisplay) readTimeDisplay.textContent = `${minutes} min read`;
-    }
-
-    if (editorContent) {
-        editorContent.addEventListener('input', updateEditorMetrics);
-    }
-
-    // -------------------------------------------------------------------------
-    // 4. TAB CONTROLLER
-    // -------------------------------------------------------------------------
-    function switchTab(tab) {
-        if (tab === 'write') {
+    // =========================================================================
+    // 5. TAB SWITCHING LOGIC
+    // =========================================================================
+    function switchTab(targetTab) {
+        if (targetTab === 'write') {
             tabWriteBtn.classList.add('active');
             tabWriteBtn.setAttribute('aria-selected', 'true');
             tabDraftsBtn.classList.remove('active');
@@ -151,7 +163,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             writeView.classList.remove('hidden');
             draftsView.classList.add('hidden');
-        } else {
+        } else if (targetTab === 'drafts') {
             tabDraftsBtn.classList.add('active');
             tabDraftsBtn.setAttribute('aria-selected', 'true');
             tabWriteBtn.classList.remove('active');
@@ -159,6 +171,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             draftsView.classList.remove('hidden');
             writeView.classList.add('hidden');
+
             renderDraftsList();
         }
     }
@@ -166,43 +179,246 @@ document.addEventListener('DOMContentLoaded', () => {
     if (tabWriteBtn) tabWriteBtn.addEventListener('click', () => switchTab('write'));
     if (tabDraftsBtn) tabDraftsBtn.addEventListener('click', () => switchTab('drafts'));
 
-    // -------------------------------------------------------------------------
-    // 5. DRAFTS RENDERING
-    // -------------------------------------------------------------------------
-    function updateDraftsBadge() {
-        if (draftsCountBadge) {
-            draftsCountBadge.textContent = draftsList.length;
-        }
+    // =========================================================================
+    // 6. HEADLINE & EXCERPT AUTO-RESIZE & CHARACTER COUNTERS
+    // =========================================================================
+    function autoResizeTextarea(el) {
+        if (!el) return;
+        el.style.height = 'auto';
+        el.style.height = el.scrollHeight + 'px';
     }
 
+    if (headlineInput) {
+        headlineInput.addEventListener('input', () => {
+            autoResizeTextarea(headlineInput);
+            const count = headlineInput.value.length;
+            if (headlineCharCount) {
+                headlineCharCount.textContent = `${count} / 255`;
+                headlineCharCount.classList.toggle('near-limit', count > 230);
+            }
+            if (headlineWrapper) {
+                headlineWrapper.classList.remove('input-invalid');
+            }
+        });
+    }
+
+    if (excerptInput) {
+        excerptInput.addEventListener('input', () => {
+            autoResizeTextarea(excerptInput);
+            const count = excerptInput.value.length;
+            if (excerptCharCount) {
+                excerptCharCount.textContent = `${count} / 255`;
+                excerptCharCount.classList.toggle('near-limit', count > 230);
+            }
+            if (excerptWrapper) {
+                excerptWrapper.classList.remove('input-invalid');
+            }
+        });
+    }
+
+    // =========================================================================
+    // 7. NOTION / MEDIUM RICH TEXT FORMATTING TOOLBAR
+    // =========================================================================
+    if (toolbar) {
+        toolbar.addEventListener('click', (e) => {
+            const btn = e.target.closest('.tool-btn');
+            if (!btn) return;
+            e.preventDefault();
+
+            const cmd = btn.getAttribute('data-command');
+            const val = btn.getAttribute('data-value') || null;
+
+            if (cmd === 'createLink') {
+                const url = prompt('Enter destination URL:', 'https://');
+                if (url && url.trim().length > 0) {
+                    document.execCommand(cmd, false, url.trim());
+                }
+            } else if (cmd === 'formatBlock') {
+                document.execCommand(cmd, false, val);
+            } else {
+                document.execCommand(cmd, false, val);
+            }
+
+            if (editorContent) {
+                editorContent.focus();
+            }
+            updateActiveToolbarStates();
+            updateWritingMetrics();
+        });
+    }
+
+    function updateActiveToolbarStates() {
+        if (!toolbar) return;
+        const buttons = toolbar.querySelectorAll('.tool-btn');
+        buttons.forEach(btn => {
+            const cmd = btn.getAttribute('data-command');
+            if (cmd && ['bold', 'italic', 'underline', 'strikeThrough', 'insertUnorderedList', 'insertOrderedList'].includes(cmd)) {
+                try {
+                    const isActive = document.queryCommandState(cmd);
+                    btn.classList.toggle('active', !!isActive);
+                } catch (e) {}
+            }
+        });
+    }
+
+    document.addEventListener('selectionchange', () => {
+        if (document.activeElement === editorContent) {
+            updateActiveToolbarStates();
+        }
+    });
+
+    // =========================================================================
+    // 8. LIVE WRITING METRICS (Words & Characters)
+    // =========================================================================
+    function getPlainTextContent() {
+        if (!editorContent) return '';
+        return editorContent.innerText || editorContent.textContent || '';
+    }
+
+    function updateWritingMetrics() {
+        const text = getPlainTextContent().trim();
+        const words = text ? text.split(/\s+/).filter(Boolean).length : 0;
+        const chars = text.length;
+
+        if (wordsCountEl) wordsCountEl.textContent = `${words.toLocaleString()} words`;
+        if (charsCountEl) charsCountEl.textContent = `${chars.toLocaleString()} characters`;
+    }
+
+    if (editorContent) {
+        editorContent.addEventListener('input', () => {
+            updateWritingMetrics();
+            if (editorWrapper) editorWrapper.classList.remove('input-invalid');
+        });
+    }
+
+    // =========================================================================
+    // 9. FORM RESET & LOAD DRAFT
+    // =========================================================================
+    function clearWritingCanvas() {
+        if (headlineInput) {
+            headlineInput.value = '';
+            autoResizeTextarea(headlineInput);
+            if (headlineCharCount) headlineCharCount.textContent = '0 / 255';
+        }
+        if (excerptInput) {
+            excerptInput.value = '';
+            autoResizeTextarea(excerptInput);
+            if (excerptCharCount) excerptCharCount.textContent = '0 / 255';
+        }
+        if (editorContent) {
+            editorContent.innerHTML = '';
+            editorContent.style.textAlign = 'justify';
+        }
+        if (categorySelect && currentSection) {
+            for (let i = 0; i < categorySelect.options.length; i++) {
+                if (categorySelect.options[i].value.toLowerCase().includes(currentSection.toLowerCase())) {
+                    categorySelect.selectedIndex = i;
+                    break;
+                }
+            }
+        }
+        activeEditingDraftId = null;
+        updateWritingMetrics();
+    }
+
+    function findArticleOrDraft(id) {
+        if (!id) return null;
+        let found = draftsList.find(d => String(d.id) === String(id));
+        if (found) return found;
+
+        try {
+            const raw = localStorage.getItem('sectionHeadMyArticles_v1');
+            if (raw) {
+                const list = JSON.parse(raw);
+                if (Array.isArray(list)) {
+                    found = list.find(a => String(a.id) === String(id));
+                    if (found) return found;
+                }
+            }
+        } catch (e) {}
+
+        found = defaultDrafts.find(d => String(d.id) === String(id));
+        return found || null;
+    }
+
+    function loadDraftIntoCanvas(draftId) {
+        const draft = findArticleOrDraft(draftId);
+        if (!draft) return;
+
+        activeEditingDraftId = draft.id;
+
+        switchTab('write');
+
+        if (headlineInput) {
+            headlineInput.value = draft.title || '';
+            autoResizeTextarea(headlineInput);
+            if (headlineCharCount) headlineCharCount.textContent = `${draft.title.length} / 255`;
+        }
+        if (excerptInput) {
+            excerptInput.value = draft.excerpt || '';
+            excerptInput.style.textAlign = 'justify';
+            autoResizeTextarea(excerptInput);
+            if (excerptCharCount) excerptCharCount.textContent = `${draft.excerpt.length} / 255`;
+        }
+        if (categorySelect && draft.category) {
+            categorySelect.value = draft.category;
+        }
+        if (editorContent) {
+            let contentHtml = draft.content || draft.excerpt || '';
+            if (!contentHtml.includes('<p>') && !contentHtml.includes('<div>')) {
+                const paras = contentHtml.split(/\n\n+/).filter(p => p.trim());
+                contentHtml = paras.map(p => `<div>${escapeHTML(p.trim())}</div>`).join('<div><br></div>');
+            }
+            editorContent.innerHTML = contentHtml;
+            editorContent.style.textAlign = 'justify';
+        }
+
+        updateWritingMetrics();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        showToast('Article manuscript loaded into editor.', 'success');
+    }
+
+    // =========================================================================
+    // 10. DRAFTS VIEW RENDERING (Exact Executive Draft Box Layout)
+    // =========================================================================
     function renderDraftsList() {
-        if (!draftsStreamContainer) return;
+        if (!draftsListContainer) return;
+
         updateDraftsBadge();
 
         if (draftsList.length === 0) {
-            draftsStreamContainer.innerHTML = `
-                <div class="empty-drafts-notice">
-                    <i class="fa-regular fa-folder-open"></i>
-                    <span>No saved drafts found. When you save a draft while writing, it will appear here.</span>
-                </div>
-            `;
+            draftsListContainer.innerHTML = '';
+            if (emptyDraftsState) emptyDraftsState.classList.remove('hidden');
             return;
         }
 
-        draftsStreamContainer.innerHTML = draftsList.map(draft => `
-            <div class="draft-item-card" data-id="${draft.id}">
-                <div class="draft-card-header">
-                    <span class="draft-category-badge">${escapeHTML(draft.category || currentSection)}</span>
-                    <span class="draft-save-time">${escapeHTML(draft.updatedAt || 'Recently')}</span>
-                </div>
-                <h3 class="draft-item-title">${escapeHTML(draft.headline || 'Untitled Draft')}</h3>
-                ${draft.excerpt ? `<p class="draft-item-excerpt">${escapeHTML(draft.excerpt)}</p>` : ''}
-                <div class="draft-card-actions">
-                    <button type="button" class="btn-action-edit" onclick="loadDraft('${draft.id}')">
-                        <i class="fa-solid fa-file-pen"></i>
-                        <span>Load Draft</span>
+        if (emptyDraftsState) emptyDraftsState.classList.add('hidden');
+
+        draftsListContainer.innerHTML = draftsList.map(draft => `
+            <div class="draft-box" id="draft-box-${draft.id}" data-id="${draft.id}">
+                <!-- Left Stack: Meta (Category + Saved Date), Bold Title, Excerpt Teaser -->
+                <div class="draft-box-content">
+                    <div class="draft-box-meta">
+                        <span class="draft-box-category">${escapeHTML(draft.category || currentSection)}</span>
+                        <span class="draft-box-date">
+                            <i class="fa-regular fa-calendar" aria-hidden="true"></i> Saved ${escapeHTML(draft.date)}
+                        </span>
+                    </div>
+
+                    <button type="button" class="draft-box-title" data-action="edit" data-id="${draft.id}" title="${escapeHTML(draft.title)}">
+                        ${escapeHTML(draft.title)}
                     </button>
-                    <button type="button" class="btn-action-delete" onclick="deleteDraft('${draft.id}')">
+
+                    ${draft.excerpt ? `<p class="draft-box-excerpt">${escapeHTML(draft.excerpt)}</p>` : ''}
+                </div>
+
+                <!-- Right Actions: Edit Draft (Pencil) & Delete (Red Trash) -->
+                <div class="draft-box-actions">
+                    <button type="button" class="btn-draft-edit" data-action="edit" data-id="${draft.id}" title="Edit this draft">
+                        <i class="fa-solid fa-pen"></i>
+                        <span>Edit Draft</span>
+                    </button>
+                    <button type="button" class="btn-draft-delete" data-action="delete" data-id="${draft.id}" title="Delete draft">
                         <i class="fa-regular fa-trash-can"></i>
                         <span>Delete</span>
                     </button>
@@ -211,233 +427,259 @@ document.addEventListener('DOMContentLoaded', () => {
         `).join('');
     }
 
-    window.loadDraft = function(id) {
-        editDraftAction(id);
-    };
-
-    window.deleteDraft = function(id) {
-        draftsList = draftsList.filter(d => d.id !== id);
-        saveDrafts(draftsList);
-        updateDraftsBadge();
-        renderDraftsList();
-        showToast('Draft removed.', 'info');
-    };
-
-    // -------------------------------------------------------------------------
-    // 6. ARTICLE LOOKUP & PRE-LOADING
-    // -------------------------------------------------------------------------
-    function findArticleOrDraft(id) {
-        if (!id) return null;
-        const inDrafts = draftsList.find(d => String(d.id) === String(id));
-        if (inDrafts) {
-            return {
-                id: inDrafts.id,
-                headline: inDrafts.headline,
-                category: inDrafts.category,
-                excerpt: inDrafts.excerpt,
-                content: inDrafts.content
-            };
-        }
-
-        try {
-            const rawMy = localStorage.getItem(MY_ARTICLES_KEY);
-            if (rawMy) {
-                const myArts = JSON.parse(rawMy);
-                if (Array.isArray(myArts)) {
-                    const match = myArts.find(a => String(a.id) === String(id));
-                    if (match) {
-                        return {
-                            id: match.id,
-                            headline: match.title,
-                            category: match.category,
-                            excerpt: match.excerpt,
-                            content: match.content
-                        };
-                    }
-                }
-            }
-        } catch (e) {}
-
-        return null;
-    }
-
-    function editDraftAction(id) {
-        const item = findArticleOrDraft(id);
-        if (!item) return;
-
-        switchTab('write');
-
-        if (headlineInput) {
-            headlineInput.value = item.headline || '';
-            autoResizeHeadline();
-        }
-
-        if (categorySelect && item.category) {
-            for (let i = 0; i < categorySelect.options.length; i++) {
-                if (categorySelect.options[i].value.toLowerCase().includes(item.category.toLowerCase())) {
-                    categorySelect.selectedIndex = i;
-                    break;
-                }
-            }
-        }
-
-        if (excerptInput) {
-            excerptInput.value = item.excerpt || '';
-            if (excerptCharCount) excerptCharCount.textContent = `${item.excerpt ? item.excerpt.length : 0} / 255`;
-        }
-
-        if (editorContent) {
-            let contentHtml = item.content || item.excerpt || '';
-            if (!contentHtml.includes('<p>') && !contentHtml.includes('<div>')) {
-                const paras = contentHtml.split(/\n\n+/).filter(p => p.trim());
-                contentHtml = paras.map(p => `<div>${escapeHTML(p.trim())}</div>`).join('<div><br></div>');
-            }
-            editorContent.innerHTML = contentHtml || '<div>Start typing your manuscript here...</div>';
-            updateEditorMetrics();
-        }
-
-        activeEditingDraftId = item.id;
-        if (autoSaveStatus) {
-            autoSaveStatus.textContent = 'Editing manuscript';
-            autoSaveStatus.style.color = '#e27219';
-        }
-
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        showToast('Article loaded into writing canvas.', 'success');
-    }
-
-    // -------------------------------------------------------------------------
-    // 7. SAVE DRAFT & SUBMIT ACTIONS
-    // -------------------------------------------------------------------------
-    if (btnSaveDraft) {
-        btnSaveDraft.addEventListener('click', () => {
-            const headline = headlineInput ? headlineInput.value.trim() : '';
-            const category = categorySelect ? categorySelect.value : currentSection;
-            const excerpt = excerptInput ? excerptInput.value.trim() : '';
-            const content = editorContent ? editorContent.innerText.trim() : '';
-
-            if (!headline && !content) {
-                showToast('Please enter at least a headline or some content before saving draft.', 'error');
+    // Event delegation on Drafts List Container (Matching Executive Parity)
+    if (draftsListContainer) {
+        draftsListContainer.addEventListener('click', (e) => {
+            const deleteBtn = e.target.closest('[data-action="delete"]');
+            if (deleteBtn) {
+                e.stopPropagation();
+                deleteDraft(deleteBtn.dataset.id);
                 return;
             }
 
-            const draftId = activeEditingDraftId || `draft-${Date.now()}`;
-            const draftObj = {
-                id: draftId,
-                headline: headline || 'Untitled Draft',
-                category: category,
-                excerpt: excerpt,
-                content: content,
-                updatedAt: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
-            };
-
-            const existingIdx = draftsList.findIndex(d => d.id === draftId);
-            if (existingIdx !== -1) {
-                draftsList[existingIdx] = draftObj;
-            } else {
-                draftsList.unshift(draftObj);
-            }
-            saveDrafts(draftsList);
-            updateDraftsBadge();
-
-            // Also synchronize with sectionHeadMyArticles_v1
-            try {
-                const rawMy = localStorage.getItem(MY_ARTICLES_KEY);
-                if (rawMy) {
-                    let myArts = JSON.parse(rawMy);
-                    if (Array.isArray(myArts)) {
-                        const mIdx = myArts.findIndex(a => String(a.id) === String(draftId));
-                        if (mIdx !== -1) {
-                            myArts[mIdx].title = headline || 'Untitled Draft';
-                            myArts[mIdx].category = category;
-                            myArts[mIdx].excerpt = excerpt;
-                            myArts[mIdx].content = content;
-                            localStorage.setItem(MY_ARTICLES_KEY, JSON.stringify(myArts));
-                        }
-                    }
+            const draftBox = e.target.closest('.draft-box');
+            if (draftBox) {
+                const id = draftBox.dataset.id;
+                if (id) {
+                    loadDraftIntoCanvas(id);
                 }
-            } catch (e) {}
-
-            activeEditingDraftId = draftId;
-            showToast('Draft manuscript saved successfully.', 'success');
+            }
         });
     }
 
-    if (btnSubmit) {
-        btnSubmit.addEventListener('click', () => {
-            const headline = headlineInput ? headlineInput.value.trim() : '';
-            const category = categorySelect ? categorySelect.value : currentSection;
-            const excerpt = excerptInput ? excerptInput.value.trim() : '';
-            const content = editorContent ? editorContent.innerText.trim() : '';
+    function deleteDraft(id) {
+        const box = document.getElementById(`draft-box-${id}`);
+        if (box) box.classList.add('box-fade-out');
 
-            if (!headline) {
-                showToast('Please provide an article headline before submitting.', 'error');
-                if (headlineInput) headlineInput.focus();
-                return;
-            }
+        setTimeout(() => {
+            draftsList = draftsList.filter(d => d.id !== id);
+            saveStoredDrafts(draftsList);
 
-            if (!content || content.length < 20) {
-                showToast('Please compose your manuscript story body before submitting.', 'error');
-                if (editorContent) editorContent.focus();
-                return;
-            }
-
-            const newArticle = {
-                id: activeEditingDraftId || `sec-art-${Date.now()}`,
-                title: headline,
-                category: category,
-                date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-                rawDate: new Date().toISOString().split('T')[0],
-                status: 'Pending Review',
-                views: 0,
-                shares: 0,
-                author: authorName,
-                excerpt: excerpt,
-                content: content
-            };
-
-            // Save to sectionHeadMyArticles_v1
+            // Also sync deletion with sectionHeadMyArticles_v1
             try {
-                let myArts = [];
-                const rawMy = localStorage.getItem(MY_ARTICLES_KEY);
-                if (rawMy) myArts = JSON.parse(rawMy);
-                if (!Array.isArray(myArts)) myArts = [];
-
-                const mIdx = myArts.findIndex(a => String(a.id) === String(newArticle.id));
-                if (mIdx !== -1) {
-                    myArts[mIdx] = newArticle;
-                } else {
-                    myArts.unshift(newArticle);
+                const raw = localStorage.getItem('sectionHeadMyArticles_v1');
+                if (raw) {
+                    let articles = JSON.parse(raw);
+                    if (Array.isArray(articles)) {
+                        articles = articles.filter(a => a.id !== id);
+                        localStorage.setItem('sectionHeadMyArticles_v1', JSON.stringify(articles));
+                    }
                 }
-                localStorage.setItem(MY_ARTICLES_KEY, JSON.stringify(myArts));
             } catch (e) {}
 
-            // Remove from drafts if it was a draft
+            updateDraftsBadge();
+            renderDraftsList();
+            showToast('Draft deleted.', 'danger');
+        }, 220);
+    }
+
+    // =========================================================================
+    // 11. SAVE DRAFT ACTION
+    // =========================================================================
+    if (saveDraftBtn) {
+        saveDraftBtn.addEventListener('click', () => {
+            const headline = (headlineInput ? headlineInput.value.trim() : '');
+            if (!headline) {
+                if (headlineWrapper) headlineWrapper.classList.add('input-invalid');
+                if (headlineInput) headlineInput.focus();
+                showToast('Please provide a draft headline before saving.', 'warning');
+                return;
+            }
+
+            const category = (categorySelect ? categorySelect.value : currentSection) || currentSection;
+            const excerpt = (excerptInput ? excerptInput.value.trim() : '');
+            const content = (editorContent ? editorContent.innerHTML : '');
+
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            const rawDate = now.toISOString().split('T')[0];
+
+            if (activeEditingDraftId) {
+                // Update existing
+                const index = draftsList.findIndex(d => d.id === activeEditingDraftId);
+                if (index !== -1) {
+                    draftsList[index] = {
+                        ...draftsList[index],
+                        title: headline,
+                        category: category,
+                        excerpt: excerpt,
+                        content: content,
+                        date: dateStr,
+                        rawDate: rawDate
+                    };
+                }
+            } else {
+                // Create new draft
+                const newDraft = {
+                    id: 'sh-draft-' + Date.now(),
+                    title: headline,
+                    category: category,
+                    excerpt: excerpt,
+                    content: content,
+                    date: dateStr,
+                    rawDate: rawDate
+                };
+                draftsList.unshift(newDraft);
+            }
+
+            saveStoredDrafts(draftsList);
+
+            // Sync with sectionHeadMyArticles_v1
+            try {
+                const raw = localStorage.getItem('sectionHeadMyArticles_v1');
+                let articles = raw ? JSON.parse(raw) : [];
+                const existingIdx = articles.findIndex(a => a.id === activeEditingDraftId);
+                const draftObj = {
+                    id: activeEditingDraftId || ('sec-art-draft-' + Date.now()),
+                    author: authorName,
+                    title: headline,
+                    category: category,
+                    excerpt: excerpt,
+                    date: dateStr,
+                    rawDate: rawDate,
+                    status: 'Draft',
+                    views: 0,
+                    shares: 0,
+                    remarks: '',
+                    content: getPlainTextContent()
+                };
+
+                if (existingIdx !== -1) {
+                    articles[existingIdx] = draftObj;
+                } else {
+                    articles.unshift(draftObj);
+                }
+                localStorage.setItem('sectionHeadMyArticles_v1', JSON.stringify(articles));
+            } catch (e) {}
+
+            updateDraftsBadge();
+            clearWritingCanvas();
+            switchTab('drafts');
+            showToast('Draft saved successfully.', 'success');
+        });
+    }
+
+    // =========================================================================
+    // 12. SUBMIT ARTICLE ACTION
+    // =========================================================================
+    if (submitArticleBtn) {
+        submitArticleBtn.addEventListener('click', () => {
+            const headline = (headlineInput ? headlineInput.value.trim() : '');
+            const category = (categorySelect ? categorySelect.value : '');
+            const excerpt = (excerptInput ? excerptInput.value.trim() : '');
+            const plainText = getPlainTextContent().trim();
+
+            let hasError = false;
+
+            if (!headline) {
+                if (headlineWrapper) headlineWrapper.classList.add('input-invalid');
+                hasError = true;
+            }
+            if (!category) {
+                if (categorySelect) categorySelect.focus();
+                hasError = true;
+            }
+            if (!excerpt) {
+                if (excerptWrapper) excerptWrapper.classList.add('input-invalid');
+                hasError = true;
+            }
+            if (!plainText) {
+                if (editorWrapper) editorWrapper.classList.add('input-invalid');
+                hasError = true;
+            }
+
+            if (hasError) {
+                showToast('Please complete all required fields before submitting.', 'warning');
+                return;
+            }
+
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            const rawDate = now.toISOString().split('T')[0];
+
+            const newSubmission = {
+                id: 'rev-' + Date.now(),
+                title: headline,
+                category: category,
+                date: dateStr,
+                rawDate: rawDate,
+                author: authorName,
+                status: 'pending',
+                remarks: '',
+                content: plainText,
+                excerpt: excerpt
+            };
+
+            // 1. Add to Section Head / Executive Pending Review Queue
+            try {
+                const rawQueue = localStorage.getItem('sectionHeadReviewQueue_v1');
+                let queue = rawQueue ? JSON.parse(rawQueue) : [];
+                queue.unshift(newSubmission);
+                localStorage.setItem('sectionHeadReviewQueue_v1', JSON.stringify(queue));
+            } catch (e) {}
+
+            // 2. Add to Section Head's Personal Articles as "Pending Review"
+            try {
+                const rawMy = localStorage.getItem('sectionHeadMyArticles_v1');
+                let myArticles = rawMy ? JSON.parse(rawMy) : [];
+                myArticles.unshift({
+                    id: 'sec-art-' + Date.now(),
+                    author: authorName,
+                    title: headline,
+                    category: category,
+                    excerpt: excerpt,
+                    date: dateStr,
+                    rawDate: rawDate,
+                    status: 'Pending Review',
+                    views: 0,
+                    shares: 0,
+                    remarks: '',
+                    content: plainText
+                });
+                localStorage.setItem('sectionHeadMyArticles_v1', JSON.stringify(myArticles));
+            } catch (e) {}
+
+            // 3. Log publication-wide activity
+            try {
+                const rawLogs = localStorage.getItem('executiveActivityLogs_v1');
+                let logs = rawLogs ? JSON.parse(rawLogs) : [];
+                logs.unshift({
+                    causer: authorName,
+                    causerAvatar: 'images/member-placeholder.svg',
+                    action: 'submitted',
+                    subjectType: 'Manuscript',
+                    subjectName: headline,
+                    timestampText: 'Just now'
+                });
+                localStorage.setItem('executiveActivityLogs_v1', JSON.stringify(logs.slice(0, 30)));
+            } catch (e) {}
+
+            // 4. Remove from drafts if editing an existing draft
             if (activeEditingDraftId) {
                 draftsList = draftsList.filter(d => d.id !== activeEditingDraftId);
-                saveDrafts(draftsList);
+                saveStoredDrafts(draftsList);
                 updateDraftsBadge();
             }
 
-            showToast('Manuscript submitted for review!', 'success');
-
-            setTimeout(() => {
-                window.location.href = 'section-head-manage-my-articles.html';
-            }, 1200);
+            clearWritingCanvas();
+            showToast(`Manuscript "${headline}" submitted for review!`, 'success');
         });
     }
 
-    // -------------------------------------------------------------------------
-    // 8. INITIAL HYDRATION & URL QUERY PARAMETERS
-    // -------------------------------------------------------------------------
-    updateDraftsBadge();
-    autoResizeHeadline();
-    updateEditorMetrics();
-
-    const urlParams = new URLSearchParams(window.location.search);
-    const targetDraftId = urlParams.get('draftId') || urlParams.get('id') || urlParams.get('editId') || urlParams.get('articleId');
-    if (targetDraftId) {
-        editDraftAction(targetDraftId);
+    // =========================================================================
+    // 13. URL PARAMETER HANDLING (?draftId=...)
+    // =========================================================================
+    function checkURLParameters() {
+        try {
+            const params = new URLSearchParams(window.location.search);
+            const draftId = params.get('draftId');
+            if (draftId) {
+                loadDraftIntoCanvas(draftId);
+            }
+        } catch (e) {}
     }
-});
 
+    // Initial hydration
+    updateDraftsBadge();
+    checkURLParameters();
+});

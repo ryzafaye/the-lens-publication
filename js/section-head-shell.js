@@ -25,18 +25,22 @@
             let studentNum = '2024-00051-BN-0';
 
             try {
-                const storedRole = localStorage.getItem('sectionHeadRole') || localStorage.getItem('userRole');
-                const storedName = localStorage.getItem('sectionHeadName') || localStorage.getItem('userName');
+                const storedRole = localStorage.getItem('sectionHeadRole') || (localStorage.getItem('userRole') && localStorage.getItem('userRole').toLowerCase().includes('head') ? localStorage.getItem('userRole') : null);
+                const storedName = localStorage.getItem('sectionHeadName') || (storedRole ? localStorage.getItem('userName') : null);
                 const storedSection = localStorage.getItem('sectionHeadSection');
-                const storedNum = localStorage.getItem('sectionHeadStudentNumber') || localStorage.getItem('studentNumber');
+                const storedNum = localStorage.getItem('sectionHeadStudentNumber') || (storedRole ? localStorage.getItem('studentNumber') : null);
 
                 if (storedRole && storedRole.toLowerCase().includes('head')) {
                     role = storedRole;
                     if (storedName) name = storedName;
                     if (storedSection) section = storedSection;
                     if (storedNum) studentNum = storedNum;
-                } else if (!storedRole) {
-                    // Initialize default News Head if no session exists
+                } else {
+                    // Initialize default News Head session
+                    role = 'News Head';
+                    name = 'Danilo C. Ramos';
+                    section = 'News';
+                    studentNum = '2024-00051-BN-0';
                     localStorage.setItem('userRole', 'News Head');
                     localStorage.setItem('userName', 'Danilo C. Ramos');
                     localStorage.setItem('studentNumber', '2024-00051-BN-0');

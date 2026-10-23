@@ -1,76 +1,141 @@
 /**
- * THE LENS — MANAGE MY ARTICLES (SECTION HEAD PORTAL)
- * Clean, Reusable & Modular Implementation
+ * ============================================================================
+ * THE LENS — SECTION HEAD MANAGE MY ARTICLES CONTROLLER
+ * Copies the Exact Format, Style & Logic of Executive Manage My Articles
+ * ============================================================================
  */
 
 document.addEventListener('DOMContentLoaded', () => {
+    'use strict';
 
-    const userRole = localStorage.getItem('userRole');
-    if (!userRole) {
-        window.location.href = 'login.html';
-        return;
-    }
-
+    // =========================================================================
+    // 0. AUTHENTICATION & ROLE DETECTION
+    // =========================================================================
+    const activeRole = localStorage.getItem('userRole') || 'News Head';
+    const authorName = localStorage.getItem('userName') || localStorage.getItem('sectionHeadName') || 'Danilo C. Ramos';
     const currentSection = localStorage.getItem('sectionHeadSection') || 'News';
-    const authorName = localStorage.getItem('userName') || 'Danilo C. Ramos';
 
-    // -------------------------------------------------------------------------
-    // 1. DATASET MANAGEMENT
-    // -------------------------------------------------------------------------
+    // DOM Elements - Header Total Views Metric Pill
+    const statTotalViews = document.getElementById('stat-total-views');
+
+    // DOM Elements - Tabs & Badges
+    const tabButtons = document.querySelectorAll('.manage-tab-btn');
+    const badgeAll = document.getElementById('badge-count-all');
+    const badgePublished = document.getElementById('badge-count-published');
+    const badgePending = document.getElementById('badge-count-pending');
+    const badgeRevision = document.getElementById('badge-count-revision');
+    const badgeDrafts = document.getElementById('badge-count-drafts');
+
+    // DOM Elements - Search & Sort Toolbar
+    const searchInput = document.getElementById('section-head-search-input');
+    const clearSearchBtn = document.getElementById('clear-search-btn');
+    const sortSelect = document.getElementById('section-head-sort-select');
+
+    // DOM Elements - Articles List Container & Empty State
+    const articlesListContainer = document.getElementById('section-head-manage-list');
+    const emptyStateEl = document.getElementById('manage-empty-state');
+    const resetFiltersBtn = document.getElementById('reset-filters-btn');
+
+    // DOM Elements - Article Viewer Modal
+    const viewerModal = document.getElementById('article-viewer-modal');
+    const viewerTitle = document.getElementById('viewer-title');
+    const viewerCategory = document.getElementById('viewer-category');
+    const viewerDate = document.getElementById('viewer-date');
+    const viewerAuthor = document.getElementById('viewer-author');
+    const viewerReadTime = document.getElementById('viewer-read-time');
+    const viewerStatsBar = document.getElementById('viewer-stats-bar');
+    const viewerViews = document.getElementById('viewer-views');
+    const viewerShares = document.getElementById('viewer-shares');
+    const viewerBannerWrap = document.getElementById('viewer-banner-wrap');
+    const viewerBannerImg = document.getElementById('viewer-banner-img');
+    const viewerContent = document.getElementById('viewer-content');
+    const viewerRemarksWrap = document.getElementById('viewer-remarks-wrap');
+    const viewerRemarksText = document.getElementById('viewer-remarks-text');
+    const closeViewerBtn = document.getElementById('close-viewer-btn');
+
+    // DOM Elements - Remarks Modal
+    const remarksModal = document.getElementById('remarks-modal');
+    const remarksModalTitle = document.getElementById('remarks-modal-title');
+    const remarksModalContent = document.getElementById('remarks-modal-content');
+    const closeRemarksModalBtn = document.getElementById('close-remarks-modal-btn');
+    const btnEditFromRemarks = document.getElementById('btn-edit-from-remarks');
+
+    // DOM Elements - Delete Modal
+    const deleteModal = document.getElementById('delete-modal');
+    const deleteArticleTitle = document.getElementById('delete-article-title');
+    const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
+    const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+
+    // Toast Container
+    const toastContainer = document.getElementById('toast-container');
+
+    // State
+    let currentTab = 'all';
+    let searchQuery = '';
+    let currentSort = 'newest';
+    let pendingDeleteId = null;
+    let activeRemarksArticleId = null;
+
+    // =========================================================================
+    // 1. DATASET: SEEDED & PERSISTED SECTION HEAD ARTICLES
+    // =========================================================================
     const STORAGE_KEY = 'sectionHeadMyArticles_v1';
 
-    const DEFAULT_SEED = [
+    const DEFAULT_SEED_ARTICLES = [
         {
             id: 'sec-art-01',
+            author: authorName,
             title: `Investigating University Resource Allocation: The ${currentSection} Perspective`,
             category: currentSection,
-            date: "Oct 19, 2026",
-            rawDate: "2026-10-19",
-            status: "Published",
+            excerpt: 'An in-depth analysis of capital expenditure distributions, departmental facility grants, and laboratory modernisation timetables.',
+            date: 'Oct 19, 2026',
+            rawDate: '2026-10-19',
+            status: 'Published',
             views: 3840,
             shares: 64,
-            author: authorName,
-            excerpt: "An in-depth analysis of capital expenditure distributions, departmental facility grants, and laboratory modernisation timetables.",
+            remarks: '',
             content: `Collegiate budget disclosures provide invaluable insights into institutional priorities. Across our campus departments, funding for equipment maintenance and instructional supplies directly impacts undergraduate research capacity.\n\nOver the past academic cycle, discretionary reserves allocated to student-facing facilities increased by 12%, though significant disparities remain between laboratory-heavy curricula and humanities programs.\n\nOur editorial investigation examines procurement audit documents and interviews academic deans to assess how equitably resource allocations meet student educational requirements.`
         },
         {
             id: 'sec-art-02',
+            author: authorName,
             title: `Editorial Guidelines for Collegiate ${currentSection} Coverage in 2026`,
             category: currentSection,
-            date: "Oct 21, 2026",
-            rawDate: "2026-10-21",
-            status: "Pending Review",
+            excerpt: 'Establishing ethical attribution standards, primary document verification methods, and balanced source quotas for desk reporters.',
+            date: 'Oct 21, 2026',
+            rawDate: '2026-10-21',
+            status: 'Pending Review',
             views: 0,
             shares: 0,
-            author: authorName,
-            excerpt: "Establishing ethical attribution standards, primary document verification methods, and balanced source quotas for desk reporters.",
+            remarks: '',
             content: `As campus reporting accelerates into multi-platform delivery, desk editors must uphold uncompromising standards of factual accuracy and contextual fairness.\n\nThis manuscript codifies updated guidelines for corroborating leaked administrative memorandums, conducting on-the-record interviews, and protecting source confidentiality under the Republic Act 10173.`
         },
         {
             id: 'sec-art-03',
-            title: `Voices from the Faculty Lounge: Academic Autonomy in Modern Universities`,
+            author: authorName,
+            title: 'Voices from the Faculty Lounge: Academic Autonomy in Modern Universities',
             category: currentSection,
-            date: "Oct 17, 2026",
-            rawDate: "2026-10-17",
-            status: "For Revision",
+            excerpt: 'A qualitative survey exploring how instructional directives impact curriculum flexibility and tenure-track research productivity.',
+            date: 'Oct 17, 2026',
+            rawDate: '2026-10-17',
+            status: 'For Revision',
             views: 0,
             shares: 0,
-            author: authorName,
-            remarks: "Please incorporate faculty union survey responses regarding overload pay before final approval.",
-            excerpt: "A qualitative survey exploring how instructional directives impact curriculum flexibility and tenure-track research productivity.",
+            remarks: 'Please incorporate faculty union survey responses regarding overload pay before final approval.',
             content: `Tenure-track educators increasingly report balancing heavy teaching loads against administrative compliance requirements, leaving diminishing hours for original scholarship.\n\nThis feature explores the delicate balance between university standardized assessment protocols and the individual professor's intellectual freedom in the lecture hall.`
         },
         {
             id: 'sec-art-draft-01',
+            author: authorName,
             title: `Draft Outline: Semester-End ${currentSection} Retrospective`,
             category: currentSection,
-            date: "Oct 22, 2026",
-            rawDate: "2026-10-22",
-            status: "Draft",
+            excerpt: 'Curated collection of the most consequential stories, investigative disclosures, and student assembly triumphs documented this term.',
+            date: 'Oct 22, 2026',
+            rawDate: '2026-10-22',
+            status: 'Draft',
             views: 0,
             shares: 0,
-            author: authorName,
-            excerpt: "Curated collection of the most consequential stories, investigative disclosures, and student assembly triumphs documented this term.",
+            remarks: '',
             content: `Preliminary notes and section breakdown for our publication's culminating printed folio and digital archival edition.`
         }
     ];
@@ -83,71 +148,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (Array.isArray(parsed) && parsed.length > 0) return parsed;
             }
         } catch (e) {
-            console.warn('Error reading from localStorage', e);
+            console.warn('Could not parse articles from localStorage', e);
         }
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_SEED));
-        return DEFAULT_SEED;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_SEED_ARTICLES));
+        return DEFAULT_SEED_ARTICLES;
     }
 
-    function saveArticles(list) {
+    function saveArticles(articles) {
         try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(articles));
         } catch (e) {
-            console.warn('Error saving to localStorage', e);
+            console.warn('Could not save articles to localStorage', e);
         }
     }
 
-    let articlesList = getArticles();
-    let currentTab = 'all';
-    let pendingDeleteDraftId = null;
+    let allArticles = getArticles();
 
-    // -------------------------------------------------------------------------
-    // 2. DOM ELEMENTS
-    // -------------------------------------------------------------------------
-    const articlesContainer = document.getElementById('articles-list-container');
-    const statTotalViews = document.getElementById('stat-total-views');
+    // =========================================================================
+    // 2. HELPER FUNCTIONS
+    // =========================================================================
+    function formatNumber(num) {
+        return (Number(num) || 0).toLocaleString();
+    }
 
-    const badgeAll = document.getElementById('badge-all');
-    const badgePublished = document.getElementById('badge-published');
-    const badgePending = document.getElementById('badge-pending');
-    const badgeRevision = document.getElementById('badge-revision');
-    const badgeDrafts = document.getElementById('badge-drafts');
-
-    const tabButtons = document.querySelectorAll('.manage-tab-btn');
-
-    // Modals
-    const viewerModal = document.getElementById('article-viewer-modal');
-    const closeViewerBtn = document.getElementById('close-viewer-btn');
-    const viewerCategory = document.getElementById('viewer-category');
-    const viewerDate = document.getElementById('viewer-date');
-    const viewerReadTime = document.getElementById('viewer-read-time');
-    const viewerTitle = document.getElementById('viewer-title');
-    const viewerAuthor = document.getElementById('viewer-author');
-    const viewerAuthorRole = document.getElementById('viewer-author-role');
-    const viewerContent = document.getElementById('viewer-content');
-    const viewerRemarksWrap = document.getElementById('viewer-remarks-wrap');
-    const viewerRemarksText = document.getElementById('viewer-remarks-text');
-    const viewerStatsBar = document.getElementById('viewer-stats-bar');
-    const viewerViews = document.getElementById('viewer-views');
-    const viewerShares = document.getElementById('viewer-shares');
-
-    const remarksModal = document.getElementById('remarks-modal');
-    const closeRemarksBtn = document.getElementById('close-remarks-btn');
-    const remarksArticleTitle = document.getElementById('remarks-article-title');
-    const remarksBodyText = document.getElementById('remarks-body-text');
-    const btnEditFromRemarks = document.getElementById('btn-edit-from-remarks');
-    let activeRemarksArticleId = null;
-
-    const deleteModal = document.getElementById('delete-draft-modal');
-    const deleteDraftName = document.getElementById('delete-draft-name');
-    const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
-    const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
-
-    const toastContainer = document.getElementById('toast-container');
-
-    // -------------------------------------------------------------------------
-    // 3. UTILITIES
-    // -------------------------------------------------------------------------
     function escapeHTML(str) {
         if (!str) return '';
         return String(str)
@@ -158,136 +181,180 @@ document.addEventListener('DOMContentLoaded', () => {
             .replace(/'/g, '&#39;');
     }
 
-    function showToast(message, type = 'success') {
+    function calculateReadTime(text) {
+        if (!text) return '1 min read';
+        const words = String(text).trim().split(/\s+/).length;
+        const minutes = Math.max(1, Math.ceil(words / 200));
+        return `${minutes} min read`;
+    }
+
+    function formatCleanArticleContent(raw) {
+        if (!raw || typeof raw !== 'string') {
+            return '<p class="viewer-paragraph"><em>No manuscript body provided.</em></p>';
+        }
+
+        const paragraphs = raw
+            .split(/\n\s*\n|\n/)
+            .map(p => p.trim())
+            .filter(p => p.length > 0);
+
+        if (paragraphs.length === 0) {
+            return '<p class="viewer-paragraph"><em>No manuscript body provided.</em></p>';
+        }
+
+        return paragraphs.map(p => `<p class="viewer-paragraph">${escapeHTML(p)}</p>`).join('');
+    }
+
+    function showToast(message, type = 'info') {
         if (!toastContainer) return;
         const toast = document.createElement('div');
-        toast.className = `toast-message ${type}`;
-        toast.innerHTML = `<span class="toast-bullet-dot"></span><span>${escapeHTML(message)}</span>`;
+        toast.className = `toast-item toast-${type}`;
+        const iconClass = type === 'success' ? 'fa-check-circle' : 'fa-circle-info';
+        toast.innerHTML = `
+            <i class="fa-solid ${iconClass}"></i>
+            <span>${escapeHTML(message)}</span>
+        `;
         toastContainer.appendChild(toast);
-
+        setTimeout(() => toast.classList.add('visible'), 20);
         setTimeout(() => {
-            toast.classList.add('toast-dismissing');
-            setTimeout(() => toast.remove(), 260);
+            toast.classList.remove('visible');
+            setTimeout(() => toast.remove(), 300);
         }, 3200);
     }
 
-    // -------------------------------------------------------------------------
-    // 4. METRICS & BADGES UPDATE
-    // -------------------------------------------------------------------------
-    function updateMetricsAndBadges() {
-        const published = articlesList.filter(a => a.status === 'Published');
-        const pending = articlesList.filter(a => a.status === 'Pending Review');
-        const revision = articlesList.filter(a => a.status === 'For Revision');
-        const drafts = articlesList.filter(a => a.status === 'Draft');
+    // =========================================================================
+    // 3. ANALYTICS & TAB COUNTERS
+    // =========================================================================
+    function updateAnalyticsAndCounters() {
+        const publishedArticles = allArticles.filter(a => a.status === 'Published');
+        const pendingArticles = allArticles.filter(a => a.status === 'Pending Review');
+        const revisionArticles = allArticles.filter(a => a.status === 'For Revision');
+        const draftArticles = allArticles.filter(a => a.status === 'Draft');
 
-        const totalViews = published.reduce((sum, a) => sum + (a.views || 0), 0);
-        if (statTotalViews) statTotalViews.textContent = totalViews.toLocaleString();
+        const totalViews = publishedArticles.reduce((sum, a) => sum + (Number(a.views) || 0), 0);
 
-        if (badgeAll) badgeAll.textContent = articlesList.length;
-        if (badgePublished) badgePublished.textContent = published.length;
-        if (badgePending) badgePending.textContent = pending.length;
-        if (badgeRevision) badgeRevision.textContent = revision.length;
-        if (badgeDrafts) badgeDrafts.textContent = drafts.length;
+        // Header total views badge pill
+        if (statTotalViews) statTotalViews.textContent = formatNumber(totalViews);
+
+        // Tab count badges
+        if (badgeAll) badgeAll.textContent = allArticles.length;
+        if (badgePublished) badgePublished.textContent = publishedArticles.length;
+        if (badgePending) badgePending.textContent = pendingArticles.length;
+        if (badgeRevision) badgeRevision.textContent = revisionArticles.length;
+        if (badgeDrafts) badgeDrafts.textContent = draftArticles.length;
     }
 
-    // -------------------------------------------------------------------------
-    // 5. RENDER ARTICLES STREAM
-    // -------------------------------------------------------------------------
+    // =========================================================================
+    // 4. ARTICLE RENDERING & FILTERING (Exact Executive Parity)
+    // =========================================================================
     function renderArticles() {
-        if (!articlesContainer) return;
+        if (!articlesListContainer) return;
 
-        let filtered = [...articlesList];
-        if (currentTab === 'published') filtered = filtered.filter(a => a.status === 'Published');
-        else if (currentTab === 'pending') filtered = filtered.filter(a => a.status === 'Pending Review');
-        else if (currentTab === 'revision') filtered = filtered.filter(a => a.status === 'For Revision');
-        else if (currentTab === 'drafts') filtered = filtered.filter(a => a.status === 'Draft');
+        let filtered = [...allArticles];
 
+        // Tab Filter
+        if (currentTab === 'published') {
+            filtered = filtered.filter(a => a.status === 'Published');
+        } else if (currentTab === 'pending') {
+            filtered = filtered.filter(a => a.status === 'Pending Review');
+        } else if (currentTab === 'revision') {
+            filtered = filtered.filter(a => a.status === 'For Revision');
+        } else if (currentTab === 'drafts') {
+            filtered = filtered.filter(a => a.status === 'Draft');
+        }
+
+        // Search Filter
+        if (searchQuery.trim().length > 0) {
+            const q = searchQuery.toLowerCase().trim();
+            filtered = filtered.filter(a => {
+                const titleMatch = (a.title || '').toLowerCase().includes(q);
+                const categoryMatch = (a.category || '').toLowerCase().includes(q);
+                const excerptMatch = (a.excerpt || '').toLowerCase().includes(q);
+                return titleMatch || categoryMatch || excerptMatch;
+            });
+        }
+
+        // Sort Filter
+        if (currentSort === 'newest') {
+            filtered.sort((a, b) => new Date(b.rawDate || b.date) - new Date(a.rawDate || a.date));
+        } else if (currentSort === 'oldest') {
+            filtered.sort((a, b) => new Date(a.rawDate || a.date) - new Date(b.rawDate || b.date));
+        } else if (currentSort === 'popular') {
+            filtered.sort((a, b) => (Number(b.views) || 0) - (Number(a.views) || 0));
+        } else if (currentSort === 'az') {
+            filtered.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+        }
+
+        // Empty State Check
         if (filtered.length === 0) {
-            articlesContainer.innerHTML = `
-                <div class="articles-empty-state">
-                    <div class="empty-icon-circle">
-                        <i class="fa-regular fa-folder-open"></i>
-                    </div>
-                    <h3 class="empty-title">No manuscripts in this section</h3>
-                    <p class="empty-subtitle">There are currently no items under the selected filter.</p>
-                </div>
-            `;
+            articlesListContainer.innerHTML = '';
+            if (emptyStateEl) emptyStateEl.classList.remove('hidden');
             return;
         }
 
-        articlesContainer.innerHTML = filtered.map(item => {
-            let badgeClass = 'badge-draft';
-            let badgeDotColor = 'bg-slate-500';
+        if (emptyStateEl) emptyStateEl.classList.add('hidden');
 
-            if (item.status === 'Published') {
-                badgeClass = 'badge-published';
-                badgeDotColor = 'bg-emerald-600';
-            } else if (item.status === 'Pending Review') {
-                badgeClass = 'badge-pending';
-                badgeDotColor = 'bg-amber-600';
-            } else if (item.status === 'For Revision') {
-                badgeClass = 'badge-revision';
-                badgeDotColor = 'bg-red-600';
-            }
-
-            const isDraft = (item.status === 'Draft');
-            const isRevision = (item.status === 'For Revision');
+        // Render Cards (Executive Markup: .writer-article-card)
+        articlesListContainer.innerHTML = filtered.map(item => {
+            let badgeClass = 'status-draft';
+            if (item.status === 'Published') badgeClass = 'status-published';
+            else if (item.status === 'Pending Review') badgeClass = 'status-pending';
+            else if (item.status === 'For Revision') badgeClass = 'status-revision';
 
             return `
-                <article class="article-manage-card" data-id="${item.id}" tabindex="0">
-                    <!-- Header: Category & Date on Left, Status Badge on UPPER RIGHT -->
+                <article class="writer-article-card animate-fade-in delay-1" data-id="${item.id}" tabindex="0" role="button" aria-label="View article: ${escapeHTML(item.title)}">
                     <div class="article-card-header">
                         <div class="article-card-meta">
-                            <span class="meta-category">${escapeHTML(item.category || currentSection)}</span>
+                            <span class="article-card-category">${escapeHTML(item.category || currentSection)}</span>
                             <span class="meta-dot">&bull;</span>
-                            <span class="meta-date">${escapeHTML(item.date)}</span>
+                            <span class="article-card-date">
+                                <i class="fa-regular fa-calendar"></i> ${escapeHTML(item.date)}
+                            </span>
                             ${item.status === 'Published' && item.views !== undefined ? `
                                 <span class="meta-dot">&bull;</span>
-                                <span class="meta-views"><i class="fa-regular fa-eye"></i> ${item.views.toLocaleString()} views</span>
+                                <span class="article-card-date">
+                                    <i class="fa-regular fa-eye"></i> ${formatNumber(item.views)} views
+                                </span>
+                            ` : ''}
+                            ${item.remarks ? `
+                                <span class="meta-dot">&bull;</span>
+                                <span class="btn-show-remarks" data-id="${item.id}" style="color: #b42318; font-size: 0.74rem; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; cursor: pointer;" title="View editorial feedback">
+                                    <i class="fa-solid fa-comment-dots"></i> Feedback
+                                </span>
                             ` : ''}
                         </div>
-
-                        <!-- Pinned UPPER-RIGHT Status Badge -->
-                        <div class="article-status-container">
-                            <span class="status-badge-pill ${badgeClass}">
-                                <span class="status-dot ${badgeDotColor}"></span>
-                                <span>${escapeHTML(item.status)}</span>
-                            </span>
+                        <div class="article-card-status-top">
+                            <span class="status-badge ${badgeClass}">${escapeHTML(item.status)}</span>
                         </div>
                     </div>
 
-                    <!-- Body: Headline & Excerpt -->
                     <div class="article-card-body">
-                        <h2 class="article-card-title">${escapeHTML(item.title)}</h2>
+                        <h3 class="article-card-title">${escapeHTML(item.title)}</h3>
                         ${item.excerpt ? `
-                            <p class="article-card-excerpt">${escapeHTML(item.excerpt)}</p>
+                            <p class="article-card-excerpt">
+                                ${escapeHTML(item.excerpt)}
+                            </p>
                         ` : ''}
                     </div>
 
-                    <!-- Footer Actions -->
-                    ${(isDraft || isRevision) ? `
-                        <div class="article-card-actions">
-                            ${isDraft ? `
-                                <button type="button" class="btn-action-edit btn-edit-draft" data-id="${item.id}" title="Edit draft in Write Article canvas">
-                                    <i class="fa-solid fa-file-pen"></i>
+                    ${(item.status === 'Draft' || item.status === 'For Revision') ? `
+                        <div class="article-card-footer">
+                            ${item.status === 'Draft' ? `
+                                <a href="section-head-submit-article.html?draftId=${encodeURIComponent(item.id)}" class="btn-box-view" style="text-decoration: none;" title="Edit draft in editor" onclick="event.stopPropagation()">
+                                    <i class="fa-solid fa-pen-to-square"></i>
                                     <span>Edit</span>
-                                </button>
-                                <!-- DELETE BUTTON STRICTLY ON DRAFTS ONLY -->
-                                <button type="button" class="btn-action-delete btn-delete-draft" data-id="${item.id}" data-title="${escapeHTML(item.title)}" title="Delete draft">
+                                </a>
+                                <button type="button" class="btn-box-view btn-delete-draft" data-id="${item.id}" data-title="${escapeHTML(item.title)}" style="color: #b42318;" title="Delete draft" onclick="event.stopPropagation()">
                                     <i class="fa-regular fa-trash-can"></i>
                                     <span>Delete</span>
                                 </button>
                             ` : ''}
 
-                            ${isRevision ? `
-                                <button type="button" class="btn-action-remarks btn-show-remarks" data-id="${item.id}" title="View editorial remarks">
-                                    <i class="fa-regular fa-comment-dots"></i>
-                                    <span>Remarks</span>
-                                </button>
-                                <button type="button" class="btn-action-revise btn-revise-draft" data-id="${item.id}" title="Revise manuscript">
-                                    <i class="fa-solid fa-feather-pointed"></i>
+                            ${item.status === 'For Revision' ? `
+                                <a href="section-head-submit-article.html?draftId=${encodeURIComponent(item.id)}" class="btn-box-view" style="text-decoration: none;" title="Edit and revise manuscript" onclick="event.stopPropagation()">
+                                    <i class="fa-solid fa-pen-to-square"></i>
                                     <span>Revise</span>
-                                </button>
+                                </a>
                             ` : ''}
                         </div>
                     ` : ''}
@@ -298,172 +365,9 @@ document.addEventListener('DOMContentLoaded', () => {
         attachCardEventListeners();
     }
 
-    // -------------------------------------------------------------------------
-    // 6. CARD ACTION LISTENERS
-    // -------------------------------------------------------------------------
-    function attachCardEventListeners() {
-        // Click on card body to open story viewer
-        articlesContainer.querySelectorAll('.article-manage-card').forEach(card => {
-            card.addEventListener('click', (e) => {
-                if (e.target.closest('button') || e.target.closest('a')) return;
-                const id = card.getAttribute('data-id');
-                openArticleViewer(id);
-            });
-        });
-
-        // Edit draft
-        articlesContainer.querySelectorAll('.btn-edit-draft').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const id = btn.getAttribute('data-id');
-                window.location.href = `section-head-submit-article.html?draftId=${encodeURIComponent(id)}`;
-            });
-        });
-
-        // Revise draft
-        articlesContainer.querySelectorAll('.btn-revise-draft').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const id = btn.getAttribute('data-id');
-                window.location.href = `section-head-submit-article.html?draftId=${encodeURIComponent(id)}`;
-            });
-        });
-
-        // Delete draft (Drafts only)
-        articlesContainer.querySelectorAll('.btn-delete-draft').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const id = btn.getAttribute('data-id');
-                const title = btn.getAttribute('data-title') || 'this draft';
-                pendingDeleteDraftId = id;
-                if (deleteDraftName) deleteDraftName.textContent = `"${title}"`;
-                if (deleteModal) deleteModal.classList.remove('hidden');
-            });
-        });
-
-        // Show Remarks
-        articlesContainer.querySelectorAll('.btn-show-remarks').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const id = btn.getAttribute('data-id');
-                openRemarksModal(id);
-            });
-        });
-    }
-
-    // -------------------------------------------------------------------------
-    // 7. VIEWER MODAL LOGIC
-    // -------------------------------------------------------------------------
-    function openArticleViewer(id) {
-        const item = articlesList.find(a => a.id === id);
-        if (!item || !viewerModal) return;
-
-        viewerCategory.textContent = item.category || currentSection;
-        viewerDate.textContent = item.date;
-        viewerTitle.textContent = item.title;
-        viewerAuthor.textContent = item.author || authorName;
-        viewerAuthorRole.textContent = userRole || `${currentSection} Head`;
-
-        // Calculate read time
-        const fullText = item.content || item.excerpt || '';
-        const wordCount = fullText.trim() ? fullText.trim().split(/\s+/).length : 0;
-        const readTimeMinutes = Math.max(1, Math.ceil(wordCount / 200));
-        viewerReadTime.textContent = `${readTimeMinutes} min read`;
-
-        // Clean paragraph structure
-        if (viewerContent) {
-            const paragraphs = fullText.split(/\n\n+/).filter(p => p.trim());
-            if (paragraphs.length > 0) {
-                viewerContent.innerHTML = paragraphs.map(p => `<p class="viewer-paragraph">${escapeHTML(p.trim())}</p>`).join('');
-            } else {
-                viewerContent.innerHTML = `<p class="viewer-paragraph">${escapeHTML(item.excerpt || 'No full content.')}</p>`;
-            }
-        }
-
-        // Remarks
-        if (item.status === 'For Revision' && item.remarks) {
-            viewerRemarksText.textContent = item.remarks;
-            viewerRemarksWrap.style.display = 'block';
-        } else {
-            viewerRemarksWrap.style.display = 'none';
-        }
-
-        // Stats
-        if (item.status === 'Published') {
-            viewerViews.textContent = `${(item.views || 0).toLocaleString()} views`;
-            viewerShares.textContent = `${item.shares || 0} shares`;
-            viewerStatsBar.style.display = 'flex';
-        } else {
-            viewerStatsBar.style.display = 'none';
-        }
-
-        viewerModal.classList.remove('hidden');
-    }
-
-    if (closeViewerBtn && viewerModal) {
-        closeViewerBtn.addEventListener('click', () => viewerModal.classList.add('hidden'));
-        viewerModal.addEventListener('click', (e) => {
-            if (e.target === viewerModal) viewerModal.classList.add('hidden');
-        });
-    }
-
-    // -------------------------------------------------------------------------
-    // 8. REMARKS MODAL LOGIC
-    // -------------------------------------------------------------------------
-    function openRemarksModal(id) {
-        const item = articlesList.find(a => a.id === id);
-        if (!item || !remarksModal) return;
-
-        activeRemarksArticleId = id;
-        remarksArticleTitle.textContent = item.title;
-        remarksBodyText.textContent = item.remarks || "Please review the editorial instructions and update your manuscript accordingly.";
-        remarksModal.classList.remove('hidden');
-    }
-
-    if (closeRemarksBtn && remarksModal) {
-        closeRemarksBtn.addEventListener('click', () => remarksModal.classList.add('hidden'));
-        remarksModal.addEventListener('click', (e) => {
-            if (e.target === remarksModal) remarksModal.classList.add('hidden');
-        });
-    }
-
-    if (btnEditFromRemarks) {
-        btnEditFromRemarks.addEventListener('click', () => {
-            if (activeRemarksArticleId) {
-                window.location.href = `section-head-submit-article.html?draftId=${encodeURIComponent(activeRemarksArticleId)}`;
-            }
-        });
-    }
-
-    // -------------------------------------------------------------------------
-    // 9. DELETE DRAFT MODAL ACTIONS
-    // -------------------------------------------------------------------------
-    if (cancelDeleteBtn && deleteModal) {
-        cancelDeleteBtn.addEventListener('click', () => {
-            pendingDeleteDraftId = null;
-            deleteModal.classList.add('hidden');
-        });
-    }
-
-    if (confirmDeleteBtn && deleteModal) {
-        confirmDeleteBtn.addEventListener('click', () => {
-            if (!pendingDeleteDraftId) return;
-
-            articlesList = articlesList.filter(a => a.id !== pendingDeleteDraftId);
-            saveArticles(articlesList);
-
-            deleteModal.classList.add('hidden');
-            pendingDeleteDraftId = null;
-
-            updateMetricsAndBadges();
-            renderArticles();
-            showToast('Draft manuscript deleted successfully.', 'success');
-        });
-    }
-
-    // -------------------------------------------------------------------------
-    // 10. TABS CONTROLLER
-    // -------------------------------------------------------------------------
+    // =========================================================================
+    // 5. EVENT LISTENERS: TABS, SEARCH, SORT
+    // =========================================================================
     tabButtons.forEach(btn => {
         btn.addEventListener('click', () => {
             tabButtons.forEach(b => {
@@ -477,8 +381,236 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Initial Hydration
-    updateMetricsAndBadges();
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            searchQuery = e.target.value;
+            if (clearSearchBtn) {
+                clearSearchBtn.classList.toggle('hidden', searchQuery.length === 0);
+            }
+            renderArticles();
+        });
+    }
+
+    if (clearSearchBtn) {
+        clearSearchBtn.addEventListener('click', () => {
+            searchInput.value = '';
+            searchQuery = '';
+            clearSearchBtn.classList.add('hidden');
+            renderArticles();
+            searchInput.focus();
+        });
+    }
+
+    if (sortSelect) {
+        sortSelect.addEventListener('change', (e) => {
+            currentSort = e.target.value;
+            renderArticles();
+        });
+    }
+
+    if (resetFiltersBtn) {
+        resetFiltersBtn.addEventListener('click', () => {
+            currentTab = 'all';
+            searchQuery = '';
+            currentSort = 'newest';
+
+            if (searchInput) searchInput.value = '';
+            if (clearSearchBtn) clearSearchBtn.classList.add('hidden');
+            if (sortSelect) sortSelect.value = 'newest';
+
+            tabButtons.forEach(b => {
+                const isAll = b.getAttribute('data-tab') === 'all';
+                b.classList.toggle('active', isAll);
+                b.setAttribute('aria-selected', isAll ? 'true' : 'false');
+            });
+
+            renderArticles();
+        });
+    }
+
+    // =========================================================================
+    // 6. CARD INTERACTIONS & MODAL PREVIEW
+    // =========================================================================
+    function openRemarksModal(articleId) {
+        if (!remarksModal) return;
+        const article = allArticles.find(a => a.id === articleId);
+        if (!article) return;
+
+        activeRemarksArticleId = article.id;
+        if (remarksModalTitle) remarksModalTitle.textContent = article.title;
+        if (remarksModalContent) remarksModalContent.textContent = article.remarks || 'No remarks provided.';
+        remarksModal.classList.remove('hidden');
+    }
+
+    function attachCardEventListeners() {
+        const cards = articlesListContainer.querySelectorAll('.writer-article-card');
+        cards.forEach(card => {
+            card.addEventListener('click', () => {
+                const articleId = card.getAttribute('data-id');
+                openArticleViewer(articleId);
+            });
+        });
+
+        const remarksBadges = articlesListContainer.querySelectorAll('.btn-show-remarks');
+        remarksBadges.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const articleId = btn.getAttribute('data-id');
+                if (articleId) openRemarksModal(articleId);
+            });
+        });
+
+        const deleteButtons = articlesListContainer.querySelectorAll('.btn-delete-draft');
+        deleteButtons.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                pendingDeleteId = btn.getAttribute('data-id');
+                const title = btn.getAttribute('data-title');
+                if (deleteArticleTitle) deleteArticleTitle.textContent = `"${title}"`;
+                if (deleteModal) deleteModal.classList.remove('hidden');
+            });
+        });
+    }
+
+    function openArticleViewer(articleId) {
+        if (!viewerModal) return;
+        const article = allArticles.find(a => a.id === articleId);
+        if (!article) return;
+
+        if (viewerTitle) viewerTitle.textContent = article.title;
+        if (viewerCategory) viewerCategory.textContent = article.category || currentSection;
+        if (viewerDate) viewerDate.textContent = article.date;
+        if (viewerAuthor) viewerAuthor.textContent = article.author || authorName;
+
+        if (viewerReadTime) {
+            viewerReadTime.textContent = calculateReadTime(article.content || article.excerpt);
+        }
+
+        // Stats Bar: Only on Published
+        if (viewerStatsBar) {
+            if (article.status === 'Published') {
+                if (viewerViews) viewerViews.textContent = formatNumber(article.views || 0);
+                if (viewerShares) viewerShares.textContent = formatNumber(article.shares || Math.round((article.views || 0) * 0.08));
+                viewerStatsBar.style.display = 'flex';
+            } else {
+                viewerStatsBar.style.display = 'none';
+            }
+        }
+
+        if (viewerContent) {
+            viewerContent.innerHTML = formatCleanArticleContent(article.content || article.excerpt);
+        }
+
+        // Remarks in Viewer
+        if (viewerRemarksWrap && viewerRemarksText) {
+            if (article.remarks && article.remarks.trim().length > 0) {
+                viewerRemarksText.textContent = article.remarks;
+                viewerRemarksWrap.style.display = 'block';
+            } else {
+                viewerRemarksWrap.style.display = 'none';
+            }
+        }
+
+        viewerModal.classList.remove('hidden');
+    }
+
+    function closeArticleViewer() {
+        if (viewerModal) viewerModal.classList.add('hidden');
+    }
+
+    if (closeViewerBtn) {
+        closeViewerBtn.addEventListener('click', closeArticleViewer);
+    }
+
+    if (viewerModal) {
+        viewerModal.addEventListener('click', (e) => {
+            if (e.target === viewerModal) closeArticleViewer();
+        });
+    }
+
+    // Delete Draft Actions
+    if (cancelDeleteBtn) {
+        cancelDeleteBtn.addEventListener('click', () => {
+            pendingDeleteId = null;
+            if (deleteModal) deleteModal.classList.add('hidden');
+        });
+    }
+
+    if (confirmDeleteBtn) {
+        confirmDeleteBtn.addEventListener('click', () => {
+            if (!pendingDeleteId) return;
+
+            allArticles = allArticles.filter(a => a.id !== pendingDeleteId);
+            saveArticles(allArticles);
+
+            // Also clean from sectionHeadArticleDrafts if present
+            try {
+                const rawDrafts = localStorage.getItem('sectionHeadArticleDrafts');
+                if (rawDrafts) {
+                    let drafts = JSON.parse(rawDrafts);
+                    if (Array.isArray(drafts)) {
+                        drafts = drafts.filter(d => d.id !== pendingDeleteId);
+                        localStorage.setItem('sectionHeadArticleDrafts', JSON.stringify(drafts));
+                    }
+                }
+            } catch (e) {
+                // Ignore
+            }
+
+            if (deleteModal) deleteModal.classList.add('hidden');
+            pendingDeleteId = null;
+
+            updateAnalyticsAndCounters();
+            renderArticles();
+            showToast('Draft manuscript deleted successfully.', 'success');
+        });
+    }
+
+    if (deleteModal) {
+        deleteModal.addEventListener('click', (e) => {
+            if (e.target === deleteModal) {
+                pendingDeleteId = null;
+                deleteModal.classList.add('hidden');
+            }
+        });
+    }
+
+    if (closeRemarksModalBtn) {
+        closeRemarksModalBtn.addEventListener('click', () => {
+            if (remarksModal) remarksModal.classList.add('hidden');
+        });
+    }
+
+    if (remarksModal) {
+        remarksModal.addEventListener('click', (e) => {
+            if (e.target === remarksModal) remarksModal.classList.add('hidden');
+        });
+    }
+
+    if (btnEditFromRemarks) {
+        btnEditFromRemarks.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (activeRemarksArticleId) {
+                window.location.href = `section-head-submit-article.html?draftId=${encodeURIComponent(activeRemarksArticleId)}`;
+            }
+        });
+    }
+
+    // Escape Key Handler
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeArticleViewer();
+            if (remarksModal) remarksModal.classList.add('hidden');
+            if (deleteModal && !deleteModal.classList.contains('hidden')) {
+                pendingDeleteId = null;
+                deleteModal.classList.add('hidden');
+            }
+        }
+    });
+
+    // =========================================================================
+    // 7. INITIAL HYDRATION
+    // =========================================================================
+    updateAnalyticsAndCounters();
     renderArticles();
 });
-

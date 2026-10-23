@@ -8,6 +8,23 @@
 @import "executive-dashboard.css";
 @import "executive-modals.css";
 
+/* 3-Column Metrics Grid Layout for Section Heads */
+.metrics-grid-3 {
+    grid-template-columns: repeat(3, 1fr) !important;
+}
+
+@media (max-width: 1024px) {
+    .metrics-grid-3 {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+}
+
+@media (max-width: 640px) {
+    .metrics-grid-3 {
+        grid-template-columns: 1fr !important;
+    }
+}
+
 /* Section Head Portal Pill Indicator */
 .section-head-badge {
     display: inline-flex;
@@ -30,4 +47,3 @@
     border-radius: 50%;
     background-color: var(--maroon-primary, #5c0a18);
 }
-

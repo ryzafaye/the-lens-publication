@@ -190,15 +190,48 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (headlineInput) {
         headlineInput.addEventListener('input', () => {
+            if (/[\r\n]/.test(headlineInput.value)) {
+                const caret = headlineInput.selectionStart;
+                headlineInput.value = headlineInput.value.replace(/[\r\n]+/g, ' ');
+                if (caret !== null) headlineInput.setSelectionRange(caret, caret);
+            }
             autoResizeTextarea(headlineInput);
             const count = headlineInput.value.length;
             if (headlineCharCount) {
-                headlineCharCount.textContent = `${count} / 255`;
+                headlineCharCount.textContent = ${count} / 255;
                 headlineCharCount.classList.toggle('near-limit', count > 230);
             }
             if (headlineWrapper) {
                 headlineWrapper.classList.remove('input-invalid');
             }
+        });
+
+        // Headline must be a continuous single line: prevent Enter from creating newlines
+        headlineInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                if (excerptInput) {
+                    excerptInput.focus();
+                } else if (editorContent) {
+                    editorContent.focus();
+                }
+            }
+        });
+
+        // Flatten any pasted multi-line text into a single continuous sentence
+        headlineInput.addEventListener('paste', (e) => {
+            e.preventDefault();
+            const text = (e.clipboardData || window.clipboardData).getData('text') || '';
+            const cleanText = text.replace(/[\r\n]+/g, ' ').replace(/\s{2,}/g, ' ');
+            const start = headlineInput.selectionStart || 0;
+            const end = headlineInput.selectionEnd || 0;
+            const currentVal = headlineInput.value || '';
+            const max = parseInt(headlineInput.getAttribute('maxlength') || '255', 10);
+            const combined = (currentVal.substring(0, start) + cleanText + currentVal.substring(end)).slice(0, max);
+            headlineInput.value = combined;
+            const newPos = Math.min(start + cleanText.length, combined.length);
+            headlineInput.setSelectionRange(newPos, newPos);
+            headlineInput.dispatchEvent(new Event('input'));
         });
     }
 

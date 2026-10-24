@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Media Desk — Live Interactive Widget</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --maroon: #5c0a18;
+      --maroon-dark: #3e050f;
+    }
+  </style>
+</head>
+<body class="bg-[#f8fafc] text-slate-800 antialiased p-3 sm:p-5 font-sans min-h-screen">
+
+  <div class="max-w-6xl mx-auto space-y-4">
+
+    <!-- Top Controller Toolbar -->
+    <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider text-white bg-[#5c0a18]">
+            M&amp;PC Portal Only
+          </span>
+          <span class="text-xs text-slate-500">
+            Media Desk &bull; M&amp;PC Head &amp; Assoc Head Only
+          </span>
+        </div>
+        <h2 class="text-base sm:text-lg font-bold text-slate-900 mt-0.5">
+          Media Desk Review &amp; Library
+        </h2>
+      </div>
+
+      <!-- Quick Role Switcher -->
+      <div class="flex items-center gap-2 text-xs">
+        <span class="font-semibold text-slate-500">M&amp;PC Role:</span>
+        <div class="inline-flex p-1 bg-slate-100 rounded-lg">
+          <button type="button" id="role-exec-btn" onclick="switchPortal('M&PC Head')" class="px-3 py-1 font-semibold rounded-md bg-white text-[#5c0a18] shadow-sm transition">
+            M&amp;PC Head
+          </button>
+          <button type="button" id="role-eic-btn" onclick="switchPortal('Assoc M&PC Head')" class="px-3 py-1 font-semibold rounded-md text-slate-600 hover:text-slate-900 transition">
+            Assoc M&amp;PC Head
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Portal Topbar Header Simulation (Restored as in live portal) -->
+    <div class="bg-white border border-slate-200 rounded-xl px-5 py-3 shadow-sm flex items-center justify-between">
+      <div class="flex items-center gap-4">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-[#5c0a18] text-white flex items-center justify-center font-serif font-bold text-sm">
+            TL
+          </div>
+          <span class="font-serif font-bold text-slate-900 text-sm hidden sm:inline">The Lens Publication</span>
+        </div>
+        <div class="h-4 w-px bg-slate-200 hidden sm:block"></div>
+        <div class="text-xs text-slate-500 flex items-center gap-1.5 hidden md:flex">
+          <i class="fa-regular fa-clock text-slate-400"></i>
+          <span>Friday, October 23, 2026 &bull; 1:25 PM</span>
+        </div>
+      </div>
+
+      <!-- Restored Topbar Right Lockup -->
+      <div class="flex items-center gap-3">
+        <div class="relative flex items-center gap-1.5 text-xs text-slate-600 font-semibold px-2 py-1 rounded-md hover:bg-slate-100 cursor-pointer">
+          <i class="fa-regular fa-bell text-sm"></i>
+          <span class="w-2 h-2 rounded-full bg-red-500 absolute top-1 right-1"></span>
+          <span class="hidden sm:inline">Notification</span>
+        </div>
+        <div class="h-5 w-px bg-slate-200"></div>
+        <!-- Profile Lockup -->
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-full ring-2 ring-[#5c0a18]/20 bg-slate-100 overflow-hidden flex items-center justify-center">
+            <img src="images/member-placeholder.svg" alt="User Profile" class="w-full h-full object-cover">
+          </div>
+          <span id="topbar-role-badge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#5c0a18]/10 text-[#5c0a18] border border-[#5c0a18]/20">
+            President
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Clean Container (Title + Sort + Tabs Only) -->
+    <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-5">
+      
+      <!-- Minimalist Header: Title and Sort Only (No subtitle) -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+        <h1 class="text-2xl font-serif font-bold text-slate-900 tracking-tight">
+          Media Desk
+        </h1>
+
+        <!-- Sort Select -->
+        <div class="flex items-center gap-2 text-xs font-medium text-slate-600">
+          <label for="cover-sort"><i class="fa-solid fa-arrow-down-wide-short text-[#5c0a18]"></i> Sort:</label>
+          <select id="cover-sort" onchange="onSortChange(this.value)" class="bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 font-semibold focus:outline-none focus:ring-2 focus:ring-[#5c0a18]/20">
+            <option value="newest" selected>Newest First</option>
+            <option value="oldest">Oldest First</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Two Clean Tabs: PUBMAT and CARTOON -->
+      <div class="flex items-center gap-3 border-b border-slate-200">
+        <button type="button" id="tab-pubmat-btn" onclick="switchTab('pubmat')" class="inline-flex items-center gap-2 pb-3 px-2 font-bold text-sm text-[#5c0a18] border-b-2 border-[#5c0a18] transition">
+          <i class="fa-solid fa-palette text-xs"></i>
+          <span>PUBMAT</span>
+          <span id="badge-pubmat" class="px-2 py-0.5 text-xs rounded-full bg-red-50 text-[#5c0a18] border border-red-100 font-bold">3</span>
+        </button>
+
+        <button type="button" id="tab-cartoon-btn" onclick="switchTab('cartoon')" class="inline-flex items-center gap-2 pb-3 px-2 font-bold text-sm text-slate-500 border-b-2 border-transparent hover:text-slate-800 transition">
+          <i class="fa-solid fa-pen-nib text-xs"></i>
+          <span>CARTOON</span>
+          <span id="badge-cartoon" class="px-2 py-0.5 text-xs rounded-full bg-slate-100 text-slate-700 font-bold">3</span>
+        </button>
+      </div>
+
+      <!-- Card Grid: Cards Have No Title, No Inspect Button, 2 Equal-Fit Buttons -->
+      <div id="cards-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <!-- Empty State -->
+      <div id="empty-state" class="hidden py-14 text-center border border-dashed border-slate-200 rounded-xl bg-slate-50/50">
+        <i class="fa-regular fa-circle-check text-3xl text-slate-400 mb-2 block"></i>
+        <h3 class="font-bold text-slate-800 text-sm">All Caught Up</h3>
+        <p class="text-xs text-slate-500 mt-1">No artwork currently pending review in this queue.</p>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- MODAL 1: FULLSCREEN THEATER ARTWORK INSPECTOR -->
+  <!-- Tag on Top, Artist directly underneath, X on upper right -->
+  <div id="inspect-modal" class="fixed inset-0 z-50 hidden bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-3 sm:p-5">
+    <div class="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[92vh] flex flex-col overflow-hidden border border-slate-200">
+      
+      <!-- Modal Header: Type Tag & Artist Underneath on Left, X Close on Upper Right -->
+      <div class="px-5 py-3.5 border-b border-slate-200 flex items-start justify-between bg-slate-50 gap-4">
+        <div class="flex flex-col items-start gap-1.5 flex-1 min-w-0">
+          <span id="modal-type-badge" class="px-2.5 py-0.5 text-xs font-bold rounded uppercase tracking-wider bg-[#fdf2f2] text-[#5c0a18] border border-[#fde8e8]">PUBMAT</span>
+          <div class="inline-flex items-center gap-1.5 text-slate-700 text-xs sm:text-sm">
+            <i class="fa-solid fa-paintbrush text-[#5c0a18]"></i>
+            <span>Artist: <strong id="modal-artist" class="font-bold text-slate-900">Artist Name</strong></span>
+          </div>
+        </div>
+        <button type="button" onclick="closeInspectModal()" class="w-8 h-8 rounded-full border border-slate-200 bg-white hover:bg-red-50 hover:text-red-600 text-slate-600 flex items-center justify-center transition shrink-0" aria-label="Close">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+      </div>
+
+      <!-- Theater Body: Maximized Full Image View -->
+      <div class="bg-slate-950 flex-1 flex items-center justify-center p-4 min-h-[360px] max-h-[70vh] overflow-hidden">
+        <img id="modal-img" src="" alt="Publication Artwork Full View" class="max-w-full max-h-[66vh] object-contain rounded shadow-lg">
+      </div>
+
+      <!-- Clean Action Bar in Footer (Approved by note + 2 short action buttons) -->
+      <div class="px-5 py-3.5 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div class="inline-flex items-center gap-1.5 text-xs text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-md font-medium">
+          <i class="fa-solid fa-circle-check text-emerald-600"></i>
+          <span>Approved by: <strong id="modal-head" class="font-bold text-emerald-950">Section Head</strong></span>
+        </div>
+        <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+          <button type="button" onclick="openRevisionFromInspect()" class="flex-1 sm:flex-initial px-3.5 py-2 rounded-lg border border-amber-500 text-amber-700 hover:bg-amber-50 font-bold text-xs inline-flex items-center justify-center gap-1.5 transition">
+            <i class="fa-solid fa-rotate-left"></i>
+            <span>Return to Head</span>
+          </button>
+          <button type="button" onclick="approveFromInspect()" class="flex-1 sm:flex-initial px-4 py-2 rounded-lg bg-[#5c0a18] hover:bg-[#3e050f] text-white font-bold text-xs inline-flex items-center justify-center gap-1.5 shadow-sm transition">
+            <i class="fa-solid fa-check"></i>
+            <span>Approve for M&amp;PC</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL 2: MANDATORY REVISION REMARKS MODAL -->
+  <div id="revision-modal" class="fixed inset-0 z-50 hidden bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-5">
+    <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full flex flex-col overflow-hidden border border-slate-200">
+      
+      <!-- Modal Header: Tag on Left, X on Upper Right -->
+      <div class="px-5 py-3.5 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+        <span class="px-2.5 py-0.5 rounded text-xs font-bold uppercase tracking-wider text-amber-800 bg-amber-100 border border-amber-200 flex items-center gap-1.5">
+          <i class="fa-solid fa-rotate-left"></i> Return for Revision
+        </span>
+        <button type="button" onclick="closeRevisionModal()" class="w-8 h-8 rounded-full border border-slate-200 bg-white hover:bg-red-50 hover:text-red-600 text-slate-600 flex items-center justify-center transition shrink-0" aria-label="Close">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-5 space-y-4">
+        
+        <!-- Clean Endorsement Banner -->
+        <div class="flex items-center gap-3 p-3.5 rounded-xl bg-amber-50/80 border border-amber-200 text-xs text-amber-900">
+          <div class="w-9 h-9 rounded-lg bg-amber-200/80 text-amber-900 flex items-center justify-center shrink-0">
+            <i class="fa-solid fa-user-check text-base"></i>
+          </div>
+          <div>
+            <div class="text-[11px] font-semibold text-amber-700 uppercase tracking-wide">Returning to Approving Head</div>
+            <div id="rev-head-name" class="font-bold text-amber-950 text-sm mt-0.5">Julian Del Rosario (Media Head)</div>
+          </div>
+        </div>
+
+        <!-- Remarks Textarea with Required Badge -->
+        <div class="space-y-1.5">
+          <div class="flex items-center justify-between text-xs font-bold text-slate-700">
+            <span class="inline-flex items-center gap-1.5">
+              <i class="fa-solid fa-comment-dots text-[#5c0a18]"></i>
+              <span>Mandatory Revision Remarks:</span>
+            </span>
+            <span class="px-1.5 py-0.5 text-[11px] font-bold uppercase rounded bg-red-100 text-red-700 border border-red-200">Required</span>
+          </div>
+          <textarea id="rev-textarea" rows="3" placeholder="Provide specific adjustment guidance for the section head before returning this artwork..." class="w-full p-3 text-xs text-slate-900 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5c0a18]/20 focus:border-[#5c0a18] transition"></textarea>
+          <p id="rev-error" class="hidden text-xs text-red-600 font-semibold flex items-center gap-1.5 pt-0.5">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            <span>Revision remarks are required. You cannot return without remarks.</span>
+          </p>
+        </div>
+      </div>
+
+      <!-- Modal Footer: Cancel on Left of Confirm, Right-Aligned -->
+      <div class="px-5 py-3.5 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-2.5">
+        <button type="button" onclick="closeRevisionModal()" class="px-4 py-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 text-slate-700 font-semibold text-xs transition">
+          Cancel
+        </button>
+        <button type="button" onclick="confirmReturnToHead()" class="px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs inline-flex items-center gap-1.5 shadow-sm transition">
+          <i class="fa-solid fa-rotate-left"></i>
+          <span>Confirm Return to Head</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-box" class="fixed bottom-5 right-5 z-50 pointer-events-none flex flex-col gap-2"></div>
+
+  <script>
+    let currentRole = 'Executive';
+    let currentTab = 'pubmat';
+    let currentSort = 'newest';
+    let activeInspectId = null;
+    let activeReturnId = null;
+
+    let queue = [
+      {
+        id: 'cov-01',
+        type: 'pubmat',
+        artist: "Kirsten Diaz",
+        approvedBy: "Julian Del Rosario (Media Head)",
+        image: "images/covers/sc-audit-pubmat.svg",
+        date: "Oct 21, 2026",
+        rawDate: "2026-10-21"
+      },
+      {
+        id: 'cov-02',
+        type: 'pubmat',
+        artist: "Marco Valenzuela",
+        approvedBy: "Julian Del Rosario (Media Head)",
+        image: "images/covers/portal-pubmat.svg",
+        date: "Oct 20, 2026",
+        rawDate: "2026-10-20"
+      },
+      {
+        id: 'cov-03',
+        type: 'pubmat',
+        artist: "Hannah Cruz",
+        approvedBy: "Julian Del Rosario (Media Head)",
+        image: "images/covers/sanitation-pubmat.svg",
+        date: "Oct 19, 2026",
+        rawDate: "2026-10-19"
+      },
+      {
+        id: 'cov-04',
+        type: 'cartoon',
+        artist: "Danilo Reyes",
+        approvedBy: "Raphael Luna (Cartoonist Head)",
+        image: "images/covers/press-freedom-cartoon.svg",
+        date: "Oct 21, 2026",
+        rawDate: "2026-10-21"
+      },
+      {
+        id: 'cov-05',
+        type: 'cartoon',
+        artist: "Bea Soriano",
+        approvedBy: "Raphael Luna (Cartoonist Head)",
+        image: "images/covers/faculty-overload-cartoon.svg",
+        date: "Oct 18, 2026",
+        rawDate: "2026-10-18"
+      },
+      {
+        id: 'cov-06',
+        type: 'cartoon',
+        artist: "Carlo Santos",
+        approvedBy: "Raphael Luna (Cartoonist Head)",
+        image: "images/covers/midnight-study-cartoon.svg",
+        date: "Oct 17, 2026",
+        rawDate: "2026-10-17"
+      }
+    ];
+
+    function showToast(msg, type = 'success') {
+      const container = document.getElementById('toast-box');
+      const toast = document.createElement('div');
+      toast.className = 'pointer-events-auto bg-slate-900 text-white text-xs font-semibold px-4 py-2.5 rounded-lg shadow-xl border border-slate-800 flex items-center gap-2 transform transition-all duration-200';
+      toast.innerHTML = `<span class="w-2 h-2 rounded-full ${type === 'success' ? 'bg-emerald-400' : 'bg-amber-400'}"></span><span>${msg}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(10px)';
+        setTimeout(() => toast.remove(), 250);
+      }, 3000);
+    }
+
+    function switchPortal(role) {
+      currentRole = role;
+      document.getElementById('role-exec-btn').className = role === 'Executive' ? 'px-3 py-1 font-semibold rounded-md bg-white text-[#5c0a18] shadow-sm transition' : 'px-3 py-1 font-semibold rounded-md text-slate-600 hover:text-slate-900 transition';
+      document.getElementById('role-eic-btn').className = role !== 'Executive' ? 'px-3 py-1 font-semibold rounded-md bg-white text-[#5c0a18] shadow-sm transition' : 'px-3 py-1 font-semibold rounded-md text-slate-600 hover:text-slate-900 transition';
+      
+      const badge = document.getElementById('topbar-role-badge');
+      if (badge) {
+        badge.textContent = role === 'Executive' ? 'President' : 'Editor-in-Chief';
+      }
+      showToast(`Switched active context to ${role} Portal`, 'success');
+    }
+
+    function switchTab(tab) {
+      currentTab = tab;
+      const bPub = document.getElementById('tab-pubmat-btn');
+      const bCar = document.getElementById('tab-cartoon-btn');
+      if (tab === 'pubmat') {
+        bPub.className = 'inline-flex items-center gap-2 pb-3 px-2 font-bold text-sm text-[#5c0a18] border-b-2 border-[#5c0a18] transition';
+        bCar.className = 'inline-flex items-center gap-2 pb-3 px-2 font-bold text-sm text-slate-500 border-b-2 border-transparent hover:text-slate-800 transition';
+      } else {
+        bCar.className = 'inline-flex items-center gap-2 pb-3 px-2 font-bold text-sm text-[#5c0a18] border-b-2 border-[#5c0a18] transition';
+        bPub.className = 'inline-flex items-center gap-2 pb-3 px-2 font-bold text-sm text-slate-500 border-b-2 border-transparent hover:text-slate-800 transition';
+      }
+      render();
+    }
+
+    function onSortChange(val) {
+      currentSort = val;
+      render();
+    }
+
+    function updateBadges() {
+      const pubCount = queue.filter(i => i.type === 'pubmat').length;
+      const carCount = queue.filter(i => i.type === 'cartoon').length;
+      document.getElementById('badge-pubmat').textContent = pubCount;
+      document.getElementById('badge-cartoon').textContent = carCount;
+    }
+
+    function render() {
+      updateBadges();
+      const container = document.getElementById('cards-container');
+      const emptyState = document.getElementById('empty-state');
+      
+      const filtered = queue
+        .filter(i => i.type === currentTab)
+        .sort((a,b) => currentSort === 'oldest' ? new Date(a.rawDate) - new Date(b.rawDate) : new Date(b.rawDate) - new Date(a.rawDate));
+
+      if (filtered.length === 0) {
+        container.innerHTML = '';
+        emptyState.classList.remove('hidden');
+        return;
+      }
+      emptyState.classList.add('hidden');
+
+      container.innerHTML = filtered.map(item => `
+        <div id="card-${item.id}" class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition flex flex-col">
+          <!-- Thumbnail Container (Click to Inspect) -->
+          <div onclick="openInspect('${item.id}')" class="relative aspect-video bg-slate-900 overflow-hidden cursor-pointer group flex items-center justify-center">
+            <img src="${item.image}" alt="Artwork Preview" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+            <div class="absolute inset-0 bg-slate-950/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white text-xs font-semibold gap-1.5">
+              <i class="fa-solid fa-magnifying-glass-plus"></i>
+              <span>Inspect Artwork</span>
+            </div>
+            <div class="absolute top-2.5 left-2.5">
+              <span class="px-2 py-0.5 text-[11px] font-extrabold uppercase rounded ${item.type === 'pubmat' ? 'bg-[#fdf2f2] text-[#5c0a18] border border-[#fde8e8]' : 'bg-slate-100 text-slate-700 border border-slate-200'}">
+                ${item.type.toUpperCase()}
+              </span>
+            </div>
+            <div class="absolute bottom-2.5 right-2.5 bg-slate-950/80 px-2 py-0.5 rounded text-[11px] text-white font-medium flex items-center gap-1">
+              <i class="fa-regular fa-calendar"></i>
+              <span>${item.date}</span>
+            </div>
+          </div>
+
+          <!-- Body: Provenance Only (Title Removed) -->
+          <div class="p-3.5 flex-1 flex flex-col justify-center">
+            <div class="bg-slate-50 border border-slate-100 rounded-lg p-2.5 space-y-1.5 text-xs">
+              <div class="flex items-center gap-1.5 text-slate-700">
+                <i class="fa-solid fa-paintbrush text-[#7a1f2e]"></i>
+                <span>Artist: <strong class="font-bold text-slate-900">${item.artist}</strong></span>
+              </div>
+              <div class="flex items-center gap-1.5 text-emerald-800 text-[11px] font-medium pt-0.5 border-t border-slate-100">
+                <i class="fa-solid fa-circle-check text-emerald-600"></i>
+                <span>Approved by: <strong class="font-semibold text-emerald-950">${item.approvedBy}</strong></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Footer Actions: Exactly 2 Balanced Buttons, No Clipping -->
+          <div class="p-3 bg-slate-50/70 border-t border-slate-100 flex items-center gap-2">
+            <button type="button" onclick="openRevision('${item.id}')" class="flex-1 py-2 rounded-lg border border-amber-500 text-amber-700 hover:bg-amber-50 text-xs font-bold inline-flex items-center justify-center gap-1.5 transition whitespace-nowrap">
+              <i class="fa-solid fa-rotate-left"></i>
+              <span>Return to Head</span>
+            </button>
+            <button type="button" onclick="approveItem('${item.id}')" class="flex-[1.25] py-2 rounded-lg bg-[#5c0a18] hover:bg-[#3e050f] text-white text-xs font-bold inline-flex items-center justify-center gap-1.5 transition shadow-sm whitespace-nowrap">
+              <i class="fa-solid fa-check"></i>
+              <span>Approve for M&amp;PC</span>
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function approveItem(id) {
+      const item = queue.find(i => i.id === id);
+      if (!item) return;
+      const card = document.getElementById(`card-${id}`);
+      if (card) {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(-8px) scale(0.97)';
+      }
+      setTimeout(() => {
+        queue = queue.filter(i => i.id !== id);
+        render();
+        showToast('Artwork approved and forwarded to M&PC.', 'success');
+      }, 220);
+    }
+
+    function openInspect(id) {
+      const item = queue.find(i => i.id === id);
+      if (!item) return;
+      activeInspectId = id;
+      document.getElementById('modal-img').src = item.image;
+      document.getElementById('modal-artist').textContent = item.artist;
+      document.getElementById('modal-head').textContent = item.approvedBy;
+      document.getElementById('modal-type-badge').textContent = item.type.toUpperCase();
+      document.getElementById('inspect-modal').classList.remove('hidden');
+    }
+
+    function closeInspectModal() {
+      document.getElementById('inspect-modal').classList.add('hidden');
+      activeInspectId = null;
+    }
+
+    function openRevisionFromInspect() {
+      const id = activeInspectId;
+      closeInspectModal();
+      openRevision(id);
+    }
+
+    function approveFromInspect() {
+      const id = activeInspectId;
+      closeInspectModal();
+      approveItem(id);
+    }
+
+    function openRevision(id) {
+      const item = queue.find(i => i.id === id);
+      if (!item) return;
+      activeReturnId = id;
+      document.getElementById('rev-head-name').textContent = item.approvedBy;
+      document.getElementById('rev-textarea').value = '';
+      document.getElementById('rev-textarea').classList.remove('border-red-500', 'bg-red-50');
+      document.getElementById('rev-error').classList.add('hidden');
+      document.getElementById('revision-modal').classList.remove('hidden');
+    }
+
+    function closeRevisionModal() {
+      document.getElementById('revision-modal').classList.add('hidden');
+      activeReturnId = null;
+    }
+
+    function confirmReturnToHead() {
+      const text = document.getElementById('rev-textarea').value.trim();
+      if (!text) {
+        document.getElementById('rev-error').classList.remove('hidden');
+        document.getElementById('rev-textarea').classList.add('border-red-500', 'bg-red-50');
+        document.getElementById('rev-textarea').focus();
+        return;
+      }
+      const targetId = activeReturnId;
+      const item = queue.find(i => i.id === targetId);
+      closeRevisionModal();
+      const card = document.getElementById(`card-${targetId}`);
+      if (card) {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(-8px) scale(0.97)';
+      }
+      setTimeout(() => {
+        queue = queue.filter(i => i.id !== targetId);
+        render();
+        showToast(`Artwork returned to ${item ? item.approvedBy : 'Section Head'} for revisions.`, 'warning');
+      }, 220);
+    }
+
+    // Initial render
+    render();
+  </script>
+</body>
+</html>

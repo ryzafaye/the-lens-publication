@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | The Lens Media &amp; Communication Portal</title>
+
+    <!-- Typography: DM Sans & Playfair Display -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,600;1,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Modular CSS Architecture -->
+    <link rel="stylesheet" href="css/executive-dashboard.css">
+    <link rel="stylesheet" href="css/executive-modals.css">
+    <link rel="stylesheet" href="css/writer-dashboard.css">
+    <link rel="stylesheet" href="css/media-manage-media.css">
+</head>
+<body class="dashboard-body">
+
+    <!-- ====================================================================== -->
+    <!-- DEDICATED MEDIA & COMMUNICATION SIDEBAR: Desktop Fixed Maroon (#5c0a18) -->
+    <!-- ====================================================================== -->
+    <aside id="sidebar" class="sidebar" aria-label="Media &amp; Communication Portal Sidebar">
+        
+        <div class="sidebar-top-section">
+            <!-- Brand Lockup -->
+            <div class="sidebar-header">
+                <div class="sidebar-brand-lockup">
+                    <div class="sidebar-logo-square">
+                        <img src="images/logo.jpg" alt="The Lens Logo">
+                    </div>
+                    <span class="sidebar-brand-name">The Lens Publication</span>
+                </div>
+            </div>
+
+            <!-- Profile Section -->
+            <div class="sidebar-profile">
+                <div class="profile-avatar">
+                    <img id="sidebar-avatar-img" src="images/member-placeholder.svg" alt="Media Team Avatar">
+                </div>
+                <div id="sidebar-user-name" class="profile-name">Alyssa Marie Dizon</div>
+                <div id="sidebar-user-role" class="profile-role-text">Media &amp; Communication</div>
+            </div>
+
+            <!-- Dedicated Media & Communication Navigation Links -->
+            <nav class="sidebar-nav" aria-label="Media Portal Navigation">
+                <a href="media-dashboard.html" class="sidebar-nav-item active">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </a>
+
+                <a href="media-submit-article.html" class="sidebar-nav-item">
+                    <i class="fa-solid fa-feather-pointed"></i>
+                    <span>Submit Article</span>
+                </a>
+
+                <a href="media-manage-articles.html" class="sidebar-nav-item">
+                    <i class="fa-regular fa-newspaper"></i>
+                    <span>Manage My Articles</span>
+                </a>
+
+                <a href="media-submit-media.html" class="sidebar-nav-item">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <span>Submit Media</span>
+                </a>
+
+                <a href="media-manage-media.html" class="sidebar-nav-item">
+                    <i class="fa-solid fa-images"></i>
+                    <span>Manage Media</span>
+                </a>
+            </nav>
+        </div>
+
+        <!-- Bottom of Sidebar: Profile Settings, View Public Site, Logout -->
+        <div class="sidebar-footer" id="sidebar-footer">
+            <a href="media-profile-settings.html" class="sidebar-footer-link">
+                <i class="fa-solid fa-sliders"></i>
+                <span>Profile Settings</span>
+            </a>
+
+            <a href="index.html" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                <span>View public site</span>
+            </a>
+
+            <button type="button" id="logout-btn" class="sidebar-footer-link logout-btn">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span>Logout</span>
+            </button>
+        </div>
+
+    </aside>
+
+    <!-- ====================================================================== -->
+    <!-- MAIN CONTENT AREA: Right                                              -->
+    <!-- ====================================================================== -->
+    <div class="main-wrapper">
+
+        <!-- Top Header Bar -->
+        <header class="topbar">
+            
+            <div class="topbar-left">
+                <div class="mobile-header-brand">
+                    <button type="button" id="mobile-hamburger-btn" class="mobile-hamburger-btn" aria-label="Toggle navigation menu" aria-expanded="false">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <div class="mobile-brand-lockup">
+                        <div class="mobile-logo-square">
+                            <img src="images/logo.jpg" alt="The Lens Logo">
+                        </div>
+                        <span class="mobile-brand-title">The Lens</span>
+                    </div>
+                </div>
+
+                <!-- Desktop Real-time Clock -->
+                <div class="topbar-clock">
+                    <i class="fa-regular fa-clock"></i>
+                    <span id="topbar-clock-display">Loading date &amp; time…</span>
+                </div>
+            </div>
+
+            <!-- Right Side: Notification + Circular Profile Picture + Role Badge -->
+            <div class="topbar-right">
+                <button type="button" class="topbar-notification-btn" aria-label="View notifications">
+                    <span class="notification-icon-wrapper">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="notification-badge-dot"></span>
+                    </span>
+                    <span class="notification-label">Notification</span>
+                </button>
+
+                <div class="topbar-divider"></div>
+
+                <div class="topbar-user-profile">
+                    <div class="topbar-avatar-circle" title="User Profile">
+                        <img id="topbar-avatar-img" src="images/member-placeholder.svg" alt="User Profile Picture">
+                    </div>
+                    <span id="topbar-user-role" class="topbar-role-badge">Media &amp; Communication</span>
+                </div>
+            </div>
+
+        </header>
+
+        <!-- Mobile Accordion Dropdown -->
+        <nav id="mobile-nav-dropdown" class="mobile-nav-dropdown" aria-label="Mobile Navigation Menu">
+            <div class="mobile-nav-profile">
+                <div class="mobile-nav-avatar">
+                    <img id="mobile-avatar-img" src="images/member-placeholder.svg" alt="Media Team Avatar">
+                </div>
+                <div class="mobile-nav-user-info">
+                    <div id="mobile-user-name" class="mobile-nav-name">Alyssa Marie Dizon</div>
+                    <div id="mobile-user-role" class="mobile-nav-role">Media &amp; Communication</div>
+                </div>
+            </div>
+
+            <div class="mobile-nav-links">
+                <a href="media-dashboard.html" class="mobile-nav-link active">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="media-submit-article.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-feather-pointed"></i>
+                    <span>Submit Article</span>
+                </a>
+                <a href="media-manage-articles.html" class="mobile-nav-link">
+                    <i class="fa-regular fa-newspaper"></i>
+                    <span>Manage My Articles</span>
+                </a>
+                <a href="media-submit-media.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <span>Submit Media</span>
+                </a>
+                <a href="media-manage-media.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-images"></i>
+                    <span>Manage Media</span>
+                </a>
+            </div>
+
+            <div class="mobile-nav-footer">
+                <a href="media-profile-settings.html" class="mobile-nav-footer-link">
+                    <i class="fa-solid fa-sliders"></i>
+                    <span>Profile Settings</span>
+                </a>
+                <a href="index.html" target="_blank" rel="noopener noreferrer" class="mobile-nav-footer-link">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    <span>View public site</span>
+                </a>
+                <button type="button" id="mobile-logout-btn" class="mobile-nav-footer-link mobile-logout-btn">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span>Logout</span>
+                </button>
+            </div>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="content-container">
+
+            <!-- Greeting Header with Dual Quick Action CTAs -->
+            <div class="writer-header-row animate-fade-in delay-1">
+                <div class="writer-header-left">
+                    <h1 class="writer-greeting" id="media-greeting-heading">
+                        Welcome back, <span id="media-name-display" class="writer-name-highlight">Alyssa</span>
+                    </h1>
+                </div>
+
+                <div class="writer-header-right" style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <a href="media-submit-media.html" class="btn-maroon-action">
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                        <span>Submit PUBMAT</span>
+                    </a>
+                    <a href="media-submit-article.html" class="btn-maroon-action">
+                        <i class="fa-solid fa-feather-pointed"></i>
+                        <span>New Article</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Metrics Row (Exact Copy of Executive Card Architecture) -->
+            <section class="metrics-grid animate-fade-in delay-2" style="grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); margin-bottom: 28px;" aria-label="Operational metrics">
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <span class="metric-label">Total PUBMATs Published</span>
+                        <div class="metric-icon-box">
+                            <i class="fa-solid fa-globe"></i>
+                        </div>
+                    </div>
+                    <div class="metric-value" id="stat-pubmats-published">0</div>
+                    <div class="metric-subtitle">Live across campus &amp; digital portals</div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <span class="metric-label">Total Pending Approvals</span>
+                        <div class="metric-icon-box">
+                            <i class="fa-regular fa-clock"></i>
+                        </div>
+                    </div>
+                    <div class="metric-value" id="stat-pending-approvals">0</div>
+                    <div class="metric-subtitle">Awaiting editorial verification</div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <span class="metric-label">Total in Media Library</span>
+                        <div class="metric-icon-box">
+                            <i class="fa-solid fa-images"></i>
+                        </div>
+                    </div>
+                    <div class="metric-value" id="stat-media-library">0</div>
+                    <div class="metric-subtitle">EIC Approved &amp; Published assets</div>
+                </div>
+            </section>
+
+            <!-- SECTION: MY RECENT MEDIA -->
+            <div class="writer-section-header animate-fade-in delay-3" style="margin-top: 16px;">
+                <div class="section-title-wrap">
+                    <h2 class="writer-section-title">My Recent Media</h2>
+                </div>
+
+                <a href="media-manage-media.html" class="view-all-link">
+                    <span>Manage all media</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </a>
+            </div>
+
+            <section class="manage-media-grid animate-fade-in delay-4" id="media-recent-grid" aria-label="Recent media submissions">
+                <!-- Populated dynamically by js/media-dashboard.js -->
+            </section>
+
+        </main>
+
+    </div>
+
+    <!-- ====================================================================== -->
+    <!-- MODAL: Full Media Inspect Modal                                        -->
+    <!-- ====================================================================== -->
+    <div id="media-inspect-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modal-inspect-status">
+        <div class="modal-card media-inspect-modal-card">
+            <div class="viewer-modal-header" style="padding: 14px 20px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span id="modal-inspect-category" class="media-card-category-chip maroon-category"><i class="fa-solid fa-tag"></i> Features</span>
+                    <span id="modal-inspect-status" class="media-status-pill pending-with-head">Pending with Head</span>
+                </div>
+                <button type="button" id="close-inspect-modal-btn" class="modal-close-icon" aria-label="Close modal">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="modal-body" style="padding: 20px; overflow-y: auto;">
+                <div class="media-inspect-preview-container">
+                    <img id="modal-inspect-img" src="" alt="Full Graphic Preview" class="media-inspect-img" onerror="this.onerror=null; this.src='images/covers/portal-pubmat.svg'">
+                </div>
+
+                <div style="margin-top: 14px;">
+                    <div style="display: flex; gap: 12px; font-size: 0.82rem; color: #64748b; flex-wrap: wrap;">
+                        <span><i class="fa-regular fa-calendar"></i> <span id="modal-inspect-date">Oct 24, 2026</span></span>
+                    </div>
+
+                    <div id="modal-inspect-remarks-box" class="media-review-note-box" style="display: none; margin-top: 14px;">
+                        <strong><i class="fa-solid fa-comment-dots"></i> Desk Revision Feedback:</strong>
+                        <span id="modal-inspect-remarks-text"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer" style="padding: 14px 20px; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; align-items: center; gap: 10px;">
+                <a href="media-manage-media.html" class="btn-maroon-action" style="font-size: 0.82rem; padding: 8px 16px;">
+                    <i class="fa-solid fa-images"></i>
+                    <span>Open in Manage Media</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/media-shell.js"></script>
+    <script src="js/media-data.js"></script>
+    <script src="js/media-dashboard.js"></script>
+</body>
+</html>
+

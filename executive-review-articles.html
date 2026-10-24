@@ -254,6 +254,34 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Category Tabs for Review Queue (Review by Category) -->
+                <div class="review-tabs-container" role="tablist" aria-label="Filter review queue by category">
+                    <button type="button" class="review-tab-btn active" data-category="all" role="tab" aria-selected="true">
+                        <span>All Categories</span>
+                        <span id="badge-review-all" class="review-tab-badge">0</span>
+                    </button>
+                    <button type="button" class="review-tab-btn" data-category="News" role="tab" aria-selected="false">
+                        <span>News</span>
+                        <span id="badge-review-news" class="review-tab-badge">0</span>
+                    </button>
+                    <button type="button" class="review-tab-btn" data-category="Opinions" role="tab" aria-selected="false">
+                        <span>Opinions</span>
+                        <span id="badge-review-opinions" class="review-tab-badge">0</span>
+                    </button>
+                    <button type="button" class="review-tab-btn" data-category="Features" role="tab" aria-selected="false">
+                        <span>Features</span>
+                        <span id="badge-review-features" class="review-tab-badge">0</span>
+                    </button>
+                    <button type="button" class="review-tab-btn" data-category="Science and Technology" role="tab" aria-selected="false">
+                        <span>SciTech</span>
+                        <span id="badge-review-scitech" class="review-tab-badge">0</span>
+                    </button>
+                    <button type="button" class="review-tab-btn" data-category="Literature" role="tab" aria-selected="false">
+                        <span>Literature</span>
+                        <span id="badge-review-literature" class="review-tab-badge">0</span>
+                    </button>
+                </div>
             </div>
 
             <!-- Responsive Horizontal List Card Container directly under header -->
@@ -299,6 +327,10 @@
                     <div class="manuscript-byline-author">
                         <i class="fa-solid fa-pen-nib" aria-hidden="true"></i>
                         <span>By <strong id="modal-writer">Author Name</strong></span>
+                    </div>
+                    <div class="manuscript-byline-endorser">
+                        <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+                        <span>Approved by Section Head: <strong id="modal-endorser">Elena Ramos (News Head)</strong></span>
                     </div>
                 </div>
 

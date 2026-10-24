@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submit Media | The Lens Media &amp; Public Communications</title>
+    
+    <!-- Typography: DM Sans & Playfair Display -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,600;1,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="css/executive-dashboard.css">
+    <link rel="stylesheet" href="css/executive-cover-review.css">
+    <link rel="stylesheet" href="css/executive-modals.css">
+    <link rel="stylesheet" href="css/mpc-submit-media.css">
+</head>
+<body class="dashboard-body">
+
+    <!-- ====================================================================== -->
+    <!-- M&PC SIDEBAR: Left - Desktop Fixed Full-Height Maroon (#5c0a18)         -->
+    <!-- ====================================================================== -->
+    <aside id="sidebar" class="sidebar" aria-label="Media &amp; Public Communications Portal Sidebar">
+        
+        <div class="sidebar-top-section">
+            <!-- Brand Lockup -->
+            <div class="sidebar-header">
+                <div class="sidebar-brand-lockup">
+                    <div class="sidebar-logo-square">
+                        <img src="images/logo.jpg" alt="The Lens Logo">
+                    </div>
+                    <span class="sidebar-brand-name">The Lens Publication</span>
+                </div>
+            </div>
+
+            <!-- Profile Section -->
+            <div class="sidebar-profile">
+                <div class="profile-avatar">
+                    <img id="sidebar-user-avatar" src="images/member-placeholder.svg" alt="Julian Del Rosario Avatar">
+                </div>
+                <div id="sidebar-user-name" class="profile-name">Julian Del Rosario</div>
+                <div id="sidebar-user-role" class="profile-role-text">M&amp;PC Head</div>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="sidebar-nav" aria-label="Main Navigation">
+                <a href="mpc-dashboard.html" class="sidebar-nav-item">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </a>
+
+                <a href="mpc-publish-article.html" class="sidebar-nav-item">
+                    <i class="fa-solid fa-globe"></i>
+                    <span>Publish Article</span>
+                </a>
+
+                <a href="mpc-media-desk.html" class="sidebar-nav-item">
+                    <i class="fa-regular fa-image"></i>
+                    <span>Media Desk</span>
+                </a>
+
+                <a href="mpc-submit-media.html" class="sidebar-nav-item active">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <span>Submit Media</span>
+                </a>
+
+                <a href="mpc-manage-my-articles.html" class="sidebar-nav-item">
+                    <i class="fa-solid fa-file-pen"></i>
+                    <span>Manage My Articles</span>
+                </a>
+
+                <a href="mpc-submit-article.html" class="sidebar-nav-item">
+                    <i class="fa-solid fa-feather-pointed"></i>
+                    <span>Submit article</span>
+                </a>
+
+                <a href="mpc-activity-logs.html" class="sidebar-nav-item" data-page="mpc-activity-logs.html">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <span>Activity log</span>
+                </a>
+
+                <a href="mpc-transparency.html" class="sidebar-nav-item">
+                    <i class="fa-solid fa-file-invoice-dollar"></i>
+                    <span>Transparency</span>
+                </a>
+            </nav>
+        </div>
+
+        <!-- Bottom of Sidebar: Profile Settings, View Public Site, Logout -->
+        <div class="sidebar-footer">
+            <a href="mpc-profile-settings.html" class="sidebar-footer-link">
+                <i class="fa-solid fa-sliders"></i>
+                <span>Profile Settings</span>
+            </a>
+
+            <a href="index.html" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                <span>View public site</span>
+            </a>
+
+            <button type="button" id="logout-btn" class="sidebar-footer-link logout-btn">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span>Logout</span>
+            </button>
+        </div>
+
+    </aside>
+
+    <!-- ====================================================================== -->
+    <!-- MAIN CONTENT AREA                                                      -->
+    <!-- ====================================================================== -->
+    <div class="main-wrapper">
+
+        <!-- Top Header Bar -->
+        <header class="topbar">
+            
+            <div class="topbar-left">
+                <div class="mobile-header-brand">
+                    <button type="button" id="mobile-hamburger-btn" class="mobile-hamburger-btn" aria-label="Toggle navigation menu" aria-expanded="false">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <div class="mobile-brand-lockup">
+                        <div class="mobile-logo-square">
+                            <img src="images/logo.jpg" alt="The Lens Logo">
+                        </div>
+                        <span class="mobile-brand-title">The Lens</span>
+                    </div>
+                </div>
+
+                <div class="topbar-clock">
+                    <i class="fa-regular fa-clock"></i>
+                    <span id="topbar-clock-display">Loading date &amp; time…</span>
+                </div>
+            </div>
+
+            <div class="topbar-right">
+                <button type="button" class="topbar-notification-btn" aria-label="Notifications">
+                    <div class="notification-icon-wrapper">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="notification-badge-dot"></span>
+                    </div>
+                    <span class="notification-label">Notification</span>
+                </button>
+
+                <div class="topbar-divider"></div>
+
+                <div class="topbar-user-profile">
+                    <div class="topbar-avatar-circle" title="User Profile">
+                        <img id="topbar-avatar-img" src="images/member-placeholder.svg" alt="User Profile Picture">
+                    </div>
+                    <span id="topbar-user-role" class="topbar-role-badge">M&amp;PC Head</span>
+                </div>
+            </div>
+
+        </header>
+
+        <!-- Mobile Navigation Dropdown -->
+        <nav id="mobile-nav-dropdown" class="mobile-nav-dropdown" aria-label="Mobile Navigation Menu">
+            <div class="mobile-nav-profile">
+                <div class="mobile-nav-avatar">
+                    <img src="images/member-placeholder.svg" alt="Julian Del Rosario Avatar">
+                </div>
+                <div class="mobile-nav-user-info">
+                    <div id="mobile-user-name" class="mobile-nav-name">Julian Del Rosario</div>
+                    <div id="mobile-user-role" class="mobile-nav-role">M&amp;PC Head</div>
+                </div>
+            </div>
+
+            <div class="mobile-nav-links">
+                <a href="mpc-dashboard.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="mpc-publish-article.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-globe"></i>
+                    <span>Publish Article</span>
+                </a>
+                <a href="mpc-media-desk.html" class="mobile-nav-link">
+                    <i class="fa-regular fa-image"></i>
+                    <span>Media Desk</span>
+                </a>
+                <a href="mpc-submit-media.html" class="mobile-nav-link active">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <span>Submit Media</span>
+                </a>
+                <a href="mpc-manage-my-articles.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-file-pen"></i>
+                    <span>Manage My Articles</span>
+                </a>
+                <a href="mpc-submit-article.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-feather-pointed"></i>
+                    <span>Submit article</span>
+                </a>
+                <a href="mpc-activity-logs.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <span>Activity log</span>
+                </a>
+                <a href="mpc-transparency.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-file-invoice-dollar"></i>
+                    <span>Transparency</span>
+                </a>
+                <a href="mpc-profile-settings.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-sliders"></i>
+                    <span>Profile Settings</span>
+                </a>
+                <a href="index.html" class="mobile-nav-link" target="_blank">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    <span>View public site</span>
+                </a>
+            </div>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="content-container">
+
+            <!-- Title (Clean without subtitle) -->
+            <div class="cover-page-header-section animate-fade-in delay-1" style="margin-bottom: 0;">
+                <h1 class="cover-page-title">Submit Media</h1>
+            </div>
+
+            <div class="submit-media-container">
+                
+                <!-- Navigation Tabs -->
+                <nav class="media-tabs-nav" role="tablist">
+                    <button type="button" class="media-tab-btn active" id="tab-upload-media" data-view="upload" role="tab" aria-selected="true">
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                        <span>Upload Media</span>
+                    </button>
+                    <button type="button" class="media-tab-btn" id="tab-my-media" data-view="submissions" role="tab" aria-selected="false">
+                        <i class="fa-solid fa-folder-open"></i>
+                        <span>My Submissions</span>
+                        <span id="badge-my-media-count" class="media-tab-badge">0</span>
+                    </button>
+                </nav>
+
+                <!-- VIEW 1: UPLOAD PUBMAT FORM -->
+                <div id="view-upload-media" class="media-view-pane">
+                    <form id="media-submission-form" novalidate>
+                        
+                        <div class="media-card">
+                            <div class="media-card-header" style="margin-bottom: 20px;">
+                                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                                    <h2 class="media-card-title" style="margin-bottom: 0;">
+                                        <i class="fa-solid fa-palette" style="color: var(--sidebar-maroon, #5c0a18);"></i>
+                                        <span>Submit Publication Material (PUBMAT)</span>
+                                    </h2>
+                                    <span class="cover-type-tag pubmat"><i class="fa-solid fa-palette"></i> PUBMAT ONLY</span>
+                                </div>
+                            </div>
+
+                            <!-- Dropzone & Centered Preview -->
+                            <div class="form-group media-upload-centered-group" style="align-items: center; text-align: center;">
+                                <div class="media-dropzone" id="media-dropzone" tabindex="0" role="button" aria-label="Drop PUBMAT file here or click to browse">
+                                    <div class="dropzone-icon-circle">
+                                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                                    </div>
+                                    <div class="dropzone-title">Click to upload or drag &amp; drop PUBMAT artwork</div>
+                                    <div class="dropzone-subtitle">High resolution SVG, PNG, JPG, or WEBP recommended (max 10MB)</div>
+                                </div>
+                                <input type="file" id="media-file-input" accept="image/png, image/jpeg, image/jpg, image/svg+xml, image/webp" style="display: none;" aria-label="PUBMAT File Input">
+
+                                <!-- Image Preview Box (Centered always, responsive to any size, no background) -->
+                                <div id="media-preview-container" class="media-preview-container" style="display: none;">
+                                    <div class="media-preview-wrapper">
+                                        <img id="media-preview-img" class="media-preview-img" src="" alt="Selected PUBMAT Preview">
+                                        <div class="media-preview-overlay">
+                                            <button type="button" id="btn-remove-preview" class="btn-remove-preview">
+                                                <i class="fa-solid fa-trash-can"></i>
+                                                <span>Remove</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- File Details Info Bar (shows when file loaded) -->
+                                <div id="media-file-info-bar" class="media-file-info-bar" style="display: none; align-items: center; justify-content: center; gap: 12px; padding: 12px 16px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; margin-top: 14px;">
+                                    <i class="fa-solid fa-file-image" style="color: var(--sidebar-maroon, #5c0a18); font-size: 1.1rem;"></i>
+                                    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                        <div id="media-file-name" style="font-size: 0.88rem; font-weight: 700; color: #1e293b;"></div>
+                                        <div id="media-file-size" style="font-size: 0.74rem; color: #64748b;"></div>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="media-actions-bar" style="margin-top: 24px; padding-top: 18px; border-top: 1px solid #eaecf0;">
+                                <button type="button" id="btn-save-draft" class="btn-media-draft">
+                                    <i class="fa-regular fa-floppy-disk"></i>
+                                    <span>Save Draft</span>
+                                </button>
+                                <button type="submit" id="btn-submit-media" class="btn-media-submit">
+                                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                                    <span>Submit Pubmat to Desk</span>
+                                </button>
+                            </div>
+
+                        </div>
+
+                    </form>
+                </div>
+
+                <!-- VIEW 2: MY SUBMISSIONS -->
+                <div id="view-my-submissions" class="media-view-pane" style="display: none;">
+                    <div id="submissions-grid" class="submissions-grid">
+                        <!-- Populated by js/mpc-submit-media.js -->
+                    </div>
+                    <div id="submissions-empty" class="cover-empty-state" style="display: none;">
+                        <i class="fa-regular fa-folder-open"></i>
+                        <h3>No Media Submissions Yet</h3>
+                        <p>Any pubmat, photos, or cartoons submitted through this desk will appear here.</p>
+                    </div>
+                </div>
+
+            </div>
+
+        </main>
+
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+    <!-- Scripts -->
+    <script src="js/mpc-shell.js"></script>
+    <script src="js/mpc-submit-media.js"></script>
+</body>
+</html>
+

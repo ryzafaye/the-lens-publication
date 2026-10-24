@@ -149,13 +149,96 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     ];
 
+    // Pending Review Queue Dataset & Persistence
+    const DEFAULT_PENDING_ARTICLES = [
+        {
+            id: 'rev-01',
+            title: "Student council financial audit reveals ₱320,000 unallocated surplus",
+            category: "News",
+            date: "Oct 18, 2026",
+            rawDate: "2026-10-18",
+            author: "Mara Villanueva",
+            status: "Pending",
+            readTime: "3 min read",
+            content: `An independent financial audit of the Central Student Council (CSC) expenditures for the first quarter of Academic Year 2026–2027 has revealed an unallocated surplus of ₱320,450 from the student activity development fund.\n\nThe findings, presented during an extraordinary collegiate assembly, prompted student leaders from the College of Science and College of Engineering to question why emergency welfare assistance programs were stalled earlier this term due to cited budgetary deficits.`
+        },
+        {
+            id: 'rev-02',
+            title: "Why the enrollment portal keeps timing out: A technical post-mortem",
+            category: "Science and Technology",
+            date: "Oct 18, 2026",
+            rawDate: "2026-10-18",
+            author: "Noah Reyes",
+            status: "Pending",
+            readTime: "4 min read",
+            content: `Every enlistment cycle, tens of thousands of university students endure hours of connection timeouts, 504 Gateway errors, and lost subject slots. An in-depth technical examination of the campus enrollment infrastructure reveals that database locking bottlenecks, rather than network bandwidth, remain the root cause.`
+        },
+        {
+            id: 'rev-03',
+            title: "Faculty union files formal grievance over proposed 24-unit overload directive",
+            category: "News",
+            date: "Oct 17, 2026",
+            rawDate: "2026-10-17",
+            author: "Rafael Ramos",
+            status: "Pending",
+            readTime: "3 min read",
+            content: `The University Faculty Association (UFA) has formally submitted a dispute grievance to the Office of the Vice President for Academic Affairs following administrative directives requiring full-time instructors to absorb up to 24 class teaching units without proportional overtime compensation.`
+        },
+        {
+            id: 'rev-04',
+            title: "The cost of compromise: Why student publication independence cannot be negotiated",
+            category: "Opinion",
+            date: "Oct 15, 2026",
+            rawDate: "2026-10-15",
+            author: "Paolo Santos",
+            status: "Pending",
+            readTime: "4 min read",
+            content: `When institutional administrators propose prior editorial review under the guise of 'brand alignment', the sacred covenant of campus journalism is under direct siege.`
+        },
+        {
+            id: 'rev-05',
+            title: "Inside the 24-hour night shift of university sanitation workers",
+            category: "Features",
+            date: "Oct 12, 2026",
+            rawDate: "2026-10-12",
+            author: "Lia Mendoza",
+            status: "Pending",
+            readTime: "5 min read",
+            content: `At 11:30 PM, long after the last student leaves the library and lecture lights flick off, an army of twenty-two custodial workers steps onto the silent campus grounds.`
+        },
+        {
+            id: 'rev-06',
+            title: "Echoes from the Quadrangle: Verses from the Midnight Study Hall",
+            category: "Literature",
+            date: "Oct 11, 2026",
+            rawDate: "2026-10-11",
+            author: "Camille Torres",
+            status: "Pending",
+            readTime: "2 min read",
+            content: `The hum of fluorescent tubes,\nthe rustle of photocopied notes,\nshadows stretching across tiled floorboards,\nwhile the city sleeps in heavy coats.`
+        }
+    ];
+
+    function getPendingQueue() {
+        try {
+            const raw = localStorage.getItem('executivePendingReviewQueue') || localStorage.getItem('eicPendingReviewQueue');
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+            }
+        } catch (e) {
+            console.warn('Could not read pending review queue', e);
+        }
+        return JSON.parse(JSON.stringify(DEFAULT_PENDING_ARTICLES));
+    }
+
     function getStatusBadgeHtml(status) {
         const lower = (status || 'approved').toLowerCase();
         if (lower === 'approved' || lower === 'published') {
             return `<span class="status-badge status-approved">Approved</span>`;
         }
-        if (lower === 'in review' || lower === 'review') {
-            return `<span class="status-badge status-review">In Review</span>`;
+        if (lower === 'in review' || lower === 'review' || lower === 'pending') {
+            return `<span class="status-badge status-review">Pending</span>`;
         }
         return `<span class="status-badge status-draft">Draft</span>`;
     }
@@ -166,6 +249,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderDashboard() {
         const activeArticles = articles.filter(a => !a.isArchived);
         const totalViews = activeArticles.reduce((sum, a) => sum + (Number(a.views) || 0), 0);
+        const pendingList = getPendingQueue();
 
         // A. Metrics Cards (4 Cards)
         const metricsContainer = document.getElementById('metrics-grid');
@@ -173,8 +257,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const metrics = [
                 {
                     label: "Pending Approvals",
-                    value: "7",
-                    subtitle: "Awaiting EIC / Pres review",
+                    value: String(pendingList.length),
+                    subtitle: "Awaiting editorial review",
                     icon: "fa-regular fa-clock",
                     delayClass: "delay-1"
                 },
@@ -193,9 +277,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     delayClass: "delay-3"
                 },
                 {
-                    label: "Total Articles",
+                    label: "Published Stories",
                     value: String(activeArticles.length),
-                    subtitle: `Published this ${currentMonthName}`,
+                    subtitle: "Total overall published",
                     icon: "fa-regular fa-newspaper",
                     delayClass: "delay-4"
                 }
@@ -239,7 +323,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             activityContainer.innerHTML = logsToDisplay.map(item => `
-                <div class="activity-item" onclick="window.location.href='activity-logs.html'" style="cursor: pointer;" title="Open Activity Log">
+                <div class="activity-item" onclick="window.location.href='executive-activity-logs.html'" style="cursor: pointer;" title="Open Activity Log">
                     <div class="activity-avatar">
                         <img src="${item.avatar}" alt="${escapeHTML(item.user)}">
                     </div>
@@ -253,7 +337,7 @@ document.addEventListener('DOMContentLoaded', () => {
             `).join('');
         }
 
-        // C. Recent Submissions (Top 5 Table with Direct Modal View Trigger)
+        // C. Pending Approval (Top 5 Table with Direct Modal View Trigger)
         const tableBody = document.getElementById('submissions-table-body');
         
         function formatSectionBadgeHtml(category) {
@@ -270,23 +354,35 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (tableBody) {
-            const submissions = [...activeArticles]
-                .sort((a, b) => new Date(b.rawDate) - new Date(a.rawDate))
-                .slice(0, 5);
+            const topPending = pendingList.slice(0, 5);
 
-            tableBody.innerHTML = submissions.map(art => `
-                <tr>
-                    <td>
-                        <button type="button" class="table-article-btn" data-action="view" data-id="${art.id}" title="${escapeHTML(art.title)}">
-                            ${escapeHTML(art.title)}
-                        </button>
-                    </td>
-                    <td><span class="table-author">${escapeHTML(art.author)}</span></td>
-                    <td class="hide-on-mobile">${formatSectionBadgeHtml(art.category)}</td>
-                    <td>${getStatusBadgeHtml('Approved')}</td>
-                    <td class="hide-on-mobile"><span class="table-date">${escapeHTML(art.date)}</span></td>
-                </tr>
-            `).join('');
+            if (topPending.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 24px; color: var(--text-muted, #667085);">No pending submissions awaiting review.</td></tr>`;
+            } else {
+                tableBody.innerHTML = topPending.map(art => `
+                    <tr>
+                        <td>
+                            <div class="table-article-info">
+                                <button type="button" class="table-article-btn" data-action="view" data-id="${escapeHTML(art.id)}" title="${escapeHTML(art.title)}">
+                                    ${escapeHTML(art.title)}
+                                </button>
+                                <div class="table-author-subline">
+                                    <i class="fa-solid fa-pen-nib"></i>
+                                    <span>${escapeHTML(art.author)}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="hide-on-mobile">${formatSectionBadgeHtml(art.category)}</td>
+                        <td><span class="status-badge status-review">Pending</span></td>
+                        <td class="hide-on-mobile"><span class="table-date">${escapeHTML(art.date)}</span></td>
+                        <td class="text-right">
+                            <a href="executive-review-articles.html" class="table-manage-btn" title="Review Article">
+                                Manage
+                            </a>
+                        </td>
+                    </tr>
+                `).join('');
+            }
         }
 
         // D. Most Viewed Articles (Top 3 by Views: Category ABOVE title in maroon, Title in middle, Author below)
@@ -403,22 +499,35 @@ document.addEventListener('DOMContentLoaded', () => {
     // Article Viewer Modal Logic
     // -------------------------------------------------------------------------
     function openArticleViewer(id) {
-        const article = articles.find(a => a.id === id);
+        const pendingList = getPendingQueue();
+        const article = articles.find(a => String(a.id) === String(id)) ||
+                        pendingList.find(a => String(a.id) === String(id));
         if (!article || !viewerModal) return;
 
-        currentViewingArticleId = id;
+        currentViewingArticleId = article.id;
 
         // Populate metadata
         if (viewerTitle) viewerTitle.textContent = article.title;
         if (viewerCategory) viewerCategory.textContent = article.category;
         if (viewerDate) viewerDate.textContent = article.date;
         if (viewerAuthor) viewerAuthor.textContent = article.author;
-        if (viewerReadTime) viewerReadTime.textContent = article.readTime || '2 min read';
-        if (viewerViews) viewerViews.textContent = Number(article.views || 0).toLocaleString();
-        if (viewerShares) viewerShares.textContent = Number(article.shares || 0).toLocaleString();
+        if (viewerReadTime) viewerReadTime.textContent = article.readTime || '3 min read';
+        if (viewerViews) viewerViews.textContent = article.views !== undefined ? Number(article.views).toLocaleString() : '—';
+        if (viewerShares) viewerShares.textContent = article.shares !== undefined ? Number(article.shares).toLocaleString() : '—';
+
+        const isPublishedStory = articles.some(a => String(a.id) === String(article.id));
 
         if (viewerArchiveLabel) {
-            viewerArchiveLabel.textContent = article.isArchived ? 'Restore Article' : 'Move to Archive';
+            if (isPublishedStory) {
+                viewerArchiveLabel.textContent = article.isArchived ? 'Restore Article' : 'Move to Archive';
+                if (viewerActionArchive) viewerActionArchive.style.display = 'inline-flex';
+            } else {
+                if (viewerActionArchive) viewerActionArchive.style.display = 'none';
+            }
+        }
+
+        if (viewerActionDelete) {
+            viewerActionDelete.style.display = isPublishedStory ? 'inline-flex' : 'none';
         }
 
         // Paragraphs
@@ -644,23 +753,17 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('click', (e) => {
         // 1. Direct [data-action="view"] button or link
         const viewTrigger = e.target.closest('[data-action="view"]');
-        if (viewTrigger) {
+        if (viewTrigger && viewTrigger.dataset.id) {
             e.preventDefault();
             e.stopPropagation();
-            const id = parseInt(viewTrigger.dataset.id, 10);
-            if (!isNaN(id)) {
-                openArticleViewer(id);
-                return;
-            }
+            openArticleViewer(viewTrigger.dataset.id);
+            return;
         }
 
         // 2. Click anywhere inside a ranked item in Most Viewed Articles
         const rankedItem = e.target.closest('.ranked-item');
-        if (rankedItem) {
-            const id = parseInt(rankedItem.dataset.articleId, 10);
-            if (!isNaN(id)) {
-                openArticleViewer(id);
-            }
+        if (rankedItem && rankedItem.dataset.articleId) {
+            openArticleViewer(rankedItem.dataset.articleId);
         }
     });
 

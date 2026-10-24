@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="100%" height="100%">
+  <defs>
+    <linearGradient id="cyberBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a192f"/>
+      <stop offset="50%" stop-color="#0f2b46"/>
+      <stop offset="100%" stop-color="#030b14"/>
+    </linearGradient>
+    <linearGradient id="neonCyan" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#06b6d4"/>
+      <stop offset="100%" stop-color="#3b82f6"/>
+    </linearGradient>
+  </defs>
+  <!-- Background -->
+  <rect width="800" height="500" fill="url(#cyberBg)"/>
+  
+  <!-- Cyber Circuit Elements -->
+  <circle cx="680" cy="120" r="140" fill="none" stroke="rgba(6,182,212,0.15)" stroke-width="2"/>
+  <circle cx="680" cy="120" r="80" fill="none" stroke="rgba(6,182,212,0.25)" stroke-dasharray="6,6"/>
+
+  <!-- Badge -->
+  <rect x="60" y="70" width="140" height="28" rx="4" fill="url(#neonCyan)"/>
+  <text x="130" y="89" fill="#030b14" font-family="'DM Sans', sans-serif" font-weight="800" font-size="12" text-anchor="middle" letter-spacing="1">SCITECH ANALYSIS</text>
+
+  <!-- Title -->
+  <text x="60" y="150" fill="#ffffff" font-family="'Playfair Display', serif" font-weight="800" font-size="34">504 GATEWAY TIMEOUT</text>
+  <text x="60" y="190" fill="rgba(255,255,255,0.8)" font-family="'DM Sans', sans-serif" font-size="17">Inside the Campus Enrollment Database Deadlocks</text>
+
+  <!-- Code/Terminal Visual Card -->
+  <rect x="60" y="230" width="680" height="175" rx="10" fill="rgba(3,11,20,0.8)" stroke="rgba(6,182,212,0.3)" stroke-width="1.5"/>
+  <circle cx="85" cy="255" r="6" fill="#ef4444"/>
+  <circle cx="105" cy="255" r="6" fill="#f59e0b"/>
+  <circle cx="125" cy="255" r="6" fill="#10b981"/>
+  <line x1="60" y1="275" x2="740" y2="275" stroke="rgba(255,255,255,0.1)"/>
+  
+  <text x="85" y="310" fill="#06b6d4" font-family="monospace" font-size="15">&gt; SELECT slot FROM enrollment_sections WHERE course_id = 'GE-101' FOR UPDATE;</text>
+  <text x="85" y="340" fill="#f43f5e" font-family="monospace" font-size="14">[ERROR 1205] Lock wait timeout exceeded; try restarting transaction (45,210 ms)</text>
+  <text x="85" y="375" fill="#10b981" font-family="monospace" font-size="13">Proposal: Cloud session containerization • Target Latency &lt; 400ms</text>
+
+  <!-- Footer -->
+  <text x="60" y="455" fill="rgba(255,255,255,0.5)" font-family="'DM Sans', sans-serif" font-size="12" font-weight="600">THE LENS • SCIENCE &amp; TECHNOLOGY DESK</text>
+</svg>

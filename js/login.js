@@ -24,6 +24,18 @@ document.addEventListener('DOMContentLoaded', () => {
         "2024-00053-BN-0": { role: "Feature Head", name: "Bianca Rose Flores", section: "Features", isWriter: false, isSectionHead: true },
         "2024-00054-BN-0": { role: "Literature Head", name: "Carlos Joaquin Luna", section: "Literature", isWriter: false, isSectionHead: true },
 
+        // Editorial Board / Editors-in-Chief (EIC)
+        "2024-00010-BN-0": { role: "Editorial-In-Chief", name: "Victoria Reyes", isWriter: false, isSectionHead: false, isEIC: true },
+        "2024-00011-BN-0": { role: "Associate Editor-in-Chief", name: "Marcus Vance", isWriter: false, isSectionHead: false, isEIC: true },
+
+        // Media & Public Communications (M&PC Heads)
+        "2024-00020-BN-0": { role: "M&PC Head", name: "Julian Del Rosario", isWriter: false, isSectionHead: false, isMPC: true },
+        "2024-00021-BN-0": { role: "Assoc M&PC Head", name: "Samantha Cruz", isWriter: false, isSectionHead: false, isMPC: true },
+
+        // Media & Communication Team
+        "2024-00080-BN-0": { role: "Media & Communication", name: "Alyssa Marie Dizon", isMedia: true, isWriter: false, isSectionHead: false },
+        "2024-00081-BN-0": { role: "Media & Communication", name: "Joshua Kenneth Tan", isMedia: true, isWriter: false, isSectionHead: false },
+
         // Staff Writers
         "2024-00101-BN-0": { role: "Writer", name: "Sofia M. Alcaraz", writerId: "sofia-alcaraz", isWriter: true, isSectionHead: false },
         "2024-00102-BN-0": { role: "Writer", name: "Marco L. Valderrama", writerId: "marco-valderrama", isWriter: true, isSectionHead: false },
@@ -107,15 +119,30 @@ document.addEventListener('DOMContentLoaded', () => {
         const isPasswordCorrect = (passVal === REQUIRED_PASSWORD);
 
         if (account && isPasswordCorrect) {
-            // Determine role persona: Writer, Section Head, or Executive
-            const isWriter = account.isWriter || account.role.toLowerCase().includes('writer') || account.role.toLowerCase().includes('contributor');
-            const isSectionHead = account.isSectionHead || account.role.toLowerCase().includes('head');
+            // Determine role persona: Media Team, Writer, Section Head, EIC, MPC, or Executive
+            const isMedia = account.isMedia || (!account.isMPC && (account.role.toLowerCase().includes('media & communication') || account.role.toLowerCase().includes('media and communication')));
+            const isMPC = (account.isMPC || account.role.toLowerCase().includes('m&pc') || (account.role.toLowerCase().includes('media') && account.role.toLowerCase().includes('head'))) && !isMedia;
+            const isWriter = !isMedia && (account.isWriter || account.role.toLowerCase().includes('writer') || account.role.toLowerCase().includes('contributor'));
+            const isEIC = account.isEIC || account.role.toLowerCase().includes('chief') || account.role.toLowerCase().includes('eic');
+            const isSectionHead = !isMedia && (account.isSectionHead || (account.role.toLowerCase().includes('head') && !account.role.toLowerCase().includes('chief') && !account.role.toLowerCase().includes('communications') && !account.role.toLowerCase().includes('media') && !account.role.toLowerCase().includes('m&pc')));
 
             let targetPage = 'executive-dashboard.html';
             let portalName = 'Executive Dashboard';
 
             // Fully isolate session storage per persona to prevent data bleed
-            if (isWriter) {
+            if (isMedia) {
+                targetPage = 'media-dashboard.html';
+                portalName = 'Media & Communication Dashboard';
+                localStorage.setItem('userRole', account.role || 'Media & Communication');
+                localStorage.setItem('userName', account.name);
+                localStorage.setItem('studentNumber', studentVal);
+                localStorage.setItem('mediaRole', account.role || 'Media & Communication');
+                localStorage.setItem('mediaName', account.name);
+                localStorage.setItem('mediaStudentNumber', studentVal);
+                localStorage.setItem('mediaId', account.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'));
+                const avatar = localStorage.getItem('mediaAvatar') || 'images/member-placeholder.svg';
+                localStorage.setItem('userAvatar', avatar);
+            } else if (isWriter) {
                 targetPage = 'writer-dashboard.html';
                 portalName = 'Writer Dashboard';
                 localStorage.setItem('userRole', 'Writer');
@@ -138,6 +165,28 @@ document.addEventListener('DOMContentLoaded', () => {
                 localStorage.setItem('sectionHeadSection', account.section || 'General');
                 localStorage.setItem('sectionHeadStudentNumber', studentVal);
                 const avatar = localStorage.getItem('sectionHeadAvatar') || 'images/member-placeholder.svg';
+                localStorage.setItem('userAvatar', avatar);
+            } else if (isEIC) {
+                targetPage = 'eic-dashboard.html';
+                portalName = 'Editor-in-Chief Dashboard';
+                localStorage.setItem('userRole', account.role);
+                localStorage.setItem('userName', account.name);
+                localStorage.setItem('studentNumber', studentVal);
+                localStorage.setItem('eicRole', account.role);
+                localStorage.setItem('eicName', account.name);
+                localStorage.setItem('eicStudentNumber', studentVal);
+                const avatar = localStorage.getItem('eicAvatar') || 'images/member-placeholder.svg';
+                localStorage.setItem('userAvatar', avatar);
+            } else if (isMPC) {
+                targetPage = 'mpc-dashboard.html';
+                portalName = 'Media & Public Communications Dashboard';
+                localStorage.setItem('userRole', account.role);
+                localStorage.setItem('userName', account.name);
+                localStorage.setItem('studentNumber', studentVal);
+                localStorage.setItem('mpcRole', account.role);
+                localStorage.setItem('mpcName', account.name);
+                localStorage.setItem('mpcStudentNumber', studentVal);
+                const avatar = localStorage.getItem('mpcAvatar') || 'images/member-placeholder.svg';
                 localStorage.setItem('userAvatar', avatar);
             } else {
                 targetPage = 'executive-dashboard.html';

@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Articles &amp; Archives | The Lens Editor-in-Chief Portal</title>
+
+    <!-- Typography & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,600;1,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Executive Dashboard Core Styles & Manage Articles Specific Styles -->
+    <link rel="stylesheet" href="css/executive-dashboard.css">
+    <link rel="stylesheet" href="css/executive-manage-articles.css">
+    <link rel="stylesheet" href="css/executive-modals.css">
+</head>
+<body class="dashboard-body">
+
+    <!-- ====================================================================== -->
+    <!-- SIDEBAR: Left - Desktop Fixed Full-Height Maroon (#5c0a18)             -->
+    <!-- ====================================================================== -->
+    <aside id="sidebar" class="sidebar" aria-label="Editor-in-Chief Portal Sidebar">
+        
+        <div class="sidebar-top-section">
+            <!-- Sidebar Header with Square Logo & "The Lens Publication" -->
+            <div class="sidebar-header">
+                <div class="sidebar-brand-lockup">
+                    <div class="sidebar-logo-square">
+                        <img src="images/logo.jpg" alt="The Lens Logo">
+                    </div>
+                    <span class="sidebar-brand-name">The Lens Publication</span>
+                </div>
+            </div>
+
+            <!-- Profile Section -->
+            <div class="sidebar-profile">
+                <div class="profile-avatar">
+                    <img id="sidebar-user-avatar" src="images/member-placeholder.svg" alt="Victoria Reyes Avatar">
+                </div>
+                <div id="sidebar-user-name" class="profile-name">Victoria Reyes</div>
+                <div id="sidebar-user-role" class="profile-role-text">Editor-in-Chief</div>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="sidebar-nav" aria-label="Main Navigation">
+                <a href="eic-dashboard.html" class="sidebar-nav-item">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </a>
+
+                <a href="eic-manage-articles.html" class="sidebar-nav-item active">
+                    <i class="fa-regular fa-newspaper"></i>
+                    <span>Manage Articles</span>
+                </a>
+
+                <a href="eic-manage-my-articles.html" class="sidebar-nav-item">
+                    <i class="fa-solid fa-file-pen"></i>
+                    <span>Manage My Articles</span>
+                </a>
+
+                <a href="eic-review-articles.html" class="sidebar-nav-item">
+                    <i class="fa-solid fa-clipboard-check"></i>
+                    <span>Review Article</span>
+                </a>
+
+                <a href="eic-submit-article.html" class="sidebar-nav-item">
+                    <i class="fa-solid fa-feather-pointed"></i>
+                    <span>Submit article</span>
+                </a>
+
+                <a href="eic-manage-accounts.html" class="sidebar-nav-item">
+                    <i class="fa-solid fa-user-group"></i>
+                    <span>Manage Accounts</span>
+                </a>
+
+                <a href="eic-activity-logs.html" class="sidebar-nav-item" data-page="eic-activity-logs.html">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <span>Activity log</span>
+                </a>
+
+                <a href="eic-transparency.html" class="sidebar-nav-item">
+                    <i class="fa-solid fa-file-invoice-dollar"></i>
+                    <span>Transparency</span>
+                </a>
+
+                <a href="eic-feedback-inbox.html" class="sidebar-nav-item">
+                    <i class="fa-regular fa-comments"></i>
+                    <span>Feedback</span>
+                </a>
+            </nav>
+        </div>
+
+        <!-- Bottom of Sidebar: Profile Settings, View Public Site, Logout -->
+        <div class="sidebar-footer">
+            <a href="eic-profile-settings.html" class="sidebar-footer-link">
+                <i class="fa-solid fa-sliders"></i>
+                <span>Profile Settings</span>
+            </a>
+
+            <a href="index.html" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                <span>View public site</span>
+            </a>
+
+            <button type="button" id="logout-btn" class="sidebar-footer-link logout-btn">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span>Logout</span>
+            </button>
+        </div>
+
+    </aside>
+
+    <!-- ====================================================================== -->
+    <!-- MAIN CONTENT AREA: Right                                              -->
+    <!-- ====================================================================== -->
+    <div class="main-wrapper">
+
+        <!-- Top Header Bar -->
+        <header class="topbar">
+            
+            <!-- Left Side: Mobile Hamburger on LEFT before Logo + The Lens (Desktop shows Date & Time) -->
+            <div class="topbar-left">
+                <div class="mobile-header-brand">
+                    <button type="button" id="mobile-hamburger-btn" class="mobile-hamburger-btn" aria-label="Toggle navigation menu" aria-expanded="false">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <div class="mobile-brand-lockup">
+                        <div class="mobile-logo-square">
+                            <img src="images/logo.jpg" alt="The Lens Logo">
+                        </div>
+                        <span class="mobile-brand-title">The Lens</span>
+                    </div>
+                </div>
+
+                <!-- Desktop Real-time Clock (Hidden on mobile) -->
+                <div class="topbar-clock">
+                    <i class="fa-regular fa-clock"></i>
+                    <span id="topbar-clock-display">Loading date &amp; time…</span>
+                </div>
+            </div>
+
+            <!-- Right Side: Notification + Circular Profile Picture + Small Role Badge -->
+            <div class="topbar-right">
+                <!-- Notification Bell -->
+                <button type="button" class="topbar-notification-btn" aria-label="View notifications">
+                    <span class="notification-icon-wrapper">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="notification-badge-dot"></span>
+                    </span>
+                    <span class="notification-label">Notification</span>
+                </button>
+
+                <div class="topbar-divider"></div>
+
+                <!-- User Profile Lockup: Circular Profile Picture + Small Role Badge -->
+                <div class="topbar-user-profile">
+                    <div class="topbar-avatar-circle" title="User Profile">
+                        <img src="images/member-placeholder.svg" alt="User Profile Picture">
+                    </div>
+                    <span id="topbar-user-role" class="topbar-role-badge">Editor-in-Chief</span>
+                </div>
+            </div>
+
+        </header>
+
+        <!-- Mobile Navigation Dropdown -->
+        <nav id="mobile-nav-dropdown" class="mobile-nav-dropdown" aria-label="Mobile Navigation Menu">
+            <div class="mobile-nav-profile">
+                <div class="mobile-nav-avatar">
+                    <img src="images/member-placeholder.svg" alt="Victoria Reyes Avatar">
+                </div>
+                <div class="mobile-nav-user-info">
+                    <div id="mobile-user-name" class="mobile-nav-name">Victoria Reyes</div>
+                    <div id="mobile-user-role" class="mobile-nav-role">Editor-in-Chief</div>
+                </div>
+            </div>
+
+            <div class="mobile-nav-links">
+                <a href="eic-dashboard.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="eic-manage-articles.html" class="mobile-nav-link active">
+                    <i class="fa-regular fa-newspaper"></i>
+                    <span>Manage Articles</span>
+                </a>
+                <a href="eic-manage-my-articles.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-file-pen"></i>
+                    <span>Manage My Articles</span>
+                </a>
+                <a href="eic-review-articles.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-clipboard-check"></i>
+                    <span>Review Article</span>
+                </a>
+                <a href="eic-submit-article.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-feather-pointed"></i>
+                    <span>Submit article</span>
+                </a>
+                <a href="eic-manage-accounts.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-user-group"></i>
+                    <span>Manage Accounts</span>
+                </a>
+                <a href="eic-activity-logs.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <span>Activity log</span>
+                </a>
+                <a href="eic-transparency.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-file-invoice-dollar"></i>
+                    <span>Transparency</span>
+                </a>
+                <a href="eic-feedback-inbox.html" class="mobile-nav-link">
+                    <i class="fa-regular fa-comments"></i>
+                    <span>Feedback</span>
+                </a>
+            </div>
+
+            <div class="mobile-nav-footer">
+                <a href="eic-profile-settings.html" class="mobile-nav-footer-link">
+                    <i class="fa-solid fa-sliders"></i>
+                    <span>Profile Settings</span>
+                </a>
+                <a href="index.html" target="_blank" rel="noopener noreferrer" class="mobile-nav-footer-link">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    <span>View public site</span>
+                </a>
+                <button type="button" id="mobile-logout-btn" class="mobile-nav-footer-link mobile-logout-btn">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span>Logout</span>
+                </button>
+            </div>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="content-container">
+
+            <!-- Page Header & Title Section -->
+            <div class="page-title-section animate-fade-in delay-1">
+                <h1 class="page-title">Manage Articles &amp; Archives</h1>
+            </div>
+
+            <!-- Tabs Navigation (Active Articles vs. Archived Articles) -->
+            <div class="manage-tabs-container animate-fade-in delay-2">
+                <button type="button" id="tab-active-btn" class="manage-tab-btn active" data-tab="active">
+                    <i class="fa-regular fa-newspaper"></i>
+                    <span>Active Articles</span>
+                    <span id="badge-active-count" class="tab-count-badge">0</span>
+                </button>
+                <button type="button" id="tab-archived-btn" class="manage-tab-btn" data-tab="archived">
+                    <i class="fa-solid fa-box-archive"></i>
+                    <span>Archived Articles</span>
+                    <span id="badge-archived-count" class="tab-count-badge">0</span>
+                </button>
+            </div>
+
+            <!-- Search & Filter Toolbar -->
+            <div class="manage-toolbar animate-fade-in delay-2">
+                
+                <!-- Search Bar -->
+                <div class="manage-search-shell">
+                    <i class="fa-solid fa-magnifying-glass search-leading-icon" aria-hidden="true"></i>
+                    <input type="search" id="manage-search-input" class="manage-search-input" placeholder="Search by article title or author..." aria-label="Search by article title or author" autocomplete="off">
+                    <button type="button" id="clear-search-btn" class="clear-search-icon hidden" title="Clear search">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <!-- Sort & Filter Dropdown Trigger & Popup -->
+                <div class="sort-filter-wrapper">
+                    <button type="button" id="sort-filter-btn" class="sort-filter-btn" aria-expanded="false" aria-controls="filter-dropdown">
+                        <i class="fa-solid fa-sliders" aria-hidden="true"></i>
+                        <span>Sort &amp; Filter</span>
+                        <span id="filter-active-dot" class="filter-active-indicator hidden" title="Filters active"></span>
+                        <i class="fa-solid fa-chevron-down filter-chevron" aria-hidden="true"></i>
+                    </button>
+
+                    <!-- Exact Public Site Filter Dropdown Popup -->
+                    <div id="filter-dropdown" class="filter-dropdown hidden">
+                        <div class="filter-panel-heading">
+                            <span>Sort &amp; Filter</span>
+                            <button type="button" id="close-filter-btn" class="icon-button" aria-label="Close filters">
+                                <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                        <div class="filter-grid">
+                            <div class="filter-field">
+                                <label for="sort-select">Sort by</label>
+                                <select id="sort-select" class="archive-select">
+                                    <option value="newest">Newest</option>
+                                    <option value="oldest">Oldest</option>
+                                    <option value="popular">Most Viewed</option>
+                                    <option value="az">A-Z</option>
+                                </select>
+                            </div>
+                            <div class="filter-field">
+                                <label for="category-select">Category</label>
+                                <select id="category-select" class="archive-select">
+                                    <option value="All">All categories</option>
+                                    <option value="News">News</option>
+                                    <option value="Features">Features</option>
+                                    <option value="Opinion">Opinion</option>
+                                    <option value="Science and Technology">Science &amp; Technology</option>
+                                    <option value="Literature">Literature</option>
+                                </select>
+                            </div>
+                            <div class="filter-field filter-date-field">
+                                <label for="date-filter-type">Published date</label>
+                                <div class="published-date-controls">
+                                    <select id="date-filter-type" class="archive-select">
+                                        <option value="any">Any date</option>
+                                        <option value="today">Today</option>
+                                        <option value="this_week">This week</option>
+                                        <option value="choose">Choose date</option>
+                                    </select>
+                                    <div class="date-filter-selects" id="date-filter-value-wrap" hidden>
+                                        <select id="date-month-select" class="archive-select date-filter-select" aria-label="Month" disabled>
+                                            <option value="">Month</option>
+                                            <option value="1">Jan</option><option value="2">Feb</option><option value="3">Mar</option>
+                                            <option value="4">Apr</option><option value="5">May</option><option value="6">Jun</option>
+                                            <option value="7">Jul</option><option value="8">Aug</option><option value="9">Sep</option>
+                                            <option value="10">Oct</option><option value="11">Nov</option><option value="12">Dec</option>
+                                        </select>
+                                        <select id="date-day-select" class="archive-select date-filter-select" aria-label="Day" disabled>
+                                            <option value="">Day</option>
+                                            <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option>
+                                            <option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option>
+                                            <option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option>
+                                            <option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option>
+                                            <option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option>
+                                            <option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option>
+                                            <option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option>
+                                            <option value="29">29</option><option value="30">30</option><option value="31">31</option>
+                                        </select>
+                                        <select id="date-year-select" class="archive-select date-filter-select" aria-label="Year" disabled>
+                                            <option value="">Year</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="filter-panel-footer">
+                            <button type="button" id="clear-filters-btn" class="clear-filters-btn">Clear filters</button>
+                            <button type="button" id="apply-filters-btn" class="apply-filters-btn">
+                                <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                                <span>Apply</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Active Filter Chips -->
+            <div id="active-filter-chips" class="active-filter-chips hidden animate-fade-in"></div>
+
+            <!-- Articles Cards Panel -->
+            <section class="articles-panel animate-fade-in delay-3" aria-labelledby="articles-panel-heading">
+                
+                <!-- Section Header Metadata -->
+                <div class="articles-header-meta">
+                    <div class="meta-left">
+                        <span id="articles-results-counter" class="articles-results-counter">Loading articles…</span>
+                    </div>
+                </div>
+
+                <!-- 2-column Grid of Article Cards -->
+                <div id="articles-grid" class="articles-grid" aria-label="Article cards list">
+                    <!-- Cards populated dynamically via JS -->
+                </div>
+
+                <!-- Empty State -->
+                <div id="manage-empty-state" class="table-empty-state hidden">
+                    <div class="empty-state-icon">
+                        <i class="fa-regular fa-folder-open"></i>
+                    </div>
+                    <div class="empty-state-title">No articles found</div>
+                    <p class="empty-state-desc">We couldn't find any articles matching your search query or active filter settings.</p>
+                    <button type="button" id="reset-empty-filters-btn" class="modal-btn modal-btn-cancel" style="margin-top: 8px;">
+                        <i class="fa-solid fa-rotate-left"></i> Reset Search &amp; Filters
+                    </button>
+                </div>
+
+            </section>
+
+        </main>
+
+    </div>
+
+    <!-- ====================================================================== -->
+    <!-- MODAL 1: Full Article Viewer Modal (For EIC to View Article)            -->
+    <!-- ====================================================================== -->
+    <div id="article-viewer-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="viewer-title">
+        <div class="modal-card viewer-modal-card">
+            <div class="viewer-modal-header">
+                <div class="viewer-meta-row">
+                    <span id="viewer-category" class="viewer-category-tag">News</span>
+                    <span class="viewer-dot">·</span>
+                    <span id="viewer-date" class="viewer-date">Oct 12, 2026</span>
+                </div>
+                <div class="viewer-header-right">
+                    <span class="viewer-reading-time"><i class="fa-regular fa-clock"></i> <span id="viewer-read-time">2 min read</span></span>
+                    <button type="button" id="close-viewer-btn" class="viewer-close-btn" aria-label="Close article preview">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="viewer-modal-body">
+                <h1 id="viewer-title" class="viewer-title">Article Title</h1>
+                
+                <div class="viewer-byline-row">
+                    <div class="viewer-author-avatar">
+                        <img src="images/member-placeholder.svg" alt="Author avatar">
+                    </div>
+                    <div class="viewer-byline-text">
+                        <span class="viewer-by">By <strong id="viewer-author">Author Name</strong></span>
+                    </div>
+                </div>
+
+                <div id="viewer-banner-wrap" class="viewer-banner">
+                    <img id="viewer-banner-img" src="images/maroon.jpg" alt="Article banner">
+                </div>
+
+                <div id="viewer-content" class="viewer-content-text">
+                    <!-- Paragraphs populated dynamically -->
+                </div>
+
+                <div class="viewer-stats-bar">
+                    <span class="stat-pill"><i class="fa-regular fa-eye"></i> <span id="viewer-views">0</span></span>
+                    <span class="stat-pill"><i class="fa-solid fa-share-nodes"></i> <span id="viewer-shares">0</span></span>
+                </div>
+            </div>
+
+            <div class="viewer-modal-footer">
+                <button type="button" id="viewer-action-edit" class="modal-btn modal-btn-secondary">
+                    <i class="fa-regular fa-pen-to-square"></i> Edit Article
+                </button>
+                <button type="button" id="viewer-action-archive" class="modal-btn modal-btn-warning">
+                    <i class="fa-solid fa-box-archive"></i> <span id="viewer-archive-label">Move to Archive</span>
+                </button>
+                <button type="button" id="viewer-action-delete" class="modal-btn modal-btn-danger">
+                    <i class="fa-regular fa-trash-can"></i> Emergency Delete
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====================================================================== -->
+    <!-- MODAL 2: Edit Article Modal                                            -->
+    <!-- ====================================================================== -->
+    <div id="edit-article-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="edit-modal-title">
+        <div class="modal-card edit-modal-card">
+            <div class="modal-header-simple">
+                <h2 id="edit-modal-title" class="modal-title">
+                    <i class="fa-solid fa-pen-nib"></i> Edit Article
+                </h2>
+                <button type="button" id="close-edit-btn" class="icon-button" aria-label="Close edit dialog">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <form id="edit-article-form" class="edit-modal-form">
+                <input type="hidden" id="edit-article-id">
+
+                <div class="form-field">
+                    <label for="edit-title-input">Article Title</label>
+                    <input type="text" id="edit-title-input" class="form-input" required>
+                </div>
+
+                <div class="form-row-2">
+                    <div class="form-field">
+                        <label for="edit-author-input">Author</label>
+                        <input type="text" id="edit-author-input" class="form-input" required>
+                    </div>
+                    <div class="form-field">
+                        <label for="edit-category-select">Category</label>
+                        <select id="edit-category-select" class="form-select">
+                            <option value="News">News</option>
+                            <option value="Features">Features</option>
+                            <option value="Opinion">Opinion</option>
+                            <option value="Science and Technology">Science and Technology</option>
+                            <option value="Literature">Literature</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-field">
+                    <label for="edit-readtime-input">Estimated Read Time</label>
+                    <input type="text" id="edit-readtime-input" class="form-input" placeholder="e.g. 2 min read">
+                </div>
+
+                <div class="form-field">
+                    <label for="edit-excerpt-input">Excerpt / Brief Summary</label>
+                    <textarea id="edit-excerpt-input" class="form-textarea" rows="3" required></textarea>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" id="cancel-edit-btn" class="modal-btn modal-btn-cancel">Cancel</button>
+                    <button type="submit" class="modal-btn modal-btn-confirm-primary">
+                        <i class="fa-solid fa-check"></i> Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ====================================================================== -->
+    <!-- MODAL 3: Interactive Action Confirmation Modal (Archive/Restore/Delete) -->
+    <!-- ====================================================================== -->
+    <div id="action-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <div class="modal-card">
+            <div class="modal-body">
+                <div id="modal-icon-header" class="modal-icon-header warning">
+                    <i id="modal-icon" class="fa-solid fa-box-archive"></i>
+                </div>
+                <div>
+                    <h2 id="modal-title" class="modal-title">Confirm Action</h2>
+                    <p id="modal-description" class="modal-description">Are you sure you want to perform this action?</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="modal-cancel-btn" class="modal-btn modal-btn-cancel">Cancel</button>
+                <button type="button" id="modal-confirm-btn" class="modal-btn modal-btn-confirm-primary">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+    <!-- Reusable EIC Shell Controller (Navigation, Role, Clock, Mobile Burger) -->
+    <script src="js/eic-shell.js"></script>
+
+    <!-- Strictly Separated JavaScript (ES Module) -->
+    <script type="module" src="js/executive-manage-articles.js"></script>
+</body>
+</html>
+

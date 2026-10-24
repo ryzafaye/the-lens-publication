@@ -16,6 +16,18 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================================================================
     // 2. DATASET (Articles Awaiting Executive / EIC Decision)
     // =========================================================================
+    // Helper to determine Section Head who endorsed/approved the article
+    function getEndorserForCategory(cat) {
+        if (!cat) return 'Section Editorial Head';
+        const c = cat.toLowerCase();
+        if (c.includes('news')) return 'Elena Ramos (News Head)';
+        if (c.includes('sci') || c.includes('tech')) return 'Dr. Aris Thorne (SciTech Head)';
+        if (c.includes('feat')) return 'Sofia Alcantara (Feature Head)';
+        if (c.includes('op')) return 'Patricia Gomez (Opinion Head)';
+        if (c.includes('lit')) return 'Lucas Gabriel (Literature Head)';
+        return 'Section Editorial Head';
+    }
+
     const defaultPendingArticles = [
         {
             id: 'rev-01',
@@ -24,6 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
             date: "Oct 18, 2026",
             rawDate: "2026-10-18",
             author: "Mara Villanueva",
+            endorsedBy: "Elena Ramos (News Head)",
             status: "pending",
             remarks: "",
             content: `An independent financial audit of the Central Student Council (CSC) expenditures for the first quarter of Academic Year 2026–2027 has revealed an unallocated surplus of ₱320,450 from the student activity development fund.
@@ -41,6 +54,7 @@ However, student coalition leaders argue that fiscal transparency mandates immed
             date: "Oct 18, 2026",
             rawDate: "2026-10-18",
             author: "Noah Reyes",
+            endorsedBy: "Dr. Aris Thorne (SciTech Head)",
             status: "pending",
             remarks: "",
             content: `Every enlistment cycle, tens of thousands of university students endure hours of connection timeouts, 504 Gateway errors, and lost subject slots. An in-depth technical examination of the campus enrollment infrastructure reveals that database locking bottlenecks, rather than network bandwidth, remain the root cause.
@@ -56,6 +70,7 @@ The Management Information Systems (MIS) office has proposed a ₱2.4 million cl
             date: "Oct 17, 2026",
             rawDate: "2026-10-17",
             author: "Rafael Ramos",
+            endorsedBy: "Elena Ramos (News Head)",
             status: "pending",
             remarks: "",
             content: `The University Faculty Association (UFA) has formally submitted a dispute grievance to the Office of the Vice President for Academic Affairs following administrative directives requiring full-time instructors to absorb up to 24 class teaching units without proportional overtime compensation.
@@ -71,6 +86,7 @@ Union representatives warn that unmitigated faculty burnout directly compromises
             date: "Oct 15, 2026",
             rawDate: "2026-10-15",
             author: "Paolo Santos",
+            endorsedBy: "Patricia Gomez (Opinion Head)",
             status: "pending",
             remarks: "",
             content: `When institutional administrators propose prior editorial review under the guise of 'brand alignment', the sacred covenant of campus journalism is under direct siege.
@@ -86,6 +102,7 @@ True institutional excellence does not fear student scrutiny. A university that 
             date: "Oct 12, 2026",
             rawDate: "2026-10-12",
             author: "Lia Mendoza",
+            endorsedBy: "Sofia Alcantara (Feature Head)",
             status: "pending",
             remarks: "",
             content: `At 11:30 PM, long after the last student leaves the library and lecture lights flick off, an army of twenty-two custodial workers steps onto the silent campus grounds.
@@ -93,6 +110,26 @@ True institutional excellence does not fear student scrutiny. A university that 
 Armed with industrial polishers, brooms, and sanitizing tanks, these workers restore hundreds of classrooms, laboratory benches, and restroom facilities before the 7:00 AM bell rings. Despite being the backbone of university operations, many work through third-party contracting agencies with minimal hazard pay.
 
 Through the quiet corridors of the Science Pavilion, veteran custodian Mang Rodrigo sweeps the marble floors he has polished for eighteen years. "We keep the school standing, even if our names are never spoken during graduation ceremonies," he smiles quietly.`
+        },
+        {
+            id: 'rev-06',
+            title: "Echoes from the Quadrangle: Verses from the Midnight Study Hall",
+            category: "Literature",
+            date: "Oct 11, 2026",
+            rawDate: "2026-10-11",
+            author: "Camille Torres",
+            endorsedBy: "Lucas Gabriel (Literature Head)",
+            status: "pending",
+            remarks: "",
+            content: `The hum of fluorescent tubes,
+the rustle of photocopied notes,
+shadow stretching across tiled floorboards,
+while the city sleeps in heavy coats.
+
+We drink bitter instant coffee,
+counting hours until dawn arrives,
+hoping these equations and verses
+give meaning to our restless lives.`
         }
     ];
 
@@ -102,7 +139,12 @@ Through the quiet corridors of the Science Pavilion, veteran custodian Mang Rodr
             const raw = localStorage.getItem('executivePendingReviewQueue');
             if (raw) {
                 const parsed = JSON.parse(raw);
-                if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    return parsed.map(item => ({
+                        ...item,
+                        endorsedBy: item.endorsedBy || getEndorserForCategory(item.category)
+                    }));
+                }
             }
         } catch (e) {
             console.warn('Could not read executivePendingReviewQueue', e);
@@ -121,6 +163,7 @@ Through the quiet corridors of the Science Pavilion, veteran custodian Mang Rodr
     let reviewList = getStoredPendingQueue();
     let currentActiveId = null;
     let currentSort = 'newest'; // 'newest' | 'oldest'
+    let currentCategory = 'all'; // 'all' | 'News' | 'Opinions' | 'Features' | 'Science and Technology' | 'Literature'
 
     // DOM Elements
     const listContainer = document.getElementById('review-list-container');
@@ -176,17 +219,72 @@ Through the quiet corridors of the Science Pavilion, veteran custodian Mang Rodr
     }
 
     // =========================================================================
-    // 4. SORTING LOGIC (Newest First vs Oldest First - Silent, No Toast)
+    // 4. CATEGORY FILTERING & BADGES (Review Articles by Category)
+    // =========================================================================
+    function matchesCategory(itemCat, targetCat) {
+        if (!itemCat || !targetCat || targetCat === 'all') return true;
+        const cat = itemCat.toLowerCase().trim();
+        const target = targetCat.toLowerCase().trim();
+        if (target === 'news') return cat.includes('news');
+        if (target === 'opinions' || target === 'opinion') return cat.includes('opinion');
+        if (target === 'features' || target === 'feature') return cat.includes('feature');
+        if (target.includes('sci') || target.includes('tech')) return cat.includes('sci') || cat.includes('tech');
+        if (target.includes('lit')) return cat.includes('lit');
+        return cat === target;
+    }
+
+    function updateCategoryBadges() {
+        const allCount = reviewList.length;
+        const newsCount = reviewList.filter(i => matchesCategory(i.category, 'News')).length;
+        const opinionsCount = reviewList.filter(i => matchesCategory(i.category, 'Opinions')).length;
+        const featuresCount = reviewList.filter(i => matchesCategory(i.category, 'Features')).length;
+        const scitechCount = reviewList.filter(i => matchesCategory(i.category, 'Science and Technology')).length;
+        const litCount = reviewList.filter(i => matchesCategory(i.category, 'Literature')).length;
+
+        const bAll = document.getElementById('badge-review-all');
+        const bNews = document.getElementById('badge-review-news');
+        const bOpinions = document.getElementById('badge-review-opinions');
+        const bFeatures = document.getElementById('badge-review-features');
+        const bScitech = document.getElementById('badge-review-scitech');
+        const bLit = document.getElementById('badge-review-literature');
+
+        if (bAll) bAll.textContent = allCount;
+        if (bNews) bNews.textContent = newsCount;
+        if (bOpinions) bOpinions.textContent = opinionsCount;
+        if (bFeatures) bFeatures.textContent = featuresCount;
+        if (bScitech) bScitech.textContent = scitechCount;
+        if (bLit) bLit.textContent = litCount;
+    }
+
+    // Category Tabs Event Listeners
+    const categoryTabs = document.querySelectorAll('.review-tab-btn');
+    categoryTabs.forEach(btn => {
+        btn.addEventListener('click', () => {
+            categoryTabs.forEach(b => {
+                b.classList.remove('active');
+                b.setAttribute('aria-selected', 'false');
+            });
+            btn.classList.add('active');
+            btn.setAttribute('aria-selected', 'true');
+            currentCategory = btn.getAttribute('data-category') || 'all';
+            renderReviewBoxes();
+        });
+    });
+
+    // =========================================================================
+    // 5. SORTING LOGIC (Newest First vs Oldest First - Silent, No Toast)
     // =========================================================================
     function getSortedList() {
-        return [...reviewList].sort((a, b) => {
-            const timeA = new Date(a.rawDate || a.date).getTime();
-            const timeB = new Date(b.rawDate || b.date).getTime();
-            if (currentSort === 'oldest') {
-                return timeA - timeB;
-            }
-            return timeB - timeA;
-        });
+        return [...reviewList]
+            .filter(item => matchesCategory(item.category, currentCategory))
+            .sort((a, b) => {
+                const timeA = new Date(a.rawDate || a.date).getTime();
+                const timeB = new Date(b.rawDate || b.date).getTime();
+                if (currentSort === 'oldest') {
+                    return timeA - timeB;
+                }
+                return timeB - timeA;
+            });
     }
 
     if (sortSelect) {
@@ -198,16 +296,26 @@ Through the quiet corridors of the Science Pavilion, veteran custodian Mang Rodr
     }
 
     // =========================================================================
-    // 5. RENDERING RESPONSIVE HORIZONTAL BOX LIST
+    // 6. RENDERING RESPONSIVE HORIZONTAL BOX LIST
     // =========================================================================
     function renderReviewBoxes() {
         if (!listContainer) return;
+
+        updateCategoryBadges();
 
         const sorted = getSortedList();
 
         if (sorted.length === 0) {
             listContainer.innerHTML = '';
-            if (emptyQueueState) emptyQueueState.style.display = 'block';
+            if (emptyQueueState) {
+                emptyQueueState.style.display = 'block';
+                const msgEl = emptyQueueState.querySelector('span');
+                if (msgEl) {
+                    msgEl.textContent = (currentCategory === 'all')
+                        ? 'All caught up. No articles pending executive review.'
+                        : `No pending articles in ${currentCategory}.`;
+                }
+            }
             return;
         }
 
@@ -220,6 +328,7 @@ Through the quiet corridors of the Science Pavilion, veteran custodian Mang Rodr
                     <div class="review-box-meta">
                         <span class="review-box-category">${escapeHTML(item.category)}</span>
                         <span class="review-box-date"><i class="fa-regular fa-calendar" aria-hidden="true"></i> ${escapeHTML(item.date)}</span>
+                        <span class="review-box-endorsed"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Approved by <strong>${escapeHTML(item.endorsedBy || getEndorserForCategory(item.category))}</strong></span>
                     </div>
 
                     <button type="button" class="review-box-title" data-action="read" data-id="${item.id}" title="${escapeHTML(item.title)}">
@@ -300,6 +409,8 @@ Through the quiet corridors of the Science Pavilion, veteran custodian Mang Rodr
         if (modalSection) modalSection.textContent = item.category;
         if (modalDate) modalDate.textContent = item.date;
         if (modalWriter) modalWriter.textContent = item.author;
+        const modalEndorser = document.getElementById('modal-endorser');
+        if (modalEndorser) modalEndorser.textContent = item.endorsedBy || getEndorserForCategory(item.category);
 
         // Reset remarks and validation state
         if (modalRemarks) {

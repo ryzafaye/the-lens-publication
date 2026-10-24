@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="100%" height="100%">
+  <defs>
+    <linearGradient id="photoSportsBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#450a0a"/>
+      <stop offset="50%" stop-color="#7f1d1d"/>
+      <stop offset="100%" stop-color="#991b1b"/>
+    </linearGradient>
+    <linearGradient id="sportsGold" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#fbbf24"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="500" fill="url(#photoSportsBg)"/>
+
+  <!-- Dynamic Kinetic Speed Lines -->
+  <g stroke="rgba(251, 191, 36, 0.2)" stroke-width="2">
+    <line x1="0" y1="420" x2="800" y2="340" />
+    <line x1="0" y1="460" x2="800" y2="380" />
+    <line x1="0" y1="380" x2="800" y2="300" stroke-dasharray="8,8" />
+  </g>
+
+  <!-- Viewfinder -->
+  <g stroke="rgba(255,255,255,0.25)" stroke-width="2" fill="none">
+    <path d="M 40,70 L 40,40 L 70,40" />
+    <path d="M 760,70 L 760,40 L 730,40" />
+    <path d="M 40,430 L 40,460 L 70,460" />
+    <path d="M 760,430 L 760,460 L 730,460" />
+    <!-- Dynamic Target -->
+    <rect x="350" y="210" width="100" height="90" rx="4" stroke="#fbbf24" stroke-width="1.5" stroke-dasharray="4,4" />
+  </g>
+
+  <!-- Silhouette Figures (Pyramid Stunt) -->
+  <g fill="rgba(255,255,255,0.08)">
+    <circle cx="400" cy="180" r="18" fill="#fbbf24" />
+    <path d="M 390,200 L 410,200 L 418,250 L 382,250 Z" />
+    <!-- Base team -->
+    <circle cx="360" cy="240" r="16" />
+    <circle cx="440" cy="240" r="16" />
+    <rect x="340" y="260" width="120" height="80" rx="6" />
+  </g>
+
+  <!-- Category & Live Capture Badge -->
+  <rect x="60" y="70" width="165" height="28" rx="4" fill="url(#sportsGold)"/>
+  <text x="142" y="89" fill="#450a0a" font-family="'DM Sans', sans-serif" font-weight="800" font-size="12" text-anchor="middle" letter-spacing="1">PHOTOJOURNALISM</text>
+
+  <!-- EXIF Info -->
+  <g transform="translate(560, 70)">
+    <rect width="180" height="28" rx="4" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+    <circle cx="16" cy="14" r="4" fill="#fbbf24" />
+    <text x="28" y="19" fill="#e2e8f0" font-family="'DM Sans', monospace" font-size="11" font-weight="600">70-200mm • ƒ/2.8 • 1/2000s</text>
+  </g>
+
+  <!-- Headline -->
+  <text x="60" y="150" fill="#ffffff" font-family="'Playfair Display', serif" font-weight="800" font-size="32">VARSITY CHEERING CHAMPIONSHIP</text>
+  <text x="60" y="185" fill="rgba(255,255,255,0.85)" font-family="'DM Sans', sans-serif" font-size="16">Golden Eagles Clinch National Finals Podium with Flawless High-Altitude Pyramid</text>
+
+  <!-- Photojournalist Byline Box -->
+  <rect x="60" y="380" width="340" height="50" rx="8" fill="rgba(69, 10, 10, 0.75)" stroke="rgba(255,255,255,0.15)" stroke-width="1" />
+  <text x="80" y="402" fill="rgba(255,255,255,0.6)" font-family="'DM Sans', sans-serif" font-size="11" font-weight="600">PHOTOJOURNALIST BYLINE</text>
+  <text x="80" y="420" fill="#fbbf24" font-family="'DM Sans', sans-serif" font-size="14" font-weight="700">Rico Fernandez • Sports Photographer</text>
+
+  <!-- Footer Branding -->
+  <text x="60" y="465" fill="rgba(255,255,255,0.4)" font-family="'DM Sans', sans-serif" font-size="11" font-weight="600">THE LENS PUBLICATION • SPORTS ACTION DESK</text>
+</svg>
+

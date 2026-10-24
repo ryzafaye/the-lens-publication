@@ -43,6 +43,71 @@
     gap: 8px;
 }
 
+/* Category Filter Tabs for Review Articles (Executive & EIC) */
+.review-tabs-container {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border-bottom: 1px solid #eaecf0;
+    margin-top: 14px;
+    margin-bottom: 20px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+}
+
+.review-tabs-container::-webkit-scrollbar {
+    display: none;
+}
+
+.review-tab-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px 12px 16px;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, sans-serif);
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--text-muted, #667085);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-bottom: -1px;
+    white-space: nowrap;
+}
+
+.review-tab-btn:hover {
+    color: var(--sidebar-maroon, #5c0a18);
+}
+
+.review-tab-btn.active {
+    color: var(--sidebar-maroon, #5c0a18);
+    border-bottom-color: var(--sidebar-maroon, #5c0a18);
+}
+
+.review-tab-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px 7px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    border-radius: 9999px;
+    background-color: #f2f4f7;
+    color: var(--text-secondary, #344054);
+    transition: all 0.2s ease;
+    min-width: 20px;
+    line-height: 1.2;
+}
+
+.review-tab-btn.active .review-tab-badge {
+    background-color: #fdf2f2;
+    color: var(--sidebar-maroon, #5c0a18);
+    border: 1px solid #fde8e8;
+}
+
 .review-sort-label {
     display: inline-flex;
     align-items: center;
@@ -174,6 +239,31 @@
 .review-box-date i {
     font-size: 0.72rem;
     color: #98a2b3;
+}
+
+/* Section Head Endorsement Badge on Review Card */
+.review-box-endorsed {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.74rem;
+    color: #027a48;
+    background-color: #ecfdf3;
+    border: 1px solid #d1fadf;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    font-weight: 500;
+    line-height: 1.2;
+}
+
+.review-box-endorsed i {
+    font-size: 0.70rem;
+    color: #12b76a;
+}
+
+.review-box-endorsed strong {
+    color: #054f31;
+    font-weight: 600;
 }
 
 /* Bold Article Title */
@@ -346,6 +436,31 @@
     gap: 12px;
 }
 
+/* Standard Modal Close Button Parity across pages */
+.viewer-close-btn,
+.modal-close-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    border: 1px solid var(--border-light, #eaecf0);
+    background: #ffffff;
+    color: var(--text-muted, #667085);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.95rem;
+    transition: all 0.15s ease;
+    padding: 0;
+}
+
+.viewer-close-btn:hover,
+.modal-close-icon:hover {
+    background-color: #f8f9fa;
+    border-color: #d0d5dd;
+    color: #101828;
+}
+
 .manuscript-body {
     padding: 24px 28px;
     overflow-y: auto;
@@ -384,6 +499,30 @@
 .manuscript-byline-author i {
     color: var(--sidebar-maroon, #5c0a18);
     font-size: 0.82rem;
+}
+
+/* Section Head Endorsement in Modal Byline */
+.manuscript-byline-endorser {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.80rem;
+    color: #027a48;
+    background-color: #ecfdf3;
+    border: 1px solid #d1fadf;
+    padding: 3px 10px;
+    border-radius: 9999px;
+    font-weight: 500;
+}
+
+.manuscript-byline-endorser i {
+    font-size: 0.78rem;
+    color: #12b76a;
+}
+
+.manuscript-byline-endorser strong {
+    color: #054f31;
+    font-weight: 600;
 }
 
 .manuscript-text-content {

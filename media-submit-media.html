@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submit Media | The Lens Media &amp; Communication Portal</title>
+    
+    <!-- Typography: DM Sans & Playfair Display -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,600;1,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="css/executive-dashboard.css">
+    <link rel="stylesheet" href="css/executive-cover-review.css">
+    <link rel="stylesheet" href="css/executive-modals.css">
+    <link rel="stylesheet" href="css/mpc-submit-media.css">
+</head>
+<body class="dashboard-body">
+
+    <!-- ====================================================================== -->
+    <!-- DEDICATED MEDIA & COMMUNICATION SIDEBAR: Desktop Fixed Maroon (#5c0a18) -->
+    <!-- ====================================================================== -->
+    <aside id="sidebar" class="sidebar" aria-label="Media &amp; Communication Portal Sidebar">
+        
+        <div class="sidebar-top-section">
+            <div class="sidebar-header">
+                <div class="sidebar-brand-lockup">
+                    <div class="sidebar-logo-square">
+                        <img src="images/logo.jpg" alt="The Lens Logo">
+                    </div>
+                    <span class="sidebar-brand-name">The Lens Publication</span>
+                </div>
+            </div>
+
+            <div class="sidebar-profile">
+                <div class="profile-avatar">
+                    <img id="sidebar-avatar-img" src="images/member-placeholder.svg" alt="Media Team Avatar">
+                </div>
+                <div id="sidebar-user-name" class="profile-name">Alyssa Marie Dizon</div>
+                <div id="sidebar-user-role" class="profile-role-text">Media &amp; Communication</div>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="sidebar-nav" aria-label="Main Navigation">
+                <a href="media-dashboard.html" class="sidebar-nav-item">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </a>
+
+                <a href="media-submit-article.html" class="sidebar-nav-item">
+                    <i class="fa-solid fa-feather-pointed"></i>
+                    <span>Submit Article</span>
+                </a>
+
+                <a href="media-manage-articles.html" class="sidebar-nav-item">
+                    <i class="fa-regular fa-newspaper"></i>
+                    <span>Manage My Articles</span>
+                </a>
+
+                <a href="media-submit-media.html" class="sidebar-nav-item active">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <span>Submit Media</span>
+                </a>
+
+                <a href="media-manage-media.html" class="sidebar-nav-item">
+                    <i class="fa-solid fa-images"></i>
+                    <span>Manage Media</span>
+                </a>
+            </nav>
+        </div>
+
+        <div class="sidebar-footer">
+            <a href="media-profile-settings.html" class="sidebar-footer-link">
+                <i class="fa-solid fa-sliders"></i>
+                <span>Profile Settings</span>
+            </a>
+
+            <a href="index.html" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                <span>View public site</span>
+            </a>
+
+            <button type="button" id="logout-btn" class="sidebar-footer-link logout-btn">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span>Logout</span>
+            </button>
+        </div>
+
+    </aside>
+
+    <!-- ====================================================================== -->
+    <!-- MAIN CONTENT AREA                                                      -->
+    <!-- ====================================================================== -->
+    <div class="main-wrapper">
+
+        <!-- Top Header Bar -->
+        <header class="topbar">
+            
+            <div class="topbar-left">
+                <div class="mobile-header-brand">
+                    <button type="button" id="mobile-hamburger-btn" class="mobile-hamburger-btn" aria-label="Toggle navigation menu" aria-expanded="false">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <div class="mobile-brand-lockup">
+                        <div class="mobile-logo-square">
+                            <img src="images/logo.jpg" alt="The Lens Logo">
+                        </div>
+                        <span class="mobile-brand-title">The Lens</span>
+                    </div>
+                </div>
+
+                <div class="topbar-clock">
+                    <i class="fa-regular fa-clock"></i>
+                    <span id="topbar-clock-display">Loading date &amp; time…</span>
+                </div>
+            </div>
+
+            <div class="topbar-right">
+                <button type="button" class="topbar-notification-btn" aria-label="Notifications">
+                    <div class="notification-icon-wrapper">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="notification-badge-dot"></span>
+                    </div>
+                    <span class="notification-label">Notification</span>
+                </button>
+
+                <div class="topbar-divider"></div>
+
+                <div class="topbar-user-profile">
+                    <div class="topbar-avatar-circle" title="User Profile">
+                        <img id="topbar-avatar-img" src="images/member-placeholder.svg" alt="User Profile Picture">
+                    </div>
+                    <span id="topbar-user-role" class="topbar-role-badge">Media &amp; Communication</span>
+                </div>
+            </div>
+
+        </header>
+
+        <!-- Mobile Navigation Dropdown -->
+        <nav id="mobile-nav-dropdown" class="mobile-nav-dropdown" aria-label="Mobile Navigation Menu">
+            <div class="mobile-nav-profile">
+                <div class="mobile-nav-avatar">
+                    <img id="mobile-avatar-img" src="images/member-placeholder.svg" alt="Media Team Avatar">
+                </div>
+                <div class="mobile-nav-user-info">
+                    <div id="mobile-user-name" class="mobile-nav-name">Alyssa Marie Dizon</div>
+                    <div id="mobile-user-role" class="mobile-nav-role">Media &amp; Communication</div>
+                </div>
+            </div>
+
+            <div class="mobile-nav-links">
+                <a href="media-dashboard.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="media-submit-article.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-feather-pointed"></i>
+                    <span>Submit Article</span>
+                </a>
+                <a href="media-manage-articles.html" class="mobile-nav-link">
+                    <i class="fa-regular fa-newspaper"></i>
+                    <span>Manage My Articles</span>
+                </a>
+                <a href="media-submit-media.html" class="mobile-nav-link active">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <span>Submit Media</span>
+                </a>
+                <a href="media-manage-media.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-images"></i>
+                    <span>Manage Media</span>
+                </a>
+            </div>
+
+            <div class="mobile-nav-footer">
+                <a href="media-profile-settings.html" class="mobile-nav-footer-link">
+                    <i class="fa-solid fa-sliders"></i>
+                    <span>Profile Settings</span>
+                </a>
+                <a href="index.html" class="mobile-nav-link" target="_blank">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    <span>View public site</span>
+                </a>
+                <button type="button" id="mobile-logout-btn" class="mobile-nav-footer-link mobile-logout-btn">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span>Logout</span>
+                </button>
+            </div>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="content-container">
+
+            <!-- Title -->
+            <div class="cover-page-header-section animate-fade-in delay-1" style="margin-bottom: 0;">
+                <h1 class="cover-page-title">Submit Media</h1>
+            </div>
+
+            <div class="submit-media-container">
+                
+                <!-- UPLOAD PUBMAT FORM -->
+                <div id="view-upload-media" class="media-view-pane">
+                    <form id="media-submission-form" novalidate>
+                        
+                        <div class="media-card">
+                            <div class="media-card-header" style="margin-bottom: 20px;">
+                                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                                    <h2 class="media-card-title" style="margin-bottom: 0;">
+                                        <i class="fa-solid fa-palette" style="color: var(--sidebar-maroon, #5c0a18);"></i>
+                                        <span>Submit Publication Material (PUBMAT)</span>
+                                    </h2>
+                                    <span class="cover-type-tag pubmat"><i class="fa-solid fa-palette"></i> PUBMAT ONLY</span>
+                                </div>
+                            </div>
+
+                            <!-- Section 1: File Upload Studio -->
+                            <div class="media-section-group">
+                                <label class="media-field-label">
+                                    <span>PUBMAT Graphic File</span>
+                                    <span class="media-required-star">*</span>
+                                </label>
+
+                                <!-- Dropzone -->
+                                <div id="media-dropzone" class="media-dropzone-box" role="button" tabindex="0" aria-label="Upload pubmat file">
+                                    <input type="file" id="media-file-input" accept="image/svg+xml,image/png,image/jpeg,image/webp" style="display: none;">
+                                    <div class="media-dropzone-icon">
+                                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                                    </div>
+                                    <div class="media-dropzone-primary-text">
+                                        Drop your vector or raster PUBMAT graphic here, or <span class="media-browse-link">browse</span>
+                                    </div>
+                                    <div class="media-dropzone-subtext">
+                                        Supports SVG, PNG, JPG, or WEBP &bull; Max file size 10MB
+                                    </div>
+                                </div>
+
+                                <!-- Centered & Bounded Snug Preview Frame -->
+                                <div id="media-preview-container" class="media-preview-container" style="display: none;">
+                                    <div class="media-preview-wrapper">
+                                        <img id="media-preview-img" src="" alt="PUBMAT Preview" class="media-preview-img">
+                                        <button type="button" id="btn-remove-preview" class="media-preview-remove-btn" title="Remove Graphic">
+                                            <i class="fa-solid fa-xmark"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- File Details Info Bar -->
+                                <div id="media-file-info-bar" class="media-file-info-bar" style="display: none;">
+                                    <div class="media-file-info-left">
+                                        <i class="fa-solid fa-file-image media-file-icon"></i>
+                                        <div>
+                                            <span id="media-file-name" class="media-file-name-text">filename.svg</span>
+                                            <span id="media-file-size" class="media-file-size-text">• 0 KB</span>
+                                        </div>
+                                    </div>
+                                    <span class="media-file-ready-tag"><i class="fa-solid fa-circle-check"></i> Ready to submit</span>
+                                </div>
+                            </div>
+
+                            <!-- Section 2: PUBMAT Metadata Fields -->
+                            <div class="media-section-group" style="margin-top: 24px;">
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+                                    <div>
+                                        <label for="pubmat-title" class="media-field-label">
+                                            <span>Graphic Title / Campaign Name</span>
+                                            <span class="media-required-star">*</span>
+                                        </label>
+                                        <input type="text" id="pubmat-title" class="media-text-input" placeholder="e.g. Mental Health Awareness Infographic Spread" required>
+                                    </div>
+
+                                    <div>
+                                        <label for="pubmat-category" class="media-field-label">
+                                            <span>Category / Target Desk</span>
+                                            <span class="media-required-star">*</span>
+                                        </label>
+                                        <select id="pubmat-category" class="media-text-input" required>
+                                            <option value="News">News &amp; Current Affairs</option>
+                                            <option value="Features" selected>Features &amp; Special Reports</option>
+                                            <option value="Science and Technology">Science &amp; Technology</option>
+                                            <option value="Sports">Sports &amp; Athletics</option>
+                                            <option value="University Events">Campus Event / Announcement</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div style="margin-top: 16px;">
+                                    <label for="pubmat-caption" class="media-field-label">
+                                        <span>Companion Caption / Social Media Copy (Optional)</span>
+                                    </label>
+                                    <textarea id="pubmat-caption" class="media-text-input" rows="3" placeholder="Add companion copy or briefing notes for the Media Desk review..."></textarea>
+                                </div>
+                            </div>
+
+                            <!-- Action Bar -->
+                            <div class="media-action-footer" style="margin-top: 28px; padding-top: 20px; border-top: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: flex-end; gap: 12px;">
+                                <button type="button" id="btn-save-draft" class="btn-media-draft">
+                                    <i class="fa-regular fa-bookmark"></i>
+                                    <span>Save Draft</span>
+                                </button>
+                                <button type="submit" id="btn-submit-media" class="btn-media-submit">
+                                    <i class="fa-solid fa-paper-plane"></i>
+                                    <span>Submit PUBMAT to Media Desk</span>
+                                </button>
+                            </div>
+
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+
+        </main>
+
+    </div>
+
+    <!-- Toast Notifications Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Scripts -->
+    <script src="js/media-shell.js"></script>
+    <script src="js/media-data.js"></script>
+    <script src="js/media-submit-media.js"></script>
+</body>
+</html>
+

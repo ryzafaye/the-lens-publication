@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile Settings | The Lens Media &amp; Communication Portal</title>
+
+    <!-- Typography: DM Sans & Playfair Display -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,600;1,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Modular CSS Architecture -->
+    <link rel="stylesheet" href="css/executive-dashboard.css">
+    <link rel="stylesheet" href="css/executive-modals.css">
+    <link rel="stylesheet" href="css/executive-profile-settings.css">
+</head>
+<body class="dashboard-body">
+
+    <!-- ====================================================================== -->
+    <!-- DEDICATED MEDIA & COMMUNICATION SIDEBAR: Desktop Fixed Maroon (#5c0a18) -->
+    <!-- ====================================================================== -->
+    <aside id="sidebar" class="sidebar" aria-label="Media &amp; Communication Portal Sidebar">
+        
+        <div class="sidebar-top-section">
+            <div class="sidebar-header">
+                <div class="sidebar-brand-lockup">
+                    <div class="sidebar-logo-square">
+                        <img src="images/logo.jpg" alt="The Lens Logo">
+                    </div>
+                    <span class="sidebar-brand-name">The Lens Publication</span>
+                </div>
+            </div>
+
+            <div class="sidebar-profile">
+                <div class="profile-avatar">
+                    <img id="sidebar-avatar-img" src="images/member-placeholder.svg" alt="Media Team Avatar">
+                </div>
+                <div id="sidebar-user-name" class="profile-name">Alyssa Marie Dizon</div>
+                <div id="sidebar-user-role" class="profile-role-text">Media &amp; Communication</div>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="sidebar-nav" aria-label="Main Navigation">
+                <a href="media-dashboard.html" class="sidebar-nav-item">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </a>
+
+                <a href="media-submit-article.html" class="sidebar-nav-item">
+                    <i class="fa-solid fa-feather-pointed"></i>
+                    <span>Submit Article</span>
+                </a>
+
+                <a href="media-manage-articles.html" class="sidebar-nav-item">
+                    <i class="fa-regular fa-newspaper"></i>
+                    <span>Manage My Articles</span>
+                </a>
+
+                <a href="media-submit-media.html" class="sidebar-nav-item">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <span>Submit Media</span>
+                </a>
+
+                <a href="media-manage-media.html" class="sidebar-nav-item">
+                    <i class="fa-solid fa-images"></i>
+                    <span>Manage Media</span>
+                </a>
+            </nav>
+        </div>
+
+        <div class="sidebar-footer">
+            <a href="media-profile-settings.html" class="sidebar-footer-link active">
+                <i class="fa-solid fa-sliders"></i>
+                <span>Profile Settings</span>
+            </a>
+
+            <a href="index.html" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                <span>View public site</span>
+            </a>
+
+            <button type="button" id="logout-btn" class="sidebar-footer-link logout-btn">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span>Logout</span>
+            </button>
+        </div>
+
+    </aside>
+
+    <!-- ====================================================================== -->
+    <!-- MAIN CONTENT AREA                                                      -->
+    <!-- ====================================================================== -->
+    <div class="main-wrapper">
+
+        <!-- Top Header Bar -->
+        <header class="topbar">
+            
+            <div class="topbar-left">
+                <div class="mobile-header-brand">
+                    <button type="button" id="mobile-hamburger-btn" class="mobile-hamburger-btn" aria-label="Toggle navigation menu" aria-expanded="false">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <div class="mobile-brand-lockup">
+                        <div class="mobile-logo-square">
+                            <img src="images/logo.jpg" alt="The Lens Logo">
+                        </div>
+                        <span class="mobile-brand-title">The Lens</span>
+                    </div>
+                </div>
+
+                <div class="topbar-clock">
+                    <i class="fa-regular fa-clock"></i>
+                    <span id="topbar-clock-display">Loading date &amp; time…</span>
+                </div>
+            </div>
+
+            <div class="topbar-right">
+                <button type="button" class="topbar-notification-btn" aria-label="Notifications">
+                    <div class="notification-icon-wrapper">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="notification-badge-dot"></span>
+                    </div>
+                    <span class="notification-label">Notification</span>
+                </button>
+
+                <div class="topbar-divider"></div>
+
+                <div class="topbar-user-profile">
+                    <div class="topbar-avatar-circle" title="User Profile">
+                        <img id="topbar-avatar-img" src="images/member-placeholder.svg" alt="User Profile Picture">
+                    </div>
+                    <span id="topbar-user-role" class="topbar-role-badge">Media &amp; Communication</span>
+                </div>
+            </div>
+
+        </header>
+
+        <!-- Mobile Navigation Dropdown -->
+        <nav id="mobile-nav-dropdown" class="mobile-nav-dropdown" aria-label="Mobile Navigation Menu">
+            <div class="mobile-nav-profile">
+                <div class="mobile-nav-avatar">
+                    <img id="mobile-avatar-img" src="images/member-placeholder.svg" alt="Media Team Avatar">
+                </div>
+                <div class="mobile-nav-user-info">
+                    <div id="mobile-user-name" class="mobile-nav-name">Alyssa Marie Dizon</div>
+                    <div id="mobile-user-role" class="mobile-nav-role">Media &amp; Communication</div>
+                </div>
+            </div>
+
+            <div class="mobile-nav-links">
+                <a href="media-dashboard.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="media-submit-article.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-feather-pointed"></i>
+                    <span>Submit Article</span>
+                </a>
+                <a href="media-manage-articles.html" class="mobile-nav-link">
+                    <i class="fa-regular fa-newspaper"></i>
+                    <span>Manage My Articles</span>
+                </a>
+                <a href="media-submit-media.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <span>Submit Media</span>
+                </a>
+                <a href="media-manage-media.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-images"></i>
+                    <span>Manage Media</span>
+                </a>
+            </div>
+
+            <div class="mobile-nav-footer">
+                <a href="media-profile-settings.html" class="mobile-nav-footer-link active">
+                    <i class="fa-solid fa-sliders"></i>
+                    <span>Profile Settings</span>
+                </a>
+                <a href="index.html" class="mobile-nav-link" target="_blank">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    <span>View public site</span>
+                </a>
+                <button type="button" id="mobile-logout-btn" class="mobile-nav-footer-link mobile-logout-btn">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span>Logout</span>
+                </button>
+            </div>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="content-container">
+
+            <div class="page-title-section animate-fade-in delay-1">
+                <h1 class="page-title">Profile Settings</h1>
+                <p style="font-size: 0.88rem; color: #64748b; margin-top: 4px;">
+                    Update your account credentials, avatar image, and security password.
+                </p>
+            </div>
+
+            <!-- Profile Settings 2-Column Grid -->
+            <div class="settings-grid-layout animate-fade-in delay-2" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; margin-top: 20px;">
+                
+                <!-- Card 1: Member Information & Avatar -->
+                <div class="settings-card" style="background:#fff; border:1px solid #e2e8f0; border-radius:14px; padding:24px;">
+                    <h2 style="font-family: var(--font-heading); font-size: 1.2rem; color: #0f172a; margin: 0 0 16px 0;">
+                        <i class="fa-regular fa-id-badge" style="color: var(--sidebar-maroon);"></i> Member Information
+                    </h2>
+
+                    <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 20px;">
+                        <div style="width: 72px; height: 72px; border-radius: 50%; overflow: hidden; border: 2px solid #e2e8f0; flex-shrink: 0;">
+                            <img id="avatar-preview-img" src="images/member-placeholder.svg" alt="Avatar Preview" style="width: 100%; height: 100%; object-fit: cover;">
+                        </div>
+                        <div>
+                            <input type="file" id="avatar-file-input" accept="image/*" style="display: none;">
+                            <button type="button" id="btn-upload-avatar" class="btn-media-inspect" style="padding: 6px 12px; font-size: 0.82rem;">
+                                <i class="fa-solid fa-camera"></i> Change Photo
+                            </button>
+                            <p style="font-size: 0.74rem; color: #94a3b8; margin: 6px 0 0 0;">JPG, PNG or WEBP up to 5MB</p>
+                        </div>
+                    </div>
+
+                    <form id="profile-info-form">
+                        <div style="margin-bottom: 14px;">
+                            <label class="media-field-label">Full Name</label>
+                            <input type="text" id="profile-fullname" class="media-text-input" value="Alyssa Marie Dizon" required>
+                        </div>
+
+                        <div style="margin-bottom: 14px;">
+                            <label class="media-field-label">Student Number</label>
+                            <input type="text" id="profile-student-number" class="media-text-input" value="2024-00080-BN-0" readonly style="background: #f8fafc; color: #64748b;">
+                        </div>
+
+                        <div style="margin-bottom: 18px;">
+                            <label class="media-field-label">Official Role</label>
+                            <input type="text" id="profile-role" class="media-text-input" value="Media &amp; Communication" readonly style="background: #f8fafc; color: #64748b;">
+                        </div>
+
+                        <button type="submit" class="btn-primary-action" style="background-color: var(--sidebar-maroon, #5c0a18); border: none; cursor: pointer;">
+                            <i class="fa-solid fa-floppy-disk"></i> Save Profile Details
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Card 2: Security & Password -->
+                <div class="settings-card" style="background:#fff; border:1px solid #e2e8f0; border-radius:14px; padding:24px;">
+                    <h2 style="font-family: var(--font-heading); font-size: 1.2rem; color: #0f172a; margin: 0 0 16px 0;">
+                        <i class="fa-solid fa-shield-halved" style="color: var(--sidebar-maroon);"></i> Security &amp; Password
+                    </h2>
+
+                    <form id="profile-password-form">
+                        <div style="margin-bottom: 14px;">
+                            <label class="media-field-label">Current Password</label>
+                            <input type="password" id="current-password" class="media-text-input" placeholder="••••••••••••" required>
+                        </div>
+
+                        <div style="margin-bottom: 14px;">
+                            <label class="media-field-label">New Password</label>
+                            <input type="password" id="new-password" class="media-text-input" placeholder="At least 8 characters" required>
+                        </div>
+
+                        <div style="margin-bottom: 18px;">
+                            <label class="media-field-label">Confirm New Password</label>
+                            <input type="password" id="confirm-password" class="media-text-input" placeholder="Repeat new password" required>
+                        </div>
+
+                        <button type="submit" class="btn-primary-action" style="background-color: #334155; border: none; cursor: pointer;">
+                            <i class="fa-solid fa-key"></i> Update Password
+                        </button>
+                    </form>
+                </div>
+
+            </div>
+
+        </main>
+
+    </div>
+
+    <!-- Toast Notifications Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Scripts -->
+    <script src="js/media-shell.js"></script>
+    <script src="js/media-profile-settings.js"></script>
+</body>
+</html>
+

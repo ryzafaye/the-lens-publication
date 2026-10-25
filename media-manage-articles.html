@@ -281,6 +281,12 @@
                     </div>
                 </div>
 
+                <!-- Toolbar Reset Filters Button -->
+                <button type="button" id="toolbar-reset-filters-btn" class="btn-toolbar-reset" title="Reset all filters, search, and sorting">
+                    <i class="fa-solid fa-rotate-left"></i>
+                    <span>Reset Filters</span>
+                </button>
+
             </div>
 
             <!-- Articles List Container -->
@@ -391,7 +397,7 @@
                 </div>
             </div>
             <div class="viewer-modal-footer" style="display: flex; justify-content: flex-end; gap: 10px;">
-                <button type="button" class="btn-viewer-secondary" onclick="document.getElementById('remarks-modal').classList.add('hidden')">
+                <button type="button" id="btn-close-remarks-modal" class="btn-viewer-secondary">
                     <span>Close</span>
                 </button>
                 <a href="#" id="btn-edit-from-remarks" class="btn-primary-action" style="height: 36px; padding: 0 14px; text-decoration: none;">

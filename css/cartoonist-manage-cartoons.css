@@ -1,0 +1,37 @@
+/**
+ * ============================================================================
+ * THE LENS — CARTOONIST MANAGE CARTOONS STYLESHEET
+ * Reuses executive and media portal responsive grid, frame-fitted artwork containers,
+ * public archive boxes style, and signature maroon typography.
+ * ============================================================================
+ */
+
+@import url("media-manage-media.css");
+
+/* Prevent mobile drawer from ever rendering on desktop screens */
+.mobile-nav-dropdown,
+.mobile-nav-drawer {
+    display: none;
+}
+
+@media (min-width: 769px) {
+    .mobile-nav-dropdown,
+    .mobile-nav-drawer {
+        display: none !important;
+    }
+}
+
+/* Dedicated Cartoonist Highlights & Badges */
+.cartoonist-category-chip {
+    background: #fdf4ff;
+    color: #701a75;
+    border: 1px solid #f5d0fe;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+

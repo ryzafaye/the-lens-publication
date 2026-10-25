@@ -15,6 +15,7 @@
     <link rel="stylesheet" href="css/executive-dashboard.css">
     <link rel="stylesheet" href="css/executive-modals.css">
     <link rel="stylesheet" href="css/executive-manage-articles.css">
+    <link rel="stylesheet" href="css/writer-dashboard.css">
     <link rel="stylesheet" href="css/media-manage-media.css">
 </head>
 <body class="dashboard-body">
@@ -192,88 +193,83 @@
         <!-- Main Content Area -->
         <main class="content-container">
 
-            <!-- Page Title Section -->
-            <div class="page-title-section animate-fade-in delay-1" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px;">
-                <div>
+            <!-- Page Title Section (Clean Executive Header, Tight Spacing) -->
+            <div class="writer-header-row animate-fade-in delay-1" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 6px;">
+                <div class="writer-header-left">
                     <h1 class="page-title">Manage Media</h1>
-                    <p style="font-size: 0.88rem; color: #64748b; margin-top: 4px;">
-                        Track review progress, inspect approved library assets, and address editorial feedback.
-                    </p>
                 </div>
 
-                <a href="media-submit-media.html" class="btn-primary-action" style="background-color: var(--sidebar-maroon, #5c0a18); text-decoration: none;">
-                    <i class="fa-solid fa-cloud-arrow-up"></i>
-                    <span>Submit PUBMAT</span>
-                </a>
+                <div class="writer-header-right">
+                    <a href="media-submit-media.html" class="btn-primary-action">
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                        <span>Submit Media</span>
+                    </a>
+                </div>
             </div>
 
-            <!-- Summary Stats Grid: 4 Official Statuses Parity -->
-            <section class="media-stats-grid animate-fade-in delay-2" aria-label="Media performance summary" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
-                <div class="media-stat-card">
-                    <div class="media-stat-number" id="sum-total-media">0</div>
-                    <div class="media-stat-label">Total Submissions</div>
-                </div>
+            <!-- Tabs Navigation (All Media, Pending with Head, Returned for Revision, EIC Approved, Published) -->
+            <div class="manage-tabs-container animate-fade-in delay-2" role="tablist" aria-label="Filter media submissions">
+                <button type="button" class="manage-tab-btn active" data-filter="all" role="tab" aria-selected="true">
+                    <span>All Media</span>
+                    <span id="pill-count-all" class="tab-count-badge">0</span>
+                </button>
+                <button type="button" class="manage-tab-btn" data-filter="pending" role="tab" aria-selected="false">
+                    <span><i class="fa-regular fa-clock"></i> Pending with Head</span>
+                    <span id="pill-count-pending" class="tab-count-badge">0</span>
+                </button>
+                <button type="button" class="manage-tab-btn" data-filter="returned" role="tab" aria-selected="false">
+                    <span><i class="fa-solid fa-triangle-exclamation"></i> Returned for Revision</span>
+                    <span id="pill-count-returned" class="tab-count-badge">0</span>
+                </button>
+                <button type="button" class="manage-tab-btn" data-filter="eic_approved" role="tab" aria-selected="false">
+                    <span><i class="fa-solid fa-shield-halved"></i> EIC Approved</span>
+                    <span id="pill-count-eic" class="tab-count-badge">0</span>
+                </button>
+                <button type="button" class="manage-tab-btn" data-filter="published" role="tab" aria-selected="false">
+                    <span><i class="fa-solid fa-globe"></i> Published</span>
+                    <span id="pill-count-published" class="tab-count-badge">0</span>
+                </button>
+            </div>
 
-                <div class="media-stat-card">
-                    <div class="media-stat-number" id="sum-pending-media" style="color: #d97706;">0</div>
-                    <div class="media-stat-label">Pending with Head</div>
-                </div>
-
-                <div class="media-stat-card">
-                    <div class="media-stat-number" id="sum-returned-media" style="color: #b91c1c;">0</div>
-                    <div class="media-stat-label">Returned for Revision</div>
-                </div>
-
-                <div class="media-stat-card">
-                    <div class="media-stat-number" id="sum-eic-media" style="color: #1d4ed8;">0</div>
-                    <div class="media-stat-label">EIC Approved</div>
-                </div>
-
-                <div class="media-stat-card">
-                    <div class="media-stat-number" id="sum-published-media" style="color: #047857;">0</div>
-                    <div class="media-stat-label">Published (Live)</div>
-                </div>
-            </section>
-
-            <!-- Controls: Filter Pills, Search & Sort -->
-            <div class="media-controls-bar animate-fade-in delay-3">
-                <div class="media-filter-pills" role="tablist">
-                    <button type="button" class="media-filter-btn active" data-filter="all">
-                        <span>All Media</span>
-                        <span id="pill-count-all" class="pill-count">0</span>
-                    </button>
-                    <button type="button" class="media-filter-btn" data-filter="pending">
-                        <span><i class="fa-regular fa-clock"></i> Pending with Head</span>
-                        <span id="pill-count-pending" class="pill-count">0</span>
-                    </button>
-                    <button type="button" class="media-filter-btn" data-filter="returned">
-                        <span><i class="fa-solid fa-triangle-exclamation"></i> Returned for Revision</span>
-                        <span id="pill-count-returned" class="pill-count">0</span>
-                    </button>
-                    <button type="button" class="media-filter-btn" data-filter="eic_approved">
-                        <span><i class="fa-solid fa-shield-halved"></i> EIC Approved</span>
-                        <span id="pill-count-eic" class="pill-count">0</span>
-                    </button>
-                    <button type="button" class="media-filter-btn" data-filter="published">
-                        <span><i class="fa-solid fa-globe"></i> Published</span>
-                        <span id="pill-count-published" class="pill-count">0</span>
+            <!-- Search Bar & Sort Dropdown Toolbar (Executive Parity) -->
+            <div class="manage-toolbar animate-fade-in delay-2">
+                
+                <!-- Search Bar -->
+                <div class="manage-search-shell">
+                    <i class="fa-solid fa-magnifying-glass search-leading-icon" aria-hidden="true"></i>
+                    <input 
+                        type="search" 
+                        id="media-search-input" 
+                        class="manage-search-input" 
+                        placeholder="Search media by title, connected article, or category..." 
+                        aria-label="Search media submissions" 
+                        autocomplete="off"
+                    >
+                    <button type="button" id="clear-search-btn" class="clear-search-icon hidden" title="Clear search">
+                        <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
 
-                <div class="media-search-sort-group">
-                    <div class="media-search-box">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                        <input type="text" id="media-search-input" class="media-search-input" placeholder="Search by title or category…">
+                <!-- Sort Control -->
+                <div class="review-sort-container">
+                    <label for="media-sort-select" class="review-sort-label">
+                        <i class="fa-solid fa-arrow-down-short-wide"></i>
+                        <span>Sort:</span>
+                    </label>
+                    <div class="sort-select-wrapper">
+                        <select id="media-sort-select" class="review-sort-select" aria-label="Sort media submissions">
+                            <option value="newest" selected>Newest First</option>
+                            <option value="oldest">Oldest First</option>
+                            <option value="az">Title (A–Z)</option>
+                        </select>
+                        <i class="fa-solid fa-chevron-down sort-chevron" aria-hidden="true"></i>
                     </div>
-                    <select id="media-sort-select" class="media-sort-select">
-                        <option value="newest">Newest First</option>
-                        <option value="oldest">Oldest First</option>
-                    </select>
                 </div>
+
             </div>
 
             <!-- Media Grid -->
-            <section class="manage-media-grid animate-fade-in delay-4" id="manage-media-grid" aria-label="Media submissions grid">
+            <section class="manage-media-grid animate-fade-in delay-3" id="manage-media-grid" aria-label="Media submissions grid">
                 <!-- Rendered dynamically by js/media-manage-media.js -->
             </section>
 
@@ -316,7 +312,7 @@
             <div class="modal-footer" style="padding: 14px 20px; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 10px;">
                 <a href="media-submit-media.html" class="btn-maroon-action" style="font-size: 0.82rem; padding: 8px 16px;">
                     <i class="fa-solid fa-cloud-arrow-up"></i>
-                    <span>Submit New PUBMAT</span>
+                    <span>Submit Media</span>
                 </a>
             </div>
         </div>

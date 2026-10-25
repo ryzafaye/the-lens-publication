@@ -1,8 +1,7 @@
 /**
  * ============================================================================
  * THE LENS — MEDIA & COMMUNICATION MANAGE MY ARTICLES CONTROLLER
- * Copies the Exact Style Format & Logic of Executive & M&PC Manage My Articles
- * (Identical Card Structure, Typography, Metadata, Status Badges & Modals)
+ * Full Executive & M&PC Parity: View Remarks, Reset Filters, Filter Tabs, Modals
  * ============================================================================
  */
 
@@ -10,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     'use strict';
 
     // =========================================================================
-    // 0. ACTIVE MEDIA OFFICER DETAILS
+    // 0. ACTIVE MEDIA OFFICER DETAILS & DOM REFERENCES
     // =========================================================================
     const activeRole = localStorage.getItem('mediaRole') || localStorage.getItem('userRole') || 'Media & Communication';
     const mediaName = localStorage.getItem('mediaName') || localStorage.getItem('userName') || 'Alyssa Marie Dizon';
@@ -30,11 +29,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('executive-search-input');
     const clearSearchBtn = document.getElementById('clear-search-btn');
     const sortSelect = document.getElementById('executive-sort-select');
+    const toolbarResetBtn = document.getElementById('toolbar-reset-filters-btn');
 
     // DOM Elements - Articles List Container & Empty State
     const articlesListContainer = document.getElementById('executive-manage-list');
     const emptyStateEl = document.getElementById('manage-empty-state');
-    const resetFiltersBtn = document.getElementById('reset-filters-btn');
+    const emptyStateResetBtn = document.getElementById('reset-filters-btn');
 
     // DOM Elements - Article Viewer Modal
     const viewerModal = document.getElementById('article-viewer-modal');
@@ -58,6 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const remarksModalTitle = document.getElementById('remarks-modal-title');
     const remarksModalContent = document.getElementById('remarks-modal-content');
     const closeRemarksModalBtn = document.getElementById('close-remarks-modal-btn');
+    const btnCloseRemarksModal = document.getElementById('btn-close-remarks-modal');
     const btnEditFromRemarks = document.getElementById('btn-edit-from-remarks');
 
     // DOM Elements - Delete Modal
@@ -69,7 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Toast Container
     const toastContainer = document.getElementById('toast-container');
 
-    // State
+    // Active State
     let currentTab = 'all';
     let searchQuery = '';
     let currentSort = 'newest';
@@ -189,7 +190,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let articlesData = loadMediaArticles();
 
     // =========================================================================
-    // 2. TOAST SYSTEM
+    // 2. TOAST SYSTEM & UTILITIES
     // =========================================================================
     function escapeHTML(str) {
         if (!str) return '';
@@ -240,7 +241,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const paragraphs = stripped.split(/\n+/).map(p => p.trim()).filter(p => p.length > 0);
         if (paragraphs.length === 0) return '<p style="color: #98a2b3; font-style: italic;">No content provided.</p>';
-        return paragraphs.map(p => `<p>${escapeHTML(p)}</p>`).join('');
+        return paragraphs.map(p => `<p class="viewer-paragraph">${escapeHTML(p)}</p>`).join('');
     }
 
     // =========================================================================
@@ -315,7 +316,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // =========================================================================
-    // 5. RENDER ARTICLES CARDS (Exact Executive Card Layout)
+    // 5. RENDER ARTICLES CARDS & DIRECT EVENT BINDING
     // =========================================================================
     function renderArticlesList() {
         if (!articlesListContainer) return;
@@ -351,7 +352,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const isPublished = item.status === 'Published';
             const isRevision = item.status === 'For Revision';
             const isDraft = item.status === 'Draft';
-            const hasRemarks = !!item.remarks;
+            const hasRemarks = !!item.remarks && item.remarks.trim().length > 0;
 
             return `
                 <article class="writer-article-card" data-id="${item.id}" tabindex="0" role="button" aria-label="View article: ${escapeHTML(item.title)}">
@@ -376,15 +377,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         ${item.excerpt ? `<p class="article-card-excerpt">${escapeHTML(item.excerpt)}</p>` : ''}
                     </div>
 
-                    ${isRevision && hasRemarks ? `
-                        <div class="article-card-remarks" data-action="remarks" data-id="${item.id}" onclick="event.stopPropagation()">
-                            <i class="fa-solid fa-comment-dots"></i>
-                            <span class="remarks-preview-text"><strong>Section Head:</strong> "${escapeHTML(item.remarks)}"</span>
-                            <span class="remarks-click-hint">Click to read note</span>
-                        </div>
-                    ` : ''}
-
-                    <div class="article-card-footer" onclick="event.stopPropagation()">
+                    <div class="article-card-footer">
                         <div class="footer-left-actions">
                             ${hasRemarks ? `
                                 <button type="button" class="btn-box-remarks" data-action="remarks" data-id="${item.id}" title="View editorial remarks">
@@ -403,7 +396,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             ` : ''}
 
                             ${isDraft ? `
-                                <button type="button" class="btn-box-delete" data-action="delete" data-id="${item.id}" title="Delete draft">
+                                <button type="button" class="btn-box-delete" data-action="delete" data-id="${item.id}" data-title="${escapeHTML(item.title)}" title="Delete draft">
                                     <i class="fa-regular fa-trash-can"></i>
                                 </button>
                             ` : ''}
@@ -413,35 +406,62 @@ document.addEventListener('DOMContentLoaded', () => {
                 </article>
             `;
         }).join('');
+
+        // Attach specific event handlers to newly rendered cards
+        attachCardListeners();
     }
 
     // =========================================================================
-    // 6. EVENT DELEGATION: CARD CLICKS, REMARKS & DELETE MODALS
+    // 6. CARD INTERACTIONS: VIEW REMARKS, EDIT, DELETE, ARTICLE VIEWER
     // =========================================================================
-    if (articlesListContainer) {
-        articlesListContainer.addEventListener('click', (e) => {
-            const remarksBtn = e.target.closest('[data-action="remarks"]');
-            if (remarksBtn) {
-                const id = remarksBtn.dataset.id;
-                const article = articlesData.find(a => String(a.id) === String(id));
-                if (article) openRemarksModal(article);
-                return;
-            }
+    function attachCardListeners() {
+        if (!articlesListContainer) return;
 
-            const deleteBtn = e.target.closest('[data-action="delete"]');
-            if (deleteBtn) {
-                const id = deleteBtn.dataset.id;
+        // 1. Remarks Buttons & Remarks Banners (View Remarks)
+        const remarksElements = articlesListContainer.querySelectorAll('[data-action="remarks"], .btn-box-remarks, .article-card-remarks');
+        remarksElements.forEach(elem => {
+            elem.addEventListener('click', (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                const id = elem.getAttribute('data-id');
+                openRemarksModal(id);
+            });
+        });
+
+        // 2. Delete Draft Buttons
+        const deleteButtons = articlesListContainer.querySelectorAll('[data-action="delete"], .btn-box-delete');
+        deleteButtons.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                const id = btn.getAttribute('data-id');
                 const article = articlesData.find(a => String(a.id) === String(id));
                 if (article) openDeleteModal(article);
-                return;
-            }
+            });
+        });
 
-            const card = e.target.closest('.writer-article-card');
-            if (card) {
-                const id = card.dataset.id;
+        // 3. Edit Links (Stop bubbling so it doesn't open article viewer modal)
+        const editLinks = articlesListContainer.querySelectorAll('.btn-box-edit');
+        editLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.stopPropagation();
+            });
+        });
+
+        // 4. Whole Card Click (Opens Full Article Viewer)
+        const cardElements = articlesListContainer.querySelectorAll('.writer-article-card');
+        cardElements.forEach(card => {
+            card.addEventListener('click', (e) => {
+                // If clicked element was an action button or link, don't open viewer
+                if (e.target.closest('[data-action="remarks"]') || 
+                    e.target.closest('[data-action="delete"]') || 
+                    e.target.closest('.btn-box-edit')) {
+                    return;
+                }
+                const id = card.getAttribute('data-id');
                 const article = articlesData.find(a => String(a.id) === String(id));
                 if (article) openArticleViewer(article);
-            }
+            });
         });
     }
 
@@ -457,23 +477,40 @@ document.addEventListener('DOMContentLoaded', () => {
         if (viewerAuthor) viewerAuthor.textContent = article.author || mediaName;
         if (viewerReadTime) viewerReadTime.textContent = calculateReadTime(article.content || article.excerpt);
 
+        const viewerAuthorAvatarImg = document.getElementById('viewer-author-avatar-img');
+        if (viewerAuthorAvatarImg) {
+            viewerAuthorAvatarImg.src = 'images/member-placeholder.svg';
+        }
+
+        if (viewerBannerWrap && viewerBannerImg) {
+            if (article.banner || article.image) {
+                viewerBannerImg.src = article.banner || article.image;
+                viewerBannerImg.alt = article.title;
+                viewerBannerWrap.style.display = 'block';
+            } else {
+                viewerBannerWrap.style.display = 'none';
+            }
+        }
+
         if (viewerContent) {
             viewerContent.innerHTML = formatCleanArticleContent(article.content || article.excerpt);
+        }
+
+        if (viewerRemarksWrap && viewerRemarksText) {
+            if (article.remarks && article.remarks.trim().length > 0) {
+                viewerRemarksText.textContent = article.remarks;
+                viewerRemarksWrap.style.display = 'block';
+            } else {
+                viewerRemarksWrap.style.display = 'none';
+            }
         }
 
         if (article.status === 'Published' && viewerStatsBar) {
             viewerStatsBar.style.display = 'flex';
             if (viewerViews) viewerViews.textContent = formatNumber(article.views || 0);
-            if (viewerShares) viewerShares.textContent = formatNumber(article.shares || 0);
+            if (viewerShares) viewerShares.textContent = formatNumber(article.shares || Math.round((article.views || 0) * 0.08));
         } else if (viewerStatsBar) {
             viewerStatsBar.style.display = 'none';
-        }
-
-        if (article.remarks && viewerRemarksWrap && viewerRemarksText) {
-            viewerRemarksWrap.style.display = 'block';
-            viewerRemarksText.textContent = article.remarks;
-        } else if (viewerRemarksWrap) {
-            viewerRemarksWrap.style.display = 'none';
         }
 
         viewerModal.classList.remove('hidden');
@@ -494,13 +531,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // =========================================================================
-    // 8. REMARKS MODAL
+    // 8. REMARKS MODAL (View Remarks Fix)
     // =========================================================================
-    function openRemarksModal(article) {
+    function openRemarksModal(articleOrId) {
         if (!remarksModal) return;
 
+        const article = (typeof articleOrId === 'object' && articleOrId !== null)
+            ? articleOrId
+            : articlesData.find(a => String(a.id) === String(articleOrId));
+
+        if (!article) return;
+
         if (remarksModalTitle) remarksModalTitle.textContent = article.title;
-        if (remarksModalContent) remarksModalContent.textContent = article.remarks || 'No specific notes recorded.';
+        if (remarksModalContent) remarksModalContent.textContent = article.remarks || 'No specific editorial notes provided.';
         if (btnEditFromRemarks) {
             btnEditFromRemarks.href = `media-submit-article.html?draftId=${encodeURIComponent(article.id)}`;
         }
@@ -516,6 +559,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (closeRemarksModalBtn) closeRemarksModalBtn.addEventListener('click', closeRemarksModal);
+    if (btnCloseRemarksModal) btnCloseRemarksModal.addEventListener('click', closeRemarksModal);
     if (remarksModal) {
         remarksModal.addEventListener('click', (e) => {
             if (e.target === remarksModal) closeRemarksModal();
@@ -585,8 +629,49 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // =========================================================================
-    // 10. TABS NAVIGATION & SEARCH CONTROLS
+    // 10. TABS NAVIGATION, SEARCH CONTROLS & RESET FILTERS FIX
     // =========================================================================
+    function resetAllFilters() {
+        currentTab = 'all';
+        searchQuery = '';
+        currentSort = 'newest';
+
+        tabButtons.forEach(b => {
+            const isAll = b.getAttribute('data-tab') === 'all';
+            b.classList.toggle('active', isAll);
+            b.setAttribute('aria-selected', isAll ? 'true' : 'false');
+        });
+
+        if (searchInput) {
+            searchInput.value = '';
+        }
+        if (clearSearchBtn) {
+            clearSearchBtn.classList.add('hidden');
+        }
+        if (sortSelect) {
+            sortSelect.value = 'newest';
+        }
+
+        renderArticlesList();
+        showToast('All filters, search, and sorting reset to default.');
+    }
+
+    // Attach Reset Filters to both Empty State button and Toolbar button
+    if (emptyStateResetBtn) {
+        emptyStateResetBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            resetAllFilters();
+        });
+    }
+
+    if (toolbarResetBtn) {
+        toolbarResetBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            resetAllFilters();
+        });
+    }
+
+    // Tab buttons
     tabButtons.forEach(btn => {
         btn.addEventListener('click', () => {
             tabButtons.forEach(b => {
@@ -600,6 +685,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // Search bar input
     if (searchInput) {
         searchInput.addEventListener('input', (e) => {
             searchQuery = e.target.value.trim();
@@ -610,6 +696,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Clear search button (X inside input)
     if (clearSearchBtn) {
         clearSearchBtn.addEventListener('click', () => {
             if (searchInput) {
@@ -622,29 +709,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Sort dropdown
     if (sortSelect) {
         sortSelect.addEventListener('change', (e) => {
             currentSort = e.target.value;
-            renderArticlesList();
-        });
-    }
-
-    if (resetFiltersBtn) {
-        resetFiltersBtn.addEventListener('click', () => {
-            currentTab = 'all';
-            searchQuery = '';
-            currentSort = 'newest';
-
-            tabButtons.forEach(b => {
-                const isAll = b.getAttribute('data-tab') === 'all';
-                b.classList.toggle('active', isAll);
-                b.setAttribute('aria-selected', isAll ? 'true' : 'false');
-            });
-
-            if (searchInput) searchInput.value = '';
-            if (clearSearchBtn) clearSearchBtn.classList.add('hidden');
-            if (sortSelect) sortSelect.value = 'newest';
-
             renderArticlesList();
         });
     }

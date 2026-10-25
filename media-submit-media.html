@@ -193,7 +193,7 @@
         <main class="content-container">
 
             <!-- Title -->
-            <div class="cover-page-header-section animate-fade-in delay-1" style="margin-bottom: 0;">
+            <div class="cover-page-header-section animate-fade-in delay-1" style="margin-bottom: 24px;">
                 <h1 class="cover-page-title">Submit Media</h1>
             </div>
 
@@ -204,31 +204,25 @@
                     <form id="media-submission-form" novalidate>
                         
                         <div class="media-card">
-                            <div class="media-card-header" style="margin-bottom: 20px;">
+                            <div class="media-card-header" style="margin-bottom: 24px;">
                                 <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
                                     <h2 class="media-card-title" style="margin-bottom: 0;">
                                         <i class="fa-solid fa-palette" style="color: var(--sidebar-maroon, #5c0a18);"></i>
-                                        <span>Submit Publication Material (PUBMAT)</span>
+                                        <span>Submit Publication Material</span>
                                     </h2>
-                                    <span class="cover-type-tag pubmat"><i class="fa-solid fa-palette"></i> PUBMAT ONLY</span>
                                 </div>
                             </div>
 
-                            <!-- Section 1: File Upload Studio -->
+                            <!-- Upload Box Studio -->
                             <div class="media-section-group">
-                                <label class="media-field-label">
-                                    <span>PUBMAT Graphic File</span>
-                                    <span class="media-required-star">*</span>
-                                </label>
-
                                 <!-- Dropzone -->
-                                <div id="media-dropzone" class="media-dropzone-box" role="button" tabindex="0" aria-label="Upload pubmat file">
+                                <div id="media-dropzone" class="media-dropzone-box" role="button" tabindex="0" aria-label="Upload graphic file">
                                     <input type="file" id="media-file-input" accept="image/svg+xml,image/png,image/jpeg,image/webp" style="display: none;">
                                     <div class="media-dropzone-icon">
                                         <i class="fa-solid fa-cloud-arrow-up"></i>
                                     </div>
                                     <div class="media-dropzone-primary-text">
-                                        Drop your vector or raster PUBMAT graphic here, or <span class="media-browse-link">browse</span>
+                                        Drop your vector or raster graphic here, or <span class="media-browse-link">browse</span>
                                     </div>
                                     <div class="media-dropzone-subtext">
                                         Supports SVG, PNG, JPG, or WEBP &bull; Max file size 10MB
@@ -238,7 +232,7 @@
                                 <!-- Centered & Bounded Snug Preview Frame -->
                                 <div id="media-preview-container" class="media-preview-container" style="display: none;">
                                     <div class="media-preview-wrapper">
-                                        <img id="media-preview-img" src="" alt="PUBMAT Preview" class="media-preview-img">
+                                        <img id="media-preview-img" src="" alt="Selected Media Preview" class="media-preview-img">
                                         <button type="button" id="btn-remove-preview" class="media-preview-remove-btn" title="Remove Graphic">
                                             <i class="fa-solid fa-xmark"></i>
                                         </button>
@@ -258,49 +252,11 @@
                                 </div>
                             </div>
 
-                            <!-- Section 2: PUBMAT Metadata Fields -->
-                            <div class="media-section-group" style="margin-top: 24px;">
-                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
-                                    <div>
-                                        <label for="pubmat-title" class="media-field-label">
-                                            <span>Graphic Title / Campaign Name</span>
-                                            <span class="media-required-star">*</span>
-                                        </label>
-                                        <input type="text" id="pubmat-title" class="media-text-input" placeholder="e.g. Mental Health Awareness Infographic Spread" required>
-                                    </div>
-
-                                    <div>
-                                        <label for="pubmat-category" class="media-field-label">
-                                            <span>Category / Target Desk</span>
-                                            <span class="media-required-star">*</span>
-                                        </label>
-                                        <select id="pubmat-category" class="media-text-input" required>
-                                            <option value="News">News &amp; Current Affairs</option>
-                                            <option value="Features" selected>Features &amp; Special Reports</option>
-                                            <option value="Science and Technology">Science &amp; Technology</option>
-                                            <option value="Sports">Sports &amp; Athletics</option>
-                                            <option value="University Events">Campus Event / Announcement</option>
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <div style="margin-top: 16px;">
-                                    <label for="pubmat-caption" class="media-field-label">
-                                        <span>Companion Caption / Social Media Copy (Optional)</span>
-                                    </label>
-                                    <textarea id="pubmat-caption" class="media-text-input" rows="3" placeholder="Add companion copy or briefing notes for the Media Desk review..."></textarea>
-                                </div>
-                            </div>
-
-                            <!-- Action Bar -->
-                            <div class="media-action-footer" style="margin-top: 28px; padding-top: 20px; border-top: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: flex-end; gap: 12px;">
-                                <button type="button" id="btn-save-draft" class="btn-media-draft">
-                                    <i class="fa-regular fa-bookmark"></i>
-                                    <span>Save Draft</span>
-                                </button>
+                            <!-- Action Bar: Just the Submit Button -->
+                            <div class="media-action-footer" style="margin-top: 28px; padding-top: 20px; border-top: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: flex-end;">
                                 <button type="submit" id="btn-submit-media" class="btn-media-submit">
                                     <i class="fa-solid fa-paper-plane"></i>
-                                    <span>Submit PUBMAT to Media Desk</span>
+                                    <span>Submit Media to Desk</span>
                                 </button>
                             </div>
 

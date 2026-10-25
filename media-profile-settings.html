@@ -188,86 +188,223 @@
             </div>
         </nav>
 
-        <!-- Main Content Area -->
+        <!-- Main Content Area: Executive & M&PC High-End Design Parity -->
         <main class="content-container">
 
-            <div class="page-title-section animate-fade-in delay-1">
-                <h1 class="page-title">Profile Settings</h1>
-                <p style="font-size: 0.88rem; color: #64748b; margin-top: 4px;">
-                    Update your account credentials, avatar image, and security password.
-                </p>
-            </div>
-
-            <!-- Profile Settings 2-Column Grid -->
-            <div class="settings-grid-layout animate-fade-in delay-2" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; margin-top: 20px;">
+            <div class="profile-settings-container">
                 
-                <!-- Card 1: Member Information & Avatar -->
-                <div class="settings-card" style="background:#fff; border:1px solid #e2e8f0; border-radius:14px; padding:24px;">
-                    <h2 style="font-family: var(--font-heading); font-size: 1.2rem; color: #0f172a; margin: 0 0 16px 0;">
-                        <i class="fa-regular fa-id-badge" style="color: var(--sidebar-maroon);"></i> Member Information
-                    </h2>
-
-                    <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 20px;">
-                        <div style="width: 72px; height: 72px; border-radius: 50%; overflow: hidden; border: 2px solid #e2e8f0; flex-shrink: 0;">
-                            <img id="avatar-preview-img" src="images/member-placeholder.svg" alt="Avatar Preview" style="width: 100%; height: 100%; object-fit: cover;">
-                        </div>
-                        <div>
-                            <input type="file" id="avatar-file-input" accept="image/*" style="display: none;">
-                            <button type="button" id="btn-upload-avatar" class="btn-media-inspect" style="padding: 6px 12px; font-size: 0.82rem;">
-                                <i class="fa-solid fa-camera"></i> Change Photo
-                            </button>
-                            <p style="font-size: 0.74rem; color: #94a3b8; margin: 6px 0 0 0;">JPG, PNG or WEBP up to 5MB</p>
-                        </div>
+                <!-- Page Header -->
+                <div class="profile-header-row animate-fade-in delay-1">
+                    <div class="profile-title-wrap">
+                        <h1 class="page-title">Profile Settings</h1>
+                        <p style="font-size: 0.88rem; color: #64748b; margin-top: 4px;">
+                            Manage your member details, profile avatar, and account security credentials.
+                        </p>
                     </div>
-
-                    <form id="profile-info-form">
-                        <div style="margin-bottom: 14px;">
-                            <label class="media-field-label">Full Name</label>
-                            <input type="text" id="profile-fullname" class="media-text-input" value="Alyssa Marie Dizon" required>
-                        </div>
-
-                        <div style="margin-bottom: 14px;">
-                            <label class="media-field-label">Student Number</label>
-                            <input type="text" id="profile-student-number" class="media-text-input" value="2024-00080-BN-0" readonly style="background: #f8fafc; color: #64748b;">
-                        </div>
-
-                        <div style="margin-bottom: 18px;">
-                            <label class="media-field-label">Official Role</label>
-                            <input type="text" id="profile-role" class="media-text-input" value="Media &amp; Communication" readonly style="background: #f8fafc; color: #64748b;">
-                        </div>
-
-                        <button type="submit" class="btn-primary-action" style="background-color: var(--sidebar-maroon, #5c0a18); border: none; cursor: pointer;">
-                            <i class="fa-solid fa-floppy-disk"></i> Save Profile Details
-                        </button>
-                    </form>
                 </div>
 
-                <!-- Card 2: Security & Password -->
-                <div class="settings-card" style="background:#fff; border:1px solid #e2e8f0; border-radius:14px; padding:24px;">
-                    <h2 style="font-family: var(--font-heading); font-size: 1.2rem; color: #0f172a; margin: 0 0 16px 0;">
-                        <i class="fa-solid fa-shield-halved" style="color: var(--sidebar-maroon);"></i> Security &amp; Password
-                    </h2>
-
-                    <form id="profile-password-form">
-                        <div style="margin-bottom: 14px;">
-                            <label class="media-field-label">Current Password</label>
-                            <input type="password" id="current-password" class="media-text-input" placeholder="••••••••••••" required>
+                <!-- 2-Column Responsive Settings Grid -->
+                <div class="profile-settings-grid animate-fade-in delay-2">
+                    
+                    <!-- ====================================================== -->
+                    <!-- CARD 1: OFFICER PROFILE INFORMATION                    -->
+                    <!-- ====================================================== -->
+                    <section class="settings-card" aria-labelledby="officer-info-heading">
+                        <div class="settings-card-header">
+                            <div class="settings-card-icon">
+                                <i class="fa-regular fa-id-badge"></i>
+                            </div>
+                            <div class="settings-card-titles">
+                                <h2 id="officer-info-heading">Member Profile</h2>
+                                <p>Update your personal details and media team communications photo.</p>
+                            </div>
                         </div>
 
-                        <div style="margin-bottom: 14px;">
-                            <label class="media-field-label">New Password</label>
-                            <input type="password" id="new-password" class="media-text-input" placeholder="At least 8 characters" required>
+                        <form id="profile-info-form" class="settings-card-body" novalidate>
+                            
+                            <!-- Profile Picture Upload Row -->
+                            <div class="profile-avatar-row">
+                                <div class="avatar-preview-wrapper">
+                                    <img id="avatar-preview-img" class="avatar-preview-img" src="images/member-placeholder.svg" alt="Officer Avatar">
+                                </div>
+                                <div class="avatar-upload-info">
+                                    <span class="settings-label">Profile Picture</span>
+                                    <div class="avatar-actions-group">
+                                        <button type="button" id="btn-change-avatar" class="btn-upload-avatar">
+                                            <i class="fa-solid fa-arrow-up-from-bracket"></i>
+                                            <span>Upload Photo</span>
+                                        </button>
+                                        <button type="button" id="btn-reset-avatar" class="btn-reset-avatar" title="Reset to default placeholder">
+                                            <i class="fa-regular fa-trash-can"></i>
+                                            <span>Remove</span>
+                                        </button>
+                                        <!-- Hidden Native File Input -->
+                                        <input type="file" id="avatar-file-input" accept="image/png, image/jpeg, image/webp" style="display: none;" aria-label="Upload profile picture">
+                                    </div>
+                                    <p class="avatar-hint-text">Supported formats: JPG, PNG, or WEBP up to 5MB.</p>
+                                </div>
+                            </div>
+
+                            <!-- Student Number Field -->
+                            <div class="settings-field-group">
+                                <label for="input-student-number" class="settings-label">
+                                    <span>Student Number <span class="req">*</span></span>
+                                </label>
+                                <input 
+                                    type="text" 
+                                    id="input-student-number" 
+                                    class="settings-input" 
+                                    value="2024-00080-BN-0" 
+                                    readonly
+                                    aria-readonly="true"
+                                >
+                            </div>
+
+                            <!-- Full Name Field -->
+                            <div class="settings-field-group">
+                                <label for="input-full-name" class="settings-label">
+                                    <span>Full Name <span class="req">*</span></span>
+                                </label>
+                                <input 
+                                    type="text" 
+                                    id="input-full-name" 
+                                    class="settings-input" 
+                                    placeholder="Enter your full name" 
+                                    value="Alyssa Marie Dizon"
+                                    required 
+                                    maxlength="80"
+                                    autocomplete="name"
+                                >
+                            </div>
+
+                            <!-- Role Field (Readonly/Display) -->
+                            <div class="settings-field-group">
+                                <label for="input-officer-role" class="settings-label">
+                                    <span>Designated Role</span>
+                                    <span class="optional-badge">Media &amp; Communications Desk</span>
+                                </label>
+                                <input 
+                                    type="text" 
+                                    id="input-officer-role" 
+                                    class="settings-input" 
+                                    readonly 
+                                    value="Media &amp; Communication"
+                                    aria-readonly="true"
+                                >
+                            </div>
+
+                            <!-- Submit Action -->
+                            <div class="card-actions-row">
+                                <button type="submit" id="btn-save-profile" class="btn-update-maroon">
+                                    <i class="fa-solid fa-check"></i>
+                                    <span>Save Profile</span>
+                                </button>
+                            </div>
+
+                        </form>
+                    </section>
+
+                    <!-- ====================================================== -->
+                    <!-- CARD 2: SECURITY & PASSWORD CHANGE                      -->
+                    <!-- ====================================================== -->
+                    <section class="settings-card" aria-labelledby="security-heading">
+                        <div class="settings-card-header">
+                            <div class="settings-card-icon">
+                                <i class="fa-solid fa-shield-halved"></i>
+                            </div>
+                            <div class="settings-card-titles">
+                                <h2 id="security-heading">Password &amp; Security</h2>
+                                <p>Manage your account password and security credentials.</p>
+                            </div>
                         </div>
 
-                        <div style="margin-bottom: 18px;">
-                            <label class="media-field-label">Confirm New Password</label>
-                            <input type="password" id="confirm-password" class="media-text-input" placeholder="Repeat new password" required>
-                        </div>
+                        <form id="password-change-form" class="settings-card-body" novalidate>
+                            
+                            <!-- Current Password Field -->
+                            <div class="settings-field-group">
+                                <label for="input-current-password" class="settings-label">
+                                    <span>Current Password <span class="req">*</span></span>
+                                </label>
+                                <div class="password-input-wrapper">
+                                    <input 
+                                        type="password" 
+                                        id="input-current-password" 
+                                        class="settings-input" 
+                                        placeholder="Enter current password" 
+                                        required 
+                                        autocomplete="current-password"
+                                    >
+                                    <button type="button" class="password-toggle-btn" data-target="input-current-password" aria-label="Toggle current password visibility">
+                                        <i class="fa-regular fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
 
-                        <button type="submit" class="btn-primary-action" style="background-color: #334155; border: none; cursor: pointer;">
-                            <i class="fa-solid fa-key"></i> Update Password
-                        </button>
-                    </form>
+                            <!-- New Password Field -->
+                            <div class="settings-field-group">
+                                <label for="input-new-password" class="settings-label">
+                                    <span>New Password <span class="req">*</span></span>
+                                </label>
+                                <div class="password-input-wrapper">
+                                    <input 
+                                        type="password" 
+                                        id="input-new-password" 
+                                        class="settings-input" 
+                                        placeholder="Enter new password" 
+                                        required 
+                                        minlength="6"
+                                        autocomplete="new-password"
+                                    >
+                                    <button type="button" class="password-toggle-btn" data-target="input-new-password" aria-label="Toggle new password visibility">
+                                        <i class="fa-regular fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Confirm New Password Field -->
+                            <div class="settings-field-group">
+                                <label for="input-confirm-password" class="settings-label">
+                                    <span>Confirm New Password <span class="req">*</span></span>
+                                </label>
+                                <div class="password-input-wrapper">
+                                    <input 
+                                        type="password" 
+                                        id="input-confirm-password" 
+                                        class="settings-input" 
+                                        placeholder="Confirm new password" 
+                                        required 
+                                        minlength="6"
+                                        autocomplete="new-password"
+                                    >
+                                    <button type="button" class="password-toggle-btn" data-target="input-confirm-password" aria-label="Toggle confirm password visibility">
+                                        <i class="fa-regular fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Password Requirement Checklist -->
+                            <div class="password-criteria-list">
+                                <div class="password-criteria-item" id="crit-length">
+                                    <i class="fa-solid fa-circle-check"></i>
+                                    <span>Minimum 6 characters</span>
+                                </div>
+                                <div class="password-criteria-item" id="crit-match">
+                                    <i class="fa-solid fa-circle-check"></i>
+                                    <span>New and confirm passwords must match</span>
+                                </div>
+                            </div>
+
+                            <!-- Submit Action -->
+                            <div class="card-actions-row">
+                                <button type="submit" id="btn-update-password" class="btn-update-maroon">
+                                    <i class="fa-solid fa-key"></i>
+                                    <span>Update Password</span>
+                                </button>
+                            </div>
+
+                        </form>
+                    </section>
+
                 </div>
 
             </div>

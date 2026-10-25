@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submit Cartoon | The Lens Cartoonist Portal</title>
+
+    <!-- Typography: DM Sans & Playfair Display -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,600;1,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Modular CSS Architecture -->
+    <link rel="stylesheet" href="css/executive-dashboard.css">
+    <link rel="stylesheet" href="css/executive-modals.css">
+    <link rel="stylesheet" href="css/writer-dashboard.css">
+    <link rel="stylesheet" href="css/executive-cover-review.css">
+    <link rel="stylesheet" href="css/mpc-submit-media.css">
+</head>
+<body class="dashboard-body">
+
+    <!-- ====================================================================== -->
+    <!-- DEDICATED CARTOONIST SIDEBAR: Desktop Fixed Maroon (#5c0a18)           -->
+    <!-- ====================================================================== -->
+    <aside id="sidebar" class="sidebar" aria-label="Cartoonist Portal Sidebar">
+        
+        <div class="sidebar-top-section">
+            <div class="sidebar-header">
+                <div class="sidebar-brand-lockup">
+                    <div class="sidebar-logo-square">
+                        <img src="images/logo.jpg" alt="The Lens Logo">
+                    </div>
+                    <span class="sidebar-brand-name">The Lens Publication</span>
+                </div>
+            </div>
+
+            <div class="sidebar-profile">
+                <div class="profile-avatar">
+                    <img id="sidebar-avatar-img" src="images/member-placeholder.svg" alt="Cartoonist Avatar">
+                </div>
+                <div id="sidebar-user-name" class="profile-name">Raphael Luna</div>
+                <div id="sidebar-user-role" class="profile-role-text">Cartoonist</div>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="sidebar-nav" aria-label="Main Navigation">
+                <a href="cartoonist-dashboard.html" class="sidebar-nav-item">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </a>
+
+                <a href="cartoonist-submit-article.html" class="sidebar-nav-item">
+                    <i class="fa-solid fa-feather-pointed"></i>
+                    <span>Submit Article</span>
+                </a>
+
+                <a href="cartoonist-manage-articles.html" class="sidebar-nav-item">
+                    <i class="fa-regular fa-newspaper"></i>
+                    <span>Manage My Articles</span>
+                </a>
+
+                <a href="cartoonist-submit-cartoon.html" class="sidebar-nav-item active">
+                    <i class="fa-solid fa-paintbrush"></i>
+                    <span>Submit Cartoon</span>
+                </a>
+
+                <a href="cartoonist-manage-cartoons.html" class="sidebar-nav-item">
+                    <i class="fa-solid fa-palette"></i>
+                    <span>Manage Cartoons</span>
+                </a>
+            </nav>
+        </div>
+
+        <div class="sidebar-footer" id="sidebar-footer">
+            <a href="cartoonist-profile-settings.html" class="sidebar-footer-link">
+                <i class="fa-solid fa-sliders"></i>
+                <span>Profile Settings</span>
+            </a>
+
+            <a href="index.html" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                <span>View public site</span>
+            </a>
+
+            <button type="button" id="logout-btn" class="sidebar-footer-link logout-btn">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span>Logout</span>
+            </button>
+        </div>
+
+    </aside>
+
+    <!-- ====================================================================== -->
+    <!-- MAIN CONTENT AREA                                                      -->
+    <!-- ====================================================================== -->
+    <div class="main-wrapper">
+        
+        <!-- Top Header Bar -->
+        <header class="topbar">
+            
+            <div class="topbar-left">
+                <div class="mobile-header-brand">
+                    <button type="button" id="mobile-hamburger-btn" class="mobile-hamburger-btn" aria-label="Toggle navigation menu" aria-expanded="false">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <div class="mobile-brand-lockup">
+                        <div class="mobile-logo-square">
+                            <img src="images/logo.jpg" alt="The Lens Logo">
+                        </div>
+                        <span class="mobile-brand-title">The Lens</span>
+                    </div>
+                </div>
+
+                <!-- Desktop Real-time Clock -->
+                <div class="topbar-clock">
+                    <i class="fa-regular fa-clock"></i>
+                    <span id="topbar-clock-display">Loading date &amp; time…</span>
+                </div>
+            </div>
+
+            <!-- Right Side: Notification + Circular Profile Picture + Role Badge -->
+            <div class="topbar-right">
+                <button type="button" class="topbar-notification-btn" aria-label="View notifications">
+                    <span class="notification-icon-wrapper">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="notification-badge-dot"></span>
+                    </span>
+                    <span class="notification-label">Notification</span>
+                </button>
+
+                <div class="topbar-divider"></div>
+
+                <div class="topbar-user-profile">
+                    <div class="topbar-avatar-circle" title="User Profile">
+                        <img id="topbar-avatar-img" src="images/member-placeholder.svg" alt="User Profile Picture">
+                    </div>
+                    <span id="topbar-user-role" class="topbar-role-badge">Cartoonist</span>
+                </div>
+            </div>
+
+        </header>
+
+        <!-- Mobile Accordion Dropdown -->
+        <nav id="mobile-nav-dropdown" class="mobile-nav-dropdown" aria-label="Mobile Navigation Menu">
+            <div class="mobile-nav-profile">
+                <div class="mobile-nav-avatar">
+                    <img id="mobile-avatar-img" src="images/member-placeholder.svg" alt="Cartoonist Avatar">
+                </div>
+                <div class="mobile-nav-user-info">
+                    <div id="mobile-user-name" class="mobile-nav-name">Raphael Luna</div>
+                    <div id="mobile-user-role" class="mobile-nav-role">Cartoonist</div>
+                </div>
+            </div>
+
+            <div class="mobile-nav-links">
+                <a href="cartoonist-dashboard.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="cartoonist-submit-article.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-feather-pointed"></i>
+                    <span>Submit Article</span>
+                </a>
+                <a href="cartoonist-manage-articles.html" class="mobile-nav-link">
+                    <i class="fa-regular fa-newspaper"></i>
+                    <span>Manage My Articles</span>
+                </a>
+                <a href="cartoonist-submit-cartoon.html" class="mobile-nav-link active">
+                    <i class="fa-solid fa-paintbrush"></i>
+                    <span>Submit Cartoon</span>
+                </a>
+                <a href="cartoonist-manage-cartoons.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-palette"></i>
+                    <span>Manage Cartoons</span>
+                </a>
+            </div>
+
+            <div class="mobile-nav-footer">
+                <a href="cartoonist-profile-settings.html" class="mobile-nav-footer-link">
+                    <i class="fa-solid fa-sliders"></i>
+                    <span>Profile Settings</span>
+                </a>
+                <a href="index.html" target="_blank" rel="noopener noreferrer" class="mobile-nav-footer-link">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    <span>View public site</span>
+                </a>
+                <button type="button" id="mobile-logout-btn" class="mobile-nav-footer-link mobile-logout-btn">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span>Logout</span>
+                </button>
+            </div>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="content-container">
+
+            <!-- Title -->
+            <div class="cover-page-header-section animate-fade-in delay-1" style="margin-bottom: 24px;">
+                <h1 class="cover-page-title">Submit Cartoon</h1>
+            </div>
+
+            <div class="submit-media-container">
+                
+                <!-- UPLOAD CARTOON FORM -->
+                <div id="view-upload-media" class="media-view-pane">
+                    <form id="cartoon-submission-form" novalidate>
+                        
+                        <div class="media-card">
+                            <div class="media-card-header" style="margin-bottom: 24px;">
+                                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                                    <h2 class="media-card-title" style="margin-bottom: 0;">
+                                        <i class="fa-solid fa-paintbrush" style="color: var(--sidebar-maroon, #5c0a18);"></i>
+                                        <span>Submit Editorial Cartoon</span>
+                                    </h2>
+                                </div>
+                            </div>
+
+                            <!-- Upload Box Studio -->
+                            <div class="media-section-group">
+                                <!-- Dropzone -->
+                                <div id="cartoon-dropzone" class="media-dropzone-box" role="button" tabindex="0" aria-label="Upload cartoon illustration">
+                                    <input type="file" id="cartoon-file-input" accept="image/svg+xml,image/png,image/jpeg,image/webp" style="display: none;">
+                                    <div class="media-dropzone-icon">
+                                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                                    </div>
+                                    <div class="media-dropzone-primary-text">
+                                        Drop your cartoon illustration here, or <span class="media-browse-link">browse</span>
+                                    </div>
+                                    <div class="media-dropzone-subtext">
+                                        Supports SVG, PNG, JPG, or WEBP &bull; Max file size 10MB
+                                    </div>
+                                </div>
+
+                                <!-- Centered & Bounded Snug Preview Frame -->
+                                <div id="cartoon-preview-container" class="media-preview-container" style="display: none;">
+                                    <div class="media-preview-wrapper">
+                                        <img id="cartoon-preview-img" src="" alt="Selected Cartoon Preview" class="media-preview-img">
+                                        <button type="button" id="btn-remove-preview" class="media-preview-remove-btn" title="Remove Graphic">
+                                            <i class="fa-solid fa-xmark"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- File Details Info Bar -->
+                                <div id="cartoon-file-info-bar" class="media-file-info-bar" style="display: none;">
+                                    <div class="media-file-info-left">
+                                        <i class="fa-solid fa-file-image media-file-icon"></i>
+                                        <div>
+                                            <span id="cartoon-file-name" class="media-file-name-text">filename.svg</span>
+                                            <span id="cartoon-file-size" class="media-file-size-text">• 0 KB</span>
+                                        </div>
+                                    </div>
+                                    <span class="media-file-ready-tag"><i class="fa-solid fa-circle-check"></i> Ready to submit</span>
+                                </div>
+                            </div>
+
+                            <!-- Action Bar: Just the Submit Button -->
+                            <div class="media-action-footer" style="margin-top: 28px; padding-top: 20px; border-top: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: flex-end;">
+                                <button type="submit" id="btn-submit-cartoon" class="btn-media-submit">
+                                    <i class="fa-solid fa-paper-plane"></i>
+                                    <span>Submit Cartoon to Desk</span>
+                                </button>
+                            </div>
+
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+
+        </main>
+
+    </div>
+
+    <!-- Toast Notifications Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Scripts -->
+    <script src="js/cartoonist-shell.js"></script>
+    <script src="js/cartoonist-data.js"></script>
+    <script src="js/cartoonist-submit-cartoon.js"></script>
+</body>
+</html>
+

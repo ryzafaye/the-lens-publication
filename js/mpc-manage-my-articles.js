@@ -407,6 +407,12 @@ document.addEventListener('DOMContentLoaded', () => {
                             ` : ''}
 
                             ${item.status === 'For Revision' ? `
+                                ${item.remarks ? `
+                                    <button type="button" class="btn-box-view btn-show-remarks" data-id="${item.id}" style="color: #b42318; border-color: #fecdca; background: #fef3f2;" title="View revision feedback" onclick="event.stopPropagation()">
+                                        <i class="fa-regular fa-comment-dots"></i>
+                                        <span>View Remarks</span>
+                                    </button>
+                                ` : ''}
                                 <a href="mpc-submit-article.html?draftId=${encodeURIComponent(item.id)}" class="btn-box-view" style="text-decoration: none;" title="Edit and revise manuscript" onclick="event.stopPropagation()">
                                     <i class="fa-solid fa-pen-to-square"></i>
                                     <span>Revise</span>
@@ -555,6 +561,16 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
+        if (viewerBannerWrap && viewerBannerImg) {
+            if (article.banner || article.image) {
+                viewerBannerImg.src = article.banner || article.image;
+                viewerBannerImg.alt = article.title;
+                viewerBannerWrap.style.display = 'block';
+            } else {
+                viewerBannerWrap.style.display = 'none';
+            }
+        }
+
         if (viewerContent) {
             viewerContent.innerHTML = formatCleanArticleContent(article.content || article.excerpt);
         }
@@ -570,10 +586,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         viewerModal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
     }
 
     function closeArticleViewer() {
         if (viewerModal) viewerModal.classList.add('hidden');
+        document.body.style.overflow = '';
     }
 
     if (closeViewerBtn) {

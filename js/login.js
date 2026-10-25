@@ -36,6 +36,10 @@ document.addEventListener('DOMContentLoaded', () => {
         "2024-00080-BN-0": { role: "Media & Communication", name: "Alyssa Marie Dizon", isMedia: true, isWriter: false, isSectionHead: false },
         "2024-00081-BN-0": { role: "Media & Communication", name: "Joshua Kenneth Tan", isMedia: true, isWriter: false, isSectionHead: false },
 
+        // Cartoonist
+        "2024-00090-BN-0": { role: "Cartoonist", name: "Raphael Luna", isCartoonist: true, isWriter: false, isSectionHead: false },
+        "2024-00091-BN-0": { role: "Cartoonist", name: "Giselle Morales", isCartoonist: true, isWriter: false, isSectionHead: false },
+
         // Staff Writers
         "2024-00101-BN-0": { role: "Writer", name: "Sofia M. Alcaraz", writerId: "sofia-alcaraz", isWriter: true, isSectionHead: false },
         "2024-00102-BN-0": { role: "Writer", name: "Marco L. Valderrama", writerId: "marco-valderrama", isWriter: true, isSectionHead: false },
@@ -119,18 +123,31 @@ document.addEventListener('DOMContentLoaded', () => {
         const isPasswordCorrect = (passVal === REQUIRED_PASSWORD);
 
         if (account && isPasswordCorrect) {
-            // Determine role persona: Media Team, Writer, Section Head, EIC, MPC, or Executive
-            const isMedia = account.isMedia || (!account.isMPC && (account.role.toLowerCase().includes('media & communication') || account.role.toLowerCase().includes('media and communication')));
-            const isMPC = (account.isMPC || account.role.toLowerCase().includes('m&pc') || (account.role.toLowerCase().includes('media') && account.role.toLowerCase().includes('head'))) && !isMedia;
-            const isWriter = !isMedia && (account.isWriter || account.role.toLowerCase().includes('writer') || account.role.toLowerCase().includes('contributor'));
-            const isEIC = account.isEIC || account.role.toLowerCase().includes('chief') || account.role.toLowerCase().includes('eic');
-            const isSectionHead = !isMedia && (account.isSectionHead || (account.role.toLowerCase().includes('head') && !account.role.toLowerCase().includes('chief') && !account.role.toLowerCase().includes('communications') && !account.role.toLowerCase().includes('media') && !account.role.toLowerCase().includes('m&pc')));
+            // Determine role persona: Cartoonist, Media Team, Writer, Section Head, EIC, MPC, or Executive
+            const isCartoonist = account.isCartoonist || account.role.toLowerCase().includes('cartoonist');
+            const isMedia = !isCartoonist && (account.isMedia || (!account.isMPC && (account.role.toLowerCase().includes('media & communication') || account.role.toLowerCase().includes('media and communication'))));
+            const isMPC = !isCartoonist && ((account.isMPC || account.role.toLowerCase().includes('m&pc') || (account.role.toLowerCase().includes('media') && account.role.toLowerCase().includes('head'))) && !isMedia);
+            const isWriter = !isCartoonist && !isMedia && (account.isWriter || account.role.toLowerCase().includes('writer') || account.role.toLowerCase().includes('contributor'));
+            const isEIC = !isCartoonist && (account.isEIC || account.role.toLowerCase().includes('chief') || account.role.toLowerCase().includes('eic'));
+            const isSectionHead = !isCartoonist && !isMedia && (account.isSectionHead || (account.role.toLowerCase().includes('head') && !account.role.toLowerCase().includes('chief') && !account.role.toLowerCase().includes('communications') && !account.role.toLowerCase().includes('media') && !account.role.toLowerCase().includes('m&pc')));
 
             let targetPage = 'executive-dashboard.html';
             let portalName = 'Executive Dashboard';
 
             // Fully isolate session storage per persona to prevent data bleed
-            if (isMedia) {
+            if (isCartoonist) {
+                targetPage = 'cartoonist-dashboard.html';
+                portalName = 'Cartoonist Dashboard';
+                localStorage.setItem('userRole', account.role || 'Cartoonist');
+                localStorage.setItem('userName', account.name);
+                localStorage.setItem('studentNumber', studentVal);
+                localStorage.setItem('cartoonistRole', account.role || 'Cartoonist');
+                localStorage.setItem('cartoonistName', account.name);
+                localStorage.setItem('cartoonistStudentNumber', studentVal);
+                localStorage.setItem('cartoonistId', account.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'));
+                const avatar = localStorage.getItem('cartoonistAvatar') || 'images/member-placeholder.svg';
+                localStorage.setItem('userAvatar', avatar);
+            } else if (isMedia) {
                 targetPage = 'media-dashboard.html';
                 portalName = 'Media & Communication Dashboard';
                 localStorage.setItem('userRole', account.role || 'Media & Communication');

@@ -1,18 +1,13 @@
 /**
  * ============================================================================
- * THE LENS — SUBMIT PUBMAT CONTROLLER (M&PC PORTAL)
- * Exclusively handles submission of PUBMAT (Publication Materials) for M&PC
- * Features:
- * - Dedicated PUBMAT upload studio
- * - Drag & drop file upload with live image preview & file details info bar
- * - One-click sample preset (CSC Audit Infographic)
- * - Sync to articleCoverReviewQueue_v1 (Media Desk queue under PUBMAT tab)
- * - Activity log sync to mpcActivityLogs_v1
- * - Draft saving & My Submissions review list
+ * THE LENS — SUBMIT MEDIA CONTROLLER (M&PC PORTAL)
+ * Clean, distraction-free upload studio for publication materials.
+ * Handles file drag & drop, snug preview, and queue dispatch.
  * ============================================================================
  */
 
 document.addEventListener('DOMContentLoaded', () => {
+    'use strict';
 
     // =========================================================================
     // 1. DOM REFERENCES
@@ -29,20 +24,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const fileNameEl = document.getElementById('media-file-name');
     const fileSizeEl = document.getElementById('media-file-size');
 
-    // Buttons & Tabs
-    const btnSaveDraft = document.getElementById('btn-save-draft');
-    const tabUpload = document.getElementById('tab-upload-media');
-    const tabMySubmissions = document.getElementById('tab-my-media');
-    const viewUpload = document.getElementById('view-upload-media');
-    const viewSubmissions = document.getElementById('view-my-submissions');
-    const submissionsGrid = document.getElementById('submissions-grid');
-    const submissionsEmpty = document.getElementById('submissions-empty');
-    const badgeCount = document.getElementById('badge-my-media-count');
     const toastContainer = document.getElementById('toast-container');
 
     let currentImageDataUrl = '';
     let currentFileName = '';
     let currentFileSize = '';
+
+    const MEDIA_DESK_QUEUE_KEY = 'articleCoverReviewQueue_v1';
+    const MY_SUBMISSIONS_KEY = 'mpcUserPubmatSubmissions_v1';
+    const ACTIVITY_LOG_KEY = 'mpcActivityLogs_v1';
 
     // =========================================================================
     // 2. TOAST SYSTEM & UTILITIES
@@ -84,9 +74,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // =========================================================================
-    // 3. FILE UPLOAD & PREVIEW LOGIC (PUBMAT ONLY)
+    // 3. FILE UPLOAD & PREVIEW LOGIC
     // =========================================================================
-    function setPreviewImage(src, name = 'Pubmat Graphic Asset', size = '') {
+    function setPreviewImage(src, name = 'Media Artwork Asset', size = '') {
         currentImageDataUrl = src;
         currentFileName = name;
         currentFileSize = size;
@@ -154,7 +144,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         if (file.size > 10 * 1024 * 1024) {
-            showToast('File size exceeds 10MB limit.', 'error');
+            showToast('File size exceeds the 10MB limit.', 'error');
             return;
         }
 
@@ -174,71 +164,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // =========================================================================
-    // 4. DRAFTS PERSISTENCE
+    // 4. FORM SUBMISSION -> DISPATCH TO MEDIA DESK QUEUE
     // =========================================================================
-    const DRAFT_KEY = 'mpcPubmatSubmissionDraft_v1';
-
-    function saveDraft() {
-        if (!currentImageDataUrl) {
-            showToast('Please upload or load a PUBMAT graphic first.', 'error');
-            return;
-        }
-        const draft = {
-            type: 'pubmat',
-            fileName: currentFileName || 'pubmat-draft.svg',
-            fileSize: currentFileSize || '',
-            image: currentImageDataUrl,
-            savedAt: new Date().toISOString()
-        };
-        try {
-            localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
-            showToast('PUBMAT draft saved successfully!');
-        } catch (e) {
-            console.warn(e);
-            showToast('Could not save draft (storage limit).', 'error');
-        }
-    }
-
-    function loadDraft() {
-        try {
-            const raw = localStorage.getItem(DRAFT_KEY);
-            if (!raw) return;
-            const draft = JSON.parse(raw);
-            if (draft.image) {
-                setPreviewImage(draft.image, draft.fileName || 'Saved Pubmat Draft', draft.fileSize || '');
-            }
-        } catch (e) {
-            console.warn(e);
-        }
-    }
-
-    if (btnSaveDraft) {
-        btnSaveDraft.addEventListener('click', saveDraft);
-    }
-
-    // =========================================================================
-    // 5. FORM SUBMISSION -> DISPATCH PUBMAT TO MEDIA DESK QUEUE
-    // =========================================================================
-    const MEDIA_DESK_QUEUE_KEY = 'articleCoverReviewQueue_v1';
-    const MY_SUBMISSIONS_KEY = 'mpcUserPubmatSubmissions_v1';
-    const ACTIVITY_LOG_KEY = 'mpcActivityLogs_v1';
-
     if (form) {
         form.addEventListener('submit', (e) => {
             e.preventDefault();
 
             if (!currentImageDataUrl) {
-                showToast('Please upload or select a PUBMAT file first.', 'error');
+                showToast('Please upload or select an image file first.', 'error');
                 if (dropzone) dropzone.scrollIntoView({ behavior: 'smooth' });
                 return;
             }
 
-            const now = new Date();
-            const dateStr = formatDateDisplay(now);
-            const rawDateStr = now.toISOString().split('T')[0];
-
-            // Generate clean title from file name
-            let cleanTitle = 'Publication Material Banner';
+            // Derive title cleanly from the uploaded file name
+            let cleanTitle = 'Publication Material Artwork';
             if (currentFileName) {
                 cleanTitle = currentFileName
                     .replace(/\.[^/.]+$/, '')
@@ -246,18 +185,27 @@ document.addEventListener('DOMContentLoaded', () => {
                     .replace(/\b\w/g, l => l.toUpperCase());
             }
 
+            const now = new Date();
+            const dateStr = formatDateDisplay(now);
+            const rawDateStr = now.toISOString().split('T')[0];
+
+            const authorName = localStorage.getItem('mpcName') || 'Julian Del Rosario';
+            const userRole = localStorage.getItem('mpcRole') || 'M&PC Head';
+
+            const newId = 'cov-' + Date.now();
             const newPubmatItem = {
-                id: 'cov-' + Date.now(),
+                id: newId,
                 type: 'pubmat',
                 title: cleanTitle,
                 targetArticle: cleanTitle,
-                category: 'News',
-                artist: 'Julian Del Rosario',
-                approvedBy: 'Media & Public Communications Head',
+                category: 'Features',
+                artist: authorName,
+                uploaderRole: userRole,
                 image: currentImageDataUrl,
                 date: dateStr,
                 rawDate: rawDateStr,
-                status: 'pending',
+                fileSize: currentFileSize || '380 KB',
+                status: 'Pending with Head',
                 remarks: ''
             };
 
@@ -283,24 +231,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.warn('Failed saving user submission', err);
             }
 
-            // 3. Log to Activity Logs (Executive sentence parity)
+            // 3. Log to Activity Logs
             try {
                 const rawLogs = localStorage.getItem(ACTIVITY_LOG_KEY);
                 let logs = rawLogs ? JSON.parse(rawLogs) : [];
                 if (!Array.isArray(logs)) logs = [];
-                const dateStr = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
                 const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
                 logs.unshift({
                     id: 'mpc-act-' + Date.now(),
-                    causer: localStorage.getItem('mpcName') || 'Julian Del Rosario',
-                    causerRole: localStorage.getItem('mpcRole') || 'M&PC Head',
+                    causer: authorName,
+                    causerRole: userRole,
                     causerAvatar: 'images/member-placeholder.svg',
                     action: 'submitted',
-                    subjectType: 'PUBMAT Asset',
+                    subjectType: 'Publication Material',
                     subjectName: cleanTitle,
                     timestampText: 'Just now',
                     isoDate: now.toISOString(),
-                    dateKey: now.toISOString().split('T')[0],
+                    dateKey: rawDateStr,
                     formattedDate: `${dateStr} • ${timeStr}`,
                     dayGroup: 'Today'
                 });
@@ -309,117 +256,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.warn('Failed logging activity', err);
             }
 
-            // Clear draft
-            localStorage.removeItem(DRAFT_KEY);
-
-            // Reset form
+            // Reset form and preview
             clearPreviewImage();
 
-            showToast('PUBMAT submitted successfully to Media Desk!');
-
-            // Switch to My Submissions tab
-            renderSubmissions();
-            switchToTab('submissions');
+            showToast('Media submitted successfully to Media Desk!', 'success');
         });
     }
-
-    // =========================================================================
-    // 6. MY SUBMISSIONS RENDERING & TABS
-    // =========================================================================
-    function getMySubmissions() {
-        try {
-            const raw = localStorage.getItem(MY_SUBMISSIONS_KEY);
-            if (raw) {
-                const parsed = JSON.parse(raw);
-                if (Array.isArray(parsed)) return parsed;
-            }
-        } catch (e) {
-            console.warn(e);
-        }
-        return [];
-    }
-
-    function renderSubmissions() {
-        if (!submissionsGrid) return;
-        const list = getMySubmissions();
-
-        if (badgeCount) badgeCount.textContent = list.length;
-
-        if (list.length === 0) {
-            submissionsGrid.innerHTML = '';
-            if (submissionsEmpty) {
-                submissionsEmpty.style.display = 'block';
-                const emptyTitle = submissionsEmpty.querySelector('h3');
-                const emptyDesc = submissionsEmpty.querySelector('p');
-                if (emptyTitle) emptyTitle.textContent = 'No PUBMAT Submissions Yet';
-                if (emptyDesc) emptyDesc.textContent = 'Any publication materials submitted through this desk will appear here.';
-            }
-            return;
-        }
-
-        if (submissionsEmpty) submissionsEmpty.style.display = 'none';
-
-        submissionsGrid.innerHTML = list.map(item => `
-            <div class="sub-card">
-                <div class="sub-card-thumb">
-                    <img src="${escapeHTML(item.image)}" alt="${escapeHTML(item.title)} Preview" loading="lazy">
-                    <div style="position: absolute; top: 8px; left: 8px;">
-                        <span class="cover-type-tag pubmat"><i class="fa-solid fa-palette"></i> PUBMAT</span>
-                    </div>
-                </div>
-                <div class="sub-card-body">
-                    <div class="sub-card-title">${escapeHTML(item.title)}</div>
-                    <div class="sub-card-meta">
-                        <i class="fa-regular fa-calendar"></i>
-                        <span>Submitted: ${escapeHTML(item.date)}</span>
-                    </div>
-                    <div class="sub-card-meta">
-                        <i class="fa-solid fa-paintbrush"></i>
-                        <span>Contributor: <strong>${escapeHTML(item.artist)}</strong></span>
-                    </div>
-                </div>
-                <div class="sub-card-footer">
-                    <span style="display: inline-flex; align-items: center; gap: 5px; font-size: 0.76rem; font-weight: 700; color: #b54708; background: #fffaeb; border: 1px solid #fedf89; padding: 2px 8px; border-radius: 10px;">
-                        <i class="fa-regular fa-clock"></i>
-                        <span>Pending Desk Review</span>
-                    </span>
-                    <a href="mpc-media-desk.html" style="font-size: 0.78rem; font-weight: 700; color: var(--sidebar-maroon, #5c0a18); text-decoration: none;">
-                        <span>View in Desk</span>
-                        <i class="fa-solid fa-arrow-right" style="margin-left: 4px; font-size: 0.7rem;"></i>
-                    </a>
-                </div>
-            </div>
-        `).join('');
-    }
-
-    function switchToTab(viewName) {
-        if (viewName === 'upload') {
-            tabUpload.classList.add('active');
-            tabUpload.setAttribute('aria-selected', 'true');
-            tabMySubmissions.classList.remove('active');
-            tabMySubmissions.setAttribute('aria-selected', 'false');
-            viewUpload.style.display = 'block';
-            viewSubmissions.style.display = 'none';
-        } else {
-            tabMySubmissions.classList.add('active');
-            tabMySubmissions.setAttribute('aria-selected', 'true');
-            tabUpload.classList.remove('active');
-            tabUpload.setAttribute('aria-selected', 'false');
-            viewUpload.style.display = 'none';
-            viewSubmissions.style.display = 'block';
-            renderSubmissions();
-        }
-    }
-
-    if (tabUpload) {
-        tabUpload.addEventListener('click', () => switchToTab('upload'));
-    }
-    if (tabMySubmissions) {
-        tabMySubmissions.addEventListener('click', () => switchToTab('submissions'));
-    }
-
-    // Initial setup
-    loadDraft();
-    renderSubmissions();
 
 });

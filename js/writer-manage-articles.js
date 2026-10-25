@@ -123,7 +123,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return '<p style="color: #98a2b3; font-style: italic;">No content available for this manuscript.</p>';
         }
 
-        return paragraphs.map(p => `<p>${escapeHTML(p)}</p>`).join('');
+        return paragraphs.map(p => `<p class="viewer-paragraph">${escapeHTML(p)}</p>`).join('');
     }
 
     function getStatusBadgeClass(status) {

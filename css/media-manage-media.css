@@ -319,7 +319,41 @@
     color: var(--sidebar-maroon, #5c0a18) !important;
 }
 
-/* Maroon Action Buttons */
+/* Maroon Action Buttons & Primary Actions */
+.btn-primary-action {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    height: 38px !important;
+    padding: 0 16px !important;
+    background-color: var(--sidebar-maroon, #5c0a18) !important;
+    color: #ffffff !important;
+    border: 1px solid var(--sidebar-maroon, #5c0a18) !important;
+    border-radius: 8px !important;
+    font-family: var(--font-sans, 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif) !important;
+    font-size: 0.84rem !important;
+    font-weight: 600 !important;
+    text-decoration: none !important;
+    box-shadow: 0 1px 3px rgba(92, 10, 24, 0.15) !important;
+    transition: all 0.2s ease !important;
+    cursor: pointer !important;
+    white-space: nowrap !important;
+}
+
+.btn-primary-action:hover {
+    background-color: #450612 !important;
+    border-color: #450612 !important;
+    color: #ffffff !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 10px rgba(92, 10, 24, 0.22) !important;
+}
+
+.btn-primary-action i {
+    font-size: 0.85rem !important;
+    color: #ffffff !important;
+}
+
 .btn-maroon-action {
     background-color: var(--sidebar-maroon, #5c0a18) !important;
     color: #ffffff !important;
@@ -541,6 +575,32 @@
     color: #0f172a;
 }
 
+.btn-media-remarks {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: 1px solid #fecdd3;
+    background: #fff1f2;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #9f1239;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.btn-media-remarks:hover {
+    background: #ffe4e6;
+    border-color: #fda4af;
+    color: #881337;
+}
+
+.btn-media-remarks i {
+    font-size: 0.82rem;
+    color: #be123c;
+}
+
 .media-action-secondary-group {
     display: flex;
     align-items: center;
@@ -631,5 +691,349 @@
     height: auto;
     object-fit: contain;
     border-radius: 6px;
+}
+
+/* ==========================================================================
+   4. EXECUTIVE-PARITY TOOLBAR & TIGHT COMPACT SPACING
+   ========================================================================== */
+.writer-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 8px !important;
+}
+
+.manage-tabs-container {
+    margin-top: 4px !important;
+    margin-bottom: 12px !important;
+    border-bottom: 1px solid var(--border-subtle, #eaecf0);
+}
+
+.manage-toolbar {
+    margin-bottom: 14px !important;
+}
+
+.review-sort-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 2px 14px;
+    min-height: 42px;
+    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+}
+
+.review-sort-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #64748b;
+    white-space: nowrap;
+}
+
+.review-sort-label i {
+    color: var(--sidebar-maroon, #5c0a18);
+    font-size: 0.85rem;
+}
+
+.sort-select-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.review-sort-select {
+    appearance: none;
+    background: transparent;
+    border: none;
+    font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, sans-serif);
+    font-size: 0.86rem;
+    font-weight: 600;
+    color: #0f172a;
+    padding-right: 22px;
+    cursor: pointer;
+    outline: none;
+}
+
+.sort-chevron {
+    position: absolute;
+    right: 2px;
+    font-size: 0.72rem;
+    color: #94a3b8;
+    pointer-events: none;
+}
+
+/* ==========================================================================
+   5. PUBLISHED TAB: EXACT PUBLIC SITE ARCHIVE "BOXES STYLE"
+   Exact Parity with Public Site Archives (.archive-item in archives.html)
+   ========================================================================== */
+.manage-media-grid.published-archive-layout,
+.published-archive-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px 22px;
+}
+
+@media (max-width: 900px) {
+    .manage-media-grid.published-archive-layout,
+    .published-archive-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.archive-item {
+    display: grid;
+    grid-template-columns: 125px minmax(0, 1fr);
+    align-items: start;
+    gap: 16px;
+    padding: 14px;
+    margin: 0;
+    border: 1px solid #e8dfe3;
+    border-radius: 13px;
+    background: #ffffff;
+    box-shadow: 0 3px 10px rgba(43, 10, 22, 0.025);
+    transition: transform 0.24s ease, box-shadow 0.24s ease, border-color 0.24s ease;
+    text-align: left;
+    position: relative;
+}
+
+.archive-item:hover {
+    transform: translateY(-3px);
+    border-color: #cbaab6;
+    box-shadow: 0 8px 20px rgba(92, 10, 24, 0.08);
+}
+
+.archive-image-trigger {
+    display: block;
+    width: 125px;
+    height: 125px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    border-radius: 9px;
+    overflow: hidden;
+    cursor: pointer;
+    text-align: left;
+    outline: none;
+    flex-shrink: 0;
+}
+
+/* Frame-Fitted Images: Never Cut Off */
+.archive-image {
+    width: 100%;
+    height: 100%;
+    aspect-ratio: 1 / 1;
+    border-radius: 9px;
+    overflow: hidden;
+    position: relative;
+    background-color: #571525;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    box-sizing: border-box;
+}
+
+.archive-image img {
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    display: block;
+    margin: auto;
+    border-radius: 6px;
+    transition: transform 0.25s ease;
+}
+
+.archive-image-trigger:hover .archive-image img {
+    transform: scale(1.04);
+}
+
+.archive-item-copy {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.archive-item-copy .article-meta {
+    margin: 0 0 6px 0;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 10px;
+    letter-spacing: 0.055em;
+    line-height: 1.2;
+}
+
+.archive-item-copy .article-category-label {
+    color: var(--sidebar-maroon, #5c0a18);
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.archive-item-copy .article-meta-separator {
+    color: #c5b3ba;
+}
+
+.archive-item-copy .article-meta time {
+    color: #85757b;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.archive-item h3 {
+    margin: 0 0 6px 0;
+    font-family: var(--font-heading, 'Playfair Display', Georgia, serif);
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.35;
+    color: #1e293b;
+}
+
+.archive-item h3 a,
+.archive-title-link {
+    color: inherit;
+    text-decoration: none;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    transition: color 0.18s ease;
+}
+
+.archive-item h3 a:hover,
+.archive-title-link:hover {
+    color: var(--sidebar-maroon, #5c0a18);
+}
+
+.archive-excerpt {
+    margin: 0 0 8px 0 !important;
+    color: #7b6c72;
+    font-size: 12px;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Author in Maroon */
+.article-byline {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin: 0 0 8px 0;
+    color: #7b6c72;
+    font-size: 11px;
+    line-height: 1.4;
+}
+
+.article-byline i {
+    color: #9a6474;
+    font-size: 10px;
+}
+
+.article-byline a,
+.article-byline strong,
+.author-profile-link {
+    color: var(--sidebar-maroon, #5c0a18) !important;
+    font-weight: 800 !important;
+    text-decoration: none;
+}
+
+.article-byline a:hover,
+.author-profile-link:hover {
+    color: #801024 !important;
+    text-decoration: underline !important;
+}
+
+/* Exact Public Archive Stats Design */
+.article-stats {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 13px;
+    margin-top: auto;
+    padding-top: 4px;
+    color: #7c6d73;
+    font-size: 10px;
+    line-height: 1;
+}
+
+.article-view-count,
+.article-read-time,
+.article-share-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: transparent;
+    border: none;
+    padding: 0;
+    color: #7c6d73;
+    font-size: 10px;
+}
+
+.article-view-count i,
+.article-read-time i {
+    color: #8e7c83;
+    font-size: 11px;
+}
+
+.article-view-count span:first-of-type {
+    color: #7c6d73;
+    font-weight: 600;
+}
+
+.stat-label {
+    color: #93858a;
+    font-weight: 400;
+    margin-left: 1px;
+}
+
+.article-share-button {
+    font-weight: 800;
+    color: #76515f;
+    cursor: pointer;
+    transition: color 0.18s ease;
+}
+
+.article-share-button:hover {
+    color: var(--sidebar-maroon, #5c0a18);
+}
+
+.article-share-button i {
+    color: #76515f;
+    font-size: 11px;
+}
+
+.share-count {
+    display: inline-grid;
+    place-items: center;
+    min-width: 18px;
+    min-height: 18px;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: #f4e9ed;
+    color: var(--sidebar-maroon, #5c0a18);
+    font-size: 9px;
+    font-weight: 900;
+}
+
+@media (max-width: 480px) {
+    .archive-item {
+        grid-template-columns: 1fr;
+    }
+    .archive-image {
+        aspect-ratio: 16 / 9;
+        max-height: 180px;
+    }
 }
 

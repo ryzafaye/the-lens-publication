@@ -73,11 +73,93 @@ const DEFAULT_MEDIA_SUBMISSIONS = [
         artist: 'Alyssa Marie Dizon',
         uploaderRole: 'Media & Communication',
         image: 'images/covers/election-guidelines.svg',
-        date: 'Oct 22, 2026',
-        rawDate: '2026-10-22',
+        date: 'Oct 12, 2026',
+        rawDate: '2026-10-12',
         fileSize: '420 KB',
         status: 'Published',
-        remarks: 'Approved for official release across campus bulletin boards and digital portal.'
+        remarks: 'Approved for official release across campus bulletin boards and digital portal.',
+        connectedArticleId: '1',
+        connectedArticleTitle: 'Student council opens budget hearing to all colleges',
+        connectedArticleExcerpt: 'The annual budget hearing will be livestreamed and open to every student organization for the first time.',
+        connectedArticleAuthor: 'Mara Villanueva',
+        connectedArticleCategory: 'News',
+        connectedArticleDate: 'Oct 12, 2026',
+        connectedArticleUrl: 'article.html?id=1',
+        views: 2150,
+        readTime: '2 min read',
+        shares: 0
+    },
+    {
+        id: 'med-s05',
+        type: 'pubmat',
+        title: 'Campus Library Overnight Study Shift Pubmat',
+        category: 'Features',
+        artist: 'Alyssa Marie Dizon',
+        uploaderRole: 'Media & Communication',
+        image: 'images/covers/sanitation-pubmat.svg',
+        date: 'Oct 11, 2026',
+        rawDate: '2026-10-11',
+        fileSize: '580 KB',
+        status: 'Published',
+        remarks: 'Published live alongside the student study space feature.',
+        connectedArticleId: '4',
+        connectedArticleTitle: "Inside the campus library's overnight study shift",
+        connectedArticleExcerpt: 'A closer look at the students and staff who keep quiet study spaces welcoming during exam week.',
+        connectedArticleAuthor: 'Lia Mendoza',
+        connectedArticleCategory: 'Features',
+        connectedArticleDate: 'Oct 11, 2026',
+        connectedArticleUrl: 'article.html?id=4',
+        views: 1625,
+        readTime: '2 min read',
+        shares: 0
+    },
+    {
+        id: 'med-s06',
+        type: 'pubmat',
+        title: 'Enrollment Portal Peak Traffic & Server Bandwidth Graphic',
+        category: 'Science and Technology',
+        artist: 'Alyssa Marie Dizon',
+        uploaderRole: 'Media & Communication',
+        image: 'images/covers/portal-pubmat.svg',
+        date: 'Oct 11, 2026',
+        rawDate: '2026-10-11',
+        fileSize: '640 KB',
+        status: 'Published',
+        remarks: 'Published live on the portal tech desk.',
+        connectedArticleId: '7',
+        connectedArticleTitle: 'Why the enrollment portal keeps timing out',
+        connectedArticleExcerpt: 'Students share their experiences with peak-hour traffic as IT reviews ways to improve server bandwidth.',
+        connectedArticleAuthor: 'Noah Reyes',
+        connectedArticleCategory: 'Science and Technology',
+        connectedArticleDate: 'Oct 11, 2026',
+        connectedArticleUrl: 'article.html?id=7',
+        views: 1384,
+        readTime: '1 min read',
+        shares: 0
+    },
+    {
+        id: 'med-s07',
+        type: 'pubmat',
+        title: 'Campus Cafeteria Meal Subsidies Editorial Cartoon',
+        category: 'Opinion',
+        artist: 'Alyssa Marie Dizon',
+        uploaderRole: 'Media & Communication',
+        image: 'images/covers/press-freedom-cartoon.svg',
+        date: 'Oct 10, 2026',
+        rawDate: '2026-10-10',
+        fileSize: '520 KB',
+        status: 'Published',
+        remarks: 'Published alongside the student welfare opinion column.',
+        connectedArticleId: '10',
+        connectedArticleTitle: 'Opinion: Cheaper cafeteria meals are a basic need',
+        connectedArticleExcerpt: 'Affordable food on campus should be part of the core conversation about student welfare.',
+        connectedArticleAuthor: 'Paolo Santos',
+        connectedArticleCategory: 'Opinion',
+        connectedArticleDate: 'Oct 10, 2026',
+        connectedArticleUrl: 'article.html?id=10',
+        views: 996,
+        readTime: '1 min read',
+        shares: 1
     },
     {
         id: 'med-s02',
@@ -197,12 +279,6 @@ function getMediaSubmissions() {
                             ...item,
                             status: normalizeMediaStatus(item.status)
                         }));
-                        // Ensure all 4 seeds are represented
-                        DEFAULT_MEDIA_SUBMISSIONS.forEach(seed => {
-                            if (!list.some(existing => existing.id === seed.id)) {
-                                list.push(seed);
-                            }
-                        });
                     }
                 } catch (e) {
                     list = [...DEFAULT_MEDIA_SUBMISSIONS];
@@ -210,8 +286,49 @@ function getMediaSubmissions() {
             } else {
                 list = [...DEFAULT_MEDIA_SUBMISSIONS];
             }
-            localStorage.setItem(MEDIA_SUBMISSIONS_STORAGE_KEY, JSON.stringify(list));
         }
+
+        // Ensure default seed submissions are merged/augmented with connected article fields
+        DEFAULT_MEDIA_SUBMISSIONS.forEach(seed => {
+            const existingIdx = list.findIndex(existing => existing.id === seed.id);
+            if (existingIdx !== -1) {
+                const safeImage = (list[existingIdx].image && !list[existingIdx].image.includes('maroon.jpg'))
+                    ? list[existingIdx].image
+                    : seed.image;
+
+                // Enrich existing item with default connected article metadata if missing
+                list[existingIdx] = {
+                    ...seed,
+                    ...list[existingIdx],
+                    image: safeImage,
+                    connectedArticleTitle: list[existingIdx].connectedArticleTitle || seed.connectedArticleTitle,
+                    connectedArticleExcerpt: list[existingIdx].connectedArticleExcerpt || seed.connectedArticleExcerpt,
+                    connectedArticleAuthor: list[existingIdx].connectedArticleAuthor || seed.connectedArticleAuthor,
+                    connectedArticleCategory: list[existingIdx].connectedArticleCategory || seed.connectedArticleCategory,
+                    connectedArticleDate: list[existingIdx].connectedArticleDate || seed.connectedArticleDate,
+                    connectedArticleUrl: list[existingIdx].connectedArticleUrl || seed.connectedArticleUrl,
+                    views: list[existingIdx].views !== undefined ? list[existingIdx].views : seed.views,
+                    readTime: list[existingIdx].readTime || seed.readTime || '2 min read',
+                    shares: list[existingIdx].shares !== undefined ? list[existingIdx].shares : (seed.shares || 0)
+                };
+            } else {
+                list.push({ ...seed });
+            }
+        });
+
+        // Ensure all images are valid pubmats and never plain maroon.jpg
+        list = list.map(item => {
+            const seed = DEFAULT_MEDIA_SUBMISSIONS.find(s => s.id === item.id);
+            const safeImg = (item.image && !item.image.includes('maroon.jpg'))
+                ? item.image
+                : (seed ? seed.image : 'images/covers/portal-pubmat.svg');
+            return {
+                ...item,
+                image: safeImg
+            };
+        });
+
+        localStorage.setItem(MEDIA_SUBMISSIONS_STORAGE_KEY, JSON.stringify(list));
 
         // Also check if any item in review queue was approved or returned by M&PC Head
         const reviewRaw = localStorage.getItem(REVIEW_QUEUE_KEY);

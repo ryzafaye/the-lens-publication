@@ -132,17 +132,86 @@
         highlightActiveNav();
 
         // =====================================================================
-        // 5. LOGOUT HANDLER
+        // 5. CUSTOM DESIGNED LOGOUT CONFIRMATION MODAL
         // =====================================================================
+        function showLogoutModal(onConfirm) {
+            let modal = document.getElementById('lens-logout-modal');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'lens-logout-modal';
+                modal.className = 'modal-overlay';
+                modal.setAttribute('role', 'dialog');
+                modal.setAttribute('aria-modal', 'true');
+                modal.setAttribute('aria-labelledby', 'lens-logout-title');
+                modal.innerHTML = `
+                    <div class="modal-card logout-modal-card">
+                        <div class="logout-modal-header">
+                            <button type="button" id="lens-logout-close-btn" class="logout-modal-close-btn" aria-label="Close dialog">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                            <div class="logout-modal-icon-badge">
+                                <i class="fa-solid fa-right-from-bracket"></i>
+                            </div>
+                            <h2 id="lens-logout-title" class="logout-modal-title">Are you sure you want to log out?</h2>
+                            <p class="logout-modal-desc">You will be signed out of your account and returned to the login screen.</p>
+                        </div>
+                        <div class="logout-modal-actions">
+                            <button type="button" id="lens-logout-cancel-btn" class="logout-btn-cancel">Cancel</button>
+                            <button type="button" id="lens-logout-confirm-btn" class="logout-btn-confirm">
+                                <i class="fa-solid fa-right-from-bracket"></i>
+                                <span>Log Out</span>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+
+                const closeModal = () => modal.classList.add('hidden');
+                const closeBtn = modal.querySelector('#lens-logout-close-btn');
+                const cancelBtn = modal.querySelector('#lens-logout-cancel-btn');
+                if (closeBtn) closeBtn.addEventListener('click', closeModal);
+                if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
+
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) closeModal();
+                });
+
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+                        closeModal();
+                    }
+                });
+            }
+
+            const confirmBtn = modal.querySelector('#lens-logout-confirm-btn');
+            if (confirmBtn) {
+                const newConfirmBtn = confirmBtn.cloneNode(true);
+                confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+                newConfirmBtn.addEventListener('click', () => {
+                    modal.classList.add('hidden');
+                    if (typeof onConfirm === 'function') onConfirm();
+                });
+            }
+
+            modal.classList.remove('hidden');
+        }
+
         const logoutButtons = document.querySelectorAll('#logout-btn, #mobile-logout-btn, .logout-btn');
         logoutButtons.forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.preventDefault();
-                const confirmed = confirm('Are you sure you want to log out of The Lens Media & Communication Portal?');
-                if (confirmed) {
-                    sessionStorage.clear();
+                showLogoutModal(() => {
+                    try {
+                        sessionStorage.clear();
+                        localStorage.removeItem('userRole');
+                        localStorage.removeItem('userName');
+                        localStorage.removeItem('studentNumber');
+                        localStorage.removeItem('mediaRole');
+                        localStorage.removeItem('mediaName');
+                        localStorage.removeItem('mediaStudentNumber');
+                    } catch (err) {}
                     window.location.href = 'login.html';
-                }
+                });
             });
         });
 

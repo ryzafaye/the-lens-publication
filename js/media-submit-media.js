@@ -1,15 +1,20 @@
 /**
  * ============================================================================
- * THE LENS — MEDIA & COMMUNICATION SUBMIT PUBMAT CONTROLLER
- * Handles submission of PUBMAT graphics to Media Desk review queue
+ * THE LENS — SUBMIT MEDIA CONTROLLER (MEDIA & COMMUNICATION PORTAL)
+ * Clean, distraction-free upload studio for publication materials.
+ * Handles file drag & drop, snug preview, and queue dispatch.
  * ============================================================================
  */
 
 document.addEventListener('DOMContentLoaded', () => {
     'use strict';
 
-    // 1. DOM Elements
+    // =========================================================================
+    // 1. DOM REFERENCES
+    // =========================================================================
     const form = document.getElementById('media-submission-form');
+
+    // File Upload & Preview
     const dropzone = document.getElementById('media-dropzone');
     const fileInput = document.getElementById('media-file-input');
     const previewContainer = document.getElementById('media-preview-container');
@@ -19,23 +24,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const fileNameEl = document.getElementById('media-file-name');
     const fileSizeEl = document.getElementById('media-file-size');
 
-    const titleInput = document.getElementById('pubmat-title');
-    const categorySelect = document.getElementById('pubmat-category');
-    const captionInput = document.getElementById('pubmat-caption');
-
-    const btnSaveDraft = document.getElementById('btn-save-draft');
     const toastContainer = document.getElementById('toast-container');
 
     let currentImageDataUrl = '';
     let currentFileName = '';
     let currentFileSize = '';
 
-    const DRAFT_KEY = 'mediaTeamPubmatDraft_v1';
     const QUEUE_KEY = 'articleCoverReviewQueue_v1';
-    const SUBMISSIONS_KEY = 'mediaTeamSubmissions_v1';
+    const SUBMISSIONS_KEY = 'mediaTeamSubmissions_v2';
     const ACTLOG_KEY = 'mpcActivityLogs_v1';
 
-    // 2. Toast System
+    // =========================================================================
+    // 2. TOAST SYSTEM & UTILITIES
+    // =========================================================================
     function escapeHTML(str) {
         if (!str) return '';
         return String(str)
@@ -72,8 +73,10 @@ document.addEventListener('DOMContentLoaded', () => {
         return `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
     }
 
-    // 3. File Upload & Preview
-    function setPreviewImage(src, name = 'PUBMAT Graphic Asset', size = '') {
+    // =========================================================================
+    // 3. FILE UPLOAD & PREVIEW LOGIC
+    // =========================================================================
+    function setPreviewImage(src, name = 'Media Artwork Asset', size = '') {
         currentImageDataUrl = src;
         currentFileName = name;
         currentFileSize = size;
@@ -86,15 +89,6 @@ document.addEventListener('DOMContentLoaded', () => {
             fileNameEl.textContent = name;
             if (fileSizeEl) fileSizeEl.textContent = size ? `• ${size}` : '';
             fileInfoBar.style.display = 'flex';
-        }
-
-        // Auto-fill title if empty
-        if (titleInput && !titleInput.value.trim() && name) {
-            const cleanTitle = name
-                .replace(/\.[^/.]+$/, '')
-                .replace(/[-_]/g, ' ')
-                .replace(/\b\w/g, l => l.toUpperCase());
-            titleInput.value = cleanTitle;
         }
     }
 
@@ -145,7 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function handleFile(file) {
         if (!file.type.match(/^image\//)) {
-            showToast('Please select a valid graphic file (SVG, PNG, JPG, WEBP).', 'error');
+            showToast('Please select a valid image file (SVG, PNG, JPG, WEBP).', 'error');
             return;
         }
         if (file.size > 10 * 1024 * 1024) {
@@ -168,71 +162,28 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 5. Drafts Logic
-    function saveDraft() {
-        if (!currentImageDataUrl && (!titleInput || !titleInput.value.trim())) {
-            showToast('Please upload a graphic or enter a title to save a draft.', 'error');
-            return;
-        }
-
-        const draft = {
-            title: titleInput ? titleInput.value.trim() : '',
-            category: categorySelect ? categorySelect.value : 'Features',
-            caption: captionInput ? captionInput.value.trim() : '',
-            image: currentImageDataUrl,
-            fileName: currentFileName,
-            fileSize: currentFileSize,
-            savedAt: new Date().toISOString()
-        };
-
-        try {
-            localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
-            showToast('PUBMAT submission draft saved successfully!');
-        } catch (e) {
-            console.warn(e);
-            showToast('Could not save draft (local storage limit).', 'error');
-        }
-    }
-
-    function loadDraft() {
-        try {
-            const raw = localStorage.getItem(DRAFT_KEY);
-            if (!raw) return;
-            const draft = JSON.parse(raw);
-            if (draft.title && titleInput) titleInput.value = draft.title;
-            if (draft.category && categorySelect) categorySelect.value = draft.category;
-            if (draft.caption && captionInput) captionInput.value = draft.caption;
-            if (draft.image) {
-                setPreviewImage(draft.image, draft.fileName || 'Draft Graphic', draft.fileSize || '');
-            }
-        } catch (e) {
-            console.warn(e);
-        }
-    }
-    loadDraft();
-
-    if (btnSaveDraft) btnSaveDraft.addEventListener('click', saveDraft);
-
-    // 6. Form Submission
+    // =========================================================================
+    // 4. FORM SUBMISSION -> DISPATCH TO MEDIA DESK QUEUE
+    // =========================================================================
     if (form) {
         form.addEventListener('submit', (e) => {
             e.preventDefault();
 
             if (!currentImageDataUrl) {
-                showToast('Please upload a PUBMAT graphic file first.', 'error');
+                showToast('Please upload or select an image file first.', 'error');
                 if (dropzone) dropzone.scrollIntoView({ behavior: 'smooth' });
                 return;
             }
 
-            const title = titleInput ? titleInput.value.trim() : '';
-            if (!title) {
-                showToast('Please enter a graphic title or campaign name.', 'error');
-                if (titleInput) titleInput.focus();
-                return;
+            // Derive clean title from file name
+            let cleanTitle = 'Publication Material Artwork';
+            if (currentFileName) {
+                cleanTitle = currentFileName
+                    .replace(/\.[^/.]+$/, '')
+                    .replace(/[-_]/g, ' ')
+                    .replace(/\b\w/g, l => l.toUpperCase());
             }
 
-            const category = categorySelect ? categorySelect.value : 'Features';
-            const caption = captionInput ? captionInput.value.trim() : '';
             const now = new Date();
             const dateStr = formatDateDisplay(now);
             const rawDateStr = now.toISOString().split('T')[0];
@@ -244,9 +195,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const newPubmatItem = {
                 id: newId,
                 type: 'pubmat',
-                title: title,
-                targetArticle: caption || 'Publication Material Graphic Spread',
-                category: category,
+                title: cleanTitle,
+                targetArticle: cleanTitle,
+                category: 'Features',
                 artist: authorName,
                 uploaderRole: userRole,
                 image: currentImageDataUrl,
@@ -291,8 +242,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     causer: authorName,
                     causerRole: userRole,
                     action: 'submitted',
-                    subjectType: 'PUBMAT Asset',
-                    subjectName: title,
+                    subjectType: 'Publication Material',
+                    subjectName: cleanTitle,
                     timestampText: 'Just now',
                     formattedDate: dateStr,
                     isoDate: now.toISOString(),
@@ -303,11 +254,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.warn('Log activity error:', err);
             }
 
-            // D. Clear draft
-            localStorage.removeItem(DRAFT_KEY);
-
-            // E. Show success toast and redirect
-            showToast('PUBMAT graphic successfully submitted to Media Desk!', 'success');
+            // D. Show success toast and redirect
+            showToast('Media submitted successfully to Media Desk!', 'success');
             setTimeout(() => {
                 window.location.href = 'media-manage-media.html';
             }, 1000);
@@ -315,4 +263,3 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 });
-

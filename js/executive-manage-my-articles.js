@@ -575,6 +575,16 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
+        if (viewerBannerWrap && viewerBannerImg) {
+            if (article.banner || article.image) {
+                viewerBannerImg.src = article.banner || article.image;
+                viewerBannerImg.alt = article.title;
+                viewerBannerWrap.style.display = 'block';
+            } else {
+                viewerBannerWrap.style.display = 'none';
+            }
+        }
+
         if (viewerContent) {
             viewerContent.innerHTML = formatCleanArticleContent(article.content || article.excerpt);
         }
@@ -590,10 +600,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         viewerModal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
     }
 
     function closeArticleViewer() {
         if (viewerModal) viewerModal.classList.add('hidden');
+        document.body.style.overflow = '';
     }
 
     if (closeViewerBtn) {

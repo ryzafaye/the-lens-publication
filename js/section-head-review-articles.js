@@ -18,63 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================================================================
     // 2. DATASET (Pending Manuscripts Queue)
     // =========================================================================
-    const defaultPendingArticles = [
-        {
-            id: 'rev-01',
-            title: "Student council financial audit reveals ₱320,000 unallocated surplus",
-            category: "News",
-            date: "Oct 18, 2026",
-            rawDate: "2026-10-18",
-            author: "Mara Villanueva",
-            status: "pending",
-            remarks: "",
-            content: `An independent financial audit of the Central Student Council (CSC) expenditures for the first quarter of Academic Year 2026–2027 has revealed an unallocated surplus of ₱320,450 from the student activity development fund.\n\nThe findings, presented during an extraordinary collegiate assembly, prompted student leaders from the College of Science and College of Engineering to question why emergency welfare assistance programs were stalled earlier this term due to cited budgetary deficits.\n\nAccording to CSC Treasurer Julian Navarro, the surplus represents contingency reserves retained following the lower-than-projected costs of the University Welcoming Caravan. "Our intention was never to withhold assistance, but to establish a buffer against potential inflation in procurement for second-quarter initiatives," Navarro stated during the cross-examination.\n\nHowever, student coalition leaders argue that fiscal transparency mandates immediate reallocation of dormant reserves to acute needs, including laboratory equipment repairs and commuter transport subsidies.`
-        },
-        {
-            id: 'rev-02',
-            title: "Why the enrollment portal keeps timing out: A technical post-mortem",
-            category: "Science and Technology",
-            date: "Oct 18, 2026",
-            rawDate: "2026-10-18",
-            author: "Noah Reyes",
-            status: "pending",
-            remarks: "",
-            content: `Every enlistment cycle, tens of thousands of university students endure hours of connection timeouts, 504 Gateway errors, and lost subject slots. An in-depth technical examination of the campus enrollment infrastructure reveals that database locking bottlenecks, rather than network bandwidth, remain the root cause.\n\nAccording to server log metrics obtained through a freedom of information request, the registration database executes single-row thread locking whenever students attempt to enlist in high-demand general education classes. When thousands of concurrent requests strike the database at 8:00 AM, the queue cascades into exponential latency.\n\nThe Management Information Systems (MIS) office has proposed a ₱2.4 million cloud migration architecture to containerize user sessions. If approved by the Board of Regents, the transition could reduce average latency from 45 seconds to under 400 milliseconds per transaction before the second semester.`
-        },
-        {
-            id: 'rev-03',
-            title: "Faculty union files formal grievance over proposed 24-unit overload directive",
-            category: "News",
-            date: "Oct 17, 2026",
-            rawDate: "2026-10-17",
-            author: "Rafael Ramos",
-            status: "pending",
-            remarks: "",
-            content: `The University Faculty Association (UFA) has formally submitted a dispute grievance to the Office of the Vice President for Academic Affairs following administrative directives requiring full-time instructors to absorb up to 24 class teaching units without proportional overtime compensation.\n\nUnion representatives warn that unmitigated faculty burnout directly compromises research output and pedagogical quality. In a joint manifesto signed by over 180 department faculty members, the union calls for immediate suspension of mandatory overloads and the emergency hiring of contractual lecturers.\n\n"Quality tertiary education cannot be sustained on the backs of overworked mentors who must grade hundreds of papers until midnight," said UFA Chairperson Dr. Elizabeth Morales during an afternoon press conference.`
-        },
-        {
-            id: 'rev-04',
-            title: "Inside the 24-hour night shift of university sanitation workers",
-            category: "Features",
-            date: "Oct 12, 2026",
-            rawDate: "2026-10-12",
-            author: "Lia Mendoza",
-            status: "pending",
-            remarks: "",
-            content: `At 11:30 PM, long after the last student leaves the library and lecture lights flick off, an army of twenty-two custodial workers steps onto the silent campus grounds.\n\nArmed with industrial polishers, brooms, and sanitizing tanks, these workers restore hundreds of classrooms, laboratory benches, and restroom facilities before the 7:00 AM bell rings. Despite being the backbone of university operations, many work through third-party contracting agencies with minimal hazard pay.\n\nThrough the quiet corridors of the Science Pavilion, veteran custodian Mang Rodrigo sweeps the marble floors he has polished for eighteen years. "We keep the school standing, even if our names are never spoken during graduation ceremonies," he smiles quietly.`
-        },
-        {
-            id: 'rev-05',
-            title: "Echoes of the Quadrangle: Anthology of New Student Poetry",
-            category: "Literature",
-            date: "Oct 21, 2026",
-            rawDate: "2026-10-21",
-            author: "Camille Joy Perez",
-            status: "pending",
-            remarks: "",
-            content: `Under the shadows of the century-old Acacia trees, student poets observe the shifting cadence of university life.\n\nThis anthology gathers twelve original works exploring the silent rituals of early morning jeepney rides, the anxiety of finals week in the university library, and the shared solidarity of the student movement.`
-        }
-    ];
+    const defaultPendingArticles = [];
 
     const QUEUE_STORAGE_KEY = 'sectionHeadReviewQueue_v1';
 
@@ -83,13 +27,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const raw = localStorage.getItem(QUEUE_STORAGE_KEY);
             if (raw) {
                 const parsed = JSON.parse(raw);
-                if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+                if (Array.isArray(parsed)) return parsed;
             }
         } catch (e) {
             console.warn('Could not read pending queue from localStorage', e);
         }
-        localStorage.setItem(QUEUE_STORAGE_KEY, JSON.stringify(defaultPendingArticles));
-        return defaultPendingArticles;
+        return [];
     }
 
     function savePendingQueue(queue) {
@@ -106,8 +49,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Filter queue matching this Section Head's desk
     function getSectionQueue() {
+        if (!currentSection || currentSection === 'All') return reviewList;
         const sec = currentSection.toLowerCase();
-        const filtered = reviewList.filter(item => {
+        return reviewList.filter(item => {
             const cat = (item.category || '').toLowerCase();
             if (sec.includes('science') || sec.includes('tech')) return cat.includes('science') || cat.includes('tech');
             if (sec.includes('feature')) return cat.includes('feature');
@@ -115,9 +59,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (sec.includes('news')) return cat.includes('news');
             return cat.includes(sec);
         });
-
-        // Fallback to all items if desk has no articles to keep interactive demo active
-        return filtered.length > 0 ? filtered : reviewList;
     }
 
     // =========================================================================
@@ -272,9 +213,52 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => {
             reviewList = reviewList.filter(a => a.id !== id);
             savePendingQueue(reviewList);
-            logActivity('approved', item.title);
+            logActivity('approved and endorsed to EIC', item.title);
+
+            // Forward to EIC Review Queue & Executive Review Queue
+            try {
+                let eicQueue = [];
+                const rawEic = localStorage.getItem('eicPendingReviewQueue') || localStorage.getItem('executivePendingReviewQueue');
+                if (rawEic) {
+                    try {
+                        const parsed = JSON.parse(rawEic);
+                        if (Array.isArray(parsed)) eicQueue = parsed;
+                    } catch (e) {}
+                }
+                eicQueue = eicQueue.filter(q => q.id !== item.id);
+                eicQueue.unshift({
+                    ...item,
+                    endorsedBy: `${sectionHeadName} (${currentSection} Head)`,
+                    endorsedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+                    status: 'pending'
+                });
+                localStorage.setItem('eicPendingReviewQueue', JSON.stringify(eicQueue));
+                localStorage.setItem('executivePendingReviewQueue', JSON.stringify(eicQueue));
+            } catch (e) {
+                console.error('Failed to forward manuscript to EIC queue', e);
+            }
+
+            // Also update writer's article in writer storage
+            try {
+                const rawWriter = localStorage.getItem('theLensWriterArticles_v3');
+                if (rawWriter) {
+                    let writerList = JSON.parse(rawWriter);
+                    if (Array.isArray(writerList)) {
+                        let updated = false;
+                        writerList = writerList.map(w => {
+                            if (w.id === item.id || w.title === item.title) {
+                                updated = true;
+                                return { ...w, status: 'Pending Review', remarks: `Endorsed to EIC by ${sectionHeadName}` };
+                            }
+                            return w;
+                        });
+                        if (updated) localStorage.setItem('theLensWriterArticles_v3', JSON.stringify(writerList));
+                    }
+                }
+            } catch (e) {}
+
             renderReviewBoxes();
-            showToast(`Approved "${item.title}" for publication.`, 'success');
+            showToast(`Approved "${item.title}" and forwarded to Editor-in-Chief.`, 'success');
         }, 220);
     }
 
@@ -291,6 +275,40 @@ document.addEventListener('DOMContentLoaded', () => {
             reviewList = reviewList.filter(a => a.id !== id);
             savePendingQueue(reviewList);
             logActivity('requested revision on', item.title);
+
+            // Remove from EIC queue if present
+            try {
+                let eicQueue = [];
+                const rawEic = localStorage.getItem('eicPendingReviewQueue');
+                if (rawEic) {
+                    const parsed = JSON.parse(rawEic);
+                    if (Array.isArray(parsed)) {
+                        eicQueue = parsed.filter(q => q.id !== item.id);
+                        localStorage.setItem('eicPendingReviewQueue', JSON.stringify(eicQueue));
+                        localStorage.setItem('executivePendingReviewQueue', JSON.stringify(eicQueue));
+                    }
+                }
+            } catch (e) {}
+
+            // Update writer's article with status: 'For Revision' and remarks
+            try {
+                const rawWriter = localStorage.getItem('theLensWriterArticles_v3');
+                if (rawWriter) {
+                    let writerList = JSON.parse(rawWriter);
+                    if (Array.isArray(writerList)) {
+                        let updated = false;
+                        writerList = writerList.map(w => {
+                            if (w.id === item.id || w.title === item.title) {
+                                updated = true;
+                                return { ...w, status: 'For Revision', remarks: remarks || 'Please revise according to section feedback.' };
+                            }
+                            return w;
+                        });
+                        if (updated) localStorage.setItem('theLensWriterArticles_v3', JSON.stringify(writerList));
+                    }
+                }
+            } catch (e) {}
+
             renderReviewBoxes();
             showToast(`Returned "${item.title}" to writer with revision remarks.`, 'warning');
         }, 220);
@@ -320,6 +338,16 @@ document.addEventListener('DOMContentLoaded', () => {
         if (modalBody) {
             const raw = item.content || item.excerpt || 'No manuscript body content.';
             const paragraphs = raw.split(/\n\n+/).filter(p => p.trim());
+            const modalExcerpt = document.getElementById('modal-excerpt');
+            if (modalExcerpt) {
+                if (item.excerpt && item.excerpt.trim()) {
+                    modalExcerpt.textContent = item.excerpt.trim();
+                    modalExcerpt.style.display = 'block';
+                } else {
+                    modalExcerpt.style.display = 'none';
+                }
+            }
+
             modalBody.innerHTML = paragraphs.map(p => `<p class="manuscript-paragraph">${escapeHTML(p.trim())}</p>`).join('');
         }
 

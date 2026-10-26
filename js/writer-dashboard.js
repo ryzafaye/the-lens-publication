@@ -1,4 +1,4 @@
-/**
+﻿/**
  * ============================================================================
  * THE LENS — WRITER DASHBOARD JAVASCRIPT LOGIC
  * Dynamic Analytics & Clickable Top 7 Recent Articles for the Logged-In Writer
@@ -72,17 +72,44 @@ document.addEventListener('DOMContentLoaded', () => {
         return `${mins} min read`;
     }
 
+    function decodeCorruptedHtmlEntities(str) {
+        if (!str || typeof str !== 'string') return '';
+        let decoded = str;
+        let maxPasses = 5;
+        while (maxPasses > 0 && (/&amp;lt;/i.test(decoded) || /&lt;/i.test(decoded) || /&amp;gt;/i.test(decoded) || /&gt;/i.test(decoded))) {
+            const txt = document.createElement('textarea');
+            txt.innerHTML = decoded;
+            const newDecoded = txt.value;
+            if (newDecoded === decoded) break;
+            decoded = newDecoded;
+            maxPasses--;
+        }
+        return decoded;
+    }
+
     function formatCleanArticleContent(rawContent) {
         if (!rawContent) {
             return '<p style="color: #98a2b3; font-style: italic;">No content available for this article.</p>';
         }
 
+        // Thoroughly decode corrupted entities
+        let decoded = decodeCorruptedHtmlEntities(rawContent);
+
+        // Aggressively strip any literal or encoded span tags and style attributes
+        decoded = decoded
+            .replace(/&lt;\/?span[^&>]*&gt;/gi, '')
+            .replace(/<\/?span[^>]*>/gi, '')
+            .replace(/\s*style="[^"]*"/gi, '')
+            .replace(/\s*style='[^']*'/gi, '')
+            .replace(/&lt;[^&>]+&gt;/gi, '');
+
         // Clean out any raw HTML tags (div, br, p) and normalize to plain text paragraphs
-        const stripped = rawContent
+        const stripped = decoded
             .replace(/<div><br\s*\/?><\/div>/gi, '\n\n')
-            .replace(/<\/?div[^>]*>/gi, '\n')
-            .replace(/<\/?p[^>]*>/gi, '\n\n')
-            .replace(/<br\s*\/?>/gi, '\n');
+            .replace(/<\/(?:div|p|blockquote|h[1-6])>/gi, '\n\n')
+            .replace(/<\/?(?:div|p|blockquote|h[1-6])[^>]*>/gi, '\n')
+            .replace(/<br\s*\/?>/gi, '\n')
+            .replace(/<[^>]+>/g, '');
 
         const paragraphs = stripped
             .split(/\n+/)
@@ -93,7 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return '<p style="color: #98a2b3; font-style: italic;">No content available for this article.</p>';
         }
 
-        return paragraphs.map(p => `<p>${escapeHTML(p)}</p>`).join('');
+        return paragraphs.map(p => `<p class="viewer-paragraph">${escapeHTML(p)}</p>`).join('');
     }
 
     function getStatusBadgeClass(status) {
@@ -133,13 +160,68 @@ document.addEventListener('DOMContentLoaded', () => {
             .reduce((sum, a) => sum + (Number(a.views) || 0), 0);
 
         const publishedCount = myArticles.filter(a => a.status === 'Published').length;
-        const pendingCount = myArticles.filter(a => a.status === 'Pending Review').length;
+        const pendingRevisionCount = myArticles.filter(a => 
+            a.status === 'For Revision' || a.status === 'Pending Revision' || a.status === 'Revision'
+        ).length;
         const draftsCount = myArticles.filter(a => a.status === 'Draft').length;
 
         if (statViewsEl) statViewsEl.textContent = formatNumber(totalViews);
         if (statPublishedEl) statPublishedEl.textContent = String(publishedCount);
-        if (statPendingEl) statPendingEl.textContent = String(pendingCount);
+        if (statPendingEl) statPendingEl.textContent = String(pendingRevisionCount);
         if (statDraftsEl) statDraftsEl.textContent = String(draftsCount);
+
+        // Render Top Performing Articles by active writer account
+        const topPerformingContainer = document.getElementById('writer-top-performing-list');
+        if (topPerformingContainer) {
+            const topArticles = myArticles
+                .filter(a => a.status === 'Published')
+                .sort((a, b) => (Number(b.views) || 0) - (Number(a.views) || 0))
+                .slice(0, 5);
+
+            if (topArticles.length === 0) {
+                topPerformingContainer.innerHTML = `
+                    <div class="writer-empty-state-card" style="padding: 28px 16px; text-align: center; color: var(--text-muted, #667085); font-size: 0.88rem;">
+                        <i class="fa-solid fa-chart-line" style="font-size: 1.6rem; color: #d0d5dd; margin-bottom: 10px; display: block;"></i>
+                        <p style="margin: 0; font-weight: 600; color: #344054;">No published articles yet</p>
+                        <p style="margin: 4px 0 0; font-size: 0.78rem; color: #98a2b3;">Your top performing stories sorted by view count will appear here.</p>
+                    </div>
+                `;
+            } else {
+                topPerformingContainer.innerHTML = topArticles.map((art, idx) => `
+                    <div class="ranked-item" data-article-id="${art.id}" role="button" tabindex="0" title="View article: ${escapeHTML(art.title)}">
+                        <span class="rank-number ${idx === 0 ? 'top-rank' : ''}">${idx + 1}</span>
+                        <div class="ranked-content">
+                            <div class="ranked-category-tag">${escapeHTML(art.category || 'General')}</div>
+                            <button type="button" class="ranked-title-btn" data-action="view" data-id="${art.id}">
+                                ${escapeHTML(art.title)}
+                            </button>
+                            <div class="ranked-meta-row">
+                                <span class="ranked-author"><i class="fa-solid fa-pen-nib" aria-hidden="true" style="font-size: 0.70rem; margin-right: 4px; color: var(--text-muted, #667085);"></i>${escapeHTML(art.author || storedName)}</span>
+                                <span class="ranked-stats">
+                                    <span class="stat-metric" title="Views"><i class="fa-regular fa-eye"></i> ${formatNumber(art.views || 0)} views</span>
+                                    <span class="stat-sep">â€¢</span>
+                                    <span class="stat-metric" title="Shares"><i class="fa-solid fa-share-nodes"></i> ${formatNumber(art.shares || Math.round((art.views || 0) * 0.08))} shares</span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+
+                topPerformingContainer.querySelectorAll('.ranked-item').forEach(item => {
+                    item.addEventListener('click', () => {
+                        const id = item.getAttribute('data-article-id');
+                        if (id) openArticleViewer(id);
+                    });
+                    item.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            const id = item.getAttribute('data-article-id');
+                            if (id) openArticleViewer(id);
+                        }
+                    });
+                });
+            }
+        }
 
         // Limit to Top 7 Recent Articles for Dashboard view
         const top7Articles = myArticles.slice(0, 7);
@@ -204,10 +286,16 @@ document.addEventListener('DOMContentLoaded', () => {
     function openArticleViewer(articleId) {
         if (!viewerModal) return;
 
-        const myArticles = (typeof getMyArticles === 'function') 
+        let myArticles = (typeof getMyArticles === 'function') 
             ? getMyArticles(activeWriterId)
             : [];
-        const article = myArticles.find(a => a.id === articleId);
+        let article = myArticles.find(a => a.id === articleId);
+        if (!article) {
+            try {
+                const stored = JSON.parse(localStorage.getItem('articles') || '[]');
+                article = stored.find(a => a.id === articleId);
+            } catch (err) {}
+        }
         if (!article) return;
 
         // Populate metadata
@@ -235,6 +323,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Banner Image
+        const viewerExcerpt = document.getElementById('viewer-excerpt');
+        if (viewerExcerpt) {
+            const rawExcerpt = article.excerpt || '';
+            if (rawExcerpt && rawExcerpt.trim()) {
+                viewerExcerpt.textContent = rawExcerpt.trim();
+                viewerExcerpt.style.display = 'block';
+            } else {
+                viewerExcerpt.style.display = 'none';
+            }
+        }
+
         if (viewerBannerWrap && viewerBannerImg) {
             if (article.image) {
                 viewerBannerImg.src = article.image;

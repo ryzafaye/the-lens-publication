@@ -1,4 +1,4 @@
-/**
+﻿/**
  * ============================================================================
  * THE LENS — SUBMIT ARTICLE LOGIC (EXECUTIVE PORTAL)
  * Ultra-minimalist, distraction-free writing interface (Notion / Medium Style)
@@ -122,26 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================================================================
     const DRAFTS_STORAGE_KEY = 'executiveArticleDrafts';
 
-    const defaultDrafts = [
-        {
-            id: 'draft-01',
-            title: "Investigation: The hidden costs of mandatory university uniforms",
-            category: "Features",
-            excerpt: "An inquiry into supplier monopolies, collegiate uniform fees, and student budget impact across multiple departments.",
-            date: "Oct 18, 2026",
-            rawDate: "2026-10-18",
-            content: `<div>An inquiry into supplier monopolies, collegiate uniform fees, and student budget impact across campuses.</div><div><br></div><div>Students from multiple departments have voiced concerns over recurring price hikes without transparent vendor biddings.</div>`
-        },
-        {
-            id: 'draft-02',
-            title: "Digital divide persists as student WiFi coverage drops in outer colleges",
-            category: "Science and Technology",
-            excerpt: "Bandwidth testing across student dormitories and satellite laboratories reveals stark regional disparities in high-speed access.",
-            date: "Oct 17, 2026",
-            rawDate: "2026-10-17",
-            content: `<div>Bandwidth testing across student dormitories and satellite laboratories reveals stark regional disparities in high-speed internet access.</div>`
-        }
-    ];
+    const defaultDrafts = [];
 
     function getStoredDrafts() {
         try {
@@ -153,7 +134,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) {
             console.warn('Could not read executiveArticleDrafts', e);
         }
-        return JSON.parse(JSON.stringify(defaultDrafts));
+        return [];
     }
 
     function saveDraftsToStorage(drafts) {
@@ -438,11 +419,7 @@ document.addEventListener('DOMContentLoaded', () => {
             updateToolbarButtonStates();
         });
 
-        editorContent.addEventListener('paste', () => {
-            setTimeout(() => {
-                updateEditorMetrics();
-            }, 50);
-        });
+        editorContent.addEventListener('paste', handleEditorPaste);
     }
 
     document.addEventListener('selectionchange', () => {
@@ -582,7 +559,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const headline = headlineInput ? headlineInput.value.trim() : '';
         const excerpt = excerptInput ? excerptInput.value.trim() : '';
         const category = categorySelect ? categorySelect.value : '';
-        const bodyHtml = editorContent ? editorContent.innerHTML : '';
+        const bodyHtml = sanitizeEditorHtmlForSave(editorContent ? editorContent.innerHTML : '');
         const bodyText = editorContent ? editorContent.innerText.trim() : '';
 
         // Validation for Draft: Require at least a Title or Content
@@ -656,43 +633,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderDraftsList();
     }
 
-    const DEFAULT_EXECUTIVE_SEED = [
-        {
-            id: 'exec-art-01',
-            title: 'The Future of University Press Freedom: A Presidential Address',
-            category: 'Opinion',
-            excerpt: 'Why defending independent campus journalism and transparent administration disclosures remains essential in an era of digital misinformation.',
-            content: `Student publications hold a unique mandate within democratic universities: to reflect the unvarnished realities of the student body without fear of administrative reprisal.\n\nOver the past academic cycle, our editorial staff has covered pivotal campus disputes, from facilities budget reallocations to faculty overload directives. Throughout each inquiry, our guiding philosophy has remained unwavering—freedom of expression is not an administrative privilege to be dispensed, but an institutional right won through decades of student advocacy.\n\nAs we inaugurate our new digital publishing systems, we reaffirm our commitment to ethical rigor, fact-checked reporting, and unwavering support for every campus beat reporter.`
-        },
-        {
-            id: 'exec-art-02',
-            title: 'Modernizing Collegiate Newsrooms: The Lens Strategic Roadmap',
-            category: 'Features',
-            excerpt: 'A comprehensive operational overview of our publication’s transition to digital-first investigative cycles and archival digitization.',
-            content: `In an era where news is consumed within seconds on mobile feeds, collegiate journalism must evolve without sacrificing depth. The Lens has spearheaded a systematic workflow modernization program designed to empower student writers and editors.\n\nBy unifying our editorial desk with modern draft revision queues and public transparency folios, we ensure that every story published meets international journalistic standards. Our upcoming initiatives include podcast audio digests and multimedia documentary fellowships for undergraduate contributors.`
-        },
-        {
-            id: 'exec-art-03',
-            title: 'Midyear Operational Review & Editorial Guidelines 2025',
-            category: 'Opinion',
-            excerpt: 'A retrospective evaluation of print distribution quotas and digital engagement strategies across regional university branches.',
-            content: `Looking back at the academic calendar of 2024–2025, our editorial staff conducted a comprehensive survey across the university student body regarding print vs digital readership preferences.\n\nResults demonstrated a notable 40% surge in web engagement via smartphone devices, prompting our pivot towards mobile-first newsroom publishing while maintaining high-quality archival print folios for university history.`
-        },
-        {
-            id: 'exec-art-04',
-            title: 'State of the Student Body: University Welfare Analysis 2026',
-            category: 'News',
-            excerpt: 'An evidence-based survey analyzing commuter transit subsidies, dormitory occupancy rates, and student meal allowance purchasing power.',
-            content: `Escalating living costs in the surrounding university district have placed renewed strain on undergraduate budgets. Surveying more than 1,200 dormitory residents and daily commuters, this investigation reveals key vulnerabilities in campus support systems.\n\nOver 68% of off-campus commuters report spending more than four hours daily in transit, while campus food concessionaires have raised average meal prices by 22% over the last twelve months. The editorial board is preparing recommendations for university welfare committee discussions next month.`
-        },
-        {
-            id: 'exec-art-05',
-            title: 'Ethical Standards for Student Investigative Reporting in Digital Spaces',
-            category: 'Opinion',
-            excerpt: 'Addressing attribution requirements, source confidentiality protocols, and cybersecurity hygiene for collegiate journalists.',
-            content: `When reporting on sensitive institutional matters, student journalists carry ethical responsibilities identical to those of seasoned professionals. Digital communication channels introduce both unprecedented research access and significant security vulnerabilities.\n\nEvery student journalist must adhere to rigorous source corroboration and encryption practices when handling whistleblower leaks or confidential financial records.`
-        }
-    ];
+    const DEFAULT_EXECUTIVE_SEED = [];
 
     function findArticleOrDraft(id) {
         if (!id) return null;
@@ -732,6 +673,172 @@ document.addEventListener('DOMContentLoaded', () => {
         return null;
     }
 
+        function decodeCorruptedHtmlEntities(str) {
+        if (!str || typeof str !== 'string') return '';
+        let decoded = str;
+        let maxPasses = 5;
+        while (maxPasses > 0 && (/&amp;lt;/i.test(decoded) || /&lt;/i.test(decoded) || /&amp;gt;/i.test(decoded) || /&gt;/i.test(decoded))) {
+            const txt = document.createElement('textarea');
+            txt.innerHTML = decoded;
+            const newDecoded = txt.value;
+            if (newDecoded === decoded) break;
+            decoded = newDecoded;
+            maxPasses--;
+        }
+        return decoded;
+    }
+
+    function sanitizeEditorHtmlForSave(raw) {
+        if (!raw) return '';
+        let cleaned = String(raw).trim();
+        cleaned = decodeCorruptedHtmlEntities(cleaned);
+        cleaned = cleaned
+            .replace(/&lt;\/?span[^&>]*&gt;/gi, '')
+            .replace(/<\/?span[^>]*>/gi, '')
+            .replace(/\s*style="[^"]*"/gi, '')
+            .replace(/\s*style='[^']*'/gi, '')
+            .replace(/&lt;[^&>]+&gt;/gi, '');
+        return cleaned;
+    }
+
+    function handleEditorPaste(e) {
+        e.preventDefault();
+        const clipboardData = e.clipboardData || window.clipboardData;
+        if (!clipboardData) return;
+
+        let html = clipboardData.getData('text/html');
+        let text = clipboardData.getData('text/plain') || '';
+
+        let cleanHtml = '';
+
+        if (html) {
+            try {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+
+                // 1. Remove dangerous or non-content tags
+                const removeEls = doc.body.querySelectorAll('script, style, meta, link, object, embed, iframe, font, xml, o\\:p');
+                removeEls.forEach(el => el.remove());
+
+                // 2. Unwrap all span tags and font tags (preserving text)
+                const spans = doc.body.querySelectorAll('span, font, o\\:p');
+                spans.forEach(span => {
+                    const parent = span.parentNode;
+                    if (parent) {
+                        while (span.firstChild) {
+                            parent.insertBefore(span.firstChild, span);
+                        }
+                        parent.removeChild(span);
+                    }
+                });
+
+                // 3. Strip all style, class, id, and foreign typography attributes
+                const allElements = doc.body.querySelectorAll('*');
+                allElements.forEach(el => {
+                    el.removeAttribute('style');
+                    el.removeAttribute('class');
+                    el.removeAttribute('id');
+                    el.removeAttribute('dir');
+                    el.removeAttribute('lang');
+                    el.removeAttribute('face');
+                    el.removeAttribute('size');
+                    el.removeAttribute('color');
+                    el.removeAttribute('align');
+                });
+
+                // 4. Convert <p> tags into <div> tags to maintain Notion-style block rhythm
+                const pTags = doc.body.querySelectorAll('p');
+                pTags.forEach(p => {
+                    const div = doc.createElement('div');
+                    while (p.firstChild) {
+                        div.appendChild(p.firstChild);
+                    }
+                    if (p.parentNode) {
+                        p.parentNode.replaceChild(div, p);
+                    }
+                });
+
+                cleanHtml = doc.body.innerHTML.trim();
+                cleanHtml = cleanHtml
+                    .replace(/<\/?span[^>]*>/gi, '')
+                    .replace(/\s+style="[^"]*"/gi, '')
+                    .replace(/\s+class="[^"]*"/gi, '');
+            } catch (err) {
+                cleanHtml = '';
+            }
+        }
+
+        if (!cleanHtml && text) {
+            const paragraphs = text.split(/\r?\n\r?\n+/).map(p => p.trim()).filter(Boolean);
+            if (paragraphs.length > 0) {
+                cleanHtml = paragraphs.map(p => `<div>${escapeHTML(p)}</div>`).join('<div><br></div>');
+            } else if (text.trim()) {
+                cleanHtml = `<div>${escapeHTML(text.trim())}</div>`;
+            }
+        }
+
+        if (cleanHtml) {
+            const selection = window.getSelection();
+            if (selection && selection.rangeCount > 0) {
+                const range = selection.getRangeAt(0);
+                range.deleteContents();
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = cleanHtml;
+                const frag = document.createDocumentFragment();
+                let node;
+                let lastNode;
+                while ((node = tempDiv.firstChild)) {
+                    lastNode = frag.appendChild(node);
+                }
+                range.insertNode(frag);
+                if (lastNode) {
+                    range.setStartAfter(lastNode);
+                    range.collapse(true);
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                }
+            } else {
+                document.execCommand('insertHTML', false, cleanHtml);
+            }
+        }
+
+        updateEditorMetrics();
+    }
+
+    function sanitizeDraftContentForEditor(raw) {
+        if (!raw) return '';
+        let content = decodeCorruptedHtmlEntities(String(raw).trim());
+
+        // Strip any literal or entity-encoded span tags and style attributes
+        content = content
+            .replace(/&lt;\/?span[^&>]*&gt;/gi, '')
+            .replace(/<\/?span[^>]*>/gi, '')
+            .replace(/\s*style="[^"]*"/gi, '')
+            .replace(/\s*style='[^']*'/gi, '')
+            .replace(/&lt;[^&>]+&gt;/gi, '');
+
+        // Check if content contains any HTML tags (e.g. <div, <p, <b>, <i>, <br>, etc.)
+        const hasHtmlTags = /<\/?(?:div|p|b|i|u|strong|em|h[1-6]|ul|ol|li|blockquote|br|a)[^>]*>/i.test(content);
+
+        if (!hasHtmlTags) {
+            // Truly plain text without any HTML tags: split by double newlines into clean div paragraphs
+            const paras = content.split(/\n\n+/).map(p => p.trim()).filter(Boolean);
+            if (paras.length === 0) return '';
+            return paras.map(p => `<div>${escapeHTML(p)}</div>`).join('<div><br></div>');
+        }
+
+        // If it's already HTML:
+        // Convert any <p> tags into <div> for Notion-style editor
+        let normalized = content
+            .replace(/<\/p>\s*<p[^>]*>/gi, '</div><div><br></div><div>')
+            .replace(/<p[^>]*>/gi, '<div>')
+            .replace(/<\/p>/gi, '</div>')
+            .replace(/<\/?span[^>]*>/gi, '')
+            .replace(/\s*style="[^"]*"/gi, '');
+
+        return normalized;
+    }
+
     function editDraftAction(id) {
         const draft = findArticleOrDraft(id);
         if (!draft) {
@@ -762,20 +869,16 @@ document.addEventListener('DOMContentLoaded', () => {
             handleExcerptInput();
         }
         if (editorContent) {
-            let contentHtml = draft.content || draft.excerpt || '';
-            // If raw text with newlines and without HTML tags, convert to paragraphs/divs
-            if (!contentHtml.includes('<p>') && !contentHtml.includes('<div>')) {
-                const paras = contentHtml.split(/\n\n+/).filter(p => p.trim());
-                contentHtml = paras.map(p => `<div>${escapeHTML(p.trim())}</div>`).join('<div><br></div>');
-            } else if (contentHtml.includes('<p>') || contentHtml.includes('<p ') || contentHtml.includes('</p>')) {
-                contentHtml = contentHtml
-                    .replace(/<\/p>\s*<p[^>]*>/gi, '</div><div><br></div><div>')
-                    .replace(/<p[^>]*>/gi, '<div>')
-                    .replace(/<\/p>/gi, '</div>');
-            }
-            editorContent.innerHTML = contentHtml || '<div>Start writing your manuscript here...</div>';
+            const cleanHtml = sanitizeDraftContentForEditor(draft.content || draft.excerpt || '');
+            editorContent.innerHTML = cleanHtml || '<div>Start writing your manuscript here...</div>';
             editorContent.style.textAlign = 'justify';
             updateEditorMetrics();
+
+            // Self-heal this draft in storage if it was corrupted
+            if (draft.content && cleanHtml && draft.content !== cleanHtml) {
+                draft.content = cleanHtml;
+                saveDraftsToStorage(draftsList);
+            }
         }
 
         activeEditingDraftId = draft.id;
@@ -933,45 +1036,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     pendingQueue = [];
                 }
             }
-
-            if (pendingQueue.length === 0) {
-                pendingQueue = [
-                    {
-                        id: 'rev-01',
-                        title: "Student council financial audit reveals ₱320,000 unallocated surplus",
-                        category: "News",
-                        date: "Oct 18, 2026",
-                        rawDate: "2026-10-18",
-                        author: "Mara Villanueva",
-                        status: "pending",
-                        remarks: "",
-                        content: "An independent financial audit of the Central Student Council expenditures reveals unallocated surplus..."
-                    },
-                    {
-                        id: 'rev-02',
-                        title: "Why the enrollment portal keeps timing out: A technical post-mortem",
-                        category: "Science and Technology",
-                        date: "Oct 18, 2026",
-                        rawDate: "2026-10-18",
-                        author: "Noah Reyes",
-                        status: "pending",
-                        remarks: "",
-                        content: "Every enlistment cycle, tens of thousands of university students endure connection timeouts..."
-                    },
-                    {
-                        id: 'rev-03',
-                        title: "Faculty union files formal grievance over proposed 24-unit overload directive",
-                        category: "News",
-                        date: "Oct 17, 2026",
-                        rawDate: "2026-10-17",
-                        author: "Rafael Ramos",
-                        status: "pending",
-                        remarks: "",
-                        content: "The University Faculty Association has formally submitted a dispute grievance..."
-                    }
-                ];
-            }
-
             pendingQueue.unshift(newSubmission);
             localStorage.setItem('executivePendingReviewQueue', JSON.stringify(pendingQueue));
 

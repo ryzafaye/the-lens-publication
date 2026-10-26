@@ -1,4 +1,4 @@
-/**
+﻿/**
  * The Lens — Section Head Dashboard Script
  * Modular, clean, reusable implementation tailored for Editorial Section Heads
  * Strictly styled to match Executive Dashboard design & formatting
@@ -49,6 +49,55 @@ document.addEventListener('DOMContentLoaded', () => {
             .replace(/'/g, '&#39;');
     }
 
+    function decodeCorruptedHtmlEntities(str) {
+        if (!str || typeof str !== 'string') return '';
+        let decoded = str;
+        let maxPasses = 5;
+        while (maxPasses > 0 && (/&amp;lt;/i.test(decoded) || /&lt;/i.test(decoded) || /&amp;gt;/i.test(decoded) || /&gt;/i.test(decoded))) {
+            const txt = document.createElement('textarea');
+            txt.innerHTML = decoded;
+            const newDecoded = txt.value;
+            if (newDecoded === decoded) break;
+            decoded = newDecoded;
+            maxPasses--;
+        }
+        return decoded;
+    }
+
+    function formatCleanArticleContent(rawContent) {
+        if (!rawContent) {
+            return '<p style="color: #98a2b3; font-style: italic;">No content available for this manuscript.</p>';
+        }
+
+        let decoded = decodeCorruptedHtmlEntities(rawContent);
+
+        // Aggressively strip any literal or encoded span tags and style attributes
+        decoded = decoded
+            .replace(/&lt;\/?span[^&>]*&gt;/gi, '')
+            .replace(/<\/?span[^>]*>/gi, '')
+            .replace(/\s*style="[^"]*"/gi, '')
+            .replace(/\s*style='[^']*'/gi, '')
+            .replace(/&lt;[^&>]+&gt;/gi, '');
+
+        const stripped = decoded
+            .replace(/<div><br\s*\/?><\/div>/gi, '\n\n')
+            .replace(/<\/(?:div|p|blockquote|h[1-6])>/gi, '\n\n')
+            .replace(/<\/?(?:div|p|blockquote|h[1-6])[^>]*>/gi, '\n')
+            .replace(/<br\s*\/?>/gi, '\n')
+            .replace(/<[^>]+>/g, '');
+
+        const paragraphs = stripped
+            .split(/\n+/)
+            .map(p => p.trim())
+            .filter(p => p.length > 0);
+
+        if (paragraphs.length === 0) {
+            return '<p style="color: #98a2b3; font-style: italic;">No content available for this manuscript.</p>';
+        }
+
+        return paragraphs.map(p => `<p class="viewer-paragraph">${escapeHTML(p)}</p>`).join('');
+    }
+
     function formatSectionBadgeHtml(category) {
         if (!category) return '';
         const catStr = String(category).trim();
@@ -77,6 +126,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================================================================
     function getStoredArticles() {
         try {
+            const pubRaw = localStorage.getItem('theLensPublishedArticles');
+            if (pubRaw) {
+                const pubParsed = JSON.parse(pubRaw);
+                if (Array.isArray(pubParsed) && pubParsed.length > 0) return pubParsed;
+            }
             const raw = localStorage.getItem('executiveArticles');
             if (raw) {
                 const parsed = JSON.parse(raw);
@@ -85,7 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) {
             console.warn('Could not read executiveArticles from localStorage', e);
         }
-        return defaultArticles;
+        return [];
     }
 
     const allArticles = getStoredArticles();
@@ -104,65 +158,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Pending Section Submissions Queue
-    const defaultPendingArticles = [
-        {
-            id: 'rev-01',
-            title: "Student council financial audit reveals ₱320,000 unallocated surplus",
-            category: "News",
-            date: "Oct 18, 2026",
-            rawDate: "2026-10-18",
-            author: "Mara Villanueva",
-            status: "In Review",
-            excerpt: "Audit of the Central Student Council expenditures reveals an unallocated contingency reserve.",
-            content: `An independent financial audit of the Central Student Council (CSC) expenditures for the first quarter of Academic Year 2026–2027 has revealed an unallocated surplus of ₱320,450 from the student activity development fund.\n\nThe findings, presented during an extraordinary collegiate assembly, prompted student leaders from the College of Science and College of Engineering to question why emergency welfare assistance programs were stalled earlier this term due to cited budgetary deficits.`
-        },
-        {
-            id: 'rev-02',
-            title: "Why the enrollment portal keeps timing out: A technical post-mortem",
-            category: "Science and Technology",
-            date: "Oct 18, 2026",
-            rawDate: "2026-10-18",
-            author: "Noah Reyes",
-            status: "In Review",
-            excerpt: "Database locking bottlenecks rather than raw network bandwidth cause registration server timeouts.",
-            content: `Every enlistment cycle, tens of thousands of university students endure hours of connection timeouts, 504 Gateway errors, and lost subject slots. An in-depth technical examination of the campus enrollment infrastructure reveals that database locking bottlenecks, rather than network bandwidth, remain the root cause.`
-        },
-        {
-            id: 'rev-03',
-            title: "Faculty union files formal grievance over proposed 24-unit overload directive",
-            category: "News",
-            date: "Oct 17, 2026",
-            rawDate: "2026-10-17",
-            author: "Rafael Ramos",
-            status: "In Review",
-            excerpt: "Union manifesto warns against unmitigated workload increases for contractual and regular lecturers.",
-            content: `The University Faculty Association (UFA) has formally submitted a dispute grievance to the Office of the Vice President for Academic Affairs following administrative directives requiring full-time instructors to absorb up to 24 class teaching units without proportional overtime compensation.`
-        },
-        {
-            id: 'rev-04',
-            title: "Inside the 24-hour night shift of university sanitation workers",
-            category: "Features",
-            date: "Oct 12, 2026",
-            rawDate: "2026-10-12",
-            author: "Lia Mendoza",
-            status: "In Review",
-            excerpt: "A look inside the nocturnal routine of custodians maintaining campus facilities.",
-            content: `At 11:30 PM, long after the last student leaves the library and lecture lights flick off, an army of twenty-two custodial workers steps onto the silent campus grounds.`
-        },
-        {
-            id: 'rev-05',
-            title: "Echoes of the Quadrangle: Anthology of New Student Poetry",
-            category: "Literature",
-            date: "Oct 21, 2026",
-            rawDate: "2026-10-21",
-            author: "Camille Joy Perez",
-            status: "In Review",
-            excerpt: "A curated sequence of verses depicting collegiate life, transit commutes, and campus memory.",
-            content: `Under the shadows of the century-old Acacia trees, student poets observe the shifting cadence of university life.`
-        }
-    ];
+    const defaultPendingArticles = [];
 
-    let pendingQueue = defaultPendingArticles;
+    let pendingQueue = [];
     try {
         const rawQ = localStorage.getItem('sectionHeadReviewQueue_v1');
         if (rawQ) {
@@ -191,9 +189,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const metricsContainer = document.getElementById('metrics-grid');
     if (metricsContainer) {
         // Calculate total views for the current month across desk
-        const sectionViews = sectionArticles.reduce((sum, a) => sum + (Number(a.views) || 0), 0) + 14280;
-        const totalCount = sectionArticles.length > 0 ? sectionArticles.length : 18;
-        const pendingCount = sectionPending.length > 0 ? sectionPending.length : 2;
+        const sectionViews = sectionArticles.reduce((sum, a) => sum + (Number(a.views) || 0), 0);
+        const totalCount = sectionArticles.length;
+        const pendingCount = sectionPending.length;
 
         const metrics = [
             {
@@ -238,21 +236,23 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================================================================
     const submissionsTableBody = document.getElementById('submissions-table-body');
     if (submissionsTableBody) {
-        const displayItems = sectionPending.length > 0 ? sectionPending : defaultPendingArticles.slice(0, 4);
-
-        submissionsTableBody.innerHTML = displayItems.map(item => `
-            <tr>
-                <td>
-                    <button type="button" class="table-article-btn" data-action="view-modal" data-id="${item.id}" title="${escapeHTML(item.title)}">
-                        ${escapeHTML(item.title)}
-                    </button>
-                </td>
-                <td><span class="table-author">${escapeHTML(item.author)}</span></td>
-                <td class="hide-on-mobile">${formatSectionBadgeHtml(item.category || currentSection)}</td>
-                <td>${getStatusBadgeHtml('In Review')}</td>
-                <td class="hide-on-mobile"><span class="table-date">${escapeHTML(item.date)}</span></td>
-            </tr>
-        `).join('');
+        if (sectionPending.length === 0) {
+            submissionsTableBody.innerHTML = `<tr><td colspan="5" class="text-center py-6 text-gray-500 text-sm">No pending submissions for this section.</td></tr>`;
+        } else {
+            submissionsTableBody.innerHTML = sectionPending.map(item => `
+                <tr>
+                    <td>
+                        <button type="button" class="table-article-btn" data-action="view-modal" data-id="${item.id}" title="${escapeHTML(item.title)}">
+                            ${escapeHTML(item.title)}
+                        </button>
+                    </td>
+                    <td><span class="table-author">${escapeHTML(item.author)}</span></td>
+                    <td class="hide-on-mobile">${formatSectionBadgeHtml(item.category || currentSection)}</td>
+                    <td>${getStatusBadgeHtml('In Review')}</td>
+                    <td class="hide-on-mobile"><span class="table-date">${escapeHTML(item.date)}</span></td>
+                </tr>
+            `).join('');
+        }
     }
 
     // =========================================================================
@@ -260,48 +260,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================================================================
     const activityContainer = document.getElementById('recent-activity-list');
     if (activityContainer) {
-        const DEFAULT_PUBLICATION_LOGS = [
-            {
-                user: "Juan Dela Cruz",
-                avatar: "images/member-placeholder.svg",
-                action: "approved",
-                subjectType: "Article",
-                target: "Academic Freedom in the Digital Era",
-                time: "12m ago"
-            },
-            {
-                user: "Maria Santos",
-                avatar: "images/member-placeholder.svg",
-                action: "submitted",
-                subjectType: "Article",
-                target: "Digital divide persists as student WiFi coverage drops in outer colleges",
-                time: "45m ago"
-            },
-            {
-                user: sectionHeadName,
-                avatar: "images/member-placeholder.svg",
-                action: "approved",
-                subjectType: "Manuscript",
-                target: "Student Council financial audit reveals surplus",
-                time: "1h ago"
-            },
-            {
-                user: "Danilo C. Ramos",
-                avatar: "images/member-placeholder.svg",
-                action: "requested revision on",
-                subjectType: "Manuscript",
-                target: "Faculty union files formal grievance directive",
-                time: "2h ago"
-            },
-            {
-                user: "Carlo Ramos",
-                avatar: "images/member-placeholder.svg",
-                action: "uploaded",
-                subjectType: "Photo Asset",
-                target: "Central University Library Modernization Gallery",
-                time: "3h ago"
-            }
-        ];
+        const DEFAULT_PUBLICATION_LOGS = [];
 
         let logsToDisplay = DEFAULT_PUBLICATION_LOGS;
         try {
@@ -321,19 +280,23 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } catch (e) {}
 
-        activityContainer.innerHTML = logsToDisplay.map(item => `
-            <div class="activity-item" onclick="window.location.href='section-head-activity-logs.html'" style="cursor: pointer;" title="Open Activity Log">
-                <div class="activity-avatar">
-                    <img src="${item.avatar}" alt="${escapeHTML(item.user)}">
+        if (logsToDisplay.length === 0) {
+            activityContainer.innerHTML = '<p class="text-sm text-gray-500 py-4 text-center">No recent activities recorded.</p>';
+        } else {
+            activityContainer.innerHTML = logsToDisplay.map(item => `
+                <div class="activity-item" onclick="window.location.href='section-head-activity-logs.html'" style="cursor: pointer;" title="Open Activity Log">
+                    <div class="activity-avatar">
+                        <img src="${item.avatar}" alt="${escapeHTML(item.user)}">
+                    </div>
+                    <div class="activity-details">
+                        <p class="activity-text">
+                            <strong>${escapeHTML(item.user)}</strong> ${escapeHTML(item.action)} the ${escapeHTML(item.subjectType || 'Article')} <em>"${escapeHTML(item.target)}"</em> <span style="color:#667085; font-size:0.75rem; margin-left:3px;">${escapeHTML(item.time)}.</span>
+                        </p>
+                        <span class="activity-time">${escapeHTML(item.time)}</span>
+                    </div>
                 </div>
-                <div class="activity-details">
-                    <p class="activity-text">
-                        <strong>${escapeHTML(item.user)}</strong> ${escapeHTML(item.action)} the ${escapeHTML(item.subjectType || 'Article')} <em>"${escapeHTML(item.target)}"</em> <span style="color:#667085; font-size:0.75rem; margin-left:3px;">${escapeHTML(item.time)}.</span>
-                    </p>
-                    <span class="activity-time">${escapeHTML(item.time)}</span>
-                </div>
-            </div>
-        `).join('');
+            `).join('');
+        }
     }
 
     // =========================================================================
@@ -424,10 +387,18 @@ document.addEventListener('DOMContentLoaded', () => {
         if (viewerTitle) viewerTitle.textContent = art.title || 'Untitled';
         if (viewerAuthor) viewerAuthor.textContent = art.author || 'Staff Writer';
 
+        const viewerExcerpt = document.getElementById('viewer-excerpt');
+        if (viewerExcerpt) {
+            if (art.excerpt && art.excerpt.trim()) {
+                viewerExcerpt.textContent = art.excerpt.trim();
+                viewerExcerpt.style.display = 'block';
+            } else {
+                viewerExcerpt.style.display = 'none';
+            }
+        }
+
         if (viewerContent) {
-            const raw = art.content || art.excerpt || 'No manuscript body content available.';
-            const paras = raw.split(/\n\n+/).filter(p => p.trim());
-            viewerContent.innerHTML = paras.map(p => `<p class="viewer-paragraph">${escapeHTML(p.trim())}</p>`).join('');
+            viewerContent.innerHTML = formatCleanArticleContent(art.content || art.excerpt);
         }
 
         viewerModal.classList.remove('hidden');

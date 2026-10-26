@@ -260,7 +260,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             <div class="article-stats" aria-label="Article engagement and reading time">
                                 <span class="article-view-count" title="Views">
                                     <i class="fa-regular fa-eye" aria-hidden="true"></i>
-                                    <span>${formatNumber(articleViews)} views</span>
+                                    <span>${formatNumber(articleViews)}</span> <span class="stat-label">views</span>
                                 </span>
                                 <span class="article-read-time" title="Estimated reading time">
                                     <i class="fa-regular fa-clock" aria-hidden="true"></i>

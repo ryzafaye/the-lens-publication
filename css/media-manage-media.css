@@ -3,6 +3,46 @@
    Clean Minimalist Architecture matching Executive & Writer Portals
    ========================================================================== */
 
+/* Mobile Drawer & Avatar constrain */
+#mobile-nav-dropdown,
+.mobile-nav-dropdown,
+#mobile-nav-backdrop,
+.mobile-nav-backdrop,
+.mobile-nav-drawer {
+    display: none;
+}
+
+.mobile-nav-avatar,
+.mobile-nav-avatar img,
+.mobile-avatar-img,
+#mobile-avatar-img {
+    max-width: 44px !important;
+    max-height: 44px !important;
+    width: 44px !important;
+    height: 44px !important;
+    border-radius: 50% !important;
+    object-fit: cover !important;
+}
+
+@media (min-width: 769px) {
+    #mobile-nav-dropdown,
+    .mobile-nav-dropdown,
+    #mobile-nav-backdrop,
+    .mobile-nav-backdrop,
+    .mobile-nav-drawer,
+    .mobile-nav-dropdown.open,
+    .mobile-nav-dropdown.active,
+    .mobile-nav-dropdown.expanded {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        height: 0 !important;
+        max-height: 0 !important;
+        overflow: hidden !important;
+        pointer-events: none !important;
+    }
+}
+
 /* 1. Header & Summary Stats Grid */
 .media-stats-grid {
     display: grid;

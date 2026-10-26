@@ -1,4 +1,4 @@
-/**
+﻿/**
  * ============================================================================
  * THE LENS — EXECUTIVE MANAGE MY ARTICLES CONTROLLER
  * Copies the Exact Style Format & Logic of Writer Dashboard Analytics Cards
@@ -88,78 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================================================================
     // 1. DATASET: SEEDED & PERSISTED EXECUTIVE ARTICLES
     // =========================================================================
-    const DEFAULT_EXECUTIVE_ARTICLES = [
-        {
-            id: 'exec-art-01',
-            author: executiveName,
-            title: 'The Future of University Press Freedom: A Presidential Address',
-            category: 'Opinion',
-            excerpt: 'Why defending independent campus journalism and transparent administration disclosures remains essential in an era of digital misinformation.',
-            date: 'Oct 19, 2026',
-            rawDate: '2026-10-19',
-            status: 'Published',
-            views: 5120,
-            shares: 86,
-            remarks: '',
-            content: `Student publications hold a unique mandate within democratic universities: to reflect the unvarnished realities of the student body without fear of administrative reprisal.\n\nOver the past academic cycle, our editorial staff has covered pivotal campus disputes, from facilities budget reallocations to faculty overload directives. Throughout each inquiry, our guiding philosophy has remained unwavering—freedom of expression is not an administrative privilege to be dispensed, but an institutional right won through decades of student advocacy.\n\nAs we inaugurate our new digital publishing systems, we reaffirm our commitment to ethical rigor, fact-checked reporting, and unwavering support for every campus beat reporter.`
-        },
-        {
-            id: 'exec-art-02',
-            author: executiveName,
-            title: 'Modernizing Collegiate Newsrooms: The Lens Strategic Roadmap',
-            category: 'Features',
-            excerpt: 'A comprehensive operational overview of our publication’s transition to digital-first investigative cycles and archival digitization.',
-            date: 'Sep 28, 2026',
-            rawDate: '2026-09-28',
-            status: 'Published',
-            views: 3460,
-            shares: 42,
-            remarks: '',
-            content: `In an era where news is consumed within seconds on mobile feeds, collegiate journalism must evolve without sacrificing depth. The Lens has spearheaded a systematic workflow modernization program designed to empower student writers and editors.\n\nBy unifying our editorial desk with modern draft revision queues and public transparency folios, we ensure that every story published meets international journalistic standards. Our upcoming initiatives include podcast audio digests and multimedia documentary fellowships for undergraduate contributors.`
-        },
-        {
-            id: 'exec-art-03',
-            author: executiveName,
-            title: 'Midyear Operational Review & Editorial Guidelines 2025',
-            category: 'Opinion',
-            excerpt: 'A retrospective evaluation of print distribution quotas and digital engagement strategies across regional university branches.',
-            date: 'Jul 22, 2025',
-            rawDate: '2025-07-22',
-            status: 'Published',
-            views: 2840,
-            shares: 14,
-            remarks: '',
-            content: `Looking back at the academic calendar of 2024–2025, our editorial staff conducted a comprehensive survey across the university student body regarding print vs digital readership preferences.\n\nResults demonstrated a notable 40% surge in web engagement via smartphone devices, prompting our pivot towards mobile-first newsroom publishing while maintaining high-quality archival print folios for university history.`
-        },
-        {
-            id: 'exec-art-04',
-            author: executiveName,
-            title: 'State of the Student Body: University Welfare Analysis 2026',
-            category: 'News',
-            excerpt: 'An evidence-based survey analyzing commuter transit subsidies, dormitory occupancy rates, and student meal allowance purchasing power.',
-            date: 'Oct 20, 2026',
-            rawDate: '2026-10-20',
-            status: 'Pending Review',
-            views: 0,
-            shares: 0,
-            remarks: '',
-            content: `Escalating living costs in the surrounding university district have placed renewed strain on undergraduate budgets. Surveying more than 1,200 dormitory residents and daily commuters, this investigation reveals key vulnerabilities in campus support systems.\n\nOver 68% of off-campus commuters report spending more than four hours daily in transit, while campus food concessionaires have raised average meal prices by 22% over the last twelve months. The editorial board is preparing recommendations for university welfare committee discussions next month.`
-        },
-        {
-            id: 'exec-art-05',
-            author: executiveName,
-            title: 'Ethical Standards for Student Investigative Reporting in Digital Spaces',
-            category: 'Opinion',
-            excerpt: 'Addressing attribution requirements, source confidentiality protocols, and cybersecurity hygiene for collegiate journalists.',
-            date: 'Oct 16, 2026',
-            rawDate: '2026-10-16',
-            status: 'For Revision',
-            views: 0,
-            shares: 0,
-            remarks: 'Please expand Section 3 with citations from the Philippine Press Institute Code of Ethics before resubmission.',
-            content: `When reporting on sensitive institutional matters, student journalists carry ethical responsibilities identical to those of seasoned professionals. Digital communication channels introduce both unprecedented research access and significant security vulnerabilities.\n\nEvery student journalist must adhere to rigorous source corroboration and encryption practices when handling whistleblower leaks or confidential financial records.`
-        }
-    ];
+    const DEFAULT_EXECUTIVE_ARTICLES = [];
 
     const STORAGE_KEY = 'executiveMyArticles_v1';
 
@@ -177,9 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.warn('Could not load executiveMyArticles_v1', e);
         }
 
-        if (personalArticles.length === 0) {
-            personalArticles = JSON.parse(JSON.stringify(DEFAULT_EXECUTIVE_ARTICLES));
-        }
+        if (personalArticles.length === 0) { personalArticles = []; }
 
         // Incorporate drafts from executiveArticleDrafts
         try {
@@ -253,15 +180,42 @@ document.addEventListener('DOMContentLoaded', () => {
         return `${mins} min read`;
     }
 
+    function decodeCorruptedHtmlEntities(str) {
+        if (!str || typeof str !== 'string') return '';
+        let decoded = str;
+        let maxPasses = 5;
+        while (maxPasses > 0 && (/&amp;lt;/i.test(decoded) || /&lt;/i.test(decoded) || /&amp;gt;/i.test(decoded) || /&gt;/i.test(decoded))) {
+            const txt = document.createElement('textarea');
+            txt.innerHTML = decoded;
+            const newDecoded = txt.value;
+            if (newDecoded === decoded) break;
+            decoded = newDecoded;
+            maxPasses--;
+        }
+        return decoded;
+    }
+
     function formatCleanArticleContent(rawContent) {
         if (!rawContent) {
             return '<p style="color: #98a2b3; font-style: italic;">No content available for this manuscript.</p>';
         }
-        const stripped = rawContent
+
+        let decoded = decodeCorruptedHtmlEntities(rawContent);
+
+        // Aggressively strip any literal or encoded span tags and style attributes
+        decoded = decoded
+            .replace(/&lt;\/?span[^&>]*&gt;/gi, '')
+            .replace(/<\/?span[^>]*>/gi, '')
+            .replace(/\s*style="[^"]*"/gi, '')
+            .replace(/\s*style='[^']*'/gi, '')
+            .replace(/&lt;[^&>]+&gt;/gi, '');
+
+        const stripped = decoded
             .replace(/<div><br\s*\/?><\/div>/gi, '\n\n')
-            .replace(/<\/?div[^>]*>/gi, '\n')
-            .replace(/<\/?p[^>]*>/gi, '\n\n')
-            .replace(/<br\s*\/?>/gi, '\n');
+            .replace(/<\/(?:div|p|blockquote|h[1-6])>/gi, '\n\n')
+            .replace(/<\/?(?:div|p|blockquote|h[1-6])[^>]*>/gi, '\n')
+            .replace(/<br\s*\/?>/gi, '\n')
+            .replace(/<[^>]+>/g, '');
 
         const paragraphs = stripped
             .split(/\n+/)
@@ -572,6 +526,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 viewerStatsBar.style.display = 'flex';
             } else {
                 viewerStatsBar.style.display = 'none';
+            }
+        }
+
+        const viewerExcerpt = document.getElementById('viewer-excerpt');
+        if (viewerExcerpt) {
+            const rawExcerpt = article.excerpt || (item && item.excerpt) || '';
+            if (rawExcerpt && rawExcerpt.trim()) {
+                viewerExcerpt.textContent = rawExcerpt.trim();
+                viewerExcerpt.style.display = 'block';
+            } else {
+                viewerExcerpt.style.display = 'none';
             }
         }
 

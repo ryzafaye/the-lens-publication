@@ -1148,6 +1148,48 @@
     font-size: 0.65rem;
 }
 
+.cover-status-tag.pending {
+    background-color: #fef3f2;
+    color: #b42318;
+    border: 1px solid #fecdca;
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    letter-spacing: 0.04em;
+    backdrop-filter: blur(4px);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+.cover-status-tag.pending i {
+    font-size: 0.65rem;
+    color: #b42318;
+}
+
+.cover-status-tag.eic {
+    background-color: #eff8ff;
+    color: #175cd3;
+    border: 1px solid #b2ddff;
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    letter-spacing: 0.04em;
+    backdrop-filter: blur(4px);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+.cover-status-tag.eic i {
+    font-size: 0.65rem;
+    color: #175cd3;
+}
+
 .library-card-footer {
     display: flex;
     align-items: center;

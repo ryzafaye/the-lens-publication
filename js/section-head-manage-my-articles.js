@@ -1,4 +1,4 @@
-/**
+﻿/**
  * ============================================================================
  * THE LENS — SECTION HEAD MANAGE MY ARTICLES CONTROLLER
  * Copies the Exact Format, Style & Logic of Executive Manage My Articles
@@ -81,64 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================================================================
     const STORAGE_KEY = 'sectionHeadMyArticles_v1';
 
-    const DEFAULT_SEED_ARTICLES = [
-        {
-            id: 'sec-art-01',
-            author: authorName,
-            title: `Investigating University Resource Allocation: The ${currentSection} Perspective`,
-            category: currentSection,
-            excerpt: 'An in-depth analysis of capital expenditure distributions, departmental facility grants, and laboratory modernisation timetables.',
-            date: 'Oct 19, 2026',
-            rawDate: '2026-10-19',
-            status: 'Published',
-            views: 3840,
-            shares: 64,
-            remarks: '',
-            content: `Collegiate budget disclosures provide invaluable insights into institutional priorities. Across our campus departments, funding for equipment maintenance and instructional supplies directly impacts undergraduate research capacity.\n\nOver the past academic cycle, discretionary reserves allocated to student-facing facilities increased by 12%, though significant disparities remain between laboratory-heavy curricula and humanities programs.\n\nOur editorial investigation examines procurement audit documents and interviews academic deans to assess how equitably resource allocations meet student educational requirements.`
-        },
-        {
-            id: 'sec-art-02',
-            author: authorName,
-            title: `Editorial Guidelines for Collegiate ${currentSection} Coverage in 2026`,
-            category: currentSection,
-            excerpt: 'Establishing ethical attribution standards, primary document verification methods, and balanced source quotas for desk reporters.',
-            date: 'Oct 21, 2026',
-            rawDate: '2026-10-21',
-            status: 'Pending Review',
-            views: 0,
-            shares: 0,
-            remarks: '',
-            content: `As campus reporting accelerates into multi-platform delivery, desk editors must uphold uncompromising standards of factual accuracy and contextual fairness.\n\nThis manuscript codifies updated guidelines for corroborating leaked administrative memorandums, conducting on-the-record interviews, and protecting source confidentiality under the Republic Act 10173.`
-        },
-        {
-            id: 'sec-art-03',
-            author: authorName,
-            title: 'Voices from the Faculty Lounge: Academic Autonomy in Modern Universities',
-            category: currentSection,
-            excerpt: 'A qualitative survey exploring how instructional directives impact curriculum flexibility and tenure-track research productivity.',
-            date: 'Oct 17, 2026',
-            rawDate: '2026-10-17',
-            status: 'For Revision',
-            views: 0,
-            shares: 0,
-            remarks: 'Please incorporate faculty union survey responses regarding overload pay before final approval.',
-            content: `Tenure-track educators increasingly report balancing heavy teaching loads against administrative compliance requirements, leaving diminishing hours for original scholarship.\n\nThis feature explores the delicate balance between university standardized assessment protocols and the individual professor's intellectual freedom in the lecture hall.`
-        },
-        {
-            id: 'sec-art-draft-01',
-            author: authorName,
-            title: `Draft Outline: Semester-End ${currentSection} Retrospective`,
-            category: currentSection,
-            excerpt: 'Curated collection of the most consequential stories, investigative disclosures, and student assembly triumphs documented this term.',
-            date: 'Oct 22, 2026',
-            rawDate: '2026-10-22',
-            status: 'Draft',
-            views: 0,
-            shares: 0,
-            remarks: '',
-            content: `Preliminary notes and section breakdown for our publication's culminating printed folio and digital archival edition.`
-        }
-    ];
+    const DEFAULT_SEED_ARTICLES = [];
 
     function getArticles() {
         try {
@@ -150,8 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) {
             console.warn('Could not parse articles from localStorage', e);
         }
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_SEED_ARTICLES));
-        return DEFAULT_SEED_ARTICLES;
+        return [];
     }
 
     function saveArticles(articles) {
@@ -188,12 +130,44 @@ document.addEventListener('DOMContentLoaded', () => {
         return `${minutes} min read`;
     }
 
+    function decodeCorruptedHtmlEntities(str) {
+        if (!str || typeof str !== 'string') return '';
+        let decoded = str;
+        let maxPasses = 5;
+        while (maxPasses > 0 && (/&amp;lt;/i.test(decoded) || /&lt;/i.test(decoded) || /&amp;gt;/i.test(decoded) || /&gt;/i.test(decoded))) {
+            const txt = document.createElement('textarea');
+            txt.innerHTML = decoded;
+            const newDecoded = txt.value;
+            if (newDecoded === decoded) break;
+            decoded = newDecoded;
+            maxPasses--;
+        }
+        return decoded;
+    }
+
     function formatCleanArticleContent(raw) {
         if (!raw || typeof raw !== 'string') {
             return '<p class="viewer-paragraph"><em>No manuscript body provided.</em></p>';
         }
 
-        const paragraphs = raw
+        let decoded = decodeCorruptedHtmlEntities(raw);
+
+        // Aggressively strip any literal or encoded span tags and style attributes
+        decoded = decoded
+            .replace(/&lt;\/?span[^&>]*&gt;/gi, '')
+            .replace(/<\/?span[^>]*>/gi, '')
+            .replace(/\s*style="[^"]*"/gi, '')
+            .replace(/\s*style='[^']*'/gi, '')
+            .replace(/&lt;[^&>]+&gt;/gi, '');
+
+        const stripped = decoded
+            .replace(/<div><br\s*\/?><\/div>/gi, '\n\n')
+            .replace(/<\/(?:div|p|blockquote|h[1-6])>/gi, '\n\n')
+            .replace(/<\/?(?:div|p|blockquote|h[1-6])[^>]*>/gi, '\n')
+            .replace(/<br\s*\/?>/gi, '\n')
+            .replace(/<[^>]+>/g, '');
+
+        const paragraphs = stripped
             .split(/\n\s*\n|\n/)
             .map(p => p.trim())
             .filter(p => p.length > 0);
@@ -494,6 +468,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 viewerStatsBar.style.display = 'flex';
             } else {
                 viewerStatsBar.style.display = 'none';
+            }
+        }
+
+        const viewerExcerpt = document.getElementById('viewer-excerpt');
+        if (viewerExcerpt) {
+            const rawExcerpt = article.excerpt || (item && item.excerpt) || '';
+            if (rawExcerpt && rawExcerpt.trim()) {
+                viewerExcerpt.textContent = rawExcerpt.trim();
+                viewerExcerpt.style.display = 'block';
+            } else {
+                viewerExcerpt.style.display = 'none';
             }
         }
 

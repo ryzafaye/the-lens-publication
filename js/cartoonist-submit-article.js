@@ -1,4 +1,4 @@
-/**
+﻿/**
  * ============================================================================
  * THE LENS — SUBMIT ARTICLE LOGIC (CARTOONIST PORTAL)
  * Notion / Medium Style Writing Interface with Exact Executive & Media Parity
@@ -107,26 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const DRAFTS_STORAGE_KEY = 'cartoonistArticleDrafts_v1';
     const ARTICLES_STORAGE_KEY = 'theLensCartoonistArticles_v1';
 
-    const defaultDrafts = [
-        {
-            id: 'cart-draft-01',
-            title: "Investigation: The role of satirical caricature in university governance reforms",
-            category: "Features",
-            excerpt: "An inquiry into visual satire, campus editorial strips, and student critical engagement with administrative policy.",
-            date: "Oct 22, 2026",
-            rawDate: "2026-10-22",
-            content: `<div>An inquiry into visual satire, campus editorial strips, and student critical engagement with administrative policy.</div><div><br></div><div>Editorial cartoons serve as an immediate bridge between intricate governance reports and student consciousness, condensing legislative complexities into piercing commentary.</div>`
-        },
-        {
-            id: 'cart-draft-02',
-            title: "Digital divide persists as student WiFi coverage drops in outer laboratories",
-            category: "Science and Technology",
-            excerpt: "Bandwidth testing across student dormitories and satellite laboratories reveals stark regional disparities in high-speed access.",
-            date: "Oct 19, 2026",
-            rawDate: "2026-10-19",
-            content: `<div>Bandwidth testing across student dormitories and satellite laboratories reveals stark regional disparities in high-speed access.</div><div><br></div><div>Technical testing conducted across engineering computer clusters revealed recurring network drops during peak evening hours.</div>`
-        }
-    ];
+    const defaultDrafts = [];
 
     function loadDraftsFromStorage() {
         try {
@@ -138,7 +119,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) {
             console.warn('Could not read cartoonistArticleDrafts from localStorage:', e);
         }
-        return JSON.parse(JSON.stringify(defaultDrafts));
+        return [];
     }
 
     function saveDraftsToStorage(drafts) {
@@ -420,6 +401,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (editorContent) {
         editorContent.addEventListener('input', updateWordAndCharCount);
+        editorContent.addEventListener('paste', handleEditorPaste);
     }
 
     // =========================================================================
@@ -610,6 +592,167 @@ document.addEventListener('DOMContentLoaded', () => {
         return null;
     }
 
+        function decodeCorruptedHtmlEntities(str) {
+        if (!str || typeof str !== 'string') return '';
+        let decoded = str;
+        let maxPasses = 5;
+        while (maxPasses > 0 && (/&amp;lt;/i.test(decoded) || /&lt;/i.test(decoded) || /&amp;gt;/i.test(decoded) || /&gt;/i.test(decoded))) {
+            const txt = document.createElement('textarea');
+            txt.innerHTML = decoded;
+            const newDecoded = txt.value;
+            if (newDecoded === decoded) break;
+            decoded = newDecoded;
+            maxPasses--;
+        }
+        return decoded;
+    }
+
+    function sanitizeEditorHtmlForSave(raw) {
+        if (!raw) return '';
+        let cleaned = String(raw).trim();
+        cleaned = decodeCorruptedHtmlEntities(cleaned);
+        cleaned = cleaned
+            .replace(/&lt;\/?span[^&>]*&gt;/gi, '')
+            .replace(/<\/?span[^>]*>/gi, '')
+            .replace(/\s*style="[^"]*"/gi, '')
+            .replace(/\s*style='[^']*'/gi, '')
+            .replace(/&lt;[^&>]+&gt;/gi, '');
+        return cleaned;
+    }
+
+    function handleEditorPaste(e) {
+        e.preventDefault();
+        const clipboardData = e.clipboardData || window.clipboardData;
+        if (!clipboardData) return;
+
+        let html = clipboardData.getData('text/html');
+        let text = clipboardData.getData('text/plain') || '';
+
+        let cleanHtml = '';
+
+        if (html) {
+            try {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+
+                const removeEls = doc.body.querySelectorAll('script, style, meta, link, object, embed, iframe, font, xml, o\\:p');
+                removeEls.forEach(el => el.remove());
+
+                const spans = doc.body.querySelectorAll('span, font, o\\:p');
+                spans.forEach(span => {
+                    const parent = span.parentNode;
+                    if (parent) {
+                        while (span.firstChild) {
+                            parent.insertBefore(span.firstChild, span);
+                        }
+                        parent.removeChild(span);
+                    }
+                });
+
+                const allElements = doc.body.querySelectorAll('*');
+                allElements.forEach(el => {
+                    el.removeAttribute('style');
+                    el.removeAttribute('class');
+                    el.removeAttribute('id');
+                    el.removeAttribute('dir');
+                    el.removeAttribute('lang');
+                    el.removeAttribute('face');
+                    el.removeAttribute('size');
+                    el.removeAttribute('color');
+                    el.removeAttribute('align');
+                });
+
+                const pTags = doc.body.querySelectorAll('p');
+                pTags.forEach(p => {
+                    const div = doc.createElement('div');
+                    while (p.firstChild) {
+                        div.appendChild(p.firstChild);
+                    }
+                    if (p.parentNode) {
+                        p.parentNode.replaceChild(div, p);
+                    }
+                });
+
+                cleanHtml = doc.body.innerHTML.trim();
+                cleanHtml = cleanHtml
+                    .replace(/<\/?span[^>]*>/gi, '')
+                    .replace(/\s+style="[^"]*"/gi, '')
+                    .replace(/\s+class="[^"]*"/gi, '');
+            } catch (err) {
+                cleanHtml = '';
+            }
+        }
+
+        if (!cleanHtml && text) {
+            const paragraphs = text.split(/\r?\n\r?\n+/).map(p => p.trim()).filter(Boolean);
+            if (paragraphs.length > 0) {
+                cleanHtml = paragraphs.map(p => `<div>${escapeHTML(p)}</div>`).join('<div><br></div>');
+            } else if (text.trim()) {
+                cleanHtml = `<div>${escapeHTML(text.trim())}</div>`;
+            }
+        }
+
+        if (cleanHtml) {
+            const selection = window.getSelection();
+            if (selection && selection.rangeCount > 0) {
+                const range = selection.getRangeAt(0);
+                range.deleteContents();
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = cleanHtml;
+                const frag = document.createDocumentFragment();
+                let node;
+                let lastNode;
+                while ((node = tempDiv.firstChild)) {
+                    lastNode = frag.appendChild(node);
+                }
+                range.insertNode(frag);
+                if (lastNode) {
+                    range.setStartAfter(lastNode);
+                    range.collapse(true);
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                }
+            } else {
+                document.execCommand('insertHTML', false, cleanHtml);
+            }
+        }
+
+        if (typeof updateEditorMetrics === 'function') updateEditorMetrics();
+        if (typeof updateWordAndCharCount === 'function') updateWordAndCharCount();
+        if (typeof updateWritingMetrics === 'function') updateWritingMetrics();
+    }
+
+    function sanitizeDraftContentForEditor(raw) {
+        if (!raw) return '';
+        let content = decodeCorruptedHtmlEntities(String(raw).trim());
+
+        // Strip any literal or entity-encoded span tags and style attributes
+        content = content
+            .replace(/&lt;\/?span[^&>]*&gt;/gi, '')
+            .replace(/<\/?span[^>]*>/gi, '')
+            .replace(/\s*style="[^"]*"/gi, '')
+            .replace(/\s*style='[^']*'/gi, '')
+            .replace(/&lt;[^&>]+&gt;/gi, '');
+
+        // Check if content contains any HTML tags (e.g. <div, <p, <b>, <i>, <br>, etc.)
+        const hasHtmlTags = /<\/?(?:div|p|b|i|u|strong|em|h[1-6]|ul|ol|li|blockquote|br|a)[^>]*>/i.test(content);
+
+        if (!hasHtmlTags) {
+            const paras = content.split(/\n\n+/).map(p => p.trim()).filter(Boolean);
+            if (paras.length === 0) return '';
+            return paras.map(p => `<div>${escapeHTML(p)}</div>`).join('<div><br></div>');
+        }
+
+        let normalized = content
+            .replace(/<\/p>\s*<p[^>]*>/gi, '</div><div><br></div><div>')
+            .replace(/<p[^>]*>/gi, '<div>')
+            .replace(/<\/p>/gi, '</div>')
+            .replace(/<\/?span[^>]*>/gi, '')
+            .replace(/\s*style="[^"]*"/gi, '');
+
+        return normalized;
+    }
+
     function editDraftAction(draftId) {
         const draft = findArticleOrDraft(draftId);
         if (!draft) return;
@@ -629,8 +772,14 @@ document.addEventListener('DOMContentLoaded', () => {
             categorySelect.classList.remove('input-invalid');
         }
         if (editorContent) {
-            editorContent.innerHTML = draft.content || '';
+            const cleanHtml = sanitizeDraftContentForEditor(draft.content || '');
+            editorContent.innerHTML = cleanHtml;
             updateWordAndCharCount();
+
+            if (draft.content && cleanHtml && draft.content !== cleanHtml) {
+                draft.content = cleanHtml;
+                saveArticles(articles);
+            }
         }
 
         switchTab('write');

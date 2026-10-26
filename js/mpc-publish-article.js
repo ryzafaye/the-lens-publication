@@ -13,195 +13,25 @@ document.addEventListener('DOMContentLoaded', () => {
     // -------------------------------------------------------------------------
     // 1. DATASETS (Approved Manuscripts & Approved Visual Covers)
     // -------------------------------------------------------------------------
-    const defaultCovers = [
-        {
-            id: 'cov-01',
-            type: 'pubmat',
-            artist: 'Kirsten Diaz',
-            approvedBy: 'Julian Del Rosario (Media Head)',
-            image: 'images/covers/sc-audit-pubmat.svg',
-            date: 'Oct 21, 2026'
-        },
-        {
-            id: 'cov-02',
-            type: 'pubmat',
-            artist: 'Marco Valenzuela',
-            approvedBy: 'Julian Del Rosario (Media Head)',
-            image: 'images/covers/portal-pubmat.svg',
-            date: 'Oct 20, 2026'
-        },
-        {
-            id: 'cov-03',
-            type: 'pubmat',
-            artist: 'Hannah Cruz',
-            approvedBy: 'Julian Del Rosario (Media Head)',
-            image: 'images/covers/sanitation-pubmat.svg',
-            date: 'Oct 19, 2026'
-        },
-        {
-            id: 'cov-04',
-            type: 'cartoon',
-            artist: 'Danilo Reyes',
-            approvedBy: 'Raphael Luna (Cartoonist Head)',
-            image: 'images/covers/press-freedom-cartoon.svg',
-            date: 'Oct 21, 2026'
-        },
-        {
-            id: 'cov-05',
-            type: 'cartoon',
-            artist: 'Bea Soriano',
-            approvedBy: 'Raphael Luna (Cartoonist Head)',
-            image: 'images/covers/faculty-overload-cartoon.svg',
-            date: 'Oct 18, 2026'
-        },
-        {
-            id: 'cov-06',
-            type: 'cartoon',
-            artist: 'Carlo Santos',
-            approvedBy: 'Raphael Luna (Cartoonist Head)',
-            image: 'images/covers/midnight-study-cartoon.svg',
-            date: 'Oct 17, 2026'
-        }
-    ];
-
-    const defaultArticles = [
-        {
-            id: 'art-01',
-            title: "Student council financial audit reveals ₱320,000 unallocated surplus",
-            category: "News",
-            categorySlug: "news",
-            author: "Sofia M. Alcaraz",
-            sectionHead: "Danilo C. Ramos (News Head)",
-            eicApprover: "Victoria Reyes (Editor-in-Chief)",
-            readTime: "4 min read",
-            dateApproved: "Oct 22, 2026",
-            rawDate: "2026-10-22",
-            status: "ready", // 'ready' | 'published'
-            assignedCoverId: 'cov-01',
-            body: `<p>A comprehensive fiscal audit of the Central Student Council (CSC) accounts for the academic year 2025–2026 disclosed an unallocated surplus amounting to ₱320,000, prompting student organizations to petition for emergency allocations toward campus student services.</p>
-            <p>The findings, presented during a joint legislative assembly of college councils, detail underspending across flagship semester events and delayed disbursement of project grants approved in late 2025.</p>
-            <p>University officials stated that the audited funds remain fully protected in the council depository account, with an ad-hoc allocation committee scheduled to convene next week to finalize reallocation priorities.</p>`
-        },
-        {
-            id: 'art-02',
-            title: "Why the enrollment portal keeps timing out: A technical post-mortem",
-            category: "Science and Technology",
-            categorySlug: "scitech",
-            author: "Marco L. Valderrama",
-            sectionHead: "Dr. Elena M. Romero (SciTech Head)",
-            eicApprover: "Marcus Vance (Assoc. Editor-in-Chief)",
-            readTime: "6 min read",
-            dateApproved: "Oct 21, 2026",
-            rawDate: "2026-10-21",
-            status: "ready",
-            assignedCoverId: 'cov-02',
-            body: `<p>Students attempting to enlist during the peak registration rush encountered repeated HTTP 504 Gateway Timeout errors. A technical analysis performed with IT department logs indicates that database connection pool exhaustion triggered cascading latency across student profile endpoints.</p>
-            <p>The core bottleneck centered around concurrency limits on the legacy academic record database server, which peaked at over 14,000 simultaneous queries during the 9:00 AM server surge.</p>
-            <p>The university IT director confirmed plans to deploy Redis-based session caching and dynamic load balancing prior to midterm subject adjustments.</p>`
-        },
-        {
-            id: 'art-03',
-            title: "The cost of compromise: Why student publication independence cannot be negotiated",
-            category: "Opinion",
-            categorySlug: "opinion",
-            author: "Sofia M. Alcaraz",
-            sectionHead: "Danilo C. Ramos (News Head)",
-            eicApprover: "Victoria Reyes (Editor-in-Chief)",
-            readTime: "5 min read",
-            dateApproved: "Oct 21, 2026",
-            rawDate: "2026-10-21",
-            status: "ready",
-            assignedCoverId: 'cov-04',
-            body: `<p>Student journalism does not exist to flatter institutional hierarchies or deliver sanitized press releases. The historic mandate of campus presses has always been to document campus reality with unflinching honesty and unwavering adherence to student welfare.</p>
-            <p>When administrative directives attempt to condition operational funding upon pre-publication censorship, it strikes at the very heart of the Campus Journalism Act of 1991.</p>
-            <p>Independence is not a courtesy extended by administrative benevolence; it is an earned right preserved through rigorous ethics, meticulous verification, and collective solidarity.</p>`
-        },
-        {
-            id: 'art-04',
-            title: "Inside the 24-hour night shift of university sanitation workers",
-            category: "Features",
-            categorySlug: "features",
-            author: "Camille Joy Perez",
-            sectionHead: "Bianca Rose Flores (Feature Head)",
-            eicApprover: "Victoria Reyes (Editor-in-Chief)",
-            readTime: "5 min read",
-            dateApproved: "Oct 20, 2026",
-            rawDate: "2026-10-20",
-            status: "ready",
-            assignedCoverId: null, // Unassigned
-            body: `<p>Long after classrooms empty and quadrangle spotlights dim, a quiet rotation of university maintenance and sanitation personnel begins. From sweeping leaf-strewn walkways to disinfecting multi-story laboratories, their tireless labor sustains daily university life.</p>
-            <p>Interviews with senior crew members reveal systemic challenges regarding hazard compensation, protective gear procurement, and rising cost-of-living constraints.</p>
-            <p>Their collective voice calls not for performative appreciation, but for institutional dignity and fair labor compensation.</p>`
-        },
-        {
-            id: 'art-05',
-            title: "Echoes from the Quadrangle: Verses from the Midnight Study Hall",
-            category: "Literature",
-            categorySlug: "literature",
-            author: "Carlos Joaquin Luna",
-            sectionHead: "Carlos Joaquin Luna (Literature Head)",
-            eicApprover: "Marcus Vance (Assoc. Editor-in-Chief)",
-            readTime: "3 min read",
-            dateApproved: "Oct 19, 2026",
-            rawDate: "2026-10-19",
-            status: "ready",
-            assignedCoverId: null, // Unassigned
-            body: `<p>Under the fluorescent hum of midnight study cubicles, ink scratches out the silent exhaustion and resilient hopes of students racing against examination dawn.</p>
-            <p>Between pages of worn textbooks and cooling paper cups of instant coffee, a community of quiet determination takes shape in the library's overnight wing.</p>`
-        },
-        {
-            id: 'art-06',
-            title: "University administration greenlights hybrid lab facility upgrades",
-            category: "News",
-            categorySlug: "news",
-            author: "Sofia M. Alcaraz",
-            sectionHead: "Danilo C. Ramos (News Head)",
-            eicApprover: "Victoria Reyes (Editor-in-Chief)",
-            readTime: "4 min read",
-            dateApproved: "Oct 18, 2026",
-            rawDate: "2026-10-18",
-            status: "published",
-            publishedAt: "Oct 22, 2026",
-            assignedCoverId: 'cov-01',
-            body: `<p>The Board of Regents approved a ₱4.2 million modernization grant dedicated to expanding digital laboratory hardware and remote experimentation modules across engineering and science institutes.</p>`
-        },
-        {
-            id: 'art-07',
-            title: "Campus transport cooperative proposes revised shuttle terminal routes",
-            category: "News",
-            categorySlug: "news",
-            author: "Danilo C. Ramos",
-            sectionHead: "Danilo C. Ramos (News Head)",
-            eicApprover: "Victoria Reyes (Editor-in-Chief)",
-            dateApproved: "Oct 17, 2026",
-            rawDate: "2026-10-17",
-            status: "unpublished",
-            assignedCoverId: 'cov-03',
-            body: `<p>A draft proposal by the campus shuttle transport group outlines modified terminal drop points aimed at reducing peak passenger congestion along the North Wing gates.</p>`
-        }
-    ];
+    // 1. DATASETS (Approved Manuscripts & Approved Visual Covers)
+    // -------------------------------------------------------------------------
+    const defaultCovers = [];
+    const defaultArticles = [];
 
     // -------------------------------------------------------------------------
     // 2. STORAGE READ / WRITE
     // -------------------------------------------------------------------------
     function loadArticles() {
         try {
-            const raw = localStorage.getItem(STORAGE_KEY_ARTICLES) || localStorage.getItem('mpc_publish_articles_v1');
+            const raw = localStorage.getItem(STORAGE_KEY_ARTICLES);
             if (raw) {
                 const parsed = JSON.parse(raw);
-                if (Array.isArray(parsed) && parsed.length > 0) {
-                    defaultArticles.forEach(def => {
-                        if (!parsed.some(p => p.id === def.id)) {
-                            parsed.push(def);
-                        }
-                    });
-                    return parsed;
-                }
+                if (Array.isArray(parsed)) return parsed;
             }
         } catch (e) {
             console.warn('Storage read failed', e);
         }
-        return JSON.parse(JSON.stringify(defaultArticles));
+        return [];
     }
 
     function saveArticles(list) {
@@ -213,16 +43,40 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function loadCovers() {
+        let list = [];
         try {
             const raw = localStorage.getItem(STORAGE_KEY_COVERS);
             if (raw) {
                 const parsed = JSON.parse(raw);
-                if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+                if (Array.isArray(parsed)) list = parsed;
             }
-        } catch (e) {
-            console.warn('Storage read failed', e);
-        }
-        return JSON.parse(JSON.stringify(defaultCovers));
+        } catch (e) {}
+
+        // Also merge any approved cartoons/pubmats from articleCoverReviewQueue_v1
+        try {
+            const rawReview = localStorage.getItem('articleCoverReviewQueue_v1');
+            if (rawReview) {
+                const parsedReview = JSON.parse(rawReview);
+                if (Array.isArray(parsedReview)) {
+                    parsedReview.forEach(r => {
+                        if (r.status === 'approved' || r.status === 'approved_for_mpc' || r.status === 'Published' || r.status === 'EIC Approved') {
+                            if (!list.some(c => c.id === r.id)) {
+                                list.push({
+                                    id: r.id,
+                                    type: r.type || 'cartoon',
+                                    artist: r.artist || 'Staff Artist',
+                                    approvedBy: r.approvedBy || r.endorsedBy || 'Editorial Head',
+                                    image: r.image || 'images/covers/press-freedom-cartoon.svg',
+                                    date: r.date || 'Recent'
+                                });
+                            }
+                        }
+                    });
+                }
+            }
+        } catch (e) {}
+
+        return list;
     }
 
     let articlesList = loadArticles();
@@ -683,8 +537,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
                     logs.unshift({
                         id: 'mpc-act-' + Date.now(),
-                        causer: localStorage.getItem('mpcName') || 'Julian Del Rosario',
-                        causerRole: localStorage.getItem('mpcRole') || 'M&PC Head',
+                        causer: localStorage.getItem('mpcName') || ((localStorage.getItem('mpcRole') || '').includes('Assoc') ? 'Samantha Cruz' : 'Julian Del Rosario'),
+                        causerRole: localStorage.getItem('mpcRole') || ((localStorage.getItem('userRole') || '').includes('Assoc') ? 'Assoc M&PC Head' : 'M&PC Head'),
                         causerAvatar: 'images/member-placeholder.svg',
                         action: 'assigned',
                         subjectType: `Cover ${chosenCover.type.toUpperCase()} to Article`,
@@ -733,6 +587,49 @@ document.addEventListener('DOMContentLoaded', () => {
                 year: 'numeric'
             });
 
+            // Attach actual cover image from coversList
+            const chosenCover = coversList.find(c => c.id === article.assignedCoverId);
+            if (chosenCover && chosenCover.image) {
+                article.image = chosenCover.image;
+                article.coverImage = chosenCover.image;
+            }
+
+            // Sync to theLensPublishedArticles so public site immediately displays it!
+            try {
+                let pubList = [];
+                const rawPub = localStorage.getItem('theLensPublishedArticles');
+                if (rawPub) {
+                    const parsed = JSON.parse(rawPub);
+                    if (Array.isArray(parsed)) pubList = parsed;
+                }
+                pubList = pubList.filter(p => p.id !== article.id);
+                pubList.unshift({
+                    ...article,
+                    image: article.image || 'images/maroon.jpg',
+                    content: article.body || article.content || ''
+                });
+                localStorage.setItem('theLensPublishedArticles', JSON.stringify(pubList));
+            } catch (e) {}
+
+            // Update writer's article in writer storage to 'Published'
+            try {
+                const rawWriter = localStorage.getItem('theLensWriterArticles_v3');
+                if (rawWriter) {
+                    let writerList = JSON.parse(rawWriter);
+                    if (Array.isArray(writerList)) {
+                        let updated = false;
+                        writerList = writerList.map(w => {
+                            if (w.id === article.id || w.title === article.title) {
+                                updated = true;
+                                return { ...w, status: 'Published', views: w.views || 0, remarks: '' };
+                            }
+                            return w;
+                        });
+                        if (updated) localStorage.setItem('theLensWriterArticles_v3', JSON.stringify(writerList));
+                    }
+                }
+            } catch (e) {}
+
             // Log activity (Executive sentence parity)
             try {
                 const rawLogs = localStorage.getItem('mpcActivityLogs_v1');
@@ -743,8 +640,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
                 logs.unshift({
                     id: 'mpc-act-' + Date.now(),
-                    causer: localStorage.getItem('mpcName') || 'Julian Del Rosario',
-                    causerRole: localStorage.getItem('mpcRole') || 'M&PC Head',
+                    causer: localStorage.getItem('mpcName') || ((localStorage.getItem('mpcRole') || '').includes('Assoc') ? 'Samantha Cruz' : 'Julian Del Rosario'),
+                    causerRole: localStorage.getItem('mpcRole') || ((localStorage.getItem('userRole') || '').includes('Assoc') ? 'Assoc M&PC Head' : 'M&PC Head'),
                     causerAvatar: 'images/member-placeholder.svg',
                     action: 'published',
                     subjectType: 'Article',
@@ -775,6 +672,38 @@ document.addEventListener('DOMContentLoaded', () => {
             year: 'numeric'
         });
 
+        // Sync to theLensPublishedArticles (remove from public list)
+        try {
+            let pubList = [];
+            const rawPub = localStorage.getItem('theLensPublishedArticles');
+            if (rawPub) {
+                const parsed = JSON.parse(rawPub);
+                if (Array.isArray(parsed)) {
+                    pubList = parsed.filter(p => p.id !== article.id);
+                    localStorage.setItem('theLensPublishedArticles', JSON.stringify(pubList));
+                }
+            }
+        } catch (e) {}
+
+        // Update writer's article in writer storage
+        try {
+            const rawWriter = localStorage.getItem('theLensWriterArticles_v3');
+            if (rawWriter) {
+                let writerList = JSON.parse(rawWriter);
+                if (Array.isArray(writerList)) {
+                    let updated = false;
+                    writerList = writerList.map(w => {
+                        if (w.id === article.id || w.title === article.title) {
+                            updated = true;
+                            return { ...w, status: 'Ready for Publishing' };
+                        }
+                        return w;
+                    });
+                    if (updated) localStorage.setItem('theLensWriterArticles_v3', JSON.stringify(writerList));
+                }
+            }
+        } catch (e) {}
+
         // Log activity (Executive sentence parity)
         try {
             const rawLogs = localStorage.getItem('mpcActivityLogs_v1');
@@ -785,8 +714,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
             logs.unshift({
                 id: 'mpc-act-' + Date.now(),
-                causer: localStorage.getItem('mpcName') || 'Julian Del Rosario',
-                causerRole: localStorage.getItem('mpcRole') || 'M&PC Head',
+                causer: localStorage.getItem('mpcName') || ((localStorage.getItem('mpcRole') || '').includes('Assoc') ? 'Samantha Cruz' : 'Julian Del Rosario'),
+                causerRole: localStorage.getItem('mpcRole') || ((localStorage.getItem('userRole') || '').includes('Assoc') ? 'Assoc M&PC Head' : 'M&PC Head'),
                 causerAvatar: 'images/member-placeholder.svg',
                 action: 'unpublished',
                 subjectType: 'Article',

@@ -1,17 +1,55 @@
 import { articles } from "./articles.js";
 
+// One-time automatic workflow purge to guarantee zero-mock state for testing
+try {
+    const CLEAR_FLAG = 'theLens_workflow_v4_purged';
+    if (localStorage.getItem(CLEAR_FLAG) !== 'true') {
+        const keysToRemove = [
+            'theLensWriterArticles_v3',
+            'theLensWriterArticles_v2',
+            'theLensWriterArticles_v1',
+            'sectionHeadReviewQueue_v1',
+            'eicPendingReviewQueue',
+            'executivePendingReviewQueue',
+            'mpc_publish_articles_v2',
+            'mpc_publish_articles_v1',
+            'mpc_approved_covers_v1',
+            'theLensPublishedArticles',
+            'executiveArticles',
+            'theLensArticles',
+            'theLensCartoonistArticles_v1',
+            'cartoonistSubmissions_v1',
+            'articleCoverReviewQueue_v1',
+            'theLensMediaArticles_v1',
+            'mediaTeamSubmissions_v2',
+            'mediaTeamSubmissions_v1',
+            'sectionHeadMyArticles_v1',
+            'eicMyArticles_v1',
+            'executiveMyArticles_v1',
+            'mpcMyArticles_v1',
+            'cartoonistHeadMyArticles_v1',
+            'sectionHeadArticleDrafts',
+            'eicArticleDrafts',
+            'executiveArticleDrafts',
+            'mpcArticleDrafts',
+            'cartoonistHeadArticleDrafts',
+            'mediaArticleDrafts_v1',
+            'cartoonistArticleDrafts_v1',
+            'executiveActivityLogs_v1',
+            'mpcActivityLogs_v1',
+            'cartoonistHeadActivityLogs_v1',
+            'eicActivityLogs_v1',
+            'sectionHeadActivityLogs_v1'
+        ];
+        keysToRemove.forEach(k => localStorage.removeItem(k));
+        localStorage.setItem(CLEAR_FLAG, 'true');
+    }
+} catch (e) {}
+
 export function escapeHTML(value = "") {
     return String(value).replace(/[&<>"']/g, character => ({
         "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
     })[character]);
-}
-
-export function getArticle(id) {
-    return articles.find(article => article.id === Number(id));
-}
-
-export function getAuthorProfileURL(authorName) {
-    return `author.html?name=${encodeURIComponent(String(authorName || "The Lens Staff"))}`;
 }
 
 export function isArchivedArticle(article) {
@@ -21,7 +59,53 @@ export function isArchivedArticle(article) {
 }
 
 export function getPublicArticles() {
-    return articles.filter(article => !isArchivedArticle(article));
+    let storageArticles = [];
+    try {
+        const raw = localStorage.getItem('theLensPublishedArticles') || localStorage.getItem('mpc_publish_articles_v2');
+        if (raw) {
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed)) {
+                storageArticles = parsed
+                    .filter(a => a.status === 'published' || a.status === 'Published')
+                    .map(item => ({
+                        id: item.id,
+                        category: item.category || 'News',
+                        date: item.publishedAt || item.date || item.dateApproved || 'Oct 26, 2026',
+                        rawDate: item.rawDate || new Date().toISOString().split('T')[0],
+                        views: Number(item.views) || 0,
+                        readTime: item.readTime || '2 min read',
+                        shares: Number(item.shares) || 0,
+                        isArchived: Boolean(item.isArchived),
+                        title: item.title,
+                        excerpt: item.excerpt || (item.body ? item.body.replace(/<[^>]*>/g, '').slice(0, 160) + '...' : ''),
+                        author: item.author || 'The Lens Staff',
+                        image: item.image || item.coverImage || 'images/maroon.jpg',
+                        color: item.color || '#571525',
+                        tags: item.tags || [item.category ? item.category.toLowerCase() : 'campus'],
+                        content: item.body || item.content || ''
+                    }));
+            }
+        }
+    } catch (e) {}
+
+    const staticList = (articles || []).filter(article => !isArchivedArticle(article));
+    const combined = [...storageArticles];
+    staticList.forEach(s => {
+        if (!combined.some(c => String(c.id) === String(s.id))) {
+            combined.push(s);
+        }
+    });
+
+    return combined.filter(article => !isArchivedArticle(article));
+}
+
+export function getArticle(id) {
+    const list = getPublicArticles();
+    return list.find(article => String(article.id) === String(id));
+}
+
+export function getAuthorProfileURL(authorName) {
+    return `author.html?name=${encodeURIComponent(String(authorName || "The Lens Staff"))}`;
 }
 
 export function getNewestArticles(list) {
@@ -144,7 +228,6 @@ export function articleMatchesDateFilter(article, mode = "any", value = "") {
     }
 
     if (mode === "choose") {
-        // Dropdown date selection is serialized as year|month|day; each part is optional.
         if (String(value).includes("|")) {
             const [yearText = "", monthText = "", dayText = ""] = String(value).split("|");
             const year = yearText ? Number(yearText) : null;
@@ -156,7 +239,6 @@ export function articleMatchesDateFilter(article, mode = "any", value = "") {
             if (day !== null && articleParts.day !== day) return false;
             return true;
         }
-        // Backward compatibility for old links using typed date values.
         const custom = parseOptionalDateFilter(value);
         if (!custom) return true;
         if (!custom.valid) return false;
@@ -166,7 +248,6 @@ export function articleMatchesDateFilter(article, mode = "any", value = "") {
         return true;
     }
 
-    // Backward-compatible handlers for old query links that used date/month/year modes.
     if (mode === "date") {
         const custom = parseOptionalDateFilter(value);
         return Boolean(custom?.valid && custom.year === articleParts.year && custom.month === articleParts.month && custom.day === articleParts.day);
@@ -185,16 +266,14 @@ const VIEWED_SESSION_PREFIX = "thelens_article_viewed_session_";
 
 export function getViewCount(articleId, seededViews = 0) {
     try {
-        return Number(seededViews || 0) + Number(localStorage.getItem(`${EXTRA_VIEW_PREFIX}${Number(articleId)}`) || 0);
+        return Number(seededViews || 0) + Number(localStorage.getItem(`${EXTRA_VIEW_PREFIX}${String(articleId)}`) || 0);
     } catch {
         return Number(seededViews || 0);
     }
 }
 
-// Prototype behavior: add one local view per browser session per article.
-// Production analytics require a server-side view event and database record.
 export function recordArticleView(articleId, seededViews = 0) {
-    const id = Number(articleId);
+    const id = String(articleId);
     try {
         const sessionKey = `${VIEWED_SESSION_PREFIX}${id}`;
         if (sessionStorage.getItem(sessionKey)) return getViewCount(id, seededViews);
@@ -214,14 +293,14 @@ export function recordArticleView(articleId, seededViews = 0) {
 
 export function getShareCount(articleId) {
     try {
-        return Number(localStorage.getItem(`${SHARE_COUNT_PREFIX}${Number(articleId)}`) || 0);
+        return Number(localStorage.getItem(`${SHARE_COUNT_PREFIX}${String(articleId)}`) || 0);
     } catch {
         return 0;
     }
 }
 
 export function recordShareCopy(articleId) {
-    const id = Number(articleId);
+    const id = String(articleId);
     const nextCount = getShareCount(id) + 1;
     try {
         localStorage.setItem(`${SHARE_COUNT_PREFIX}${id}`, String(nextCount));
@@ -240,6 +319,6 @@ export function recordShareCopy(articleId) {
 
 export function getArticleURL(articleId) {
     const url = new URL("index.html", document.baseURI);
-    url.hash = `article-${Number(articleId)}`;
+    url.hash = `article-${String(articleId)}`;
     return url.href;
 }

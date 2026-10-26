@@ -1,4 +1,4 @@
-/**
+﻿/**
  * ============================================================================
  * THE LENS — MEDIA & COMMUNICATION MANAGE MY ARTICLES CONTROLLER
  * Full Executive & M&PC Parity: View Remarks, Reset Filters, Filter Tabs, Modals
@@ -79,50 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================================================================
     // 1. DATASET: SEEDED & PERSISTED MEDIA ARTICLES
     // =========================================================================
-    const DEFAULT_MEDIA_ARTICLES = [
-        {
-            id: 'med-art-01',
-            author: mediaName,
-            title: 'Framing the Narrative: Visual Storytelling & Infographic Ethics in Campus Journalism',
-            category: 'Features',
-            excerpt: 'How student newsrooms leverage data visualization, color psychology, and rigorous statistical verification to communicate complex university issues.',
-            date: 'Oct 22, 2026',
-            rawDate: '2026-10-22',
-            status: 'Published',
-            views: 4210,
-            shares: 112,
-            remarks: '',
-            content: `In an era of rapid information consumption, visual journalism serves as both a hook and an anchor for investigative reporting. When complex university budget allocations or tuition restructuring plans are unveiled, walls of text can often obscure critical insights.\n\nThrough rigorous data visualization and intentional typography, publication materials (PUBMAT) distill intricate administrative figures into accessible civic knowledge. However, designers must adhere to stringent ethical standards: chart scales must remain uncompressed, source citations must be transparent, and aesthetic flair must never supersede factual accuracy.\n\n"A well-crafted infographic does not merely decorate an article; it functions as an autonomous piece of journalism that holds power to account," notes the media board editorial guidelines.`
-        },
-        {
-            id: 'med-art-02',
-            author: mediaName,
-            title: 'Digital Canvas: Evaluating Modern Graphic Design Tools for Student Publications',
-            category: 'Science and Technology',
-            excerpt: 'A comprehensive comparative breakdown of open-source vector software versus industry-standard creative suites for campus media teams.',
-            date: 'Oct 23, 2026',
-            rawDate: '2026-10-23',
-            status: 'Pending Review',
-            views: 0,
-            shares: 0,
-            remarks: '',
-            content: `As student publications navigate fluctuating operating budgets, creative desks face recurring software licensing dilemmas. Transitioning between proprietary suites and open-source alternatives involves assessing collaborative workflows, typography rendering engines, and prepress CMYK compatibility.\n\nThis review benchmarks leading vector illustration software on real-world newsroom turnaround times, highlighting how cloud-based real-time co-editing is revolutionizing overnight layout deadlines.`
-        },
-        {
-            id: 'med-art-03',
-            author: mediaName,
-            title: 'The Power of Visual Hierarchy in Headline Typography',
-            category: 'Features',
-            excerpt: 'Why headline placement, weight contrast, and leading dictate reader retention across print tabloids and digital social cards.',
-            date: 'Oct 20, 2026',
-            rawDate: '2026-10-20',
-            status: 'For Revision',
-            views: 0,
-            shares: 0,
-            remarks: 'Please add practical visual examples comparing serif vs sans-serif headers in print banners before final approval.',
-            content: `Visual hierarchy is the invisible architecture of journalism. When a reader opens a newspaper or scrolls past a digital pubmat, their eye is directed not by accident, but by conscious typographic orchestration.\n\nBalancing primary headlines with clear contextual decks ensures that essential news reaches readers even during a brief three-second glance.`
-        }
-    ];
+    const DEFAULT_MEDIA_ARTICLES = [];
 
     const MEDIA_ARTICLES_KEY = 'theLensMediaArticles_v1';
     const DRAFTS_KEY = 'mediaArticleDrafts_v1';
@@ -141,10 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.warn(e);
         }
 
-        if (list.length === 0) {
-            list = JSON.parse(JSON.stringify(DEFAULT_MEDIA_ARTICLES));
-            localStorage.setItem(MEDIA_ARTICLES_KEY, JSON.stringify(list));
-        }
+        if (list.length === 0) { list = []; }
 
         // Also merge any standalone drafts from mediaArticleDrafts_v1 so Drafts tab shows everything
         try {
@@ -231,13 +185,40 @@ document.addEventListener('DOMContentLoaded', () => {
         return `${mins} min read`;
     }
 
+    function decodeCorruptedHtmlEntities(str) {
+        if (!str || typeof str !== 'string') return '';
+        let decoded = str;
+        let maxPasses = 5;
+        while (maxPasses > 0 && (/&amp;lt;/i.test(decoded) || /&lt;/i.test(decoded) || /&amp;gt;/i.test(decoded) || /&gt;/i.test(decoded))) {
+            const txt = document.createElement('textarea');
+            txt.innerHTML = decoded;
+            const newDecoded = txt.value;
+            if (newDecoded === decoded) break;
+            decoded = newDecoded;
+            maxPasses--;
+        }
+        return decoded;
+    }
+
     function formatCleanArticleContent(rawContent) {
         if (!rawContent) return '<p style="color: #98a2b3; font-style: italic;">No content provided.</p>';
-        const stripped = rawContent
+
+        let decoded = decodeCorruptedHtmlEntities(rawContent);
+
+        // Aggressively strip any literal or encoded span tags and style attributes
+        decoded = decoded
+            .replace(/&lt;\/?span[^&>]*&gt;/gi, '')
+            .replace(/<\/?span[^>]*>/gi, '')
+            .replace(/\s*style="[^"]*"/gi, '')
+            .replace(/\s*style='[^']*'/gi, '')
+            .replace(/&lt;[^&>]+&gt;/gi, '');
+
+        const stripped = decoded
             .replace(/<div><br\s*\/?><\/div>/gi, '\n\n')
-            .replace(/<\/?div[^>]*>/gi, '\n')
-            .replace(/<\/?p[^>]*>/gi, '\n\n')
-            .replace(/<br\s*\/?>/gi, '\n');
+            .replace(/<\/(?:div|p|blockquote|h[1-6])>/gi, '\n\n')
+            .replace(/<\/?(?:div|p|blockquote|h[1-6])[^>]*>/gi, '\n')
+            .replace(/<br\s*\/?>/gi, '\n')
+            .replace(/<[^>]+>/g, '');
 
         const paragraphs = stripped.split(/\n+/).map(p => p.trim()).filter(p => p.length > 0);
         if (paragraphs.length === 0) return '<p style="color: #98a2b3; font-style: italic;">No content provided.</p>';
@@ -480,6 +461,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const viewerAuthorAvatarImg = document.getElementById('viewer-author-avatar-img');
         if (viewerAuthorAvatarImg) {
             viewerAuthorAvatarImg.src = 'images/member-placeholder.svg';
+        }
+
+        const viewerExcerpt = document.getElementById('viewer-excerpt');
+        if (viewerExcerpt) {
+            const rawExcerpt = article.excerpt || (item && item.excerpt) || '';
+            if (rawExcerpt && rawExcerpt.trim()) {
+                viewerExcerpt.textContent = rawExcerpt.trim();
+                viewerExcerpt.style.display = 'block';
+            } else {
+                viewerExcerpt.style.display = 'none';
+            }
         }
 
         if (viewerBannerWrap && viewerBannerImg) {

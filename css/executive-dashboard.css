@@ -1849,132 +1849,410 @@ body.dashboard-body {
 
 
 /* ==========================================================================
-   ELEGANT LOGOUT CONFIRMATION MODAL
+   UNIVERSAL MODAL OVERLAY BACKDROP
+   ========================================================================== */
+.modal-overlay {
+    position: fixed !important;
+    inset: 0 !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    background: rgba(16, 24, 40, 0.55) !important;
+    backdrop-filter: blur(4px) !important;
+    -webkit-backdrop-filter: blur(4px) !important;
+    z-index: 10000 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 16px !important;
+    box-sizing: border-box !important;
+}
+
+.modal-overlay.hidden {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+}
+
+@keyframes modalScaleIn {
+    0% {
+        opacity: 0;
+        transform: scale(0.92);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* ==========================================================================
+   ELEGANT LOGOUT CONFIRMATION MODAL (Strictly Square 1:1, Compact, No Subtitle)
    ========================================================================== */
 .logout-modal-card {
-    max-width: 420px;
-    background: #ffffff;
-    border-radius: 16px;
-    overflow: hidden;
-    box-shadow: 0 24px 48px -12px rgba(16, 24, 40, 0.25), 0 0 0 1px rgba(92, 10, 24, 0.08);
-    border: 1px solid #f2e9ec;
-    animation: modalScaleIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
-    text-align: center;
-    padding: 0;
+    width: 320px !important;
+    max-width: calc(100vw - 32px) !important;
+    height: 320px !important;
+    aspect-ratio: 1 / 1 !important;
+    box-sizing: border-box !important;
+    background: #ffffff !important;
+    border-radius: 18px !important;
+    overflow: hidden !important;
+    box-shadow: 0 24px 48px -12px rgba(16, 24, 40, 0.25), 0 0 0 1px rgba(92, 10, 24, 0.08) !important;
+    border: 1px solid #f2e9ec !important;
+    animation: modalScaleIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) both !important;
+    text-align: center !important;
+    padding: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    position: relative !important;
 }
 
 .logout-modal-header {
-    padding: 28px 24px 16px 24px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    position: relative;
+    padding: 28px 20px 8px 20px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex: 1 !important;
+    position: relative !important;
+    margin: 0 !important;
 }
 
 .logout-modal-close-btn {
-    position: absolute;
-    top: 16px;
-    right: 16px;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    border: none;
-    background: #f8fafc;
-    color: #64748b;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.9rem;
-    transition: all 0.15s ease;
+    position: absolute !important;
+    top: 12px !important;
+    right: 12px !important;
+    width: 28px !important;
+    height: 28px !important;
+    border-radius: 50% !important;
+    border: none !important;
+    background: #f8fafc !important;
+    color: #64748b !important;
+    cursor: pointer !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 0.82rem !important;
+    transition: all 0.15s ease !important;
+    z-index: 2 !important;
 }
 
 .logout-modal-close-btn:hover {
-    background: #fee2e2;
-    color: #b91c1c;
+    background: #fee2e2 !important;
+    color: #b91c1c !important;
 }
 
 .logout-modal-icon-badge {
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-    background-color: #fdf2f4;
-    border: 1px solid #f9d8de;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 16px;
-    color: var(--sidebar-maroon, #5c0a18);
-    font-size: 1.35rem;
-    box-shadow: 0 4px 12px rgba(92, 10, 24, 0.08);
+    width: 54px !important;
+    height: 54px !important;
+    border-radius: 50% !important;
+    background-color: #fdf2f4 !important;
+    border: 1px solid #f9d8de !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin: 0 auto 14px auto !important;
+    color: var(--sidebar-maroon, #5c0a18) !important;
+    font-size: 1.3rem !important;
+    box-shadow: 0 4px 12px rgba(92, 10, 24, 0.08) !important;
+    flex-shrink: 0 !important;
 }
 
 .logout-modal-title {
-    font-family: var(--font-heading, 'Playfair Display', Georgia, serif);
-    font-size: 1.35rem;
-    font-weight: 700;
-    color: #101828;
-    margin: 0 0 8px 0;
-    line-height: 1.3;
+    font-family: var(--font-heading, 'Playfair Display', Georgia, serif) !important;
+    font-size: 1.18rem !important;
+    font-weight: 700 !important;
+    color: #101828 !important;
+    margin: 0 auto !important;
+    line-height: 1.35 !important;
+    max-width: 220px !important;
+    text-align: center !important;
 }
 
+/* Subtitle explicitly removed per user instruction */
 .logout-modal-desc {
-    font-size: 0.88rem;
-    color: #667085;
-    margin: 0;
-    line-height: 1.5;
-    padding: 0 12px;
+    display: none !important;
 }
 
 .logout-modal-actions {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 18px 24px 24px 24px;
-    background: #fafbfc;
-    border-top: 1px solid #f1f3f5;
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    padding: 16px 20px 20px 20px !important;
+    background: #fafbfc !important;
+    border-top: 1px solid #f1f3f5 !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
 }
 
 .logout-btn-cancel {
-    flex: 1;
-    padding: 10px 18px;
-    border-radius: 9px;
-    font-size: 0.88rem;
-    font-weight: 600;
-    color: #344054;
-    background: #ffffff;
-    border: 1px solid #d0d5dd;
-    cursor: pointer;
-    transition: all 0.15s ease;
+    flex: 1 !important;
+    height: 40px !important;
+    padding: 0 14px !important;
+    border-radius: 9px !important;
+    font-size: 0.85rem !important;
+    font-weight: 600 !important;
+    color: #344054 !important;
+    background: #ffffff !important;
+    border: 1px solid #d0d5dd !important;
+    cursor: pointer !important;
+    transition: all 0.15s ease !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
 }
 
 .logout-btn-cancel:hover {
-    background: #f8fafc;
-    border-color: #98a2b3;
-    color: #1d2939;
+    background: #f8fafc !important;
+    border-color: #98a2b3 !important;
+    color: #1d2939 !important;
 }
 
 .logout-btn-confirm {
-    flex: 1;
-    padding: 10px 18px;
-    border-radius: 9px;
-    font-size: 0.88rem;
+    flex: 1 !important;
+    height: 40px !important;
+    padding: 0 14px !important;
+    border-radius: 9px !important;
+    font-size: 0.85rem !important;
+    font-weight: 600 !important;
+    color: #ffffff !important;
+    background: var(--sidebar-maroon, #5c0a18) !important;
+    border: 1px solid var(--sidebar-maroon, #5c0a18) !important;
+    cursor: pointer !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 7px !important;
+    transition: all 0.18s ease !important;
+    box-shadow: 0 2px 6px rgba(92, 10, 24, 0.22) !important;
+}
+
+.logout-btn-confirm:hover {
+    background: #3e050f !important;
+    border-color: #3e050f !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(92, 10, 24, 0.32) !important;
+}
+
+
+/* Mobile Avatar constrain: NEVER expand to native SVG size */
+.mobile-nav-avatar,
+.mobile-nav-avatar img,
+.mobile-avatar-img,
+#mobile-avatar-img {
+    max-width: 44px !important;
+    max-height: 44px !important;
+    width: 44px !important;
+    height: 44px !important;
+    border-radius: 50% !important;
+    object-fit: cover !important;
+}
+
+/* Absolute lock: mobile nav dropdown NEVER visible on desktop */
+@media (min-width: 769px) {
+    #mobile-nav-dropdown,
+    .mobile-nav-dropdown,
+    #mobile-nav-backdrop,
+    .mobile-nav-backdrop,
+    .mobile-nav-drawer,
+    .mobile-nav-dropdown.open,
+    .mobile-nav-dropdown.active,
+    .mobile-nav-dropdown.expanded {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        height: 0 !important;
+        max-height: 0 !important;
+        overflow: hidden !important;
+        pointer-events: none !important;
+    }
+}
+
+
+/* ============================================================================
+   UNIVERSAL BUTTON DESIGN & NORMALIZATION (ACROSS ALL ROLES)
+   Ensures that no button in any role falls back to native unstyled browser bevel
+   ============================================================================ */
+button {
+    font-family: inherit;
+    font-size: 0.86rem;
     font-weight: 600;
-    color: #ffffff;
-    background: var(--sidebar-maroon, #5c0a18);
-    border: 1px solid var(--sidebar-maroon, #5c0a18);
+    color: inherit;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 7px;
-    transition: all 0.18s ease;
-    box-shadow: 0 2px 6px rgba(92, 10, 24, 0.22);
+    gap: 6px;
+    text-decoration: none;
+    -webkit-appearance: none;
+    appearance: none;
+    outline: none;
+    transition: all 0.15s ease;
 }
 
-.logout-btn-confirm:hover {
-    background: #3e050f;
-    border-color: #3e050f;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(92, 10, 24, 0.32);
+button:focus-visible {
+    outline: 2px solid var(--sidebar-maroon, #5c0a18);
+    outline-offset: 2px;
+}
+
+button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+/* Card & List Action Buttons */
+.btn-box-delete,
+.btn-delete-draft {
+    background-color: #f2f4f7 !important;
+    border: 1px solid #eaecf0 !important;
+    color: #b42318 !important;
+    font-size: 0.80rem !important;
+    font-weight: 600 !important;
+    height: 32px !important;
+    padding: 0 12px !important;
+    border-radius: 6px !important;
+    cursor: pointer !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    text-decoration: none !important;
+    transition: all 0.15s ease !important;
+    box-sizing: border-box !important;
+    line-height: 1 !important;
+    white-space: nowrap !important;
+}
+
+.btn-box-delete:hover,
+.btn-delete-draft:hover {
+    background-color: #fef3f2 !important;
+    border-color: #fecdca !important;
+    color: #912018 !important;
+    transform: translateY(-1px) !important;
+}
+
+/* Password Eye Toggle Buttons */
+.btn-toggle-eye,
+.password-toggle-btn {
+    position: absolute !important;
+    right: 12px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    background: transparent !important;
+    border: none !important;
+    color: #98a2b3 !important;
+    cursor: pointer !important;
+    font-size: 0.90rem !important;
+    padding: 6px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: color 0.15s ease !important;
+}
+
+.btn-toggle-eye:hover,
+.password-toggle-btn:hover {
+    color: #344054 !important;
+}
+
+/* Inspect Artwork Action Trigger */
+.btn-inspect-trigger {
+    background: transparent !important;
+    border: none !important;
+    padding: 4px 8px !important;
+    color: var(--sidebar-maroon, #5c0a18) !important;
+    font-size: 0.78rem !important;
+    font-weight: 700 !important;
+    cursor: pointer !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    border-radius: 6px !important;
+    transition: all 0.15s ease !important;
+}
+
+.btn-inspect-trigger:hover {
+    background-color: #fdf2f4 !important;
+    color: #3e050f !important;
+}
+
+
+/* ============================================================================
+   SIDEBAR FOOTER & LOGOUT BUTTON (LEFT-ALIGNED MATCHING PROFILE SETTINGS)
+   Prevents any broad button rules from centering or distorting sidebar links
+   ============================================================================ */
+.sidebar-footer-link,
+button.sidebar-footer-link,
+#logout-btn.sidebar-footer-link,
+.sidebar-nav-link,
+button.sidebar-nav-link {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    width: 100% !important;
+    text-align: left !important;
+    box-sizing: border-box !important;
+    padding: 7.5px 14px !important;
+    gap: 12px !important;
+    font-size: 0.84rem !important;
+    font-weight: 500 !important;
+    border-radius: 8px !important;
+    background: transparent !important;
+    border: none !important;
+    cursor: pointer !important;
+    text-decoration: none !important;
+    line-height: 1.4 !important;
+    transition: background-color 0.15s ease, color 0.15s ease !important;
+}
+
+.sidebar-footer-link i,
+button.sidebar-footer-link i,
+#logout-btn.sidebar-footer-link i {
+    width: 20px !important;
+    font-size: 0.88rem !important;
+    text-align: center !important;
+    flex-shrink: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.sidebar-footer-link span,
+button.sidebar-footer-link span,
+#logout-btn.sidebar-footer-link span {
+    text-align: left !important;
+    flex: 1 !important;
+}
+
+/* Logout button styling - Left-aligned, matching Profile Settings & View public site */
+.sidebar-footer-link.logout-btn,
+button.sidebar-footer-link.logout-btn,
+#logout-btn {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    width: 100% !important;
+    text-align: left !important;
+    margin-top: 4px !important;
+    color: var(--sidebar-text, rgba(255, 255, 255, 0.85)) !important;
+}
+
+.sidebar-footer-link.logout-btn i,
+button.sidebar-footer-link.logout-btn i,
+#logout-btn i {
+    color: #f87171 !important;
+}
+
+.sidebar-footer-link.logout-btn:hover,
+button.sidebar-footer-link.logout-btn:hover,
+#logout-btn:hover {
+    background-color: rgba(239, 68, 68, 0.15) !important;
+    color: #fca5a5 !important;
 }

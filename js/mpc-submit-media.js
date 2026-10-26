@@ -189,8 +189,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const dateStr = formatDateDisplay(now);
             const rawDateStr = now.toISOString().split('T')[0];
 
-            const authorName = localStorage.getItem('mpcName') || 'Julian Del Rosario';
-            const userRole = localStorage.getItem('mpcRole') || 'M&PC Head';
+            const userRole = localStorage.getItem('mpcRole') || localStorage.getItem('userRole') || 'M&PC Head';
+            const authorName = localStorage.getItem('mpcName') || localStorage.getItem('userName') || (userRole.includes('Assoc') ? 'Samantha Cruz' : 'Julian Del Rosario');
 
             const newId = 'cov-' + Date.now();
             const newPubmatItem = {
@@ -205,7 +205,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 date: dateStr,
                 rawDate: rawDateStr,
                 fileSize: currentFileSize || '380 KB',
-                status: 'Pending with Head',
+                status: 'pending',
                 remarks: ''
             };
 

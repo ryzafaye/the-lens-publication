@@ -22,177 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================================================================
     // 1. DEFAULT DATASET (Publication Materials & Cartoons)
     // =========================================================================
-    const defaultCoverQueue = [
-        {
-            id: 'cov-01',
-            type: 'pubmat',
-            title: "CSC Financial Audit Infographic Banner",
-            targetArticle: "Student council financial audit reveals ₱320,000 unallocated surplus",
-            category: "News",
-            artist: "Kirsten Diaz",
-            approvedBy: "Julian Del Rosario (Media Head)",
-            image: "images/covers/sc-audit-pubmat.svg",
-            date: "Oct 21, 2026",
-            rawDate: "2026-10-21",
-            status: "pending",
-            remarks: ""
-        },
-        {
-            id: 'cov-02',
-            type: 'pubmat',
-            title: "Enrollment System 504 Bottleneck Breakdown",
-            targetArticle: "Why the enrollment portal keeps timing out: A technical post-mortem",
-            category: "Science and Technology",
-            artist: "Marco Valenzuela",
-            approvedBy: "Julian Del Rosario (Media Head)",
-            image: "images/covers/portal-pubmat.svg",
-            date: "Oct 20, 2026",
-            rawDate: "2026-10-20",
-            status: "pending",
-            remarks: ""
-        },
-        {
-            id: 'cov-03',
-            type: 'pubmat',
-            title: "The Midnight Keepers Photo-Graphic Spread",
-            targetArticle: "Inside the 24-hour night shift of university sanitation workers",
-            category: "Features",
-            artist: "Hannah Cruz",
-            approvedBy: "Julian Del Rosario (Media Head)",
-            image: "images/covers/sanitation-pubmat.svg",
-            date: "Oct 19, 2026",
-            rawDate: "2026-10-19",
-            status: "pending",
-            remarks: ""
-        },
-        {
-            id: 'cov-04',
-            type: 'cartoon',
-            title: "The Unbroken Nib: Editorial Inking",
-            targetArticle: "The cost of compromise: Why student publication independence cannot be negotiated",
-            category: "Opinion",
-            artist: "Danilo Reyes",
-            approvedBy: "Raphael Luna (Cartoonist Head)",
-            image: "images/covers/press-freedom-cartoon.svg",
-            date: "Oct 21, 2026",
-            rawDate: "2026-10-21",
-            status: "pending",
-            remarks: ""
-        },
-        {
-            id: 'cov-05',
-            type: 'cartoon',
-            title: "The 24-Unit Burden: Faculty Overload",
-            targetArticle: "Faculty union files formal grievance over proposed 24-unit overload directive",
-            category: "News",
-            artist: "Bea Soriano",
-            approvedBy: "Raphael Luna (Cartoonist Head)",
-            image: "images/covers/faculty-overload-cartoon.svg",
-            date: "Oct 18, 2026",
-            rawDate: "2026-10-18",
-            status: "pending",
-            remarks: ""
-        },
-        {
-            id: 'cov-06',
-            type: 'cartoon',
-            title: "Verses from the Study Hall",
-            targetArticle: "Echoes from the Quadrangle: Verses from the Midnight Study Hall",
-            category: "Literature",
-            artist: "Carlo Santos",
-            approvedBy: "Raphael Luna (Cartoonist Head)",
-            image: "images/covers/midnight-study-cartoon.svg",
-            date: "Oct 17, 2026",
-            rawDate: "2026-10-17",
-            status: "pending",
-            remarks: ""
-        },
-        {
-            id: 'cov-07',
-            type: 'photo',
-            title: "Campus Solidarity Rally at Quadrangle",
-            targetArticle: "Student council leads mass assembly demanding laboratory equipment upgrades",
-            category: "News",
-            artist: "Carlo Ramos",
-            approvedBy: "Paolo Roxas (Photojournalism Head)",
-            image: "images/covers/photo-quadrangle-rally.svg",
-            date: "Oct 21, 2026",
-            rawDate: "2026-10-21",
-            status: "pending",
-            remarks: ""
-        },
-        {
-            id: 'cov-08',
-            type: 'photo',
-            title: "Advanced Robotics & Microelectronics Lab",
-            targetArticle: "Engineering seniors unveil low-cost water filtration sensor system",
-            category: "Science and Technology",
-            artist: "Jillian Santos",
-            approvedBy: "Paolo Roxas (Photojournalism Head)",
-            image: "images/covers/photo-laboratory-research.svg",
-            date: "Oct 20, 2026",
-            rawDate: "2026-10-20",
-            status: "pending",
-            remarks: ""
-        },
-        {
-            id: 'cov-09',
-            type: 'photo',
-            title: "Varsity Cheering Squad Championship Routine",
-            targetArticle: "Golden Eagles cheer squad clinches back-to-back national podium finish",
-            category: "Sports",
-            artist: "Rico Fernandez",
-            approvedBy: "Paolo Roxas (Photojournalism Head)",
-            image: "images/covers/photo-cheering-varsity.svg",
-            date: "Oct 19, 2026",
-            rawDate: "2026-10-19",
-            status: "pending",
-            remarks: ""
-        },
-        // Pre-approved Media Assets in Library
-        {
-            id: 'lib-01',
-            type: 'pubmat',
-            title: "University Centennial Gala Official Banner",
-            targetArticle: "Centennial celebration kickoff welcomes over 15,000 alumni and guests",
-            category: "Features",
-            artist: "Julian Del Rosario",
-            approvedBy: "Julian Del Rosario (Media Head)",
-            image: "images/covers/sc-audit-pubmat.svg",
-            date: "Oct 19, 2026",
-            rawDate: "2026-10-19",
-            status: "approved_for_mpc",
-            remarks: ""
-        },
-        {
-            id: 'lib-02',
-            type: 'photo',
-            title: "Presidential Inauguration Address Capture",
-            targetArticle: "Newly elected University President outlines five-year modernization vision",
-            category: "News",
-            artist: "Carlo Ramos",
-            approvedBy: "Paolo Roxas (Photojournalism Head)",
-            image: "images/covers/photo-quadrangle-rally.svg",
-            date: "Oct 18, 2026",
-            rawDate: "2026-10-18",
-            status: "approved_for_mpc",
-            remarks: ""
-        },
-        {
-            id: 'lib-03',
-            type: 'cartoon',
-            title: "Freedom of Thought: The Inked Lantern",
-            targetArticle: "The cost of compromise: Why student publication independence cannot be negotiated",
-            category: "Opinion",
-            artist: "Danilo Reyes",
-            approvedBy: "Raphael Luna (Cartoonist Head)",
-            image: "images/covers/press-freedom-cartoon.svg",
-            date: "Oct 17, 2026",
-            rawDate: "2026-10-17",
-            status: "approved_for_mpc",
-            remarks: ""
-        }
-    ];
+    const defaultCoverQueue = [];
 
     // =========================================================================
     // 2. PERSISTENCE (LocalStorage sync across Exec, EIC, & M&PC)
@@ -204,32 +34,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const raw = localStorage.getItem(STORAGE_KEY);
             if (raw) {
                 const parsed = JSON.parse(raw);
-                if (Array.isArray(parsed) && parsed.length > 0) {
-                    let changed = false;
-                    // Check if photo items exist; if not, merge default photos so they appear seamlessly
-                    const hasPhotos = parsed.some(item => item.type === 'photo');
-                    if (!hasPhotos) {
-                        const defaultPhotos = defaultCoverQueue.filter(item => item.type === 'photo');
-                        parsed.push(...defaultPhotos);
-                        changed = true;
-                    }
-                    // Check if approved library items exist; if not, merge default approved items
-                    const hasApproved = parsed.some(item => item.status === 'approved_for_mpc' || item.status === 'approved');
-                    if (!hasApproved) {
-                        const defaultApproved = defaultCoverQueue.filter(item => item.status === 'approved_for_mpc');
-                        parsed.push(...defaultApproved);
-                        changed = true;
-                    }
-                    if (changed) {
-                        saveCoverQueue(parsed);
-                    }
-                    return parsed;
-                }
+                if (Array.isArray(parsed)) return parsed;
             }
         } catch (e) {
             console.warn('Could not read cover review queue from localStorage', e);
         }
-        return JSON.parse(JSON.stringify(defaultCoverQueue));
+        return [];
     }
 
     function saveCoverQueue(list) {
@@ -304,10 +114,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================================================================
     // 4. TAB CONTROLS & BADGE COUNTS
     // =========================================================================
+    function isItemPending(item) {
+        if (!item) return false;
+        const s = (item.status || '').toLowerCase().trim();
+        return s === 'pending' || s === 'pending with head' || s === 'submitted_to_mpc' || s === 'under-review';
+    }
+
     function updateBadges() {
-        const pubmatCount = coverList.filter(item => item.type === 'pubmat' && item.status === 'pending').length;
-        const photoCount = coverList.filter(item => item.type === 'photo' && item.status === 'pending').length;
-        const cartoonCount = coverList.filter(item => item.type === 'cartoon' && item.status === 'pending').length;
+        const pubmatCount = coverList.filter(item => item.type === 'pubmat' && isItemPending(item)).length;
+        const photoCount = coverList.filter(item => item.type === 'photo' && isItemPending(item)).length;
+        const cartoonCount = coverList.filter(item => item.type === 'cartoon' && isItemPending(item)).length;
         const libraryCount = coverList.filter(item => item.status === 'approved_for_mpc' || item.status === 'approved').length;
 
         if (badgePubmat) badgePubmat.textContent = pubmatCount;
@@ -338,7 +154,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (currentTab === 'library') {
             filtered = coverList.filter(item => item.status === 'approved_for_mpc' || item.status === 'approved');
         } else {
-            filtered = coverList.filter(item => item.type === currentTab && item.status === 'pending');
+            filtered = coverList.filter(item => item.type === currentTab && isItemPending(item));
         }
 
         return filtered.sort((a, b) => {
@@ -641,8 +457,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
                     logs.unshift({
                         id: 'mpc-act-' + Date.now(),
-                        causer: cleanArtistName(localStorage.getItem('mpcName') || 'Julian Del Rosario'),
-                        causerRole: localStorage.getItem('mpcRole') || 'M&PC Head',
+                        causer: cleanArtistName(localStorage.getItem('mpcName') || ((localStorage.getItem('mpcRole') || '').includes('Assoc') ? 'Samantha Cruz' : 'Julian Del Rosario')),
+                        causerRole: localStorage.getItem('mpcRole') || ((localStorage.getItem('userRole') || '').includes('Assoc') ? 'Assoc M&PC Head' : 'M&PC Head'),
                         causerAvatar: 'images/member-placeholder.svg',
                         action: 'returned for revision',
                         subjectType: `${target.type.toUpperCase()} Artwork`,
@@ -723,8 +539,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
             logs.unshift({
                 id: 'mpc-act-' + Date.now(),
-                causer: cleanArtistName(localStorage.getItem('mpcName') || 'Julian Del Rosario'),
-                causerRole: localStorage.getItem('mpcRole') || 'M&PC Head',
+                causer: cleanArtistName(localStorage.getItem('mpcName') || ((localStorage.getItem('mpcRole') || '').includes('Assoc') ? 'Samantha Cruz' : 'Julian Del Rosario')),
+                causerRole: localStorage.getItem('mpcRole') || ((localStorage.getItem('userRole') || '').includes('Assoc') ? 'Assoc M&PC Head' : 'M&PC Head'),
                 causerAvatar: 'images/member-placeholder.svg',
                 action: 'approved',
                 subjectType: `${target.type.toUpperCase()} Artwork`,

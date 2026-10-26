@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 2. AUTHOR BYLINE & ROLE INITIALIZATION
     // =========================================================================
     const currentUserRole = localStorage.getItem('mpcRole') || localStorage.getItem('userRole') || 'M&PC Head';
-    const currentUserName = localStorage.getItem('mpcName') || localStorage.getItem('userName') || 'Julian Del Rosario';
+    const currentUserName = localStorage.getItem('mpcName') || localStorage.getItem('userName') || (currentUserRole.includes('Assoc') ? 'Samantha Cruz' : 'Julian Del Rosario');
 
     if (authorNameDisplay) {
         authorNameDisplay.textContent = currentUserName;
@@ -106,26 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================================================================
     const DRAFTS_STORAGE_KEY = 'mpcArticleDrafts';
 
-    const defaultDrafts = [
-        {
-            id: 'mpc-draft-01',
-            title: "Investigation: The evolving dynamics of campus social graphics and news distribution",
-            category: "Features",
-            excerpt: "An inquiry into digital readership metrics, infographic retention, and print pickup points across campus libraries.",
-            date: "Oct 22, 2026",
-            rawDate: "2026-10-22",
-            content: `<div>An inquiry into digital readership metrics, infographic retention, and print pickup points across campus libraries.</div><div><br></div><div>Student readership patterns demonstrate an increasing preference for verified bite-sized summaries paired with comprehensive digital investigation manuscripts.</div>`
-        },
-        {
-            id: 'mpc-draft-02',
-            title: "Digital divide persists as student WiFi coverage drops in outer laboratories",
-            category: "Science and Technology",
-            excerpt: "Bandwidth testing across student dormitories and satellite laboratories reveals stark regional disparities in high-speed access.",
-            date: "Oct 19, 2026",
-            rawDate: "2026-10-19",
-            content: `<div>Bandwidth testing across student dormitories and satellite laboratories reveals stark regional disparities in high-speed access.</div><div><br></div><div>Technical testing conducted across engineering computer clusters revealed recurring network drops during peak evening hours.</div>`
-        }
-    ];
+    const defaultDrafts = [];
 
     function loadDraftsFromStorage() {
         try {
@@ -137,7 +118,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) {
             console.warn('Could not read mpcArticleDrafts from localStorage:', e);
         }
-        return JSON.parse(JSON.stringify(defaultDrafts));
+        return [];
     }
 
     function saveDraftsToStorage(drafts) {
@@ -389,6 +370,7 @@ document.addEventListener('DOMContentLoaded', () => {
         editorContent.addEventListener('focus', () => {
             updateToolbarButtonStates();
         });
+        editorContent.addEventListener('paste', handleEditorPaste);
     }
 
     // Active state highlighting for toolbar buttons
@@ -628,43 +610,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderDraftsList();
     }
 
-    const DEFAULT_MPC_SEED = [
-        {
-            id: 'mpc-art-01',
-            title: 'Expanding Digital Readership: The Lens Public Web Portal Redesign',
-            category: 'News',
-            excerpt: 'How our media and public communications desk modernized digital circulation metrics and accelerated open campus news distribution.',
-            content: `Modern collegiate readership demands accessible, high-speed delivery across mobile devices and digital platforms.\n\nOver the past academic semester, the Media and Public Communications (M&PC) team worked in close coordination with section heads and technical editors to overhaul our publication site architecture. By synchronizing editorial cartoons, visual publication materials, and investigative manuscripts into unified release pipelines, readership metrics surged by 38%.\n\nOur commitment remains centered on providing every campus constituent with direct, reliable, and fact-verified journalism.`
-        },
-        {
-            id: 'mpc-art-02',
-            title: 'Visual Journalism Ethics: Standards for Campus Photojournalists & Illustrators',
-            category: 'Features',
-            excerpt: 'Guidelines and verification procedures ensuring truth, context, and dignity in campus visual news reporting and social graphics.',
-            content: `As visual storytelling takes center stage on university channels, the line between illustrative enhancement and photo manipulation requires clear ethical boundaries.\n\nThis guide establishes publication standards across photojournalism and graphic illustration desks: maintaining original contextual lighting, prohibiting altering of editorial subjects, and guaranteeing consent protocols for student vulnerability reporting.`
-        },
-        {
-            id: 'mpc-art-03',
-            title: 'Cross-Platform Storytelling: Reaching the Modern Collegiate Audience',
-            category: 'Opinion',
-            excerpt: 'Analyzing how multimedia sidebars, graphic teasers, and print archival editions reinforce journalistic transparency.',
-            content: `Print and digital need not compete; they complement each other. While digital publication guarantees immediate reach during breaking campus events, printed folios remain our tangible historical record.\n\nOur cross-platform strategy blends both mediums to serve both immediate information needs and long-term university historical archives.`
-        },
-        {
-            id: 'mpc-art-04',
-            title: 'Campus Media Distribution: Print Archives vs Social Engagement Audit',
-            category: 'News',
-            excerpt: 'An evidence-based assessment of campus physical pickup kiosks, online engagement statistics, and newsletter subscriber analytics.',
-            content: `Auditing circulation points across all five campus colleges provided pivotal insight into where student readership is most active.\n\nWhile kiosk pickups remain high near the College of Engineering and Liberal Arts library, over 65% of freshman and sophomore readers discover investigative scoops via social headlines and our web portal.`
-        },
-        {
-            id: 'mpc-art-05',
-            title: 'Photo Desk Curation: Addressing Sensitive Imagery in Crisis Coverage',
-            category: 'Opinion',
-            excerpt: 'Editorial protocols when capturing and publishing photos during student demonstrations, medical emergencies, and campus strikes.',
-            content: `Documenting high-stress campus events tests the ethical compass of any student publication desk. Balancing the public interest against individual privacy and security must be resolved systematically before pressing publish.\n\nThis document outlines our recommended screening matrix for selecting hero cover imagery.`
-        }
-    ];
+    const DEFAULT_MPC_SEED = [];
 
     function findArticleOrDraft(id) {
         if (!id) return null;
@@ -704,6 +650,167 @@ document.addEventListener('DOMContentLoaded', () => {
         return null;
     }
 
+        function decodeCorruptedHtmlEntities(str) {
+        if (!str || typeof str !== 'string') return '';
+        let decoded = str;
+        let maxPasses = 5;
+        while (maxPasses > 0 && (/&amp;lt;/i.test(decoded) || /&lt;/i.test(decoded) || /&amp;gt;/i.test(decoded) || /&gt;/i.test(decoded))) {
+            const txt = document.createElement('textarea');
+            txt.innerHTML = decoded;
+            const newDecoded = txt.value;
+            if (newDecoded === decoded) break;
+            decoded = newDecoded;
+            maxPasses--;
+        }
+        return decoded;
+    }
+
+    function sanitizeEditorHtmlForSave(raw) {
+        if (!raw) return '';
+        let cleaned = String(raw).trim();
+        cleaned = decodeCorruptedHtmlEntities(cleaned);
+        cleaned = cleaned
+            .replace(/&lt;\/?span[^&>]*&gt;/gi, '')
+            .replace(/<\/?span[^>]*>/gi, '')
+            .replace(/\s*style="[^"]*"/gi, '')
+            .replace(/\s*style='[^']*'/gi, '')
+            .replace(/&lt;[^&>]+&gt;/gi, '');
+        return cleaned;
+    }
+
+    function handleEditorPaste(e) {
+        e.preventDefault();
+        const clipboardData = e.clipboardData || window.clipboardData;
+        if (!clipboardData) return;
+
+        let html = clipboardData.getData('text/html');
+        let text = clipboardData.getData('text/plain') || '';
+
+        let cleanHtml = '';
+
+        if (html) {
+            try {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+
+                const removeEls = doc.body.querySelectorAll('script, style, meta, link, object, embed, iframe, font, xml, o\\:p');
+                removeEls.forEach(el => el.remove());
+
+                const spans = doc.body.querySelectorAll('span, font, o\\:p');
+                spans.forEach(span => {
+                    const parent = span.parentNode;
+                    if (parent) {
+                        while (span.firstChild) {
+                            parent.insertBefore(span.firstChild, span);
+                        }
+                        parent.removeChild(span);
+                    }
+                });
+
+                const allElements = doc.body.querySelectorAll('*');
+                allElements.forEach(el => {
+                    el.removeAttribute('style');
+                    el.removeAttribute('class');
+                    el.removeAttribute('id');
+                    el.removeAttribute('dir');
+                    el.removeAttribute('lang');
+                    el.removeAttribute('face');
+                    el.removeAttribute('size');
+                    el.removeAttribute('color');
+                    el.removeAttribute('align');
+                });
+
+                const pTags = doc.body.querySelectorAll('p');
+                pTags.forEach(p => {
+                    const div = doc.createElement('div');
+                    while (p.firstChild) {
+                        div.appendChild(p.firstChild);
+                    }
+                    if (p.parentNode) {
+                        p.parentNode.replaceChild(div, p);
+                    }
+                });
+
+                cleanHtml = doc.body.innerHTML.trim();
+                cleanHtml = cleanHtml
+                    .replace(/<\/?span[^>]*>/gi, '')
+                    .replace(/\s+style="[^"]*"/gi, '')
+                    .replace(/\s+class="[^"]*"/gi, '');
+            } catch (err) {
+                cleanHtml = '';
+            }
+        }
+
+        if (!cleanHtml && text) {
+            const paragraphs = text.split(/\r?\n\r?\n+/).map(p => p.trim()).filter(Boolean);
+            if (paragraphs.length > 0) {
+                cleanHtml = paragraphs.map(p => `<div>${escapeHTML(p)}</div>`).join('<div><br></div>');
+            } else if (text.trim()) {
+                cleanHtml = `<div>${escapeHTML(text.trim())}</div>`;
+            }
+        }
+
+        if (cleanHtml) {
+            const selection = window.getSelection();
+            if (selection && selection.rangeCount > 0) {
+                const range = selection.getRangeAt(0);
+                range.deleteContents();
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = cleanHtml;
+                const frag = document.createDocumentFragment();
+                let node;
+                let lastNode;
+                while ((node = tempDiv.firstChild)) {
+                    lastNode = frag.appendChild(node);
+                }
+                range.insertNode(frag);
+                if (lastNode) {
+                    range.setStartAfter(lastNode);
+                    range.collapse(true);
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                }
+            } else {
+                document.execCommand('insertHTML', false, cleanHtml);
+            }
+        }
+
+        if (typeof updateEditorMetrics === 'function') updateEditorMetrics();
+        if (typeof updateWordAndCharCount === 'function') updateWordAndCharCount();
+        if (typeof updateWritingMetrics === 'function') updateWritingMetrics();
+    }
+
+    function sanitizeDraftContentForEditor(raw) {
+        if (!raw) return '';
+        let content = decodeCorruptedHtmlEntities(String(raw).trim());
+
+        // Strip any literal or entity-encoded span tags and style attributes
+        content = content
+            .replace(/&lt;\/?span[^&>]*&gt;/gi, '')
+            .replace(/<\/?span[^>]*>/gi, '')
+            .replace(/\s*style="[^"]*"/gi, '')
+            .replace(/\s*style='[^']*'/gi, '')
+            .replace(/&lt;[^&>]+&gt;/gi, '');
+
+        // Check if content contains any HTML tags (e.g. <div, <p, <b>, <i>, <br>, etc.)
+        const hasHtmlTags = /<\/?(?:div|p|b|i|u|strong|em|h[1-6]|ul|ol|li|blockquote|br|a)[^>]*>/i.test(content);
+
+        if (!hasHtmlTags) {
+            const paras = content.split(/\n\n+/).map(p => p.trim()).filter(Boolean);
+            if (paras.length === 0) return '';
+            return paras.map(p => `<div>${escapeHTML(p)}</div>`).join('<div><br></div>');
+        }
+
+        let normalized = content
+            .replace(/<\/p>\s*<p[^>]*>/gi, '</div><div><br></div><div>')
+            .replace(/<p[^>]*>/gi, '<div>')
+            .replace(/<\/p>/gi, '</div>')
+            .replace(/<\/?span[^>]*>/gi, '')
+            .replace(/\s*style="[^"]*"/gi, '');
+
+        return normalized;
+    }
+
     function editDraftAction(id) {
         const draft = findArticleOrDraft(id);
         if (!draft) {
@@ -734,20 +841,16 @@ document.addEventListener('DOMContentLoaded', () => {
             handleExcerptInput();
         }
         if (editorContent) {
-            let contentHtml = draft.content || draft.excerpt || '';
-            // If raw text with newlines and without HTML tags, convert to paragraphs/divs
-            if (!contentHtml.includes('<p>') && !contentHtml.includes('<div>')) {
-                const paras = contentHtml.split(/\n\n+/).filter(p => p.trim());
-                contentHtml = paras.map(p => `<div>${escapeHTML(p.trim())}</div>`).join('<div><br></div>');
-            } else if (contentHtml.includes('<p>') || contentHtml.includes('<p ') || contentHtml.includes('</p>')) {
-                contentHtml = contentHtml
-                    .replace(/<\/p>\s*<p[^>]*>/gi, '</div><div><br></div><div>')
-                    .replace(/<p[^>]*>/gi, '<div>')
-                    .replace(/<\/p>/gi, '</div>');
-            }
-            editorContent.innerHTML = contentHtml || '<div>Start writing your manuscript here...</div>';
+            const cleanHtml = sanitizeDraftContentForEditor(draft.content || draft.excerpt || '');
+            editorContent.innerHTML = cleanHtml || '<div>Start writing your manuscript here...</div>';
             editorContent.style.textAlign = 'justify';
             updateEditorMetrics();
+
+            // Self-heal this draft in storage if it was corrupted
+            if (draft.content && cleanHtml && draft.content !== cleanHtml) {
+                draft.content = cleanHtml;
+                saveDraftsToStorage(draftsList);
+            }
         }
 
         activeEditingDraftId = draft.id;

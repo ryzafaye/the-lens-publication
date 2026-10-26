@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage My Articles | The Lens Cartoonist Head Portal</title>
+
+    <!-- Typography: DM Sans & Playfair Display -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,600;1,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Modular CSS Architecture (Matching Parity) -->
+    <link rel="stylesheet" href="css/executive-dashboard.css">
+    <link rel="stylesheet" href="css/executive-modals.css">
+    <link rel="stylesheet" href="css/executive-manage-articles.css">
+    <link rel="stylesheet" href="css/writer-dashboard.css">
+    <link rel="stylesheet" href="css/executive-manage-my-articles.css">
+</head>
+<body class="dashboard-body">
+
+    <!-- ====================================================================== -->
+    <!-- DEDICATED CARTOONIST HEAD SIDEBAR                                      -->
+    <!-- ====================================================================== -->
+    <aside id="sidebar" class="sidebar" aria-label="Cartoonist Head Portal Sidebar">
+        
+        <div class="sidebar-top-section">
+            <!-- Brand Lockup -->
+            <div class="sidebar-header">
+                <div class="sidebar-brand-lockup">
+                    <div class="sidebar-logo-square">
+                        <img src="images/logo.jpg" alt="The Lens Logo">
+                    </div>
+                    <span class="sidebar-brand-name">The Lens Publication</span>
+                </div>
+            </div>
+
+            <!-- Profile Section -->
+            <div class="sidebar-profile">
+                <div class="profile-avatar">
+                    <img id="sidebar-user-avatar" src="images/member-placeholder.svg" alt="Danilo Reyes Avatar">
+                </div>
+                <div id="sidebar-user-name" class="profile-name">Danilo Reyes</div>
+                <div id="sidebar-user-role" class="profile-role-text">Cartoonist Head</div>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="sidebar-nav" aria-label="Main Navigation">
+                <a href="cartoonist-head-dashboard.html" class="sidebar-nav-item">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </a>
+
+                <a href="cartoonist-head-media-desk.html" class="sidebar-nav-item">
+                    <i class="fa-solid fa-palette"></i>
+                    <span>Cartoon Desk</span>
+                </a>
+
+                <a href="cartoonist-head-submit-media.html" class="sidebar-nav-item">
+                    <i class="fa-solid fa-paintbrush"></i>
+                    <span>Submit Cartoon</span>
+                </a>
+
+                <a href="cartoonist-head-manage-my-articles.html" class="sidebar-nav-item active">
+                    <i class="fa-solid fa-file-pen"></i>
+                    <span>Manage My Articles</span>
+                </a>
+
+                <a href="cartoonist-head-submit-article.html" class="sidebar-nav-item">
+                    <i class="fa-solid fa-feather-pointed"></i>
+                    <span>Submit article</span>
+                </a>
+
+                <a href="cartoonist-head-activity-logs.html" class="sidebar-nav-item">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <span>Activity log</span>
+                </a>
+
+                <a href="cartoonist-head-transparency.html" class="sidebar-nav-item">
+                    <i class="fa-solid fa-file-invoice-dollar"></i>
+                    <span>Transparency</span>
+                </a>
+            </nav>
+        </div>
+
+        <!-- Bottom of Sidebar: Profile Settings, View Public Site, Logout -->
+        <div class="sidebar-footer">
+            <a href="cartoonist-head-profile-settings.html" class="sidebar-footer-link">
+                <i class="fa-solid fa-sliders"></i>
+                <span>Profile Settings</span>
+            </a>
+
+            <a href="index.html" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                <span>View public site</span>
+            </a>
+
+            <button type="button" id="logout-btn" class="sidebar-footer-link logout-btn">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span>Logout</span>
+            </button>
+        </div>
+
+    </aside>
+
+    <!-- ====================================================================== -->
+    <!-- MAIN CONTENT AREA                                                      -->
+    <!-- ====================================================================== -->
+    <div class="main-wrapper">
+
+        <!-- Top Header Bar -->
+        <header class="topbar">
+            
+            <!-- Left Side: Mobile Hamburger before Logo + Real-time Clock -->
+            <div class="topbar-left">
+                <div class="mobile-header-brand">
+                    <button type="button" id="mobile-hamburger-btn" class="mobile-hamburger-btn" aria-label="Toggle navigation menu" aria-expanded="false">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <div class="mobile-brand-lockup">
+                        <div class="mobile-logo-square">
+                            <img src="images/logo.jpg" alt="The Lens Logo">
+                        </div>
+                        <span class="mobile-brand-title">The Lens</span>
+                    </div>
+                </div>
+
+                <div class="topbar-clock">
+                    <i class="fa-regular fa-clock"></i>
+                    <span id="topbar-clock-display">Loading date &amp; time…</span>
+                </div>
+            </div>
+
+            <!-- Right Side: Notification + Circular Profile Picture + Role Badge -->
+            <div class="topbar-right">
+                <button type="button" class="topbar-notification-btn" aria-label="Notifications">
+                    <div class="notification-icon-wrapper">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="notification-badge-dot"></span>
+                    </div>
+                    <span class="notification-label">Notification</span>
+                </button>
+
+                <div class="topbar-divider"></div>
+
+                <div class="topbar-user-profile">
+                    <div class="topbar-avatar-circle" title="User Profile">
+                        <img id="topbar-avatar-img" src="images/member-placeholder.svg" alt="User Profile Picture">
+                    </div>
+                    <span id="topbar-user-role" class="topbar-role-badge">Cartoonist Head</span>
+                </div>
+            </div>
+
+        </header>
+
+        <!-- Mobile Navigation Drawer Overlay -->
+        <nav id="mobile-nav-dropdown" class="mobile-nav-dropdown" aria-label="Mobile Navigation">
+            <div class="mobile-nav-profile">
+                <div class="mobile-nav-avatar">
+                    <img src="images/member-placeholder.svg" alt="Danilo Reyes Avatar">
+                </div>
+                <div class="mobile-nav-user-info">
+                    <div id="mobile-user-name" class="mobile-nav-name">Danilo Reyes</div>
+                    <div id="mobile-user-role" class="mobile-nav-role">Cartoonist Head</div>
+                </div>
+            </div>
+
+            <div class="mobile-nav-links">
+                <a href="cartoonist-head-dashboard.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="cartoonist-head-media-desk.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-palette"></i>
+                    <span>Cartoon Desk</span>
+                </a>
+                <a href="cartoonist-head-submit-media.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-paintbrush"></i>
+                    <span>Submit Cartoon</span>
+                </a>
+                <a href="cartoonist-head-manage-my-articles.html" class="mobile-nav-link active">
+                    <i class="fa-solid fa-file-pen"></i>
+                    <span>Manage My Articles</span>
+                </a>
+                <a href="cartoonist-head-submit-article.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-feather-pointed"></i>
+                    <span>Submit article</span>
+                </a>
+                <a href="cartoonist-head-activity-logs.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <span>Activity log</span>
+                </a>
+                <a href="cartoonist-head-transparency.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-file-invoice-dollar"></i>
+                    <span>Transparency</span>
+                </a>
+                <a href="cartoonist-head-profile-settings.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-sliders"></i>
+                    <span>Profile Settings</span>
+                </a>
+                <a href="index.html" class="mobile-nav-link" target="_blank">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    <span>View public site</span>
+                </a>
+            </div>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="content-container">
+
+            <!-- Page Title Section with Total Views Counter & New Article Action -->
+            <div class="writer-header-row animate-fade-in delay-1">
+                <div class="writer-header-left">
+                    <h1 class="page-title">Manage My Articles</h1>
+                </div>
+
+                <div class="writer-header-right">
+                    <!-- Total Views Header Metric Pill -->
+                    <div class="header-views-badge" title="Total Views Across Published Articles">
+                        <span class="views-badge-icon">
+                            <i class="fa-regular fa-eye"></i>
+                        </span>
+                        <span class="views-badge-content">
+                            <span class="views-badge-label">Total Views</span>
+                            <span id="stat-total-views" class="views-badge-val">0</span>
+                        </span>
+                    </div>
+
+                    <a href="cartoonist-head-submit-article.html" class="btn-primary-action">
+                        <i class="fa-solid fa-feather-pointed"></i>
+                        <span>New Article</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Tabs Navigation (All, Published, Pending Review, For Revision, Drafts) -->
+            <div class="manage-tabs-container animate-fade-in delay-2" role="tablist" aria-label="Filter my articles">
+                <button type="button" class="manage-tab-btn active" data-tab="all" role="tab" aria-selected="true">
+                    <span>All Articles</span>
+                    <span id="badge-count-all" class="tab-count-badge">0</span>
+                </button>
+                <button type="button" class="manage-tab-btn" data-tab="published" role="tab" aria-selected="false">
+                    <span>Published</span>
+                    <span id="badge-count-published" class="tab-count-badge">0</span>
+                </button>
+                <button type="button" class="manage-tab-btn" data-tab="pending" role="tab" aria-selected="false">
+                    <span>Pending Review</span>
+                    <span id="badge-count-pending" class="tab-count-badge">0</span>
+                </button>
+                <button type="button" class="manage-tab-btn" data-tab="revision" role="tab" aria-selected="false">
+                    <span>For Revision</span>
+                    <span id="badge-count-revision" class="tab-count-badge">0</span>
+                </button>
+                <button type="button" class="manage-tab-btn" data-tab="drafts" role="tab" aria-selected="false">
+                    <span>Drafts</span>
+                    <span id="badge-count-drafts" class="tab-count-badge">0</span>
+                </button>
+            </div>
+
+            <!-- Search Bar & Sort Dropdown Toolbar -->
+            <div class="manage-toolbar animate-fade-in delay-2">
+                
+                <!-- Search Bar -->
+                <div class="manage-search-shell">
+                    <i class="fa-solid fa-magnifying-glass search-leading-icon" aria-hidden="true"></i>
+                    <input 
+                        type="search" 
+                        id="executive-search-input" 
+                        class="manage-search-input" 
+                        placeholder="Search my articles by title, section, or keyword..." 
+                        aria-label="Search my articles" 
+                        autocomplete="off"
+                    >
+                    <button type="button" id="clear-search-btn" class="clear-search-icon hidden" title="Clear search">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <!-- Sort Control -->
+                <div class="review-sort-container">
+                    <label for="executive-sort-select" class="review-sort-label">
+                        <i class="fa-solid fa-arrow-down-short-wide"></i>
+                        <span>Sort:</span>
+                    </label>
+                    <div class="sort-select-wrapper">
+                        <select id="executive-sort-select" class="review-sort-select" aria-label="Sort articles">
+                            <option value="newest" selected>Newest First</option>
+                            <option value="oldest">Oldest First</option>
+                            <option value="popular">Most Viewed</option>
+                            <option value="az">A–Z</option>
+                        </select>
+                        <i class="fa-solid fa-chevron-down sort-chevron" aria-hidden="true"></i>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Articles List Container -->
+            <section class="writer-articles-list animate-fade-in delay-3" id="executive-manage-list" aria-label="My articles list">
+                <!-- Dynamically populated by js/cartoonist-head-manage-my-articles.js -->
+            </section>
+
+            <!-- Empty State -->
+            <div id="manage-empty-state" class="manage-empty-state hidden animate-fade-in delay-3" aria-live="polite">
+                <div class="manage-empty-icon">
+                    <i class="fa-regular fa-newspaper"></i>
+                </div>
+                <h3 class="manage-empty-title">No articles found</h3>
+                <p class="manage-empty-desc">There are no articles matching your active tab or search criteria. Try modifying your search or reset the filters.</p>
+                <button type="button" id="reset-filters-btn" class="btn-reset-filters">
+                    <i class="fa-solid fa-rotate-left"></i>
+                    <span>Reset Filters</span>
+                </button>
+            </div>
+
+        </main>
+
+    </div>
+
+    <!-- ====================================================================== -->
+    <!-- MODAL 1: Full Article Viewer Modal (Executive Parity Design)           -->
+    <!-- ====================================================================== -->
+    <div id="article-viewer-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="viewer-title">
+        <div class="modal-card viewer-modal-card">
+            
+            <div class="viewer-modal-header">
+                <div class="viewer-meta-row">
+                    <span id="viewer-category" class="viewer-category-tag">News</span>
+                    <span class="viewer-dot">·</span>
+                    <span id="viewer-date" class="viewer-date">Oct 19, 2026</span>
+                </div>
+                <div class="viewer-header-right">
+                    <span class="viewer-reading-time"><i class="fa-regular fa-clock"></i> <span id="viewer-read-time">2 min read</span></span>
+                    <button type="button" id="close-viewer-btn" class="viewer-close-btn" aria-label="Close article preview">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="viewer-modal-body">
+                <h1 id="viewer-title" class="viewer-title">Article Title</h1>
+                
+                <div class="viewer-byline-row">
+                    <div class="viewer-author-avatar">
+                        <img id="viewer-author-avatar-img" src="images/member-placeholder.svg" alt="Author avatar">
+                    </div>
+                    <div class="viewer-byline-text">
+                        <span class="viewer-by">By <strong id="viewer-author">Danilo Reyes</strong></span>
+                    </div>
+                </div>
+
+                <p id="viewer-excerpt" class="viewer-excerpt" style="display: none;"></p>
+
+                <div id="viewer-banner-wrap" class="viewer-banner" style="display: none;">
+                    <img id="viewer-banner-img" src="images/maroon.jpg" alt="Article banner">
+                </div>
+
+                <!-- Clean Story Content Paragraphs -->
+                <div id="viewer-content" class="viewer-content-text"></div>
+
+                <!-- Editorial Remarks Alert Box (Displayed if feedback is present) -->
+                <div id="viewer-remarks-wrap" class="remarks-alert-box" style="display: none; margin-top: 20px;">
+                    <div class="remarks-alert-title">
+                        <i class="fa-solid fa-comment-dots"></i>
+                        <span>Section Head Feedback:</span>
+                    </div>
+                    <p id="viewer-remarks-text" class="remarks-alert-text"></p>
+                </div>
+
+                <!-- Views & Shares Stats Bar (Visible ONLY if article is Published) -->
+                <div id="viewer-stats-bar" class="viewer-stats-bar" style="display: none;">
+                    <span class="stat-pill"><i class="fa-regular fa-eye"></i> <span id="viewer-views">0</span></span>
+                    <span class="stat-pill"><i class="fa-solid fa-share-nodes"></i> <span id="viewer-shares">0</span></span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ====================================================================== -->
+    <!-- MODAL 2: Revision Feedback Modal                                       -->
+    <!-- ====================================================================== -->
+    <div id="remarks-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="remarks-modal-title">
+        <div class="modal-card viewer-modal-card" style="max-width: 540px;">
+            <div class="viewer-modal-header">
+                <div class="viewer-meta-row">
+                    <span class="viewer-category-tag" style="background-color: #fef3f2; color: #b42318; border: 1px solid #fecdca;">
+                        <i class="fa-solid fa-rotate-right"></i> Revision Requested
+                    </span>
+                </div>
+                <button type="button" id="close-remarks-modal-btn" class="viewer-close-btn" aria-label="Close remarks">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="viewer-modal-body" style="padding-top: 10px;">
+                <h2 id="remarks-modal-title" style="font-size: 1.15rem; font-weight: 700; color: #101828; margin: 0 0 16px 0; font-family: var(--font-heading, 'Playfair Display', Georgia, serif);">
+                    Article Title
+                </h2>
+                <div style="background-color: #fef3f2; border: 1px solid #fecdca; border-radius: 8px; padding: 16px; margin-bottom: 20px;">
+                    <div style="font-size: 0.76rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: #b42318; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+                        <i class="fa-solid fa-comment-dots"></i>
+                        <span>Editor-in-Chief / Section Head Note</span>
+                    </div>
+                    <p id="remarks-modal-content" style="font-size: 0.88rem; color: #344054; line-height: 1.5; margin: 0;"></p>
+                </div>
+            </div>
+            <div class="viewer-modal-footer" style="display: flex; justify-content: flex-end; gap: 10px;">
+                <button type="button" class="btn-viewer-secondary" onclick="document.getElementById('remarks-modal').classList.add('hidden')">
+                    <span>Close</span>
+                </button>
+                <a href="#" id="btn-edit-from-remarks" class="btn-primary-action" style="height: 36px; padding: 0 14px; text-decoration: none;">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                    <span>Open Editor</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====================================================================== -->
+    <!-- MODAL 3: Delete Draft Confirmation Modal                               -->
+    <!-- ====================================================================== -->
+    <div id="delete-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="delete-heading">
+        <div class="modal-card delete-modal-card">
+            <div class="delete-icon-wrapper">
+                <i class="fa-solid fa-trash-can"></i>
+            </div>
+            <h2 id="delete-heading" class="delete-modal-title">Delete Draft Manuscript?</h2>
+            <p class="delete-modal-desc">
+                Are you sure you want to permanently delete <strong id="delete-article-title">this draft</strong>? This action cannot be undone.
+            </p>
+            <div class="delete-modal-actions">
+                <button type="button" id="cancel-delete-btn" class="btn-cancel">
+                    <span>Keep Draft</span>
+                </button>
+                <button type="button" id="confirm-delete-btn" class="btn-delete-confirm">
+                    <span>Yes, Delete</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+    <!-- Modular Scripts -->
+    <script src="js/cartoonist-head-shell.js"></script>
+    <script src="js/cartoonist-head-manage-my-articles.js"></script>
+</body>
+</html>
+

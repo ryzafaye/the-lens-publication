@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 1. ACTIVE M&PC OFFICER VERIFICATION
     // =========================================================================
     const userRole = localStorage.getItem('mpcRole') || localStorage.getItem('userRole') || 'M&PC Head';
-    const userName = localStorage.getItem('mpcName') || localStorage.getItem('userName') || 'Julian Del Rosario';
+    const userName = localStorage.getItem('mpcName') || localStorage.getItem('userName') || (userRole.includes('Assoc') ? 'Samantha Cruz' : 'Julian Del Rosario');
 
     // =========================================================================
     // 2. ESCAPE HTML HELPER
@@ -36,218 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================================================================
     const ACTIVITY_STORAGE_KEY = 'mpcActivityLogs_v1';
 
-    const defaultActivities = [
-        {
-            id: 'mpc-act-101',
-            causer: "Julian Del Rosario",
-            causerRole: "M&PC Head",
-            causerAvatar: "images/member-placeholder.svg",
-            action: "published",
-            subjectType: "Article",
-            subjectName: "Expanding Digital Readership: The Lens Public Web Portal Redesign",
-            timestampText: "10m ago",
-            isoDate: new Date(Date.now() - 10 * 60 * 1000).toISOString(),
-            dateKey: new Date().toISOString().split('T')[0],
-            formattedDate: "Oct 24, 2026 • 11:10 AM",
-            dayGroup: "Today"
-        },
-        {
-            id: 'mpc-act-102',
-            causer: "Julian Del Rosario",
-            causerRole: "M&PC Head",
-            causerAvatar: "images/member-placeholder.svg",
-            action: "assigned",
-            subjectType: "Cover Pubmat to Article",
-            subjectName: "State University Modernization Bill Passes First Congressional Hearing",
-            timestampText: "35m ago",
-            isoDate: new Date(Date.now() - 35 * 60 * 1000).toISOString(),
-            dateKey: new Date().toISOString().split('T')[0],
-            formattedDate: "Oct 24, 2026 • 10:45 AM",
-            dayGroup: "Today"
-        },
-        {
-            id: 'mpc-act-103',
-            causer: "Samantha Cruz",
-            causerRole: "Assoc M&PC Head",
-            causerAvatar: "images/member-placeholder.svg",
-            action: "approved",
-            subjectType: "PUBMAT for Media Library",
-            subjectName: "University Climate Action & Green Facility Infographic",
-            timestampText: "1h ago",
-            isoDate: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
-            dateKey: new Date().toISOString().split('T')[0],
-            formattedDate: "Oct 24, 2026 • 10:20 AM",
-            dayGroup: "Today"
-        },
-        {
-            id: 'mpc-act-104',
-            causer: "Julian Del Rosario",
-            causerRole: "M&PC Head",
-            causerAvatar: "images/member-placeholder.svg",
-            action: "returned for revision",
-            subjectType: "Editorial Cartoon",
-            subjectName: "Digital Divide and Library Modernization Satire",
-            timestampText: "3h ago",
-            isoDate: new Date(Date.now() - 3 * 3600 * 1000).toISOString(),
-            dateKey: new Date().toISOString().split('T')[0],
-            formattedDate: "Oct 24, 2026 • 08:20 AM",
-            dayGroup: "Today"
-        },
-        {
-            id: 'mpc-act-105',
-            causer: "Julian Del Rosario",
-            causerRole: "M&PC Head",
-            causerAvatar: "images/member-placeholder.svg",
-            action: "submitted",
-            subjectType: "PUBMAT Asset",
-            subjectName: "CSC Financial Audit Infographic Banner",
-            timestampText: "4h ago",
-            isoDate: new Date(Date.now() - 4 * 3600 * 1000).toISOString(),
-            dateKey: new Date().toISOString().split('T')[0],
-            formattedDate: "Oct 24, 2026 • 07:15 AM",
-            dayGroup: "Today"
-        },
-        {
-            id: 'mpc-act-106',
-            causer: "Julian Del Rosario",
-            causerRole: "M&PC Head",
-            causerAvatar: "images/member-placeholder.svg",
-            action: "published",
-            subjectType: "Article",
-            subjectName: "University Sports Council Resumes In-Person Intercollegiate Tournaments",
-            timestampText: "Yesterday",
-            isoDate: new Date(Date.now() - 24 * 3600 * 1000).toISOString(),
-            dateKey: new Date(Date.now() - 24 * 3600 * 1000).toISOString().split('T')[0],
-            formattedDate: "Oct 23, 2026 • 04:30 PM",
-            dayGroup: "Yesterday"
-        },
-        {
-            id: 'mpc-act-107',
-            causer: "Samantha Cruz",
-            causerRole: "Assoc M&PC Head",
-            causerAvatar: "images/member-placeholder.svg",
-            action: "assigned",
-            subjectType: "Cover Cartoon to Article",
-            subjectName: "Student Council Budget Allocations & Surplus Audit 2026",
-            timestampText: "Yesterday",
-            isoDate: new Date(Date.now() - 28 * 3600 * 1000).toISOString(),
-            dateKey: new Date(Date.now() - 28 * 3600 * 1000).toISOString().split('T')[0],
-            formattedDate: "Oct 23, 2026 • 12:15 PM",
-            dayGroup: "Yesterday"
-        },
-        {
-            id: 'mpc-act-108',
-            causer: "Julian Del Rosario",
-            causerRole: "M&PC Head",
-            causerAvatar: "images/member-placeholder.svg",
-            action: "approved",
-            subjectType: "Photo Asset for Media Library",
-            subjectName: "Campus Solidarity Rally at Quadrangle",
-            timestampText: "Yesterday",
-            isoDate: new Date(Date.now() - 32 * 3600 * 1000).toISOString(),
-            dateKey: new Date(Date.now() - 32 * 3600 * 1000).toISOString().split('T')[0],
-            formattedDate: "Oct 23, 2026 • 08:50 AM",
-            dayGroup: "Yesterday"
-        },
-        {
-            id: 'mpc-act-109',
-            causer: "Samantha Cruz",
-            causerRole: "Assoc M&PC Head",
-            causerAvatar: "images/member-placeholder.svg",
-            action: "archived",
-            subjectType: "Media Asset",
-            subjectName: "Volleyball Championship Victory Gala Highlights",
-            timestampText: "2 days ago",
-            isoDate: new Date(Date.now() - 48 * 3600 * 1000).toISOString(),
-            dateKey: new Date(Date.now() - 48 * 3600 * 1000).toISOString().split('T')[0],
-            formattedDate: "Oct 22, 2026 • 05:40 PM",
-            dayGroup: "Earlier this Week"
-        },
-        {
-            id: 'mpc-act-110',
-            causer: "Julian Del Rosario",
-            causerRole: "M&PC Head",
-            causerAvatar: "images/member-placeholder.svg",
-            action: "published",
-            subjectType: "Article",
-            subjectName: "Visual Journalism Ethics: Standards for Campus Photojournalists & Illustrators",
-            timestampText: "2 days ago",
-            isoDate: new Date(Date.now() - 52 * 3600 * 1000).toISOString(),
-            dateKey: new Date(Date.now() - 52 * 3600 * 1000).toISOString().split('T')[0],
-            formattedDate: "Oct 22, 2026 • 01:25 PM",
-            dayGroup: "Earlier this Week"
-        },
-        {
-            id: 'mpc-act-111',
-            causer: "Julian Del Rosario",
-            causerRole: "M&PC Head",
-            causerAvatar: "images/member-placeholder.svg",
-            action: "submitted",
-            subjectType: "Article",
-            subjectName: "The Role of Campus Media in Institutional Accountability",
-            timestampText: "3 days ago",
-            isoDate: new Date(Date.now() - 72 * 3600 * 1000).toISOString(),
-            dateKey: new Date(Date.now() - 72 * 3600 * 1000).toISOString().split('T')[0],
-            formattedDate: "Oct 21, 2026 • 03:18 PM",
-            dayGroup: "Earlier this Week"
-        },
-        {
-            id: 'mpc-act-112',
-            causer: "Julian Del Rosario",
-            causerRole: "M&PC Head",
-            causerAvatar: "images/member-placeholder.svg",
-            action: "assigned",
-            subjectType: "Cover Pubmat to Article",
-            subjectName: "Modernizing Collegiate Newsrooms: The Lens Strategic Roadmap",
-            timestampText: "3 days ago",
-            isoDate: new Date(Date.now() - 76 * 3600 * 1000).toISOString(),
-            dateKey: new Date(Date.now() - 76 * 3600 * 1000).toISOString().split('T')[0],
-            formattedDate: "Oct 21, 2026 • 11:45 AM",
-            dayGroup: "Earlier this Week"
-        },
-        {
-            id: 'mpc-act-113',
-            causer: "Samantha Cruz",
-            causerRole: "Assoc M&PC Head",
-            causerAvatar: "images/member-placeholder.svg",
-            action: "returned for revision",
-            subjectType: "Pubmat Material",
-            subjectName: "Freshman Orientation Infographic Map (Resolution Fixes)",
-            timestampText: "4 days ago",
-            isoDate: new Date(Date.now() - 96 * 3600 * 1000).toISOString(),
-            dateKey: new Date(Date.now() - 96 * 3600 * 1000).toISOString().split('T')[0],
-            formattedDate: "Oct 20, 2026 • 02:00 PM",
-            dayGroup: "Earlier this Week"
-        },
-        {
-            id: 'mpc-act-114',
-            causer: "Julian Del Rosario",
-            causerRole: "M&PC Head",
-            causerAvatar: "images/member-placeholder.svg",
-            action: "published",
-            subjectType: "Article",
-            subjectName: "Cross-Platform Storytelling: Reaching the Modern Collegiate Audience",
-            timestampText: "5 days ago",
-            isoDate: new Date(Date.now() - 120 * 3600 * 1000).toISOString(),
-            dateKey: new Date(Date.now() - 120 * 3600 * 1000).toISOString().split('T')[0],
-            formattedDate: "Oct 19, 2026 • 04:22 PM",
-            dayGroup: "Earlier this Week"
-        },
-        {
-            id: 'mpc-act-115',
-            causer: "Finance Desk",
-            causerRole: "Treasurer",
-            causerAvatar: "images/member-placeholder.svg",
-            action: "verified",
-            subjectType: "Transparency Report",
-            subjectName: "Quarterly Print Circulation & Digital Server Audit 2026",
-            timestampText: "6 days ago",
-            isoDate: new Date(Date.now() - 144 * 3600 * 1000).toISOString(),
-            dateKey: new Date(Date.now() - 144 * 3600 * 1000).toISOString().split('T')[0],
-            formattedDate: "Oct 18, 2026 • 10:30 AM",
-            dayGroup: "Earlier this Week"
-        }
-    ];
+    const defaultActivities = [];
 
     // =========================================================================
     // 4. SELF-HEALING ACTIVITY NORMALIZER (PREVENTS UNDEFINED FIELDS)
@@ -345,7 +134,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) {
             console.warn('Could not read mpcActivityLogs_v1:', e);
         }
-        return JSON.parse(JSON.stringify(defaultActivities));
+        return [];
     }
 
     let activitiesList = loadActivities();

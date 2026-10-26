@@ -36,148 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================================================================
     const ACTIVITY_STORAGE_KEY = 'executiveActivityLogs_v1';
 
-    const defaultActivities = [
-        {
-            id: 'act-101',
-            causer: "Danilo C. Ramos",
-            causerRole: "News Head",
-            causerAvatar: "images/member-placeholder.svg",
-            action: "approved",
-            subjectType: "Manuscript",
-            subjectName: "Student Council financial audit reveals ₱320,000 unallocated surplus",
-            timestampText: "15m ago",
-            isoDate: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
-            dateKey: new Date().toISOString().split('T')[0],
-            formattedDate: "Oct 22, 2026 • 04:15 PM",
-            dayGroup: "Today"
-        },
-        {
-            id: 'act-102',
-            causer: "Maria Santos",
-            causerRole: "Editor-in-Chief",
-            causerAvatar: "images/member-placeholder.svg",
-            action: "published",
-            subjectType: "Article",
-            subjectName: "Academic Freedom in the Digital Era",
-            timestampText: "45m ago",
-            isoDate: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
-            dateKey: new Date().toISOString().split('T')[0],
-            formattedDate: "Oct 22, 2026 • 03:42 PM",
-            dayGroup: "Today"
-        },
-        {
-            id: 'act-103',
-            causer: "Dr. Elena M. Romero",
-            causerRole: "Science and Technology Head",
-            causerAvatar: "images/member-placeholder.svg",
-            action: "returned for revision",
-            subjectType: "Manuscript",
-            subjectName: "Why the enrollment portal keeps timing out: A technical post-mortem",
-            timestampText: "2h ago",
-            isoDate: new Date(Date.now() - 2 * 3600 * 1000).toISOString(),
-            dateKey: new Date().toISOString().split('T')[0],
-            formattedDate: "Oct 22, 2026 • 02:30 PM",
-            dayGroup: "Today"
-        },
-        {
-            id: 'act-104',
-            causer: "Bianca Rose Flores",
-            causerRole: "Feature Head",
-            causerAvatar: "images/member-placeholder.svg",
-            action: "reviewed",
-            subjectType: "Manuscript",
-            subjectName: "Inside the 24-hour night shift of university sanitation workers",
-            timestampText: "3h ago",
-            isoDate: new Date(Date.now() - 3 * 3600 * 1000).toISOString(),
-            dateKey: new Date().toISOString().split('T')[0],
-            formattedDate: "Oct 22, 2026 • 01:10 PM",
-            dayGroup: "Today"
-        },
-        {
-            id: 'act-105',
-            causer: "Juan Dela Cruz",
-            causerRole: "President",
-            causerAvatar: "images/member-placeholder.svg",
-            action: "published",
-            subjectType: "Executive Bulletin",
-            subjectName: "The Lens Editorial Charter 2026",
-            timestampText: "5h ago",
-            isoDate: new Date(Date.now() - 5 * 3600 * 1000).toISOString(),
-            dateKey: new Date().toISOString().split('T')[0],
-            formattedDate: "Oct 22, 2026 • 11:15 AM",
-            dayGroup: "Today"
-        },
-        {
-            id: 'act-106',
-            causer: "Carlos Joaquin Luna",
-            causerRole: "Literature Head",
-            causerAvatar: "images/member-placeholder.svg",
-            action: "approved",
-            subjectType: "Literary Submission",
-            subjectName: "Echoes of the Quadrangle: Anthology of New Student Poetry",
-            timestampText: "Yesterday at 4:32 PM",
-            isoDate: new Date(Date.now() - 24 * 3600 * 1000).toISOString(),
-            dateKey: new Date(Date.now() - 24 * 3600 * 1000).toISOString().split('T')[0],
-            formattedDate: "Oct 21, 2026 • 04:32 PM",
-            dayGroup: "Yesterday"
-        },
-        {
-            id: 'act-107',
-            causer: "Sofia M. Alcaraz",
-            causerRole: "Writer",
-            causerAvatar: "images/member-placeholder.svg",
-            action: "submitted",
-            subjectType: "Article",
-            subjectName: "The Commuter Odyssey: Transit Diaries from Regional Campuses",
-            timestampText: "Yesterday at 2:15 PM",
-            isoDate: new Date(Date.now() - 26 * 3600 * 1000).toISOString(),
-            dateKey: new Date(Date.now() - 26 * 3600 * 1000).toISOString().split('T')[0],
-            formattedDate: "Oct 21, 2026 • 02:15 PM",
-            dayGroup: "Yesterday"
-        },
-        {
-            id: 'act-108',
-            causer: "Finance Desk",
-            causerRole: "Treasurer",
-            causerAvatar: "images/member-placeholder.svg",
-            action: "verified",
-            subjectType: "Transparency Report",
-            subjectName: "Q3 Publication Operating Budget Liquidation",
-            timestampText: "Yesterday at 10:05 AM",
-            isoDate: new Date(Date.now() - 30 * 3600 * 1000).toISOString(),
-            dateKey: new Date(Date.now() - 30 * 3600 * 1000).toISOString().split('T')[0],
-            formattedDate: "Oct 21, 2026 • 10:05 AM",
-            dayGroup: "Yesterday"
-        },
-        {
-            id: 'act-109',
-            causer: "Danilo C. Ramos",
-            causerRole: "News Head",
-            causerAvatar: "images/member-placeholder.svg",
-            action: "returned for revision",
-            subjectType: "Manuscript",
-            subjectName: "Faculty union files formal grievance over proposed 24-unit overload",
-            timestampText: "2 days ago",
-            isoDate: new Date(Date.now() - 48 * 3600 * 1000).toISOString(),
-            dateKey: new Date(Date.now() - 48 * 3600 * 1000).toISOString().split('T')[0],
-            formattedDate: "Oct 20, 2026 • 03:10 PM",
-            dayGroup: "Earlier this Week"
-        },
-        {
-            id: 'act-110',
-            causer: "Victoria Reyes",
-            causerRole: "Managing Editor",
-            causerAvatar: "images/member-placeholder.svg",
-            action: "reviewed",
-            subjectType: "Transparency Disclosure",
-            subjectName: "Student Council Allocation Report",
-            timestampText: "3 days ago",
-            isoDate: new Date(Date.now() - 72 * 3600 * 1000).toISOString(),
-            dateKey: new Date(Date.now() - 72 * 3600 * 1000).toISOString().split('T')[0],
-            formattedDate: "Oct 19, 2026 • 01:25 PM",
-            dayGroup: "Earlier this Week"
-        }
-    ];
+    const defaultActivities = [];
 
     function loadActivities() {
         try {
@@ -189,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) {
             console.warn('Could not read executiveActivityLogs_v1:', e);
         }
-        return JSON.parse(JSON.stringify(defaultActivities));
+        return [];
     }
 
     let activitiesList = loadActivities();

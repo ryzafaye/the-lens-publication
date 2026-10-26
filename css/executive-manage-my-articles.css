@@ -321,3 +321,35 @@
     transform: translateY(-1px);
     box-shadow: 0 4px 10px rgba(92, 10, 24, 0.25);
 }
+
+
+/* Delete Draft Button Design */
+.btn-box-delete,
+.btn-delete-draft {
+    background-color: #f2f4f7 !important;
+    border: 1px solid #eaecf0 !important;
+    color: #b42318 !important;
+    font-size: 0.80rem !important;
+    font-weight: 600 !important;
+    height: 32px !important;
+    padding: 0 12px !important;
+    border-radius: 6px !important;
+    cursor: pointer !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    text-decoration: none !important;
+    transition: all 0.15s ease !important;
+    box-sizing: border-box !important;
+    line-height: 1 !important;
+    white-space: nowrap !important;
+}
+
+.btn-box-delete:hover,
+.btn-delete-draft:hover {
+    background-color: #fef3f2 !important;
+    border-color: #fecdca !important;
+    color: #912018 !important;
+    transform: translateY(-1px) !important;
+}

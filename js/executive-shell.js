@@ -1,3 +1,48 @@
+// One-time automatic workflow purge to guarantee zero-mock state for testing
+try {
+    const CLEAR_FLAG = 'theLens_workflow_v4_purged';
+    if (localStorage.getItem(CLEAR_FLAG) !== 'true') {
+        const keysToRemove = [
+            'theLensWriterArticles_v3',
+            'theLensWriterArticles_v2',
+            'theLensWriterArticles_v1',
+            'sectionHeadReviewQueue_v1',
+            'eicPendingReviewQueue',
+            'executivePendingReviewQueue',
+            'mpc_publish_articles_v2',
+            'mpc_publish_articles_v1',
+            'mpc_approved_covers_v1',
+            'theLensPublishedArticles',
+            'executiveArticles',
+            'theLensArticles',
+            'theLensCartoonistArticles_v1',
+            'cartoonistSubmissions_v1',
+            'articleCoverReviewQueue_v1',
+            'theLensMediaArticles_v1',
+            'mediaTeamSubmissions_v2',
+            'mediaTeamSubmissions_v1',
+            'sectionHeadMyArticles_v1',
+            'eicMyArticles_v1',
+            'executiveMyArticles_v1',
+            'mpcMyArticles_v1',
+            'cartoonistHeadMyArticles_v1',
+            'sectionHeadArticleDrafts',
+            'eicArticleDrafts',
+            'executiveArticleDrafts',
+            'mpcArticleDrafts',
+            'cartoonistHeadArticleDrafts',
+            'mediaArticleDrafts_v1',
+            'cartoonistArticleDrafts_v1',
+            'executiveActivityLogs_v1',
+            'mpcActivityLogs_v1',
+            'cartoonistHeadActivityLogs_v1',
+            'eicActivityLogs_v1',
+            'sectionHeadActivityLogs_v1'
+        ];
+        keysToRemove.forEach(k => localStorage.removeItem(k));
+        localStorage.setItem(CLEAR_FLAG, 'true');
+    }
+} catch (e) {}
 /**
  * ============================================================================
  * THE LENS — REUSABLE EXECUTIVE SHELL CONTROLLER
@@ -5,11 +50,11 @@
  * 
  * Clean, readable, modular controller that handles:
  *  1. User Role Hydration (topbar, sidebar, mobile nav)
- *  2. Real-Time Desktop Clock (Philippine local time)
+ *  2. Real-Time Desktop Clock (Asia/Manila time)
  *  3. Mobile Hamburger Menu Toggle, Backdrop, Outside-Click, Escape & Resize
  *  4. Active Page Navigation Highlighting
  *  5. Reusable Sidebar Footer slot injection
- *  6. Executive Logout Handling
+ *  6. Executive Logout Handling (Square Modal, No Subtitle)
  * ============================================================================
  */
 
@@ -52,9 +97,9 @@
         function hydrateUserRole() {
             let role = 'President';
             try {
-                role = localStorage.getItem('userRole') || 'President';
+                role = localStorage.getItem('userRole') || localStorage.getItem('executiveRole') || 'President';
                 if (!localStorage.getItem('userRole')) {
-                    localStorage.setItem('userRole', 'President');
+                    localStorage.setItem('userRole', role);
                 }
             } catch (e) {
                 // LocalStorage blocked or unavailable
@@ -71,23 +116,28 @@
         hydrateUserRole();
 
         // =====================================================================
-        // 3. REAL-TIME DESKTOP CLOCK
+        // 3. REAL-TIME DESKTOP CLOCK (Asia/Manila)
         // =====================================================================
-        const clockDisplay = document.getElementById('topbar-clock-display');
         function updateDesktopClock() {
-            if (!clockDisplay) return;
+            const clockDisplays = document.querySelectorAll('#topbar-clock-display, .topbar-clock span:last-child');
+            if (!clockDisplays.length) return;
             const now = new Date();
             const datePart = now.toLocaleDateString('en-US', {
+                timeZone: 'Asia/Manila',
                 month: 'short',
                 day: 'numeric',
                 year: 'numeric'
             });
             const timePart = now.toLocaleTimeString('en-US', {
+                timeZone: 'Asia/Manila',
                 hour: 'numeric',
                 minute: '2-digit',
                 hour12: true
             });
-            clockDisplay.textContent = `${datePart} | ${timePart}`;
+            const formatted = datePart + ' | ' + timePart;
+            clockDisplays.forEach(el => {
+                if (el.textContent !== formatted) el.textContent = formatted;
+            });
         }
         updateDesktopClock();
         setInterval(updateDesktopClock, 1000);
@@ -201,10 +251,7 @@
         });
 
         // =====================================================================
-        // 6. EXECUTIVE LOGOUT HANDLING
-        // =====================================================================
-                // =====================================================================
-        // CUSTOM DESIGNED LOGOUT CONFIRMATION MODAL
+        // 6. CUSTOM DESIGNED LOGOUT CONFIRMATION MODAL (Square, Compact, No Subtitle)
         // =====================================================================
         function showLogoutModal(onConfirm) {
             let modal = document.getElementById('lens-logout-modal');
@@ -217,15 +264,14 @@
                 modal.setAttribute('aria-labelledby', 'lens-logout-title');
                 modal.innerHTML = `
                     <div class="modal-card logout-modal-card">
+                        <button type="button" id="lens-logout-close-btn" class="logout-modal-close-btn" aria-label="Close dialog">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
                         <div class="logout-modal-header">
-                            <button type="button" id="lens-logout-close-btn" class="logout-modal-close-btn" aria-label="Close dialog">
-                                <i class="fa-solid fa-xmark"></i>
-                            </button>
                             <div class="logout-modal-icon-badge">
                                 <i class="fa-solid fa-right-from-bracket"></i>
                             </div>
                             <h2 id="lens-logout-title" class="logout-modal-title">Are you sure you want to log out?</h2>
-                            <p class="logout-modal-desc">You will be signed out of your account and returned to the login screen.</p>
                         </div>
                         <div class="logout-modal-actions">
                             <button type="button" id="lens-logout-cancel-btn" class="logout-btn-cancel">Cancel</button>
@@ -268,23 +314,31 @@
             modal.classList.remove('hidden');
         }
 
-        function handleLogout(e) {
-            e.preventDefault();
+        function triggerLogout() {
             showLogoutModal(() => {
                 try {
                     localStorage.removeItem('userRole');
                     localStorage.removeItem('studentNumber');
                     localStorage.removeItem('userName');
+                    localStorage.removeItem('executiveRole');
+                    localStorage.removeItem('executiveName');
+                    localStorage.removeItem('executiveStudentNumber');
                     sessionStorage.clear();
                 } catch (err) {}
                 window.location.href = 'login.html';
             });
         }
 
-        const logoutBtn = document.getElementById('logout-btn');
-        const mobileLogoutBtn = document.getElementById('mobile-logout-btn');
-        if (logoutBtn) logoutBtn.addEventListener('click', handleLogout);
-        if (mobileLogoutBtn) mobileLogoutBtn.addEventListener('click', handleLogout);
+        // Global capture-phase logout listener - intercepts any logout button click anywhere on page
+        document.addEventListener('click', (e) => {
+            const btn = e.target.closest('#logout-btn, #mobile-logout-btn, .logout-btn, .mobile-logout-btn, [data-action="logout"]');
+            if (btn) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+                triggerLogout();
+            }
+        }, true);
 
         // Expose API namespace
         window.ExecutiveShell = {

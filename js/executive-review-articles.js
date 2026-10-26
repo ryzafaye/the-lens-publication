@@ -28,115 +28,12 @@ document.addEventListener('DOMContentLoaded', () => {
         return 'Section Editorial Head';
     }
 
-    const defaultPendingArticles = [
-        {
-            id: 'rev-01',
-            title: "Student council financial audit reveals ₱320,000 unallocated surplus",
-            category: "News",
-            date: "Oct 18, 2026",
-            rawDate: "2026-10-18",
-            author: "Mara Villanueva",
-            endorsedBy: "Elena Ramos (News Head)",
-            status: "pending",
-            remarks: "",
-            content: `An independent financial audit of the Central Student Council (CSC) expenditures for the first quarter of Academic Year 2026–2027 has revealed an unallocated surplus of ₱320,450 from the student activity development fund.
-
-The findings, presented during an extraordinary collegiate assembly, prompted student leaders from the College of Science and College of Engineering to question why emergency welfare assistance programs were stalled earlier this term due to cited budgetary deficits.
-
-According to CSC Treasurer Julian Navarro, the surplus represents contingency reserves retained following the lower-than-projected costs of the University Welcoming Caravan. "Our intention was never to withhold assistance, but to establish a buffer against potential inflation in procurement for second-quarter initiatives," Navarro stated during the cross-examination.
-
-However, student coalition leaders argue that fiscal transparency mandates immediate reallocation of dormant reserves to acute needs, including laboratory equipment repairs and commuter transport subsidies.`
-        },
-        {
-            id: 'rev-02',
-            title: "Why the enrollment portal keeps timing out: A technical post-mortem",
-            category: "Science and Technology",
-            date: "Oct 18, 2026",
-            rawDate: "2026-10-18",
-            author: "Noah Reyes",
-            endorsedBy: "Dr. Aris Thorne (SciTech Head)",
-            status: "pending",
-            remarks: "",
-            content: `Every enlistment cycle, tens of thousands of university students endure hours of connection timeouts, 504 Gateway errors, and lost subject slots. An in-depth technical examination of the campus enrollment infrastructure reveals that database locking bottlenecks, rather than network bandwidth, remain the root cause.
-
-According to server log metrics obtained through a freedom of information request, the registration database executes single-row thread locking whenever students attempt to enlist in high-demand general education classes. When thousands of concurrent requests strike the database at 8:00 AM, the queue cascades into exponential latency.
-
-The Management Information Systems (MIS) office has proposed a ₱2.4 million cloud migration architecture to containerize user sessions. If approved by the Board of Regents, the transition could reduce average latency from 45 seconds to under 400 milliseconds per transaction before the second semester.`
-        },
-        {
-            id: 'rev-03',
-            title: "Faculty union files formal grievance over proposed 24-unit overload directive",
-            category: "News",
-            date: "Oct 17, 2026",
-            rawDate: "2026-10-17",
-            author: "Rafael Ramos",
-            endorsedBy: "Elena Ramos (News Head)",
-            status: "pending",
-            remarks: "",
-            content: `The University Faculty Association (UFA) has formally submitted a dispute grievance to the Office of the Vice President for Academic Affairs following administrative directives requiring full-time instructors to absorb up to 24 class teaching units without proportional overtime compensation.
-
-Union representatives warn that unmitigated faculty burnout directly compromises research output and pedagogical quality. In a joint manifesto signed by over 180 department faculty members, the union calls for immediate suspension of mandatory overloads and the emergency hiring of contractual lecturers.
-
-"Quality tertiary education cannot be sustained on the backs of overworked mentors who must grade hundreds of papers until midnight," said UFA Chairperson Dr. Elizabeth Morales during an afternoon press conference.`
-        },
-        {
-            id: 'rev-04',
-            title: "The cost of compromise: Why student publication independence cannot be negotiated",
-            category: "Opinion",
-            date: "Oct 15, 2026",
-            rawDate: "2026-10-15",
-            author: "Paolo Santos",
-            endorsedBy: "Patricia Gomez (Opinion Head)",
-            status: "pending",
-            remarks: "",
-            content: `When institutional administrators propose prior editorial review under the guise of 'brand alignment', the sacred covenant of campus journalism is under direct siege.
-
-For over four decades, The Lens has stood as an unvarnished mirror reflecting student triumphs, administrative shortcomings, and institutional accountability. The suggestion that student editorial boards must seek prior clearance from public affairs offices fundamentally misunderstands the purpose of the fourth estate.
-
-True institutional excellence does not fear student scrutiny. A university that fosters critical thought within the lecture hall must not suppress that same inquiry when committed to print.`
-        },
-        {
-            id: 'rev-05',
-            title: "Inside the 24-hour night shift of university sanitation workers",
-            category: "Features",
-            date: "Oct 12, 2026",
-            rawDate: "2026-10-12",
-            author: "Lia Mendoza",
-            endorsedBy: "Sofia Alcantara (Feature Head)",
-            status: "pending",
-            remarks: "",
-            content: `At 11:30 PM, long after the last student leaves the library and lecture lights flick off, an army of twenty-two custodial workers steps onto the silent campus grounds.
-
-Armed with industrial polishers, brooms, and sanitizing tanks, these workers restore hundreds of classrooms, laboratory benches, and restroom facilities before the 7:00 AM bell rings. Despite being the backbone of university operations, many work through third-party contracting agencies with minimal hazard pay.
-
-Through the quiet corridors of the Science Pavilion, veteran custodian Mang Rodrigo sweeps the marble floors he has polished for eighteen years. "We keep the school standing, even if our names are never spoken during graduation ceremonies," he smiles quietly.`
-        },
-        {
-            id: 'rev-06',
-            title: "Echoes from the Quadrangle: Verses from the Midnight Study Hall",
-            category: "Literature",
-            date: "Oct 11, 2026",
-            rawDate: "2026-10-11",
-            author: "Camille Torres",
-            endorsedBy: "Lucas Gabriel (Literature Head)",
-            status: "pending",
-            remarks: "",
-            content: `The hum of fluorescent tubes,
-the rustle of photocopied notes,
-shadow stretching across tiled floorboards,
-while the city sleeps in heavy coats.
-
-We drink bitter instant coffee,
-counting hours until dawn arrives,
-hoping these equations and verses
-give meaning to our restless lives.`
-        }
-    ];
+    const defaultPendingArticles = [];
 
     // LocalStorage Queue Management
     function getStoredPendingQueue() {
         try {
-            const raw = localStorage.getItem('executivePendingReviewQueue');
+            const raw = localStorage.getItem('executivePendingReviewQueue') || localStorage.getItem('eicPendingReviewQueue');
             if (raw) {
                 const parsed = JSON.parse(raw);
                 if (Array.isArray(parsed) && parsed.length > 0) {
@@ -149,12 +46,13 @@ give meaning to our restless lives.`
         } catch (e) {
             console.warn('Could not read executivePendingReviewQueue', e);
         }
-        return JSON.parse(JSON.stringify(defaultPendingArticles));
+        return [];
     }
 
     function savePendingQueue(list) {
         try {
             localStorage.setItem('executivePendingReviewQueue', JSON.stringify(list));
+            localStorage.setItem('eicPendingReviewQueue', JSON.stringify(list));
         } catch (e) {
             console.warn('Could not save executivePendingReviewQueue', e);
         }
@@ -375,6 +273,54 @@ give meaning to our restless lives.`
         setTimeout(() => {
             reviewList = reviewList.filter(a => a.id !== id);
             savePendingQueue(reviewList);
+
+            // Forward to MPC publishing queue
+            try {
+                let mpcList = [];
+                const rawMpc = localStorage.getItem('mpc_publish_articles_v2');
+                if (rawMpc) {
+                    const parsed = JSON.parse(rawMpc);
+                    if (Array.isArray(parsed)) mpcList = parsed;
+                }
+                mpcList = mpcList.filter(m => m.id !== item.id && m.title !== item.title);
+                mpcList.unshift({
+                    id: item.id || `mpc-art-${Date.now()}`,
+                    title: item.title,
+                    category: item.category || 'News',
+                    author: item.author || 'The Lens Staff',
+                    dateApproved: item.date || 'Recent',
+                    status: 'ready',
+                    assignedCoverId: null,
+                    assignedCover: null,
+                    views: 0,
+                    shares: 0,
+                    excerpt: item.excerpt || '',
+                    body: item.content ? item.content.split(/\n\n+/).map(p => `<p>${escapeHTML(p.trim())}</p>`).join('') : '<p>Manuscript content approved.</p>'
+                });
+                localStorage.setItem('mpc_publish_articles_v2', JSON.stringify(mpcList));
+            } catch (e) {
+                console.error('Failed to forward to MPC publishing queue:', e);
+            }
+
+            // Also update writer's article in writer storage
+            try {
+                const rawWriter = localStorage.getItem('theLensWriterArticles_v3');
+                if (rawWriter) {
+                    let writerList = JSON.parse(rawWriter);
+                    if (Array.isArray(writerList)) {
+                        let updated = false;
+                        writerList = writerList.map(w => {
+                            if (w.id === item.id || w.title === item.title) {
+                                updated = true;
+                                return { ...w, status: 'Ready for Publishing', remarks: 'Approved by Executive Board; awaiting cover & publication by M&PC.' };
+                            }
+                            return w;
+                        });
+                        if (updated) localStorage.setItem('theLensWriterArticles_v3', JSON.stringify(writerList));
+                    }
+                }
+            } catch (e) {}
+
             renderReviewBoxes();
             showToast('Article approved and forwarded to the Media & Publication Committee (M&PC).', 'success');
         }, 220);
@@ -392,6 +338,26 @@ give meaning to our restless lives.`
         setTimeout(() => {
             reviewList = reviewList.filter(a => a.id !== id);
             savePendingQueue(reviewList);
+
+            // Update writer's article with status: 'For Revision' and remarks
+            try {
+                const rawWriter = localStorage.getItem('theLensWriterArticles_v3');
+                if (rawWriter) {
+                    let writerList = JSON.parse(rawWriter);
+                    if (Array.isArray(writerList)) {
+                        let updated = false;
+                        writerList = writerList.map(w => {
+                            if (w.id === item.id || w.title === item.title) {
+                                updated = true;
+                                return { ...w, status: 'For Revision', remarks: remarks || 'Please revise according to Executive feedback.' };
+                            }
+                            return w;
+                        });
+                        if (updated) localStorage.setItem('theLensWriterArticles_v3', JSON.stringify(writerList));
+                    }
+                }
+            } catch (e) {}
+
             renderReviewBoxes();
             showToast('Article returned to writer for revision.', 'warning');
         }, 220);
@@ -424,6 +390,16 @@ give meaning to our restless lives.`
 
         if (modalBody) {
             const paragraphs = item.content ? item.content.split('\n\n') : [];
+            const modalExcerpt = document.getElementById('modal-excerpt');
+            if (modalExcerpt) {
+                if (item.excerpt && item.excerpt.trim()) {
+                    modalExcerpt.textContent = item.excerpt.trim();
+                    modalExcerpt.style.display = 'block';
+                } else {
+                    modalExcerpt.style.display = 'none';
+                }
+            }
+
             modalBody.innerHTML = paragraphs.map(p => `<p>${escapeHTML(p.trim())}</p>`).join('');
         }
 

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * The Lens — Editor-in-Chief (EIC) Dashboard Script
  * Clean, Reusable & Modular Implementation matching Executive Dashboard logic & design
  * 
@@ -45,6 +45,55 @@ document.addEventListener('DOMContentLoaded', () => {
             .replace(/'/g, '&#39;');
     }
 
+    function decodeCorruptedHtmlEntities(str) {
+        if (!str || typeof str !== 'string') return '';
+        let decoded = str;
+        let maxPasses = 5;
+        while (maxPasses > 0 && (/&amp;lt;/i.test(decoded) || /&lt;/i.test(decoded) || /&amp;gt;/i.test(decoded) || /&gt;/i.test(decoded))) {
+            const txt = document.createElement('textarea');
+            txt.innerHTML = decoded;
+            const newDecoded = txt.value;
+            if (newDecoded === decoded) break;
+            decoded = newDecoded;
+            maxPasses--;
+        }
+        return decoded;
+    }
+
+    function formatCleanArticleContent(rawContent) {
+        if (!rawContent) {
+            return '<p style="color: #98a2b3; font-style: italic;">No content available for this manuscript.</p>';
+        }
+
+        let decoded = decodeCorruptedHtmlEntities(rawContent);
+
+        // Aggressively strip any literal or encoded span tags and style attributes
+        decoded = decoded
+            .replace(/&lt;\/?span[^&>]*&gt;/gi, '')
+            .replace(/<\/?span[^>]*>/gi, '')
+            .replace(/\s*style="[^"]*"/gi, '')
+            .replace(/\s*style='[^']*'/gi, '')
+            .replace(/&lt;[^&>]+&gt;/gi, '');
+
+        const stripped = decoded
+            .replace(/<div><br\s*\/?><\/div>/gi, '\n\n')
+            .replace(/<\/(?:div|p|blockquote|h[1-6])>/gi, '\n\n')
+            .replace(/<\/?(?:div|p|blockquote|h[1-6])[^>]*>/gi, '\n')
+            .replace(/<br\s*\/?>/gi, '\n')
+            .replace(/<[^>]+>/g, '');
+
+        const paragraphs = stripped
+            .split(/\n+/)
+            .map(p => p.trim())
+            .filter(p => p.length > 0);
+
+        if (paragraphs.length === 0) {
+            return '<p style="color: #98a2b3; font-style: italic;">No content available for this manuscript.</p>';
+        }
+
+        return paragraphs.map(p => `<p class="viewer-paragraph">${escapeHTML(p)}</p>`).join('');
+    }
+
     const toastContainer = document.getElementById('toast-container');
     function showToast(message, type = 'success') {
         if (!toastContainer) return;
@@ -70,6 +119,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================================================================
     function getStoredArticles() {
         try {
+            const pubRaw = localStorage.getItem('theLensPublishedArticles');
+            if (pubRaw) {
+                const pubParsed = JSON.parse(pubRaw);
+                if (Array.isArray(pubParsed) && pubParsed.length > 0) return pubParsed;
+            }
             const raw = localStorage.getItem('executiveArticles');
             if (raw) {
                 const parsed = JSON.parse(raw);
@@ -78,7 +132,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) {
             console.warn('Could not read executiveArticles from localStorage', e);
         }
-        return defaultArticles;
+        return [];
     }
 
     function saveArticles(list) {
@@ -104,130 +158,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Activity Log Static Entries (Top 5 Recent with avatars)
-    const ACTIVITY_LOG_DATA = [
-        {
-            user: "Victoria Reyes",
-            avatar: "images/member-placeholder.svg",
-            action: "approved",
-            subjectType: "Article",
-            target: "Academic Freedom in the Digital Era",
-            time: "12m ago"
-        },
-        {
-            user: "Maria Santos",
-            avatar: "images/member-placeholder.svg",
-            action: "submitted",
-            subjectType: "Article",
-            target: "Digital divide persists as student WiFi coverage drops in outer colleges",
-            time: "45m ago"
-        },
-        {
-            user: "Marcus Vance",
-            avatar: "images/member-placeholder.svg",
-            action: "reviewed",
-            subjectType: "Article",
-            target: "The cost of compromise: Why student publication independence cannot be negotiated",
-            time: "1h ago"
-        },
-        {
-            user: "Carlo Ramos",
-            avatar: "images/member-placeholder.svg",
-            action: "uploaded",
-            subjectType: "Photo Asset",
-            target: "Central University Library Modernization Gallery",
-            time: "3h ago"
-        },
-        {
-            user: "Finance Desk",
-            avatar: "images/member-placeholder.svg",
-            action: "verified",
-            subjectType: "Transparency Report",
-            target: "Q3 Publication Operating Budget Liquidation",
-            time: "5h ago"
-        }
-    ];
+    const ACTIVITY_LOG_DATA = [];
 
     // Pending Review Queue Dataset & Persistence
-    const DEFAULT_PENDING_ARTICLES = [
-        {
-            id: 'rev-01',
-            title: "Student council financial audit reveals ₱320,000 unallocated surplus",
-            category: "News",
-            date: "Oct 18, 2026",
-            rawDate: "2026-10-18",
-            author: "Mara Villanueva",
-            status: "Pending",
-            readTime: "3 min read",
-            content: `An independent financial audit of the Central Student Council (CSC) expenditures for the first quarter of Academic Year 2026–2027 has revealed an unallocated surplus of ₱320,450 from the student activity development fund.\n\nThe findings, presented during an extraordinary collegiate assembly, prompted student leaders from the College of Science and College of Engineering to question why emergency welfare assistance programs were stalled earlier this term due to cited budgetary deficits.`
-        },
-        {
-            id: 'rev-02',
-            title: "Why the enrollment portal keeps timing out: A technical post-mortem",
-            category: "Science and Technology",
-            date: "Oct 18, 2026",
-            rawDate: "2026-10-18",
-            author: "Noah Reyes",
-            status: "Pending",
-            readTime: "4 min read",
-            content: `Every enlistment cycle, tens of thousands of university students endure hours of connection timeouts, 504 Gateway errors, and lost subject slots. An in-depth technical examination of the campus enrollment infrastructure reveals that database locking bottlenecks, rather than network bandwidth, remain the root cause.`
-        },
-        {
-            id: 'rev-03',
-            title: "Faculty union files formal grievance over proposed 24-unit overload directive",
-            category: "News",
-            date: "Oct 17, 2026",
-            rawDate: "2026-10-17",
-            author: "Rafael Ramos",
-            status: "Pending",
-            readTime: "3 min read",
-            content: `The University Faculty Association (UFA) has formally submitted a dispute grievance to the Office of the Vice President for Academic Affairs following administrative directives requiring full-time instructors to absorb up to 24 class teaching units without proportional overtime compensation.`
-        },
-        {
-            id: 'rev-04',
-            title: "The cost of compromise: Why student publication independence cannot be negotiated",
-            category: "Opinion",
-            date: "Oct 15, 2026",
-            rawDate: "2026-10-15",
-            author: "Paolo Santos",
-            status: "Pending",
-            readTime: "4 min read",
-            content: `When institutional administrators propose prior editorial review under the guise of 'brand alignment', the sacred covenant of campus journalism is under direct siege.`
-        },
-        {
-            id: 'rev-05',
-            title: "Inside the 24-hour night shift of university sanitation workers",
-            category: "Features",
-            date: "Oct 12, 2026",
-            rawDate: "2026-10-12",
-            author: "Lia Mendoza",
-            status: "Pending",
-            readTime: "5 min read",
-            content: `At 11:30 PM, long after the last student leaves the library and lecture lights flick off, an army of twenty-two custodial workers steps onto the silent campus grounds.`
-        },
-        {
-            id: 'rev-06',
-            title: "Echoes from the Quadrangle: Verses from the Midnight Study Hall",
-            category: "Literature",
-            date: "Oct 11, 2026",
-            rawDate: "2026-10-11",
-            author: "Camille Torres",
-            status: "Pending",
-            readTime: "2 min read",
-            content: `The hum of fluorescent tubes,\nthe rustle of photocopied notes,\nshadows stretching across tiled floorboards,\nwhile the city sleeps in heavy coats.`
-        }
-    ];
+    const DEFAULT_PENDING_ARTICLES = [];
 
     function getPendingQueue() {
         try {
             const raw = localStorage.getItem('eicPendingReviewQueue') || localStorage.getItem('executivePendingReviewQueue');
             if (raw) {
                 const parsed = JSON.parse(raw);
-                if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+                if (Array.isArray(parsed)) return parsed;
             }
         } catch (e) {
             console.warn('Could not read pending review queue', e);
         }
-        return JSON.parse(JSON.stringify(DEFAULT_PENDING_ARTICLES));
+        return [];
     }
 
     function getStatusBadgeHtml(status) {
@@ -320,19 +266,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Fallback to default
             }
 
-            activityContainer.innerHTML = logsToDisplay.map(item => `
-                <div class="activity-item" onclick="window.location.href='eic-activity-logs.html'" style="cursor: pointer;" title="Open Activity Log">
-                    <div class="activity-avatar">
-                        <img src="${item.avatar}" alt="${escapeHTML(item.user)}">
+            if (logsToDisplay.length === 0) {
+                activityContainer.innerHTML = '<p class="text-sm text-gray-500 py-6 text-center">No recent activities.</p>';
+            } else {
+                activityContainer.innerHTML = logsToDisplay.map(item => `
+                    <div class="activity-item" onclick="window.location.href='eic-activity-logs.html'" style="cursor: pointer;" title="Open Activity Log">
+                        <div class="activity-avatar">
+                            <img src="${item.avatar}" alt="${escapeHTML(item.user)}">
+                        </div>
+                        <div class="activity-details">
+                            <p class="activity-text">
+                                <strong>${escapeHTML(item.user)}</strong> ${escapeHTML(item.action)} the ${escapeHTML(item.subjectType || 'Article')} <em>"${escapeHTML(item.target)}"</em> <span style="color:#667085; font-size:0.75rem; margin-left:3px;">${escapeHTML(item.time)}.</span>
+                            </p>
+                            <span class="activity-time">${escapeHTML(item.time)}</span>
+                        </div>
                     </div>
-                    <div class="activity-details">
-                        <p class="activity-text">
-                            <strong>${escapeHTML(item.user)}</strong> ${escapeHTML(item.action)} the ${escapeHTML(item.subjectType || 'Article')} <em>"${escapeHTML(item.target)}"</em> <span style="color:#667085; font-size:0.75rem; margin-left:3px;">${escapeHTML(item.time)}.</span>
-                        </p>
-                        <span class="activity-time">${escapeHTML(item.time)}</span>
-                    </div>
-                </div>
-            `).join('');
+                `).join('');
+            }
         }
 
         // C. Pending Approval (Top 5 Table with Direct Modal View Trigger)
@@ -390,25 +340,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 .sort((a, b) => (b.views || 0) - (a.views || 0))
                 .slice(0, 3);
 
-            mostViewedContainer.innerHTML = mostViewed.map((art, idx) => `
-                <div class="ranked-item" data-article-id="${art.id}">
-                    <span class="rank-number ${idx === 0 ? 'top-rank' : ''}">${idx + 1}</span>
-                    <div class="ranked-content">
-                        <div class="ranked-category-tag">${escapeHTML(art.category)}</div>
-                        <button type="button" class="ranked-title-btn" data-action="view" data-id="${art.id}" title="${escapeHTML(art.title)}">
-                            ${escapeHTML(art.title)}
-                        </button>
-                        <div class="ranked-meta-row">
-                            <span class="ranked-author"><i class="fa-solid fa-pen-nib" aria-hidden="true" style="font-size: 0.70rem; margin-right: 4px; color: var(--text-muted, #667085);"></i>${escapeHTML(art.author)}</span>
-                            <span class="ranked-stats">
-                                <span class="stat-metric" title="Views"><i class="fa-regular fa-eye"></i> ${Number(art.views || 0).toLocaleString()}</span>
-                                <span class="stat-sep">•</span>
-                                <span class="stat-metric" title="Shares"><i class="fa-solid fa-share-nodes"></i> ${Number(art.shares || 0).toLocaleString()}</span>
-                            </span>
+            if (mostViewed.length === 0) {
+                mostViewedContainer.innerHTML = '<p class="text-sm text-gray-500 py-6 text-center">No published articles yet.</p>';
+            } else {
+                mostViewedContainer.innerHTML = mostViewed.map((art, idx) => `
+                    <div class="ranked-item" data-article-id="${art.id}">
+                        <span class="rank-number ${idx === 0 ? 'top-rank' : ''}">${idx + 1}</span>
+                        <div class="ranked-content">
+                            <div class="ranked-category-tag">${escapeHTML(art.category)}</div>
+                            <button type="button" class="ranked-title-btn" data-action="view" data-id="${art.id}" title="${escapeHTML(art.title)}">
+                                ${escapeHTML(art.title)}
+                            </button>
+                            <div class="ranked-meta-row">
+                                <span class="ranked-author"><i class="fa-solid fa-pen-nib" aria-hidden="true" style="font-size: 0.70rem; margin-right: 4px; color: var(--text-muted, #667085);"></i>${escapeHTML(art.author)}</span>
+                                <span class="ranked-stats">
+                                    <span class="stat-metric" title="Views"><i class="fa-regular fa-eye"></i> ${Number(art.views || 0).toLocaleString()}</span>
+                                    <span class="stat-sep">•</span>
+                                    <span class="stat-metric" title="Shares"><i class="fa-solid fa-share-nodes"></i> ${Number(art.shares || 0).toLocaleString()}</span>
+                                </span>
+                            </div>
                         </div>
                     </div>
-                </div>
-            `).join('');
+                `).join('');
+            }
         }
 
         // E. Top Performing Journalists (Table Layout: Name & Number Only)
@@ -430,7 +384,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 count
             }));
 
-        if (topJournalistsTableBody) {
+        if (topJournalists.length === 0) {
+            if (topJournalistsTableBody) {
+                topJournalistsTableBody.innerHTML = '<tr><td colspan="2" class="text-center py-4 text-gray-500 text-sm">No journalist data available yet.</td></tr>';
+            } else if (topJournalistsContainer) {
+                topJournalistsContainer.innerHTML = '<p class="text-sm text-gray-500 py-4 text-center">No journalist data available yet.</p>';
+            }
+        } else if (topJournalistsTableBody) {
             topJournalistsTableBody.innerHTML = topJournalists.map(j => `
                 <tr>
                     <td class="col-author-name">${escapeHTML(j.name)}</td>
@@ -530,9 +490,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Paragraphs
         if (viewerContent) {
-            const raw = article.content || article.excerpt || '';
-            const paragraphs = raw.split('\n\n').filter(p => p.trim());
-            viewerContent.innerHTML = paragraphs.map(p => `<p>${escapeHTML(p)}</p>`).join('');
+            viewerContent.innerHTML = formatCleanArticleContent(article.content || article.excerpt);
+        }
+
+                const viewerExcerpt = document.getElementById('viewer-excerpt');
+        if (viewerExcerpt) {
+            const rawExcerpt = (typeof article !== 'undefined' ? article.excerpt : '') || (typeof item !== 'undefined' ? item.excerpt : '') || (typeof art !== 'undefined' ? art.excerpt : '') || '';
+            if (rawExcerpt && rawExcerpt.trim()) {
+                viewerExcerpt.textContent = rawExcerpt.trim();
+                viewerExcerpt.style.display = 'block';
+            } else {
+                viewerExcerpt.style.display = 'none';
+            }
         }
 
         // Banner Image

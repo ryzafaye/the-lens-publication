@@ -1,13 +1,13 @@
-import { articles } from "./articles.js";
 import { articleTitle, articleMeta, articleStats, articleByline, createImage } from "./article-templates.js";
-import { articleMatchesDateFilter, escapeHTML, sortArticlesList } from "./article-utils.js";
+import { articleMatchesDateFilter, escapeHTML, sortArticlesList, getPublicArticles } from "./article-utils.js";
 
 export function displayArchives(category = "All", searchTerm = "", sortBy = "newest", dateType = "any", dateValue = "") {
     const container = document.getElementById("archive-articles");
     if (!container) return 0;
     const query = searchTerm.trim().toLowerCase();
 
-    let matches = articles.filter(article => {
+    const publicArticles = getPublicArticles();
+    let matches = publicArticles.filter(article => {
         const categoryMatches = category === "All" || article.category === category;
         const searchable = [article.title, article.excerpt, article.content, article.author, article.category, ...(article.tags || [])]
             .filter(Boolean).join(" ").toLowerCase();

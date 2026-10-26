@@ -1,4 +1,4 @@
-/**
+﻿/**
  * ============================================================================
  * THE LENS — WRITER MANAGE ARTICLES CONTROLLER
  * Filter, Search, Sort & Manage Manuscripts Authored by the Active Writer
@@ -102,17 +102,43 @@ document.addEventListener('DOMContentLoaded', () => {
         return `${mins} min read`;
     }
 
+    function decodeCorruptedHtmlEntities(str) {
+        if (!str || typeof str !== 'string') return '';
+        let decoded = str;
+        let maxPasses = 5;
+        while (maxPasses > 0 && (/&amp;lt;/i.test(decoded) || /&lt;/i.test(decoded) || /&amp;gt;/i.test(decoded) || /&gt;/i.test(decoded))) {
+            const txt = document.createElement('textarea');
+            txt.innerHTML = decoded;
+            const newDecoded = txt.value;
+            if (newDecoded === decoded) break;
+            decoded = newDecoded;
+            maxPasses--;
+        }
+        return decoded;
+    }
+
     function formatCleanArticleContent(rawContent) {
         if (!rawContent) {
             return '<p style="color: #98a2b3; font-style: italic;">No content available for this manuscript.</p>';
         }
 
-        // Clean out any raw HTML tags (div, br, p) and normalize to plain text paragraphs
-        const stripped = rawContent
+        let decoded = decodeCorruptedHtmlEntities(rawContent);
+
+        // Aggressively strip any literal or encoded span tags and style attributes
+        decoded = decoded
+            .replace(/&lt;\/?span[^&>]*&gt;/gi, '')
+            .replace(/<\/?span[^>]*>/gi, '')
+            .replace(/\s*style="[^"]*"/gi, '')
+            .replace(/\s*style='[^']*'/gi, '')
+            .replace(/&lt;[^&>]+&gt;/gi, '');
+
+        // Clean out all HTML tags cleanly and normalize into plain text paragraphs
+        const stripped = decoded
             .replace(/<div><br\s*\/?><\/div>/gi, '\n\n')
-            .replace(/<\/?div[^>]*>/gi, '\n')
-            .replace(/<\/?p[^>]*>/gi, '\n\n')
-            .replace(/<br\s*\/?>/gi, '\n');
+            .replace(/<\/(?:div|p|blockquote|h[1-6])>/gi, '\n\n')
+            .replace(/<\/?(?:div|p|blockquote|h[1-6])[^>]*>/gi, '\n')
+            .replace(/<br\s*\/?>/gi, '\n')
+            .replace(/<[^>]+>/g, '');
 
         const paragraphs = stripped
             .split(/\n+/)
@@ -352,6 +378,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 viewerStatsBar.style.display = 'flex';
             } else {
                 viewerStatsBar.style.display = 'none';
+            }
+        }
+
+        const viewerExcerpt = document.getElementById('viewer-excerpt');
+        if (viewerExcerpt) {
+            const rawExcerpt = article.excerpt || (item && item.excerpt) || '';
+            if (rawExcerpt && rawExcerpt.trim()) {
+                viewerExcerpt.textContent = rawExcerpt.trim();
+                viewerExcerpt.style.display = 'block';
+            } else {
+                viewerExcerpt.style.display = 'none';
             }
         }
 

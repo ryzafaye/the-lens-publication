@@ -23,15 +23,14 @@
             modal.setAttribute('aria-labelledby', 'lens-logout-title');
             modal.innerHTML = `
                 <div class="modal-card logout-modal-card">
+                    <button type="button" id="lens-logout-close-btn" class="logout-modal-close-btn" aria-label="Close dialog">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
                     <div class="logout-modal-header">
-                        <button type="button" id="lens-logout-close-btn" class="logout-modal-close-btn" aria-label="Close dialog">
-                            <i class="fa-solid fa-xmark"></i>
-                        </button>
                         <div class="logout-modal-icon-badge">
                             <i class="fa-solid fa-right-from-bracket"></i>
                         </div>
                         <h2 id="lens-logout-title" class="logout-modal-title">Are you sure you want to log out?</h2>
-                        <p class="logout-modal-desc">You will be signed out of your account and returned to the login screen.</p>
                     </div>
                     <div class="logout-modal-actions">
                         <button type="button" id="lens-logout-cancel-btn" class="logout-btn-cancel">Cancel</button>
@@ -111,6 +110,25 @@
             }, true); // Use capture phase to intercept before older inline confirm() listeners
         });
     }
+
+    // Global capture-phase click delegation: catches all clicks on any logout button
+    document.addEventListener('click', (e) => {
+        const btn = e.target.closest('#logout-btn, #mobile-logout-btn, .logout-btn, .mobile-logout-btn, [data-action="logout"]');
+        if (btn) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            showLogoutConfirmation(() => {
+                try {
+                    sessionStorage.clear();
+                    localStorage.removeItem('userRole');
+                    localStorage.removeItem('userName');
+                    localStorage.removeItem('studentNumber');
+                } catch (err) {}
+                window.location.href = 'login.html';
+            });
+        }
+    }, true);
 
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', bindLogoutButtons);

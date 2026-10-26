@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 0. ACTIVE M&PC OFFICER DETAILS
     // =========================================================================
     const activeRole = localStorage.getItem('mpcRole') || localStorage.getItem('userRole') || 'M&PC Head';
-    const mpcName = localStorage.getItem('mpcName') || localStorage.getItem('userName') || 'Julian Del Rosario';
+    const mpcName = localStorage.getItem('mpcName') || localStorage.getItem('userName') || (activeRole.includes('Assoc') ? 'Samantha Cruz' : 'Julian Del Rosario');
 
     // DOM Elements - Personal Analytics Header Pill
     const statTotalViews = document.getElementById('stat-total-views');
@@ -78,78 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================================================================
     // 1. DATASET: SEEDED & PERSISTED M&PC ARTICLES
     // =========================================================================
-    const DEFAULT_MPC_ARTICLES = [
-        {
-            id: 'mpc-art-01',
-            author: mpcName,
-            title: 'Expanding Digital Readership: The Lens Public Web Portal Redesign',
-            category: 'News',
-            excerpt: 'How our media and public communications desk modernized digital circulation metrics and accelerated open campus news distribution.',
-            date: 'Oct 21, 2026',
-            rawDate: '2026-10-21',
-            status: 'Published',
-            views: 5840,
-            shares: 94,
-            remarks: '',
-            content: `Modern collegiate readership demands accessible, high-speed delivery across mobile devices and digital platforms.\n\nOver the past academic semester, the Media and Public Communications (M&PC) team worked in close coordination with section heads and technical editors to overhaul our publication site architecture. By synchronizing editorial cartoons, visual publication materials, and investigative manuscripts into unified release pipelines, readership metrics surged by 38%.\n\nOur commitment remains centered on providing every campus constituent with direct, reliable, and fact-verified journalism.`
-        },
-        {
-            id: 'mpc-art-02',
-            author: mpcName,
-            title: 'Visual Journalism Ethics: Standards for Campus Photojournalists & Illustrators',
-            category: 'Features',
-            excerpt: 'Guidelines and verification procedures ensuring truth, context, and dignity in campus visual news reporting and social graphics.',
-            date: 'Oct 14, 2026',
-            rawDate: '2026-10-14',
-            status: 'Published',
-            views: 3920,
-            shares: 62,
-            remarks: '',
-            content: `As visual storytelling takes center stage on university channels, the line between illustrative enhancement and photo manipulation requires clear ethical boundaries.\n\nThis guide establishes publication standards across photojournalism and graphic illustration desks: maintaining original contextual lighting, prohibiting altering of editorial subjects, and guaranteeing consent protocols for student vulnerability reporting.`
-        },
-        {
-            id: 'mpc-art-03',
-            author: mpcName,
-            title: 'Cross-Platform Storytelling: Reaching the Modern Collegiate Audience',
-            category: 'Opinion',
-            excerpt: 'Analyzing how multimedia sidebars, graphic teasers, and print archival editions reinforce journalistic transparency.',
-            date: 'Sep 29, 2026',
-            rawDate: '2026-09-29',
-            status: 'Published',
-            views: 2470,
-            shares: 38,
-            remarks: '',
-            content: `Print and digital need not compete; they complement each other. While digital publication guarantees immediate reach during breaking campus events, printed folios remain our tangible historical record.\n\nOur cross-platform strategy blends both mediums to serve both immediate information needs and long-term university historical archives.`
-        },
-        {
-            id: 'mpc-art-04',
-            author: mpcName,
-            title: 'Campus Media Distribution: Print Archives vs Social Engagement Audit',
-            category: 'News',
-            excerpt: 'An evidence-based assessment of campus physical pickup kiosks, online engagement statistics, and newsletter subscriber analytics.',
-            date: 'Oct 22, 2026',
-            rawDate: '2026-10-22',
-            status: 'Pending Review',
-            views: 0,
-            shares: 0,
-            remarks: '',
-            content: `Auditing circulation points across all five campus colleges provided pivotal insight into where student readership is most active.\n\nWhile kiosk pickups remain high near the College of Engineering and Liberal Arts library, over 65% of freshman and sophomore readers discover investigative scoops via social headlines and our web portal.`
-        },
-        {
-            id: 'mpc-art-05',
-            author: mpcName,
-            title: 'Photo Desk Curation: Addressing Sensitive Imagery in Crisis Coverage',
-            category: 'Opinion',
-            excerpt: 'Editorial protocols when capturing and publishing photos during student demonstrations, medical emergencies, and campus strikes.',
-            date: 'Oct 18, 2026',
-            rawDate: '2026-10-18',
-            status: 'For Revision',
-            views: 0,
-            shares: 0,
-            remarks: 'Please update Section 2 with student privacy consent guidelines in accordance with the revised Editorial Board policy before resubmission.',
-            content: `Documenting high-stress campus events tests the ethical compass of any student publication desk. Balancing the public interest against individual privacy and security must be resolved systematically before pressing publish.\n\nThis document outlines our recommended screening matrix for selecting hero cover imagery.`
-        }
-    ];
+    const DEFAULT_MPC_ARTICLES = [];
 
     const STORAGE_KEY = 'mpcMyArticles_v1';
 
@@ -167,9 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.warn('Could not load mpcMyArticles_v1', e);
         }
 
-        if (personalArticles.length === 0) {
-            personalArticles = JSON.parse(JSON.stringify(DEFAULT_MPC_ARTICLES));
-        }
+        if (personalArticles.length === 0) { personalArticles = []; }
 
         // Incorporate drafts from mpcArticleDrafts
         try {
@@ -243,15 +170,42 @@ document.addEventListener('DOMContentLoaded', () => {
         return `${mins} min read`;
     }
 
+    function decodeCorruptedHtmlEntities(str) {
+        if (!str || typeof str !== 'string') return '';
+        let decoded = str;
+        let maxPasses = 5;
+        while (maxPasses > 0 && (/&amp;lt;/i.test(decoded) || /&lt;/i.test(decoded) || /&amp;gt;/i.test(decoded) || /&gt;/i.test(decoded))) {
+            const txt = document.createElement('textarea');
+            txt.innerHTML = decoded;
+            const newDecoded = txt.value;
+            if (newDecoded === decoded) break;
+            decoded = newDecoded;
+            maxPasses--;
+        }
+        return decoded;
+    }
+
     function formatCleanArticleContent(rawContent) {
         if (!rawContent) {
             return '<p style="color: #98a2b3; font-style: italic;">No content available for this manuscript.</p>';
         }
-        const stripped = rawContent
+
+        let decoded = decodeCorruptedHtmlEntities(rawContent);
+
+        // Aggressively strip any literal or encoded span tags and style attributes
+        decoded = decoded
+            .replace(/&lt;\/?span[^&>]*&gt;/gi, '')
+            .replace(/<\/?span[^>]*>/gi, '')
+            .replace(/\s*style="[^"]*"/gi, '')
+            .replace(/\s*style='[^']*'/gi, '')
+            .replace(/&lt;[^&>]+&gt;/gi, '');
+
+        const stripped = decoded
             .replace(/<div><br\s*\/?><\/div>/gi, '\n\n')
-            .replace(/<\/?div[^>]*>/gi, '\n')
-            .replace(/<\/?p[^>]*>/gi, '\n\n')
-            .replace(/<br\s*\/?>/gi, '\n');
+            .replace(/<\/(?:div|p|blockquote|h[1-6])>/gi, '\n\n')
+            .replace(/<\/?(?:div|p|blockquote|h[1-6])[^>]*>/gi, '\n')
+            .replace(/<br\s*\/?>/gi, '\n')
+            .replace(/<[^>]+>/g, '');
 
         const paragraphs = stripped
             .split(/\n+/)
@@ -558,6 +512,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 viewerStatsBar.style.display = 'flex';
             } else {
                 viewerStatsBar.style.display = 'none';
+            }
+        }
+
+        const viewerExcerpt = document.getElementById('viewer-excerpt');
+        if (viewerExcerpt) {
+            const rawExcerpt = article.excerpt || (item && item.excerpt) || '';
+            if (rawExcerpt && rawExcerpt.trim()) {
+                viewerExcerpt.textContent = rawExcerpt.trim();
+                viewerExcerpt.style.display = 'block';
+            } else {
+                viewerExcerpt.style.display = 'none';
             }
         }
 

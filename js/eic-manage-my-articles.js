@@ -1,4 +1,4 @@
-/**
+﻿/**
  * ============================================================================
  * THE LENS — EDITOR-IN-CHIEF (EIC) MANAGE MY ARTICLES CONTROLLER
  * Full Design, Formatting, & Logic Parity with Executive Manage My Articles
@@ -77,78 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================================================================
     // 1. DATASET: SEEDED & PERSISTED EIC ARTICLES
     // =========================================================================
-    const DEFAULT_EIC_ARTICLES = [
-        {
-            id: 'eic-art-01',
-            author: eicName,
-            title: 'The Sacred Covenant of the Fourth Estate: An Editorial Manifesto',
-            category: 'Opinion',
-            excerpt: 'Why uncompromised campus journalism remains the moral compass of democratic university life in an age of administrative PR.',
-            date: 'Oct 19, 2026',
-            rawDate: '2026-10-19',
-            status: 'Published',
-            views: 6420,
-            shares: 112,
-            remarks: '',
-            content: `Student publications hold a unique mandate within democratic universities: to reflect the unvarnished realities of the student body without fear of administrative reprisal.\n\nOver the past academic cycle, our editorial staff has covered pivotal campus disputes, from facilities budget reallocations to faculty overload directives. Throughout each inquiry, our guiding philosophy has remained unwavering—freedom of expression is not an administrative privilege to be dispensed, but an institutional right won through decades of student advocacy.\n\nAs we inaugurate our new digital publishing systems, we reaffirm our commitment to ethical rigor, fact-checked reporting, and unwavering support for every campus beat reporter.`
-        },
-        {
-            id: 'eic-art-02',
-            author: eicName,
-            title: 'Modernizing Collegiate Newsrooms: The Lens Strategic Roadmap',
-            category: 'Features',
-            excerpt: 'A comprehensive operational overview of our publication’s transition to digital-first investigative cycles and archival digitization.',
-            date: 'Sep 28, 2026',
-            rawDate: '2026-09-28',
-            status: 'Published',
-            views: 4180,
-            shares: 64,
-            remarks: '',
-            content: `In an era where news is consumed within seconds on mobile feeds, collegiate journalism must evolve without sacrificing depth. The Lens has spearheaded a systematic workflow modernization program designed to empower student writers and editors.\n\nBy unifying our editorial desk with modern draft revision queues and public transparency folios, we ensure that every story published meets international journalistic standards. Our upcoming initiatives include podcast audio digests and multimedia documentary fellowships for undergraduate contributors.`
-        },
-        {
-            id: 'eic-art-03',
-            author: eicName,
-            title: 'State of the Student Body: University Welfare Analysis 2026',
-            category: 'News',
-            excerpt: 'An evidence-based survey analyzing commuter transit subsidies, dormitory occupancy rates, and student meal allowance purchasing power.',
-            date: 'Oct 20, 2026',
-            rawDate: '2026-10-20',
-            status: 'Pending Review',
-            views: 0,
-            shares: 0,
-            remarks: '',
-            content: `A comprehensive university-wide survey conducted across eight constituent colleges indicates that 68% of off-campus student commuters spend upwards of four hours daily traversing transit routes.\n\nThe findings, scheduled for collegiate assembly presentation next week, advocate for an immediate 20% expansion of university shuttle services and temporary parking exemptions for motorized transport carpools.`
-        },
-        {
-            id: 'eic-art-04',
-            author: eicName,
-            title: 'Campus Laboratory Infrastructure & Science Funding Disparities',
-            category: 'Science and Technology',
-            excerpt: 'Investigating grant distribution inequities across tertiary STEM research programs and undergraduate equipment quotas.',
-            date: 'Oct 16, 2026',
-            rawDate: '2026-10-16',
-            status: 'For Revision',
-            views: 0,
-            shares: 0,
-            remarks: 'Please integrate the latest response statement from the Vice President for Research and Development regarding laboratory equipment procurement cycles before publication.',
-            content: `While headline institutional allocations showcase rising investments in artificial intelligence and bioinformatics, undergraduate teaching laboratories in physical chemistry continue to grapple with decade-old spectrophotometers.\n\nInterviews with senior thesis candidates reveal recurring delays in scheduled capstone experiments due to single-instrument bottlenecks in shared facilities.`
-        },
-        {
-            id: 'eic-art-05',
-            author: eicName,
-            title: 'Midnight in the Pressroom: Four Decades of Print Archiving',
-            category: 'Literature',
-            excerpt: 'A lyrical retrospective on the smell of cold offset ink, lead type drawers, and the midnight coffee that fueled student revolutions.',
-            date: 'Oct 14, 2026',
-            rawDate: '2026-10-14',
-            status: 'Draft',
-            views: 0,
-            shares: 0,
-            remarks: '',
-            content: `In the quiet corners of the basement pressroom, the mechanical cadence of the linotype machine once sounded like a mechanical heartbeat.\n\nDecades have passed, moving from hot metal and bromides to modern pixels and cloud databases. Yet the fundamental impulse remains unaltered: to record our collective history before the ink of today fades into tomorrow's memories.`
-        }
-    ];
+    const DEFAULT_EIC_ARTICLES = [];
 
     const STORAGE_KEY = 'eicMyArticles_v1';
 
@@ -166,10 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.warn('Could not read eicMyArticles_v1', e);
         }
 
-        if (personalArticles.length === 0) {
-            personalArticles = JSON.parse(JSON.stringify(DEFAULT_EIC_ARTICLES));
-            saveArticles(personalArticles);
-        }
+        if (personalArticles.length === 0) { personalArticles = []; }
 
         // Synchronize with eicArticleDrafts from editor
         try {
@@ -243,15 +169,42 @@ document.addEventListener('DOMContentLoaded', () => {
         return `${mins} min read`;
     }
 
+    function decodeCorruptedHtmlEntities(str) {
+        if (!str || typeof str !== 'string') return '';
+        let decoded = str;
+        let maxPasses = 5;
+        while (maxPasses > 0 && (/&amp;lt;/i.test(decoded) || /&lt;/i.test(decoded) || /&amp;gt;/i.test(decoded) || /&gt;/i.test(decoded))) {
+            const txt = document.createElement('textarea');
+            txt.innerHTML = decoded;
+            const newDecoded = txt.value;
+            if (newDecoded === decoded) break;
+            decoded = newDecoded;
+            maxPasses--;
+        }
+        return decoded;
+    }
+
     function formatCleanArticleContent(rawContent) {
         if (!rawContent) {
             return '<p style="color: #98a2b3; font-style: italic;">No content available for this manuscript.</p>';
         }
-        const stripped = rawContent
+
+        let decoded = decodeCorruptedHtmlEntities(rawContent);
+
+        // Aggressively strip any literal or encoded span tags and style attributes
+        decoded = decoded
+            .replace(/&lt;\/?span[^&>]*&gt;/gi, '')
+            .replace(/<\/?span[^>]*>/gi, '')
+            .replace(/\s*style="[^"]*"/gi, '')
+            .replace(/\s*style='[^']*'/gi, '')
+            .replace(/&lt;[^&>]+&gt;/gi, '');
+
+        const stripped = decoded
             .replace(/<div><br\s*\/?><\/div>/gi, '\n\n')
-            .replace(/<\/?div[^>]*>/gi, '\n')
-            .replace(/<\/?p[^>]*>/gi, '\n\n')
-            .replace(/<br\s*\/?>/gi, '\n');
+            .replace(/<\/(?:div|p|blockquote|h[1-6])>/gi, '\n\n')
+            .replace(/<\/?(?:div|p|blockquote|h[1-6])[^>]*>/gi, '\n')
+            .replace(/<br\s*\/?>/gi, '\n')
+            .replace(/<[^>]+>/g, '');
 
         const paragraphs = stripped
             .split(/\n+/)
@@ -555,6 +508,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 viewerStatsBar.style.display = 'flex';
             } else {
                 viewerStatsBar.style.display = 'none';
+            }
+        }
+
+        const viewerExcerpt = document.getElementById('viewer-excerpt');
+        if (viewerExcerpt) {
+            const rawExcerpt = article.excerpt || (item && item.excerpt) || '';
+            if (rawExcerpt && rawExcerpt.trim()) {
+                viewerExcerpt.textContent = rawExcerpt.trim();
+                viewerExcerpt.style.display = 'block';
+            } else {
+                viewerExcerpt.style.display = 'none';
             }
         }
 

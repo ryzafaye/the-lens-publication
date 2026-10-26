@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let userRole = activeRole.toLowerCase().includes('assoc') ? 'Assoc M&PC Head' : 'M&PC Head';
     
     let rawStoredName = localStorage.getItem('mpcName') || localStorage.getItem('userName');
-    let userName = rawStoredName || 'Julian Del Rosario';
+    let userName = rawStoredName || (userRole.includes('Assoc') ? 'Samantha Cruz' : 'Julian Del Rosario');
     
     let rawStoredNum = localStorage.getItem('mpcStudentNumber') || localStorage.getItem('studentNumber');
     let studentNumber = rawStoredNum || (userRole.includes('Assoc') ? '2024-00021-BN-0' : '2024-00020-BN-0');

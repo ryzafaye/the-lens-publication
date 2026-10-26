@@ -1,4 +1,4 @@
-/**
+﻿/**
  * The Lens — Manage Articles & Archives Script
  * Clean, Reusable & Modular Implementation
  * 
@@ -40,11 +40,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 const parsed = JSON.parse(raw);
                 if (Array.isArray(parsed) && parsed.length > 0) return parsed;
             }
+            const pubRaw = localStorage.getItem('theLensPublishedArticles');
+            if (pubRaw) {
+                const pubParsed = JSON.parse(pubRaw);
+                if (Array.isArray(pubParsed) && pubParsed.length > 0) return pubParsed;
+            }
         } catch (e) {
             console.warn('Could not read executiveArticles from localStorage', e);
         }
-        // Deep clone from defaultArticles in articles.js
-        return JSON.parse(JSON.stringify(defaultArticles));
+        return [];
     }
 
     function saveArticles(list) {
@@ -150,6 +154,55 @@ document.addEventListener('DOMContentLoaded', () => {
             .replace(/>/g, '&gt;')
             .replace(/"/g, '&quot;')
             .replace(/'/g, '&#39;');
+    }
+
+    function decodeCorruptedHtmlEntities(str) {
+        if (!str || typeof str !== 'string') return '';
+        let decoded = str;
+        let maxPasses = 5;
+        while (maxPasses > 0 && (/&amp;lt;/i.test(decoded) || /&lt;/i.test(decoded) || /&amp;gt;/i.test(decoded) || /&gt;/i.test(decoded))) {
+            const txt = document.createElement('textarea');
+            txt.innerHTML = decoded;
+            const newDecoded = txt.value;
+            if (newDecoded === decoded) break;
+            decoded = newDecoded;
+            maxPasses--;
+        }
+        return decoded;
+    }
+
+    function formatCleanArticleContent(rawContent) {
+        if (!rawContent) {
+            return '<p style="color: #98a2b3; font-style: italic;">No content available for this manuscript.</p>';
+        }
+
+        let decoded = decodeCorruptedHtmlEntities(rawContent);
+
+        // Aggressively strip any literal or encoded span tags and style attributes
+        decoded = decoded
+            .replace(/&lt;\/?span[^&>]*&gt;/gi, '')
+            .replace(/<\/?span[^>]*>/gi, '')
+            .replace(/\s*style="[^"]*"/gi, '')
+            .replace(/\s*style='[^']*'/gi, '')
+            .replace(/&lt;[^&>]+&gt;/gi, '');
+
+        const stripped = decoded
+            .replace(/<div><br\s*\/?><\/div>/gi, '\n\n')
+            .replace(/<\/(?:div|p|blockquote|h[1-6])>/gi, '\n\n')
+            .replace(/<\/?(?:div|p|blockquote|h[1-6])[^>]*>/gi, '\n')
+            .replace(/<br\s*\/?>/gi, '\n')
+            .replace(/<[^>]+>/g, '');
+
+        const paragraphs = stripped
+            .split(/\n+/)
+            .map(p => p.trim())
+            .filter(p => p.length > 0);
+
+        if (paragraphs.length === 0) {
+            return '<p style="color: #98a2b3; font-style: italic;">No content available for this manuscript.</p>';
+        }
+
+        return paragraphs.map(p => `<p class="viewer-paragraph">${escapeHTML(p)}</p>`).join('');
     }
 
     function showToast(message, type = 'success') {
@@ -702,9 +755,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Paragraphs
         if (viewerContent) {
-            const raw = article.content || article.excerpt || '';
-            const paragraphs = raw.split('\n\n').filter(p => p.trim());
-            viewerContent.innerHTML = paragraphs.map(p => `<p>${escapeHTML(p)}</p>`).join('');
+            viewerContent.innerHTML = formatCleanArticleContent(article.content || article.excerpt);
+        }
+
+                const viewerExcerpt = document.getElementById('viewer-excerpt');
+        if (viewerExcerpt) {
+            const rawExcerpt = (typeof article !== 'undefined' ? article.excerpt : '') || (typeof item !== 'undefined' ? item.excerpt : '') || (typeof art !== 'undefined' ? art.excerpt : '') || '';
+            if (rawExcerpt && rawExcerpt.trim()) {
+                viewerExcerpt.textContent = rawExcerpt.trim();
+                viewerExcerpt.style.display = 'block';
+            } else {
+                viewerExcerpt.style.display = 'none';
+            }
         }
 
         // Banner Image

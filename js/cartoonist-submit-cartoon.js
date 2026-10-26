@@ -141,7 +141,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function showFilePreview(fileName, fileSize, dataUrl) {
         if (previewImg) previewImg.src = dataUrl;
-        if (previewContainer) previewContainer.style.display = 'block';
+        if (previewContainer) previewContainer.style.display = 'flex';
         if (dropzone) dropzone.style.display = 'none';
 
         if (fileInfoBar) {
@@ -158,7 +158,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (previewImg) previewImg.src = '';
         if (previewContainer) previewContainer.style.display = 'none';
         if (fileInfoBar) fileInfoBar.style.display = 'none';
-        if (dropzone) dropzone.style.display = 'block';
+        if (dropzone) dropzone.style.display = 'flex';
     }
 
     if (btnRemovePreview) {

@@ -1,4 +1,4 @@
-import { createImage, articleStats } from "./article-templates.js";
+﻿import { createImage, articleStats } from "./article-templates.js";
 import { escapeHTML, getArticle, getArticleURL, getArticleReadingMinutes, getNewestArticles, getPublicArticles, getShareCount, recordArticleView, recordShareCopy, getAuthorProfileURL } from "./article-utils.js";
 
 let pageScrollLockState = null;
@@ -52,6 +52,51 @@ function getArticleModal() {
     return modal;
 }
 
+function decodeCorruptedHtmlEntities(str) {
+    if (!str || typeof str !== 'string') return '';
+    let decoded = str;
+    let maxPasses = 5;
+    while (maxPasses > 0 && (/&amp;lt;/i.test(decoded) || /&lt;/i.test(decoded) || /&amp;gt;/i.test(decoded) || /&gt;/i.test(decoded))) {
+        const txt = document.createElement('textarea');
+        txt.innerHTML = decoded;
+        const newDecoded = txt.value;
+        if (newDecoded === decoded) break;
+        decoded = newDecoded;
+        maxPasses--;
+    }
+    return decoded;
+}
+
+function renderArticleContentHTML(raw) {
+    if (!raw) return '<p>No content available.</p>';
+    let decoded = decodeCorruptedHtmlEntities(raw);
+
+    // Aggressively remove any span tags and style attributes
+    decoded = decoded
+        .replace(/&lt;\/?span[^&>]*&gt;/gi, '')
+        .replace(/<\/?span[^>]*>/gi, '')
+        .replace(/\s*style="[^"]*"/gi, '')
+        .replace(/\s*style='[^']*'/gi, '')
+        .replace(/&lt;[^&>]+&gt;/gi, '');
+
+    const hasHtmlTags = /<\/?(?:div|p|b|i|u|strong|em|h[1-6]|ul|ol|li|blockquote|br|a)[^>]*>/i.test(decoded);
+    if (hasHtmlTags) {
+        let clean = decoded
+            .replace(/<\/?(?:script|iframe|object|embed|style|span|font)[^>]*>/gi, '')
+            .replace(/<div><br\s*\/?><\/div>/gi, '</p><p>')
+            .replace(/<\/?div[^>]*>/gi, '</p><p>')
+            .replace(/<\/p>\s*<p>/gi, '</p><p>');
+        if (!clean.startsWith('<p>') && !clean.startsWith('<h') && !clean.startsWith('<blockquote')) {
+            clean = `<p>${clean}</p>`;
+        }
+        return clean;
+    }
+    return decoded
+        .split(/\n\s*\n/)
+        .map(paragraph => `<p>${escapeHTML(paragraph.trim()).replace(/\n/g, '<br>')}</p>`)
+        .join('');
+}
+
 function openArticle(articleId) {
     const article = getArticle(articleId);
     if (!article) return;
@@ -61,10 +106,7 @@ function openArticle(articleId) {
     const details = modal.querySelector("#article-details");
     if (!details) return;
 
-    const paragraphs = escapeHTML(article.content || "")
-        .split(/\n\s*\n/)
-        .map(paragraph => `<p>${paragraph.replace(/\n/g, "<br>")}</p>`)
-        .join("");
+    const paragraphs = renderArticleContentHTML(article.content || article.excerpt || "");
     const readingTime = getArticleReadingMinutes(article);
     const relatedArticles = getRelatedArticles(article, 3);
 
@@ -79,6 +121,7 @@ function openArticle(articleId) {
             <span><i class="fa-solid fa-pen-nib" aria-hidden="true"></i> By ${article.author ? `<a class="author-profile-link" href="${getAuthorProfileURL(article.author)}">${escapeHTML(article.author)}</a>` : `<strong>The Lens Staff</strong>`}</span>
             <span>Published ${escapeHTML(article.date)}</span>
         </div>
+        ${article.excerpt ? `<p class="modal-lead-excerpt">${escapeHTML(article.excerpt)}</p>` : ''}
         <figure class="modal-figure">
             ${createImage(article, "modal-image")}
             <figcaption class="modal-caption"><i class="fa-solid fa-camera" aria-hidden="true"></i> ${escapeHTML(article.title)} <span>The Lens / File Photo</span></figcaption>

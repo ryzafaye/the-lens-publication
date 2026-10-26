@@ -1,5 +1,4 @@
-import { articles } from "./articles.js";
-import { escapeHTML, getArticleReadingMinutes, getViewCount } from "./article-utils.js";
+import { escapeHTML, getArticleReadingMinutes, getViewCount, getPublicArticles } from "./article-utils.js";
 import { articleMeta, articleTitle, createImage } from "./article-templates.js";
 
 const roleByCategory = Object.freeze({
@@ -20,7 +19,7 @@ function getRoleForAuthor(authorArticles) {
 function renderAuthorArticle(article) {
     return `
         <article class="author-article-card">
-            <button class="author-article-image article-clickable" type="button" data-article-id="${Number(article.id)}" aria-label="Read article: ${escapeHTML(article.title)}">
+            <button class="author-article-image article-clickable" type="button" data-article-id="${article.id}" aria-label="Read article: ${escapeHTML(article.title)}">
                 ${createImage(article, "author-card-image")}
             </button>
             <div class="author-article-copy">
@@ -40,7 +39,8 @@ export function initAuthorPage() {
     if (!container) return;
 
     const requestedName = (new URLSearchParams(window.location.search).get("name") || "").trim();
-    const authorArticles = articles.filter(article => String(article.author || "").trim().toLocaleLowerCase() === requestedName.toLocaleLowerCase());
+    const publicList = getPublicArticles();
+    const authorArticles = publicList.filter(article => String(article.author || "").trim().toLocaleLowerCase() === requestedName.toLocaleLowerCase());
     const authorName = authorArticles[0]?.author || requestedName;
 
     if (!authorName || !authorArticles.length) {
@@ -58,13 +58,12 @@ export function initAuthorPage() {
     const role = getRoleForAuthor(authorArticles);
     document.title = `${authorName} | The Lens Author Profile`;
     container.innerHTML = `
-        <section class="author-profile-hero" aria-labelledby="author-name">
-            <div class="author-avatar-wrap"><img src="images/member-placeholder.svg" alt="${escapeHTML(authorName)} profile placeholder" class="author-avatar"></div>
-            <div class="author-identity">
-                <p class="author-profile-eyebrow">AUTHOR PROFILE</p>
-                <h1 id="author-name">${escapeHTML(authorName)}</h1>
-                <p class="author-role"><i class="fa-solid fa-pen-nib" aria-hidden="true"></i> ${escapeHTML(role)}</p>
-                <p class="author-profile-summary">Explore the stories and perspectives published under this byline.</p>
+        <section class="author-summary-card">
+            <div class="author-avatar"><i class="fa-solid fa-user-pen" aria-hidden="true"></i></div>
+            <div class="author-summary-copy">
+                <p class="author-role-chip">${escapeHTML(role)}</p>
+                <h1>${escapeHTML(authorName)}</h1>
+                <p class="author-summary-bio">Staff contributor covering university news, campus affairs, and community developments for The Lens Publication.</p>
             </div>
             <div class="author-article-count"><strong>${authorArticles.length}</strong><span>${authorArticles.length === 1 ? "Published article" : "Published articles"}</span></div>
         </section>

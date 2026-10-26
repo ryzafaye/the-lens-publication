@@ -1,3 +1,48 @@
+﻿// One-time automatic workflow purge to guarantee zero-mock state for testing
+try {
+    const CLEAR_FLAG = 'theLens_workflow_v4_purged';
+    if (localStorage.getItem(CLEAR_FLAG) !== 'true') {
+        const keysToRemove = [
+            'theLensWriterArticles_v3',
+            'theLensWriterArticles_v2',
+            'theLensWriterArticles_v1',
+            'sectionHeadReviewQueue_v1',
+            'eicPendingReviewQueue',
+            'executivePendingReviewQueue',
+            'mpc_publish_articles_v2',
+            'mpc_publish_articles_v1',
+            'mpc_approved_covers_v1',
+            'theLensPublishedArticles',
+            'executiveArticles',
+            'theLensArticles',
+            'theLensCartoonistArticles_v1',
+            'cartoonistSubmissions_v1',
+            'articleCoverReviewQueue_v1',
+            'theLensMediaArticles_v1',
+            'mediaTeamSubmissions_v2',
+            'mediaTeamSubmissions_v1',
+            'sectionHeadMyArticles_v1',
+            'eicMyArticles_v1',
+            'executiveMyArticles_v1',
+            'mpcMyArticles_v1',
+            'cartoonistHeadMyArticles_v1',
+            'sectionHeadArticleDrafts',
+            'eicArticleDrafts',
+            'executiveArticleDrafts',
+            'mpcArticleDrafts',
+            'cartoonistHeadArticleDrafts',
+            'mediaArticleDrafts_v1',
+            'cartoonistArticleDrafts_v1',
+            'executiveActivityLogs_v1',
+            'mpcActivityLogs_v1',
+            'cartoonistHeadActivityLogs_v1',
+            'eicActivityLogs_v1',
+            'sectionHeadActivityLogs_v1'
+        ];
+        keysToRemove.forEach(k => localStorage.removeItem(k));
+        localStorage.setItem(CLEAR_FLAG, 'true');
+    }
+} catch (e) {}
 /**
  * ============================================================================
  * THE LENS — REUSABLE MEDIA & PUBLIC COMMUNICATIONS (M&PC) SHELL CONTROLLER
@@ -24,31 +69,42 @@
             let studentNum = '2024-00020-BN-0';
 
             try {
-                const storedRole = localStorage.getItem('mpcRole') || (localStorage.getItem('userRole') && (localStorage.getItem('userRole').toLowerCase().includes('media') || localStorage.getItem('userRole').toLowerCase().includes('communications') || localStorage.getItem('userRole').toLowerCase().includes('m&pc')) ? localStorage.getItem('userRole') : null);
-                const storedName = localStorage.getItem('mpcName') || (storedRole ? localStorage.getItem('userName') : null);
-                const storedNum = localStorage.getItem('mpcStudentNumber') || (storedRole ? localStorage.getItem('studentNumber') : null);
+                const storedRole = localStorage.getItem('mpcRole') || localStorage.getItem('userRole');
+                const storedName = localStorage.getItem('mpcName') || localStorage.getItem('userName');
+                const storedNum = localStorage.getItem('mpcStudentNumber') || localStorage.getItem('studentNumber');
 
-                if (storedRole && (storedRole.toLowerCase().includes('media') || storedRole.toLowerCase().includes('communications') || storedRole.toLowerCase().includes('m&pc'))) {
-                    // Normalize to clean M&PC Head / Assoc M&PC Head
-                    if (storedRole.toLowerCase().includes('assoc')) {
-                        role = 'Assoc M&PC Head';
-                    } else {
-                        role = 'M&PC Head';
-                    }
-                    if (storedName) name = storedName;
-                    if (storedNum) studentNum = storedNum;
+                const isAssoc = storedRole && (
+                    storedRole.toLowerCase().includes('assoc') || 
+                    storedRole.toLowerCase().includes('associate')
+                );
+
+                if (isAssoc) {
+                    role = 'Assoc M&PC Head';
+                    name = storedName || 'Samantha Cruz';
+                    studentNum = storedNum || '2024-00021-BN-0';
+                } else if (storedRole && (
+                    storedRole.toLowerCase().includes('media') || 
+                    storedRole.toLowerCase().includes('communications') || 
+                    storedRole.toLowerCase().includes('m&pc') ||
+                    storedRole.toLowerCase().includes('mpc')
+                )) {
+                    role = 'M&PC Head';
+                    name = storedName || 'Julian Del Rosario';
+                    studentNum = storedNum || '2024-00020-BN-0';
                 } else {
-                    // Initialize default M&PC session
                     role = 'M&PC Head';
                     name = 'Julian Del Rosario';
                     studentNum = '2024-00020-BN-0';
-                    localStorage.setItem('userRole', 'M&PC Head');
-                    localStorage.setItem('userName', 'Julian Del Rosario');
-                    localStorage.setItem('studentNumber', '2024-00020-BN-0');
-                    localStorage.setItem('mpcRole', 'M&PC Head');
-                    localStorage.setItem('mpcName', 'Julian Del Rosario');
-                    localStorage.setItem('mpcStudentNumber', '2024-00020-BN-0');
                 }
+
+                // Synchronize all keys cleanly for complete parity
+                localStorage.setItem('userRole', role);
+                localStorage.setItem('userName', name);
+                localStorage.setItem('studentNumber', studentNum);
+                localStorage.setItem('mpcRole', role);
+                localStorage.setItem('mpcName', name);
+                localStorage.setItem('mpcStudentNumber', studentNum);
+                localStorage.setItem('mpcId', name.toLowerCase().replace(/[^a-z0-9]+/g, '-'));
             } catch (e) {
                 // Storage unavailable
             }
@@ -80,21 +136,26 @@
         // =====================================================================
         // 2. REAL-TIME DESKTOP CLOCK (Asia/Manila)
         // =====================================================================
-        const clockDisplay = document.getElementById('topbar-clock-display');
         function updateDesktopClock() {
-            if (!clockDisplay) return;
+            const clockDisplays = document.querySelectorAll('#topbar-clock-display, .topbar-clock span:last-child');
+            if (!clockDisplays.length) return;
             const now = new Date();
             const datePart = now.toLocaleDateString('en-US', {
+                timeZone: 'Asia/Manila',
                 month: 'short',
                 day: 'numeric',
                 year: 'numeric'
             });
             const timePart = now.toLocaleTimeString('en-US', {
+                timeZone: 'Asia/Manila',
                 hour: 'numeric',
                 minute: '2-digit',
                 hour12: true
             });
-            clockDisplay.textContent = `${datePart} | ${timePart}`;
+            const formatted = datePart + ' | ' + timePart;
+            clockDisplays.forEach(el => {
+                if (el.textContent !== formatted) el.textContent = formatted;
+            });
         }
         updateDesktopClock();
         setInterval(updateDesktopClock, 1000);
@@ -155,10 +216,7 @@
         highlightActiveNavigation();
 
         // =====================================================================
-        // 5. LOGOUT SESSION CLEANUP
-        // =====================================================================
-                // =====================================================================
-        // CUSTOM DESIGNED LOGOUT CONFIRMATION MODAL
+        // 5. CUSTOM DESIGNED LOGOUT CONFIRMATION MODAL (Square, Compact, No Subtitle)
         // =====================================================================
         function showLogoutModal(onConfirm) {
             let modal = document.getElementById('lens-logout-modal');
@@ -171,15 +229,14 @@
                 modal.setAttribute('aria-labelledby', 'lens-logout-title');
                 modal.innerHTML = `
                     <div class="modal-card logout-modal-card">
+                        <button type="button" id="lens-logout-close-btn" class="logout-modal-close-btn" aria-label="Close dialog">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
                         <div class="logout-modal-header">
-                            <button type="button" id="lens-logout-close-btn" class="logout-modal-close-btn" aria-label="Close dialog">
-                                <i class="fa-solid fa-xmark"></i>
-                            </button>
                             <div class="logout-modal-icon-badge">
                                 <i class="fa-solid fa-right-from-bracket"></i>
                             </div>
                             <h2 id="lens-logout-title" class="logout-modal-title">Are you sure you want to log out?</h2>
-                            <p class="logout-modal-desc">You will be signed out of your account and returned to the login screen.</p>
                         </div>
                         <div class="logout-modal-actions">
                             <button type="button" id="lens-logout-cancel-btn" class="logout-btn-cancel">Cancel</button>
@@ -222,21 +279,40 @@
             modal.classList.remove('hidden');
         }
 
-        const logoutBtns = document.querySelectorAll('#logout-btn, #mobile-logout-btn, .logout-btn');
-        logoutBtns.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.preventDefault();
-                showLogoutModal(() => {
-                    try {
-                        localStorage.removeItem('userRole');
-                        localStorage.removeItem('userName');
-                        localStorage.removeItem('studentNumber');
-                        sessionStorage.clear();
-                    } catch (err) {}
-                    window.location.href = 'login.html';
-                });
+        function triggerLogout() {
+            showLogoutModal(() => {
+                try {
+                    localStorage.removeItem('userRole');
+                    localStorage.removeItem('userName');
+                    localStorage.removeItem('studentNumber');
+                    localStorage.removeItem('mpcRole');
+                    localStorage.removeItem('mpcName');
+                    localStorage.removeItem('mpcStudentNumber');
+                    sessionStorage.clear();
+                } catch (err) {}
+                window.location.href = 'login.html';
             });
-        });
+        }
+
+        // Global capture-phase logout listener - intercepts any logout button click anywhere on page
+        document.addEventListener('click', (e) => {
+            const btn = e.target.closest('#logout-btn, #mobile-logout-btn, .logout-btn, .mobile-logout-btn, [data-action="logout"]');
+            if (btn) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+                triggerLogout();
+            }
+        }, true);
+
+        // Auto-close mobile drawer on desktop resize
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 768) {
+                const nav = document.getElementById('mobile-nav-dropdown');
+                const btn = document.getElementById('mobile-hamburger-btn');
+                if (nav) nav.classList.remove('open');
+                if (btn) btn.setAttribute('aria-expanded', 'false');
+            }
         });
 
         // Global interface exposure
@@ -252,4 +328,3 @@
         initMPCShell();
     }
 })();
-

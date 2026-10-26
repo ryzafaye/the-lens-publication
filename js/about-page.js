@@ -5,7 +5,7 @@ const executiveRoles = [
 const editorialRoles = [
     "Editorial-in-Chief", "Associate Editor-in-Chief", "News Editor", "Science and Technology Editor",
     "Feature Editor", "Literature Editor", "Documentary and Podcast Head", "Photojournalist Head",
-    "Media Head", "Associate Media Head", "Cartoonist Head"
+    "M&PC Head", "Assoc M&PC Head", "Cartoonist Head"
 ];
 
 export const leadershipRoster = [...executiveRoles, ...editorialRoles].map((position, index) => ({

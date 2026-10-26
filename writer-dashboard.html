@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -213,7 +213,7 @@
 
                 <div class="writer-stat-card">
                     <div class="stat-number" id="stat-pending-count">0</div>
-                    <div class="stat-label">Pending Submissions</div>
+                    <div class="stat-label">Pending Revision</div>
                 </div>
 
                 <div class="writer-stat-card">
@@ -222,22 +222,42 @@
                 </div>
             </section>
 
-            <!-- Task 2: Recent Articles Header with View All Link -->
-            <div class="writer-section-header animate-fade-in delay-3">
-                <div class="section-title-wrap">
-                    <h2 class="writer-section-title">My Recent Articles</h2>
+            <!-- Dashboard Main Content Grid: Recent Articles & Top Performing Leaderboard -->
+            <div class="writer-dashboard-content-grid animate-fade-in delay-3">
+                
+                <!-- Left Column: My Recent Articles -->
+                <div class="writer-recent-column">
+                    <div class="writer-section-header">
+                        <div class="section-title-wrap">
+                            <h2 class="writer-section-title">My Recent Articles</h2>
+                        </div>
+
+                        <a href="writer-manage-articles.html" class="view-all-link">
+                            <span>View all</span>
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </a>
+                    </div>
+
+                    <!-- Top 7 Articles Horizontal Cards List -->
+                    <section class="writer-articles-list" id="writer-articles-list" aria-label="Recent articles list">
+                        <!-- Dynamically populated by js/writer-dashboard.js -->
+                    </section>
                 </div>
 
-                <a href="writer-manage-articles.html" class="view-all-link">
-                    <span>View all</span>
-                    <i class="fa-solid fa-arrow-right"></i>
-                </a>
-            </div>
+                <!-- Right Column: Top Performing Articles by Logged-in Writer -->
+                <aside class="writer-top-performing-column" aria-label="Top performing articles">
+                    <section class="card-panel">
+                        <div class="panel-header">
+                            <h2 class="panel-title">Top Performing Articles</h2>
+                            <span class="panel-badge">By Views</span>
+                        </div>
+                        <div id="writer-top-performing-list" class="ranked-list">
+                            <!-- Dynamically populated by js/writer-dashboard.js -->
+                        </div>
+                    </section>
+                </aside>
 
-            <!-- Task 2: Top 7 Articles Horizontal Cards List -->
-            <section class="writer-articles-list animate-fade-in delay-4" id="writer-articles-list" aria-label="Recent articles list">
-                <!-- Dynamically populated with top 7 articles by js/writer-dashboard.js -->
-            </section>
+            </div>
 
         </main>
 
@@ -276,6 +296,8 @@
                         <span class="viewer-by">By <strong id="viewer-author">Author Name</strong></span>
                     </div>
                 </div>
+
+                <p id="viewer-excerpt" class="viewer-excerpt" style="display: none;"></p>
 
                 <div id="viewer-banner-wrap" class="viewer-banner" style="display: none;">
                     <img id="viewer-banner-img" src="images/maroon.jpg" alt="Article banner">

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * ============================================================================
  * THE LENS — SUBMIT ARTICLE LOGIC (WRITER PORTAL)
  * Exact design, formatting, and logic parity with the Executive Submit Article.
@@ -426,11 +426,7 @@ document.addEventListener('DOMContentLoaded', () => {
             updateToolbarButtonStates();
         });
 
-        editorContent.addEventListener('paste', () => {
-            setTimeout(() => {
-                updateEditorMetrics();
-            }, 50);
-        });
+        editorContent.addEventListener('paste', handleEditorPaste);
     }
 
     document.addEventListener('selectionchange', () => {
@@ -572,7 +568,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const headline = headlineInput ? headlineInput.value.trim() : '';
         const excerpt = excerptInput ? excerptInput.value.trim() : '';
         const category = categorySelect ? categorySelect.value : '';
-        const bodyHtml = editorContent ? editorContent.innerHTML : '';
+        const bodyHtml = sanitizeEditorHtmlForSave(editorContent ? editorContent.innerHTML : '');
         const bodyText = editorContent ? editorContent.innerText.trim() : '';
 
         // Validation for Draft: Require at least a Title or Content
@@ -656,6 +652,172 @@ document.addEventListener('DOMContentLoaded', () => {
         renderDraftsList();
     }
 
+    function decodeCorruptedHtmlEntities(str) {
+        if (!str || typeof str !== 'string') return '';
+        let decoded = str;
+        let maxPasses = 5;
+        while (maxPasses > 0 && (/&amp;lt;/i.test(decoded) || /&lt;/i.test(decoded) || /&amp;gt;/i.test(decoded) || /&gt;/i.test(decoded))) {
+            const txt = document.createElement('textarea');
+            txt.innerHTML = decoded;
+            const newDecoded = txt.value;
+            if (newDecoded === decoded) break;
+            decoded = newDecoded;
+            maxPasses--;
+        }
+        return decoded;
+    }
+
+    function sanitizeEditorHtmlForSave(raw) {
+        if (!raw) return '';
+        let cleaned = String(raw).trim();
+        cleaned = decodeCorruptedHtmlEntities(cleaned);
+        cleaned = cleaned
+            .replace(/&lt;\/?span[^&>]*&gt;/gi, '')
+            .replace(/<\/?span[^>]*>/gi, '')
+            .replace(/\s*style="[^"]*"/gi, '')
+            .replace(/\s*style='[^']*'/gi, '')
+            .replace(/&lt;[^&>]+&gt;/gi, '');
+        return cleaned;
+    }
+
+    function handleEditorPaste(e) {
+        e.preventDefault();
+        const clipboardData = e.clipboardData || window.clipboardData;
+        if (!clipboardData) return;
+
+        let html = clipboardData.getData('text/html');
+        let text = clipboardData.getData('text/plain') || '';
+
+        let cleanHtml = '';
+
+        if (html) {
+            try {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+
+                // 1. Remove dangerous or non-content tags
+                const removeEls = doc.body.querySelectorAll('script, style, meta, link, object, embed, iframe, font, xml, o\\:p');
+                removeEls.forEach(el => el.remove());
+
+                // 2. Unwrap all span tags and font tags (preserving text)
+                const spans = doc.body.querySelectorAll('span, font, o\\:p');
+                spans.forEach(span => {
+                    const parent = span.parentNode;
+                    if (parent) {
+                        while (span.firstChild) {
+                            parent.insertBefore(span.firstChild, span);
+                        }
+                        parent.removeChild(span);
+                    }
+                });
+
+                // 3. Strip all style, class, id, and foreign typography attributes
+                const allElements = doc.body.querySelectorAll('*');
+                allElements.forEach(el => {
+                    el.removeAttribute('style');
+                    el.removeAttribute('class');
+                    el.removeAttribute('id');
+                    el.removeAttribute('dir');
+                    el.removeAttribute('lang');
+                    el.removeAttribute('face');
+                    el.removeAttribute('size');
+                    el.removeAttribute('color');
+                    el.removeAttribute('align');
+                });
+
+                // 4. Convert <p> tags into <div> tags to maintain Notion-style block rhythm
+                const pTags = doc.body.querySelectorAll('p');
+                pTags.forEach(p => {
+                    const div = doc.createElement('div');
+                    while (p.firstChild) {
+                        div.appendChild(p.firstChild);
+                    }
+                    if (p.parentNode) {
+                        p.parentNode.replaceChild(div, p);
+                    }
+                });
+
+                cleanHtml = doc.body.innerHTML.trim();
+                cleanHtml = cleanHtml
+                    .replace(/<\/?span[^>]*>/gi, '')
+                    .replace(/\s+style="[^"]*"/gi, '')
+                    .replace(/\s+class="[^"]*"/gi, '');
+            } catch (err) {
+                cleanHtml = '';
+            }
+        }
+
+        if (!cleanHtml && text) {
+            const paragraphs = text.split(/\r?\n\r?\n+/).map(p => p.trim()).filter(Boolean);
+            if (paragraphs.length > 0) {
+                cleanHtml = paragraphs.map(p => `<div>${escapeHTML(p)}</div>`).join('<div><br></div>');
+            } else if (text.trim()) {
+                cleanHtml = `<div>${escapeHTML(text.trim())}</div>`;
+            }
+        }
+
+        if (cleanHtml) {
+            const selection = window.getSelection();
+            if (selection && selection.rangeCount > 0) {
+                const range = selection.getRangeAt(0);
+                range.deleteContents();
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = cleanHtml;
+                const frag = document.createDocumentFragment();
+                let node;
+                let lastNode;
+                while ((node = tempDiv.firstChild)) {
+                    lastNode = frag.appendChild(node);
+                }
+                range.insertNode(frag);
+                if (lastNode) {
+                    range.setStartAfter(lastNode);
+                    range.collapse(true);
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                }
+            } else {
+                document.execCommand('insertHTML', false, cleanHtml);
+            }
+        }
+
+        updateEditorMetrics();
+    }
+
+    function sanitizeDraftContentForEditor(raw) {
+        if (!raw) return '';
+        let content = decodeCorruptedHtmlEntities(String(raw).trim());
+
+        // Strip any literal or entity-encoded span tags and style attributes
+        content = content
+            .replace(/&lt;\/?span[^&>]*&gt;/gi, '')
+            .replace(/<\/?span[^>]*>/gi, '')
+            .replace(/\s*style="[^"]*"/gi, '')
+            .replace(/\s*style='[^']*'/gi, '')
+            .replace(/&lt;[^&>]+&gt;/gi, '');
+
+        // Check if content contains any HTML tags (e.g. <div, <p, <b>, <i>, <br>, etc.)
+        const hasHtmlTags = /<\/?(?:div|p|b|i|u|strong|em|h[1-6]|ul|ol|li|blockquote|br|a)[^>]*>/i.test(content);
+
+        if (!hasHtmlTags) {
+            // Truly plain text without any HTML tags: split by double newlines into clean div paragraphs
+            const paras = content.split(/\n\n+/).map(p => p.trim()).filter(Boolean);
+            if (paras.length === 0) return '';
+            return paras.map(p => `<div>${escapeHTML(p)}</div>`).join('<div><br></div>');
+        }
+
+        // If it's already HTML:
+        // Convert any <p> tags into <div> for Notion-style editor
+        let normalized = content
+            .replace(/<\/p>\s*<p[^>]*>/gi, '</div><div><br></div><div>')
+            .replace(/<p[^>]*>/gi, '<div>')
+            .replace(/<\/p>/gi, '</div>')
+            .replace(/<\/?span[^>]*>/gi, '')
+            .replace(/\s*style="[^"]*"/gi, '');
+
+        return normalized;
+    }
+
     function editDraftAction(id) {
         const allArticles = getAllArticles();
         const draft = allArticles.find(d => d.id === id);
@@ -684,19 +846,16 @@ document.addEventListener('DOMContentLoaded', () => {
             handleExcerptInput();
         }
         if (editorContent) {
-            let contentHtml = draft.content || '';
-            // If content is plain text with newlines, convert to clean div paragraphs
-            if (!contentHtml.includes('<div') && !contentHtml.includes('<p')) {
-                contentHtml = contentHtml.split('\n\n').map(p => `<div>${escapeHTML(p)}</div>`).join('<div><br></div>');
-            } else if (contentHtml.includes('<p>') || contentHtml.includes('<p ') || contentHtml.includes('</p>')) {
-                contentHtml = contentHtml
-                    .replace(/<\/p>\s*<p[^>]*>/gi, '</div><div><br></div><div>')
-                    .replace(/<p[^>]*>/gi, '<div>')
-                    .replace(/<\/p>/gi, '</div>');
-            }
-            editorContent.innerHTML = contentHtml;
+            const cleanHtml = sanitizeDraftContentForEditor(draft.content || '');
+            editorContent.innerHTML = cleanHtml;
             editorContent.style.textAlign = 'justify';
             updateEditorMetrics();
+
+            // Self-heal this draft in storage if it was corrupted
+            if (draft.content && cleanHtml && draft.content !== cleanHtml) {
+                draft.content = cleanHtml;
+                saveArticles(allArticles);
+            }
         }
 
         activeEditingDraftId = draft.id;
@@ -814,7 +973,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const headline = headlineInput.value.trim();
         const category = categorySelect.value;
         const excerpt = excerptInput ? excerptInput.value.trim() : '';
-        const bodyHtml = editorContent.innerHTML;
+        const bodyHtml = sanitizeEditorHtmlForSave(editorContent.innerHTML);
         const bodyText = editorContent.innerText.trim();
 
         const newSubmissionId = activeEditingDraftId || `art-sub-${Date.now()}`;
@@ -874,6 +1033,34 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         saveArticles(allArticles);
+
+        // Synchronize with section head review queue in localStorage
+        try {
+            let sectionQueue = [];
+            const rawSecQueue = localStorage.getItem('sectionHeadReviewQueue_v1');
+            if (rawSecQueue) {
+                try {
+                    const parsed = JSON.parse(rawSecQueue);
+                    if (Array.isArray(parsed)) sectionQueue = parsed;
+                } catch (e) {}
+            }
+            sectionQueue = sectionQueue.filter(q => q.id !== newSubmissionId);
+            sectionQueue.unshift({
+                id: newSubmissionId,
+                title: headline,
+                category: category,
+                excerpt: excerpt,
+                date: currentDate,
+                rawDate: currentIsoDate,
+                author: currentUserName,
+                status: 'pending',
+                remarks: '',
+                content: bodyText
+            });
+            localStorage.setItem('sectionHeadReviewQueue_v1', JSON.stringify(sectionQueue));
+        } catch (e) {
+            console.error('Failed to sync to section head queue:', e);
+        }
 
         // Synchronize with executive review queue in localStorage so executive review works
         try {

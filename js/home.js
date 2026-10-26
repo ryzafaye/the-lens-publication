@@ -3,8 +3,18 @@ import { escapeHTML, getNewestArticles, getPublicArticles } from "./article-util
 
 function displayFeaturedArticle() {
     const container = document.getElementById("featured-article");
+    if (!container) return;
     const publicArticles = getPublicArticles();
-    if (!container || !publicArticles.length) return;
+    if (!publicArticles.length) {
+        container.innerHTML = `
+            <div class="p-8 text-center text-slate-400 border border-dashed border-slate-200 rounded-2xl my-4">
+                <i class="fa-regular fa-newspaper text-3xl mb-3 text-slate-300 block"></i>
+                <h3 class="font-bold text-base text-slate-700">No Published Articles Yet</h3>
+                <p class="text-xs text-slate-500 mt-1">Stories published by the editorial team will appear here.</p>
+            </div>
+        `;
+        return;
+    }
     const featured = getNewestArticles(publicArticles)[0];
 
     container.innerHTML = `
@@ -25,7 +35,13 @@ function displayFeaturedArticle() {
 function displayLatestArticles() {
     const container = document.getElementById("latest-articles");
     if (!container) return;
-    const latest = getNewestArticles(getPublicArticles()).slice(1, 5);
+    const publicArticles = getPublicArticles();
+    const latest = getNewestArticles(publicArticles).slice(1, 5);
+
+    if (!latest.length) {
+        container.innerHTML = '<p class="text-xs text-slate-400 py-3 italic">No recent releases yet.</p>';
+        return;
+    }
 
     container.innerHTML = latest.map(article => `
         <article class="latest-item reveal-on-scroll">
@@ -45,7 +61,13 @@ function displayLatestArticles() {
 function displayMoreArticles() {
     const container = document.getElementById("more-articles");
     if (!container) return;
-    const more = getNewestArticles(getPublicArticles()).slice(5, 8);
+    const publicArticles = getPublicArticles();
+    const more = getNewestArticles(publicArticles).slice(5, 8);
+
+    if (!more.length) {
+        container.innerHTML = '<p class="text-xs text-slate-400 py-3 italic col-span-full">No additional stories yet.</p>';
+        return;
+    }
 
     container.innerHTML = more.map(article => `
         <article class="story-card reveal-on-scroll">
@@ -66,7 +88,7 @@ function displayCategory(category, elementId) {
     if (!container) return;
     const matching = getNewestArticles(getPublicArticles().filter(article => article.category === category)).slice(0, 3);
     if (!matching.length) {
-        container.innerHTML = '<p class="empty-state">No articles available yet.</p>';
+        container.innerHTML = '<p class="empty-state text-xs text-slate-400 italic py-2">No articles available yet in this section.</p>';
         return;
     }
 

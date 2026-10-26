@@ -1,7 +1,53 @@
-/**
+﻿/**
  * The Lens — Member Login Logic
  * Frontend simulation with role-based routing
  */
+
+// One-time automatic workflow purge to guarantee zero-mock state for testing
+try {
+    const CLEAR_FLAG = 'theLens_workflow_v4_purged';
+    if (localStorage.getItem(CLEAR_FLAG) !== 'true') {
+        const keysToRemove = [
+            'theLensWriterArticles_v3',
+            'theLensWriterArticles_v2',
+            'theLensWriterArticles_v1',
+            'sectionHeadReviewQueue_v1',
+            'eicPendingReviewQueue',
+            'executivePendingReviewQueue',
+            'mpc_publish_articles_v2',
+            'mpc_publish_articles_v1',
+            'mpc_approved_covers_v1',
+            'theLensPublishedArticles',
+            'executiveArticles',
+            'theLensArticles',
+            'theLensCartoonistArticles_v1',
+            'cartoonistSubmissions_v1',
+            'articleCoverReviewQueue_v1',
+            'theLensMediaArticles_v1',
+            'mediaTeamSubmissions_v2',
+            'mediaTeamSubmissions_v1',
+            'sectionHeadMyArticles_v1',
+            'eicMyArticles_v1',
+            'executiveMyArticles_v1',
+            'mpcMyArticles_v1',
+            'cartoonistHeadMyArticles_v1',
+            'sectionHeadArticleDrafts',
+            'eicArticleDrafts',
+            'executiveArticleDrafts',
+            'mpcArticleDrafts',
+            'cartoonistHeadArticleDrafts',
+            'mediaArticleDrafts_v1',
+            'cartoonistArticleDrafts_v1',
+            'executiveActivityLogs_v1',
+            'mpcActivityLogs_v1',
+            'cartoonistHeadActivityLogs_v1',
+            'eicActivityLogs_v1',
+            'sectionHeadActivityLogs_v1'
+        ];
+        keysToRemove.forEach(k => localStorage.removeItem(k));
+        localStorage.setItem(CLEAR_FLAG, 'true');
+    }
+} catch (e) {}
 
 document.addEventListener('DOMContentLoaded', () => {
     // -------------------------------------------------------------------------
@@ -31,6 +77,15 @@ document.addEventListener('DOMContentLoaded', () => {
         // Media & Public Communications (M&PC Heads)
         "2024-00020-BN-0": { role: "M&PC Head", name: "Julian Del Rosario", isWriter: false, isSectionHead: false, isMPC: true },
         "2024-00021-BN-0": { role: "Assoc M&PC Head", name: "Samantha Cruz", isWriter: false, isSectionHead: false, isMPC: true },
+        "M&PC Head": { role: "M&PC Head", name: "Julian Del Rosario", studentNumber: "2024-00020-BN-0", isWriter: false, isSectionHead: false, isMPC: true },
+        "Assoc M&PC Head": { role: "Assoc M&PC Head", name: "Samantha Cruz", studentNumber: "2024-00021-BN-0", isWriter: false, isSectionHead: false, isMPC: true },
+        "Assoc Head": { role: "Assoc M&PC Head", name: "Samantha Cruz", studentNumber: "2024-00021-BN-0", isWriter: false, isSectionHead: false, isMPC: true },
+        "Associate Head": { role: "Assoc M&PC Head", name: "Samantha Cruz", studentNumber: "2024-00021-BN-0", isWriter: false, isSectionHead: false, isMPC: true },
+        "Julian Del Rosario": { role: "M&PC Head", name: "Julian Del Rosario", studentNumber: "2024-00020-BN-0", isWriter: false, isSectionHead: false, isMPC: true },
+        "Samantha Cruz": { role: "Assoc M&PC Head", name: "Samantha Cruz", studentNumber: "2024-00021-BN-0", isWriter: false, isSectionHead: false, isMPC: true },
+
+        // Cartoonist Head
+        "2024-00030-BN-0": { role: "Cartoonist Head", name: "Danilo Reyes", isCartoonistHead: true, isWriter: false, isSectionHead: false },
 
         // Media & Communication Team
         "2024-00080-BN-0": { role: "Media & Communication", name: "Alyssa Marie Dizon", isMedia: true, isWriter: false, isSectionHead: false },
@@ -115,27 +170,93 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Validate against dummy accounts & required password
-        const account = (typeof DUMMY_ACCOUNTS[studentVal] === 'object') 
+        // Validate against dummy accounts & required password (with case-insensitive / alias fallback)
+        let account = (typeof DUMMY_ACCOUNTS[studentVal] === 'object') 
             ? DUMMY_ACCOUNTS[studentVal] 
             : (DUMMY_ACCOUNTS[studentVal] ? { role: DUMMY_ACCOUNTS[studentVal], name: DUMMY_ACCOUNTS[studentVal].includes('Writer') ? 'Sofia M. Alcaraz' : 'Juan Dela Cruz', isWriter: DUMMY_ACCOUNTS[studentVal].toLowerCase().includes('writer') } : null);
+
+        if (!account) {
+            const cleanKey = studentVal.trim().toLowerCase();
+            for (const [k, v] of Object.entries(DUMMY_ACCOUNTS)) {
+                if (k.toLowerCase() === cleanKey) {
+                    account = v;
+                    break;
+                }
+            }
+        }
+
+        if (!account) {
+            try {
+                const storedOfficers = JSON.parse(localStorage.getItem('manageAccountsOfficers_v1') || '[]');
+                const found = storedOfficers.find(o => 
+                    (o.studentNumber && o.studentNumber.toLowerCase() === studentVal.toLowerCase()) ||
+                    (o.name && o.name.toLowerCase() === studentVal.toLowerCase())
+                );
+                if (found) {
+                    account = {
+                        role: found.role,
+                        name: found.name,
+                        studentNumber: found.studentNumber,
+                        isWriter: found.role.toLowerCase().includes('writer')
+                    };
+                }
+            } catch (e) {}
+        }
 
         const isPasswordCorrect = (passVal === REQUIRED_PASSWORD);
 
         if (account && isPasswordCorrect) {
-            // Determine role persona: Cartoonist, Media Team, Writer, Section Head, EIC, MPC, or Executive
-            const isCartoonist = account.isCartoonist || account.role.toLowerCase().includes('cartoonist');
-            const isMedia = !isCartoonist && (account.isMedia || (!account.isMPC && (account.role.toLowerCase().includes('media & communication') || account.role.toLowerCase().includes('media and communication'))));
-            const isMPC = !isCartoonist && ((account.isMPC || account.role.toLowerCase().includes('m&pc') || (account.role.toLowerCase().includes('media') && account.role.toLowerCase().includes('head'))) && !isMedia);
-            const isWriter = !isCartoonist && !isMedia && (account.isWriter || account.role.toLowerCase().includes('writer') || account.role.toLowerCase().includes('contributor'));
-            const isEIC = !isCartoonist && (account.isEIC || account.role.toLowerCase().includes('chief') || account.role.toLowerCase().includes('eic'));
-            const isSectionHead = !isCartoonist && !isMedia && (account.isSectionHead || (account.role.toLowerCase().includes('head') && !account.role.toLowerCase().includes('chief') && !account.role.toLowerCase().includes('communications') && !account.role.toLowerCase().includes('media') && !account.role.toLowerCase().includes('m&pc')));
+            // Determine role persona: Cartoonist Head, Cartoonist, Media Team, Writer, Section Head, EIC, MPC, or Executive
+            const isCartoonistHead = account.isCartoonistHead || (account.role.toLowerCase().includes('cartoonist') && account.role.toLowerCase().includes('head'));
+            const isCartoonist = !isCartoonistHead && (account.isCartoonist || account.role.toLowerCase().includes('cartoonist'));
+            const isMedia = !isCartoonistHead && !isCartoonist && (account.isMedia || (!account.isMPC && (account.role.toLowerCase().includes('media & communication') || account.role.toLowerCase().includes('media and communication'))));
+            
+            const isMPC = !isCartoonistHead && !isCartoonist && !isMedia && (
+                account.isMPC ||
+                account.role.toLowerCase().includes('m&pc') ||
+                account.role.toLowerCase().includes('mpc') ||
+                account.role.toLowerCase().includes('assoc head') ||
+                account.role.toLowerCase().includes('associate head') ||
+                account.role.toLowerCase().includes('assoc m&pc') ||
+                account.role.toLowerCase().includes('associate m&pc') ||
+                account.role.toLowerCase().includes('associate media') ||
+                account.role.toLowerCase().includes('media head') ||
+                (account.role.toLowerCase().includes('media') && account.role.toLowerCase().includes('head'))
+            );
+
+            const isWriter = !isCartoonistHead && !isCartoonist && !isMedia && !isMPC && (account.isWriter || account.role.toLowerCase().includes('writer') || account.role.toLowerCase().includes('contributor'));
+            const isEIC = !isCartoonistHead && !isCartoonist && !isMedia && !isMPC && (account.isEIC || account.role.toLowerCase().includes('chief') || account.role.toLowerCase().includes('eic'));
+            
+            const isSectionHead = !isCartoonistHead && !isCartoonist && !isMedia && !isMPC && !isEIC && (
+                account.isSectionHead || (
+                    account.role.toLowerCase().includes('head') &&
+                    !account.role.toLowerCase().includes('chief') &&
+                    !account.role.toLowerCase().includes('communications') &&
+                    !account.role.toLowerCase().includes('media') &&
+                    !account.role.toLowerCase().includes('m&pc') &&
+                    !account.role.toLowerCase().includes('mpc') &&
+                    !account.role.toLowerCase().includes('assoc') &&
+                    !account.role.toLowerCase().includes('associate')
+                )
+            );
 
             let targetPage = 'executive-dashboard.html';
             let portalName = 'Executive Dashboard';
 
             // Fully isolate session storage per persona to prevent data bleed
-            if (isCartoonist) {
+            if (isCartoonistHead) {
+                targetPage = 'cartoonist-head-dashboard.html';
+                portalName = 'Cartoonist Head Dashboard';
+                localStorage.setItem('userRole', account.role || 'Cartoonist Head');
+                localStorage.setItem('userName', account.name);
+                localStorage.setItem('studentNumber', studentVal);
+                localStorage.setItem('cartoonistHeadRole', account.role || 'Cartoonist Head');
+                localStorage.setItem('cartoonistHeadName', account.name);
+                localStorage.setItem('cartoonistHeadStudentNumber', studentVal);
+                localStorage.setItem('cartoonistHeadId', account.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'));
+                const avatar = localStorage.getItem('cartoonistHeadAvatar') || 'images/member-placeholder.svg';
+                localStorage.setItem('userAvatar', avatar);
+            } else if (isCartoonist) {
                 targetPage = 'cartoonist-dashboard.html';
                 portalName = 'Cartoonist Dashboard';
                 localStorage.setItem('userRole', account.role || 'Cartoonist');
@@ -197,12 +318,18 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (isMPC) {
                 targetPage = 'mpc-dashboard.html';
                 portalName = 'Media & Public Communications Dashboard';
-                localStorage.setItem('userRole', account.role);
-                localStorage.setItem('userName', account.name);
-                localStorage.setItem('studentNumber', studentVal);
-                localStorage.setItem('mpcRole', account.role);
-                localStorage.setItem('mpcName', account.name);
-                localStorage.setItem('mpcStudentNumber', studentVal);
+                const isAssoc = account.role.toLowerCase().includes('assoc') || account.role.toLowerCase().includes('associate');
+                const canonicalRole = isAssoc ? 'Assoc M&PC Head' : 'M&PC Head';
+                const canonicalName = account.name || (isAssoc ? 'Samantha Cruz' : 'Julian Del Rosario');
+                const canonicalNumber = account.studentNumber || (studentVal.includes('BN-0') ? studentVal : (isAssoc ? '2024-00021-BN-0' : '2024-00020-BN-0'));
+
+                localStorage.setItem('userRole', canonicalRole);
+                localStorage.setItem('userName', canonicalName);
+                localStorage.setItem('studentNumber', canonicalNumber);
+                localStorage.setItem('mpcRole', canonicalRole);
+                localStorage.setItem('mpcName', canonicalName);
+                localStorage.setItem('mpcStudentNumber', canonicalNumber);
+                localStorage.setItem('mpcId', canonicalName.toLowerCase().replace(/[^a-z0-9]+/g, '-'));
                 const avatar = localStorage.getItem('mpcAvatar') || 'images/member-placeholder.svg';
                 localStorage.setItem('userAvatar', avatar);
             } else {

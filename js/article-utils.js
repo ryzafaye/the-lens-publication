@@ -66,7 +66,7 @@ export function getPublicArticles() {
             const parsed = JSON.parse(raw);
             if (Array.isArray(parsed)) {
                 storageArticles = parsed
-                    .filter(a => a.status === 'published' || a.status === 'Published')
+                    .filter(a => (a.status === 'published' || a.status === 'Published') && !isArchivedArticle(a))
                     .map(item => ({
                         id: item.id,
                         category: item.category || 'News',
@@ -75,7 +75,7 @@ export function getPublicArticles() {
                         views: Number(item.views) || 0,
                         readTime: item.readTime || '2 min read',
                         shares: Number(item.shares) || 0,
-                        isArchived: Boolean(item.isArchived),
+                        isArchived: false,
                         title: item.title,
                         excerpt: item.excerpt || (item.body ? item.body.replace(/<[^>]*>/g, '').slice(0, 160) + '...' : ''),
                         author: item.author || 'The Lens Staff',
@@ -99,9 +99,52 @@ export function getPublicArticles() {
     return combined.filter(article => !isArchivedArticle(article));
 }
 
+export function getArchivedArticles() {
+    let storageArticles = [];
+    try {
+        const raw = localStorage.getItem('theLensPublishedArticles') || localStorage.getItem('mpc_publish_articles_v2');
+        if (raw) {
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed)) {
+                storageArticles = parsed
+                    .filter(a => isArchivedArticle(a))
+                    .map(item => ({
+                        id: item.id,
+                        category: item.category || 'News',
+                        date: item.publishedAt || item.date || item.dateApproved || 'Oct 26, 2026',
+                        rawDate: item.rawDate || new Date().toISOString().split('T')[0],
+                        views: Number(item.views) || 0,
+                        readTime: item.readTime || '2 min read',
+                        shares: Number(item.shares) || 0,
+                        isArchived: true,
+                        title: item.title,
+                        excerpt: item.excerpt || (item.body ? item.body.replace(/<[^>]*>/g, '').slice(0, 160) + '...' : ''),
+                        author: item.author || 'The Lens Staff',
+                        image: item.image || item.coverImage || 'images/maroon.jpg',
+                        color: item.color || '#571525',
+                        tags: item.tags || [item.category ? item.category.toLowerCase() : 'campus'],
+                        content: item.body || item.content || ''
+                    }));
+            }
+        }
+    } catch (e) {}
+
+    const staticList = (articles || []).filter(article => isArchivedArticle(article));
+    const combined = [...storageArticles];
+    staticList.forEach(s => {
+        if (!combined.some(c => String(c.id) === String(s.id))) {
+            combined.push(s);
+        }
+    });
+
+    return combined;
+}
+
 export function getArticle(id) {
-    const list = getPublicArticles();
-    return list.find(article => String(article.id) === String(id));
+    if (!id) return undefined;
+    const cleanId = String(id).trim();
+    const list = [...getPublicArticles(), ...getArchivedArticles()];
+    return list.find(article => String(article.id).trim() === cleanId);
 }
 
 export function getAuthorProfileURL(authorName) {

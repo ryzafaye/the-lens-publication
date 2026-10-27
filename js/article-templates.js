@@ -16,7 +16,7 @@ export function articleTitle(article, className = "") {
     return `
         <button type="button"
             class="article-title-button ${escapeHTML(className)}"
-            data-article-id="${Number(article.id)}"
+            data-article-id="${escapeHTML(article.id)}"
             aria-label="Read article: ${escapeHTML(article.title)}">
             ${escapeHTML(article.title)}
         </button>
@@ -47,14 +47,14 @@ export function articleStats(article, { includeReadingTime = true } = {}) {
         <div class="article-stats" aria-label="Article engagement and reading time">
             <span class="article-view-count" title="Views">
                 <i class="fa-regular fa-eye" aria-hidden="true"></i>
-                <span data-view-count="${Number(article.id)}">${views}</span><span class="stat-label">views</span>
+                <span data-view-count="${escapeHTML(article.id)}">${views}</span><span class="stat-label">views</span>
             </span>
             ${readingTimeMarkup}
-            <button type="button" class="article-share-button" data-copy-article-id="${Number(article.id)}"
+            <button type="button" class="article-share-button" data-copy-article-id="${escapeHTML(article.id)}"
                 aria-label="Copy link to ${escapeHTML(article.title)}; ${shares} copies recorded" title="Copy article link">
                 <i class="fa-solid fa-share-nodes" aria-hidden="true"></i>
                 <span>Share</span>
-                <span class="share-count" data-share-count="${Number(article.id)}">${shares}</span>
+                <span class="share-count" data-share-count="${escapeHTML(article.id)}">${shares}</span>
             </button>
         </div>
     `;
@@ -85,8 +85,8 @@ export function createImage(article, imageClass = "") {
 // Shared list item on Latest and category pages.
 export function categoryListItem(article) {
     return `
-        <article class="category-list-card reveal-on-scroll">
-            <button type="button" class="category-list-image article-clickable" data-article-id="${Number(article.id)}"
+        <article class="category-list-card reveal-on-scroll" data-article-id="${escapeHTML(article.id)}" style="cursor: pointer;">
+            <button type="button" class="category-list-image article-clickable" data-article-id="${escapeHTML(article.id)}"
                 aria-label="Read article: ${escapeHTML(article.title)}">
                 ${createImage(article, "category-list-thumb")}
             </button>

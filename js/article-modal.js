@@ -1,4 +1,4 @@
-﻿import { createImage, articleStats } from "./article-templates.js";
+import { createImage, articleStats } from "./article-templates.js";
 import { escapeHTML, getArticle, getArticleURL, getArticleReadingMinutes, getNewestArticles, getPublicArticles, getShareCount, recordArticleView, recordShareCopy, getAuthorProfileURL } from "./article-utils.js";
 
 let pageScrollLockState = null;
@@ -124,7 +124,7 @@ function openArticle(articleId) {
         ${article.excerpt ? `<p class="modal-lead-excerpt">${escapeHTML(article.excerpt)}</p>` : ''}
         <figure class="modal-figure">
             ${createImage(article, "modal-image")}
-            <figcaption class="modal-caption"><i class="fa-solid fa-camera" aria-hidden="true"></i> ${escapeHTML(article.title)} <span>The Lens / File Photo</span></figcaption>
+            <figcaption class="modal-caption"><i class="fa-solid fa-camera" aria-hidden="true"></i> ${escapeHTML(article.title)} <span>The Lens / Cover Media</span></figcaption>
         </figure>
         <div class="modal-body">${paragraphs}</div>
         <div class="modal-engagement-row">${articleStats(article, { includeReadingTime: false })}</div>
@@ -145,11 +145,11 @@ function openArticle(articleId) {
     lockPageScroll();
     const scrollContainer = modal.querySelector(".modal-scroll-container");
     if (scrollContainer) scrollContainer.scrollTop = 0;
-    history.replaceState(null, "", `#article-${article.id}`);
+    history.replaceState(null, "", `#article-${encodeURIComponent(article.id)}`);
 }
 
 function getRelatedArticles(article, limit = 3) {
-    const remaining = getPublicArticles().filter(item => Number(item.id) !== Number(article.id));
+    const remaining = getPublicArticles().filter(item => String(item.id) !== String(article.id));
     const newest = getNewestArticles(remaining);
     newest.sort((a, b) => {
         const sameCategoryA = a.category === article.category ? 1 : 0;
@@ -163,13 +163,13 @@ function getRelatedArticles(article, limit = 3) {
 function renderRelatedArticle(article) {
     const minutes = getArticleReadingMinutes(article);
     return `
-        <article class="continue-story-card">
-            <button type="button" class="continue-story-image article-clickable" data-article-id="${Number(article.id)}" aria-label="Read article: ${escapeHTML(article.title)}">
+        <article class="continue-story-card" data-article-id="${escapeHTML(article.id)}" style="cursor: pointer;">
+            <button type="button" class="continue-story-image article-clickable" data-article-id="${escapeHTML(article.id)}" aria-label="Read article: ${escapeHTML(article.title)}">
                 ${createImage(article, "continue-story-thumb")}
             </button>
             <div class="continue-story-copy">
                 <p class="continue-story-category">${escapeHTML(article.category || "The Lens")}</p>
-                <h3><button type="button" class="article-title-button continue-story-title" data-article-id="${Number(article.id)}">${escapeHTML(article.title)}</button></h3>
+                <h3><button type="button" class="article-title-button continue-story-title" data-article-id="${escapeHTML(article.id)}">${escapeHTML(article.title)}</button></h3>
                 <p class="continue-story-excerpt">${escapeHTML(article.excerpt || "Read more from The Lens.")}</p>
                 <p class="continue-story-byline">By ${article.author ? `<a class="author-profile-link" href="${getAuthorProfileURL(article.author)}">${escapeHTML(article.author)}</a>` : `<strong>The Lens Staff</strong>`}</p>
                 <p class="continue-story-meta"><span><i class="fa-regular fa-clock" aria-hidden="true"></i> ${minutes} min read</span><span>${escapeHTML(article.date || "")}</span></p>
@@ -193,7 +193,7 @@ async function copyArticleLink(button, articleId) {
     try {
         await navigator.clipboard.writeText(url);
         const copies = recordShareCopy(articleId);
-        button.innerHTML = `<i class="fa-solid fa-check" aria-hidden="true"></i><span>Link copied</span><span class="share-count" data-share-count="${Number(articleId)}">${copies}</span>`;
+        button.innerHTML = `<i class="fa-solid fa-check" aria-hidden="true"></i><span>Link copied</span><span class="share-count" data-share-count="${escapeHTML(articleId)}">${copies}</span>`;
         window.setTimeout(() => {
             if (!button.isConnected) return;
             button.innerHTML = originalHTML;
@@ -204,18 +204,18 @@ async function copyArticleLink(button, articleId) {
         const result = window.prompt("Copy this article link:", url);
         if (result !== null) {
             const copies = recordShareCopy(articleId);
-            button.innerHTML = `<i class="fa-solid fa-check" aria-hidden="true"></i><span>Link copied</span><span class="share-count" data-share-count="${Number(articleId)}">${copies}</span>`;
+            button.innerHTML = `<i class="fa-solid fa-check" aria-hidden="true"></i><span>Link copied</span><span class="share-count" data-share-count="${escapeHTML(articleId)}">${copies}</span>`;
             window.setTimeout(() => {
-            if (!button.isConnected) return;
-            button.innerHTML = originalHTML;
-            const countNode = button.querySelector("[data-share-count]");
-            if (countNode) countNode.textContent = getShareCount(articleId).toLocaleString();
-        }, 1800);
+                if (!button.isConnected) return;
+                button.innerHTML = originalHTML;
+                const countNode = button.querySelector("[data-share-count]");
+                if (countNode) countNode.textContent = getShareCount(articleId).toLocaleString();
+            }, 1800);
         }
     }
 }
 
-// Article buttons are rendered from data, so delegation supports every page.
+// Article buttons and cards are rendered from data, so delegation supports every page.
 document.addEventListener("click", event => {
     const copyButton = event.target.closest("[data-copy-article-id]");
     if (copyButton) {
@@ -225,16 +225,34 @@ document.addEventListener("click", event => {
         return;
     }
 
+    // Do not intercept author profile links so readers can view author pages
+    if (event.target.closest(".author-profile-link") || event.target.closest("a[href*='author.html']")) {
+        return;
+    }
+
+    const closeBtn = event.target.closest("#close-article") || event.target.closest(".close-modal") || event.target.closest(".close-article") || event.target.closest(".modal-topbar-close");
+    if (closeBtn) {
+        closeArticle();
+        return;
+    }
+
     const trigger = event.target.closest("[data-article-id]");
-    if (trigger) openArticle(trigger.dataset.articleId);
-    if (event.target.closest("#close-article") || event.target.closest(".close-modal") || event.target.closest(".close-article") || event.target.closest(".modal-topbar-close")) closeArticle();
+    if (trigger) {
+        const id = trigger.dataset.articleId;
+        if (id && id !== "NaN" && id !== "undefined") {
+            openArticle(id);
+        }
+    }
 });
 
 document.addEventListener("keydown", event => {
     const trigger = event.target.closest('[role="button"][data-article-id]');
     if (trigger && (event.key === "Enter" || event.key === " ")) {
         event.preventDefault();
-        openArticle(trigger.dataset.articleId);
+        const id = trigger.dataset.articleId;
+        if (id && id !== "NaN" && id !== "undefined") {
+            openArticle(id);
+        }
     }
 });
 
@@ -243,8 +261,8 @@ document.addEventListener("keydown", event => {
 // or Escape so interacting with the native scrollbar never dismisses the article.
 
 function openArticleFromHash() {
-    const match = window.location.hash.match(/^#article-(\d+)$/);
-    if (match) openArticle(match[1]);
+    const match = window.location.hash.match(/^#article-(.+)$/);
+    if (match && match[1]) openArticle(decodeURIComponent(match[1]));
 }
 window.addEventListener("hashchange", openArticleFromHash);
 if (window.location.hash) window.setTimeout(openArticleFromHash, 0);

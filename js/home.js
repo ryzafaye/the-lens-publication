@@ -18,8 +18,8 @@ function displayFeaturedArticle() {
     const featured = getNewestArticles(publicArticles)[0];
 
     container.innerHTML = `
-        <article class="featured-story reveal-on-scroll">
-            <button type="button" data-article-id="${featured.id}" class="featured-image-trigger article-clickable" aria-label="Read article: ${escapeHTML(featured.title)}">
+        <article class="featured-story reveal-on-scroll" data-article-id="${escapeHTML(featured.id)}" style="cursor: pointer;">
+            <button type="button" data-article-id="${escapeHTML(featured.id)}" class="featured-image-trigger article-clickable" aria-label="Read article: ${escapeHTML(featured.title)}">
                 ${createImage(featured, "featured-image")}
             </button>
             ${articleMeta(featured)}
@@ -44,14 +44,14 @@ function displayLatestArticles() {
     }
 
     container.innerHTML = latest.map(article => `
-        <article class="latest-item reveal-on-scroll">
+        <article class="latest-item reveal-on-scroll" data-article-id="${escapeHTML(article.id)}" style="cursor: pointer;">
             <div class="latest-item-copy">
                 <p class="latest-category">${escapeHTML(article.category)}</p>
                 <h3 class="latest-title">${articleTitle(article)}</h3>
                 ${articleByline(article)}
                 ${articleStats(article)}
             </div>
-            <button type="button" data-article-id="${article.id}" class="latest-image-trigger article-clickable" aria-label="Read article: ${escapeHTML(article.title)}">
+            <button type="button" data-article-id="${escapeHTML(article.id)}" class="latest-image-trigger article-clickable" aria-label="Read article: ${escapeHTML(article.title)}">
                 ${createImage(article, "latest-image")}
             </button>
         </article>
@@ -70,8 +70,8 @@ function displayMoreArticles() {
     }
 
     container.innerHTML = more.map(article => `
-        <article class="story-card reveal-on-scroll">
-            <button type="button" data-article-id="${article.id}" class="story-card-image-trigger article-clickable" aria-label="Read article: ${escapeHTML(article.title)}">
+        <article class="story-card reveal-on-scroll" data-article-id="${escapeHTML(article.id)}" style="cursor: pointer;">
+            <button type="button" data-article-id="${escapeHTML(article.id)}" class="story-card-image-trigger article-clickable" aria-label="Read article: ${escapeHTML(article.title)}">
                 ${createImage(article, "story-card-image")}
             </button>
             ${articleMeta(article)}
@@ -93,8 +93,8 @@ function displayCategory(category, elementId) {
     }
 
     container.innerHTML = matching.map(article => `
-        <article class="category-card reveal-on-scroll">
-            <button type="button" data-article-id="${article.id}" class="category-image-trigger article-clickable" aria-label="Read article: ${escapeHTML(article.title)}">
+        <article class="category-card reveal-on-scroll" data-article-id="${escapeHTML(article.id)}" style="cursor: pointer;">
+            <button type="button" data-article-id="${escapeHTML(article.id)}" class="category-image-trigger article-clickable" aria-label="Read article: ${escapeHTML(article.title)}">
                 ${createImage(article, "small-image")}
             </button>
             <div class="category-card-copy">

@@ -6,22 +6,23 @@
 
 .story-card-title {
     margin: 0 0 7px;
-    font-family: var(--heading-font);
+    font-family: var(--heading-font, Georgia, serif);
     font-size: 17px;
     font-weight: 800;
     line-height: 1.25;
+    transition: color 0.2s ease;
 }
 
 .story-card-category {
     margin: 9px 0 7px;
-    color: var(--wine);
+    color: var(--wine, #571525);
     font-size: 10px;
     font-weight: 700;
 }
 
 .story-card-excerpt {
     margin: 0;
-    color: var(--muted);
+    color: var(--muted, #776b6d);
     font-size: 12px;
     line-height: 1.65;
 }
@@ -31,7 +32,7 @@
 .archive-item,
 .category-card,
 .story-card {
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color, #e6d8dd);
     padding-bottom: 20px;
     margin-bottom: 20px;
 }
@@ -40,15 +41,16 @@
 .archive-item h3,
 .category-card h3 {
     margin: 8px 0;
-    color: var(--maroon);
+    color: var(--maroon, #700f2b);
     font-weight: 800;
+    transition: color 0.2s ease;
 }
 
 .latest-item p,
 .archive-item p,
 .category-card p,
 .story-card-excerpt {
-    color: var(--text-muted);
+    color: var(--text-muted, #756a70);
     font-size: 14px;
 }
 
@@ -70,13 +72,26 @@
     display: flex;
     flex-direction: column;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
-    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    cursor: pointer;
+    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+                border-color 0.28s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .story-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 10px 20px rgba(112, 15, 43, 0.08);
-    border-color: #700f2b;
+    transform: translateY(-4px);
+    box-shadow: 0 14px 28px -6px rgba(87, 21, 37, 0.16), 0 4px 12px -2px rgba(0, 0, 0, 0.06);
+    border-color: #8f1d35;
+}
+
+.story-card:hover .story-card-title,
+.story-card:hover .article-title-button {
+    color: #720f2a;
+}
+
+.story-card:hover .story-card-image img {
+    transform: scale(1.045);
+    filter: brightness(1.03);
 }
 
 /* Category Section Grid Cards */
@@ -90,14 +105,27 @@
     gap: 14px;
     align-items: center;
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
-    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    cursor: pointer;
+    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+                border-color 0.28s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .category-card:hover {
     background: #ffffff;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 14px rgba(112, 15, 43, 0.07);
-    border-color: #8d1b3d;
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px -4px rgba(87, 21, 37, 0.14), 0 4px 10px -2px rgba(0, 0, 0, 0.05);
+    border-color: #8f1d35;
+}
+
+.category-card:hover h3,
+.category-card:hover .article-title-button {
+    color: #720f2a;
+}
+
+.category-card:hover .small-image img {
+    transform: scale(1.045);
+    filter: brightness(1.03);
 }
 
 .category-card .article-image {

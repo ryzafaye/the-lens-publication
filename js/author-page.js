@@ -18,8 +18,8 @@ function getRoleForAuthor(authorArticles) {
 
 function renderAuthorArticle(article) {
     return `
-        <article class="author-article-card">
-            <button class="author-article-image article-clickable" type="button" data-article-id="${article.id}" aria-label="Read article: ${escapeHTML(article.title)}">
+        <article class="author-article-card" data-article-id="${escapeHTML(article.id)}" style="cursor: pointer;">
+            <button class="author-article-image article-clickable" type="button" data-article-id="${escapeHTML(article.id)}" aria-label="Read article: ${escapeHTML(article.title)}">
                 ${createImage(article, "author-card-image")}
             </button>
             <div class="author-article-copy">

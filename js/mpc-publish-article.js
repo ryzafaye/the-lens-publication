@@ -581,6 +581,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         setTimeout(() => {
             article.status = 'published';
+            article.isArchived = false;
+            article.archived = false;
             article.publishedAt = new Date().toLocaleDateString('en-US', {
                 month: 'short',
                 day: 'numeric',
@@ -605,6 +607,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 pubList = pubList.filter(p => p.id !== article.id);
                 pubList.unshift({
                     ...article,
+                    status: 'published',
+                    isArchived: false,
+                    archived: false,
                     image: article.image || 'images/maroon.jpg',
                     content: article.body || article.content || ''
                 });

@@ -1,13 +1,13 @@
 import { articleTitle, articleMeta, articleStats, articleByline, createImage } from "./article-templates.js";
-import { articleMatchesDateFilter, escapeHTML, sortArticlesList, getPublicArticles } from "./article-utils.js";
+import { articleMatchesDateFilter, escapeHTML, sortArticlesList, getArchivedArticles } from "./article-utils.js";
 
 export function displayArchives(category = "All", searchTerm = "", sortBy = "newest", dateType = "any", dateValue = "") {
     const container = document.getElementById("archive-articles");
     if (!container) return 0;
     const query = searchTerm.trim().toLowerCase();
 
-    const publicArticles = getPublicArticles();
-    let matches = publicArticles.filter(article => {
+    const archivedArticles = getArchivedArticles();
+    let matches = archivedArticles.filter(article => {
         const categoryMatches = category === "All" || article.category === category;
         const searchable = [article.title, article.excerpt, article.content, article.author, article.category, ...(article.tags || [])]
             .filter(Boolean).join(" ").toLowerCase();
@@ -25,8 +25,8 @@ export function displayArchives(category = "All", searchTerm = "", sortBy = "new
             </div>`;
     } else {
         container.innerHTML = matches.map(article => `
-            <article class="archive-item reveal-on-scroll">
-                <button type="button" data-article-id="${article.id}" class="archive-image-trigger article-clickable" aria-label="Read article: ${escapeHTML(article.title)}">
+            <article class="archive-item reveal-on-scroll" data-article-id="${escapeHTML(article.id)}" style="cursor: pointer;">
+                <button type="button" data-article-id="${escapeHTML(article.id)}" class="archive-image-trigger article-clickable" aria-label="Read article: ${escapeHTML(article.title)}">
                     ${createImage(article, "archive-image")}
                 </button>
                 <div class="archive-item-copy">

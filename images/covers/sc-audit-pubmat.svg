@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3d0510"/>
+      <stop offset="50%" stop-color="#5c0a18"/>
+      <stop offset="100%" stop-color="#1a0206"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#fbbf24"/>
+    </linearGradient>
+  </defs>
+  <!-- Background -->
+  <rect width="800" height="500" fill="url(#bg)"/>
+  <!-- Decorative grid lines -->
+  <line x1="60" y1="60" x2="740" y2="60" stroke="rgba(255,255,255,0.15)" stroke-dasharray="4,4"/>
+  <line x1="60" y1="440" x2="740" y2="440" stroke="rgba(255,255,255,0.15)" stroke-dasharray="4,4"/>
+  
+  <!-- Masthead Badge -->
+  <rect x="60" y="80" width="130" height="28" rx="4" fill="url(#gold)"/>
+  <text x="125" y="99" fill="#1e1b4b" font-family="'DM Sans', sans-serif" font-weight="800" font-size="12" text-anchor="middle" letter-spacing="1">SPECIAL REPORT</text>
+
+  <!-- Title -->
+  <text x="60" y="160" fill="#ffffff" font-family="'Playfair Display', serif" font-weight="800" font-size="34">CSC FINANCIAL AUDIT</text>
+  <text x="60" y="200" fill="rgba(255,255,255,0.85)" font-family="'DM Sans', sans-serif" font-weight="400" font-size="18">Unallocated Surplus Sparks Student Inquiry</text>
+
+  <!-- Big Stat Box -->
+  <rect x="60" y="240" width="310" height="150" rx="12" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
+  <text x="85" y="280" fill="rgba(255,255,255,0.7)" font-family="'DM Sans', sans-serif" font-size="13" font-weight="600" letter-spacing="1">FIRST QUARTER SURPLUS</text>
+  <text x="85" y="340" fill="#fbbf24" font-family="'Playfair Display', serif" font-weight="800" font-size="46">₱320,450</text>
+  <text x="85" y="370" fill="rgba(255,255,255,0.6)" font-family="'DM Sans', sans-serif" font-size="13">Student Development Contingency Reserve</text>
+
+  <!-- Graphic Chart Representation -->
+  <g transform="translate(430, 240)">
+    <rect width="310" height="150" rx="12" fill="rgba(0,0,0,0.25)" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+    <!-- Bars -->
+    <rect x="35" y="80" width="36" height="50" rx="4" fill="rgba(255,255,255,0.3)"/>
+    <rect x="95" y="60" width="36" height="70" rx="4" fill="rgba(255,255,255,0.5)"/>
+    <rect x="155" y="40" width="36" height="90" rx="4" fill="rgba(255,255,255,0.7)"/>
+    <rect x="215" y="15" width="36" height="115" rx="4" fill="#fbbf24"/>
+    <text x="155" y="142" fill="rgba(255,255,255,0.6)" font-family="'DM Sans', sans-serif" font-size="11" text-anchor="middle">Collegiate Fund Tracking</text>
+  </g>
+
+  <!-- Footer Branding -->
+  <text x="60" y="465" fill="rgba(255,255,255,0.5)" font-family="'DM Sans', sans-serif" font-size="12" font-weight="600">THE LENS PUBLICATION • GRAPHICS DESK</text>
+</svg>

@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="100%" height="100%">
+  <defs>
+    <linearGradient id="photoSciBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#022c22"/>
+      <stop offset="60%" stop-color="#064e3b"/>
+      <stop offset="100%" stop-color="#0f766e"/>
+    </linearGradient>
+    <linearGradient id="sciTag" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#10b981"/>
+      <stop offset="100%" stop-color="#34d399"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="500" fill="url(#photoSciBg)"/>
+
+  <!-- Optical Grid & Crosshairs -->
+  <g stroke="rgba(255,255,255,0.18)" stroke-width="1.5" fill="none">
+    <path d="M 40,70 L 40,40 L 70,40" />
+    <path d="M 760,70 L 760,40 L 730,40" />
+    <path d="M 40,430 L 40,460 L 70,460" />
+    <path d="M 760,430 L 760,460 L 730,460" />
+    <!-- Focal Points -->
+    <circle cx="360" cy="270" r="60" stroke="#34d399" stroke-width="1.5" stroke-dasharray="5,5"/>
+    <circle cx="360" cy="270" r="6" fill="#34d399" />
+  </g>
+
+  <!-- Graphic Tech Circuitry / Lab Glassware -->
+  <g stroke="rgba(52, 211, 153, 0.25)" stroke-width="2" fill="none">
+    <path d="M 120,380 L 220,380 L 270,330 L 330,330 L 360,270 L 440,270 L 490,210 L 620,210" />
+    <circle cx="220" cy="380" r="4" fill="#34d399" />
+    <circle cx="270" cy="330" r="4" fill="#34d399" />
+    <circle cx="490" cy="210" r="4" fill="#34d399" />
+  </g>
+
+  <!-- Category & Live Capture Badge -->
+  <rect x="60" y="70" width="165" height="28" rx="4" fill="url(#sciTag)"/>
+  <text x="142" y="89" fill="#022c22" font-family="'DM Sans', sans-serif" font-weight="800" font-size="12" text-anchor="middle" letter-spacing="1">PHOTOJOURNALISM</text>
+
+  <!-- EXIF Info -->
+  <g transform="translate(560, 70)">
+    <rect width="180" height="28" rx="4" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+    <circle cx="16" cy="14" r="4" fill="#10b981" />
+    <text x="28" y="19" fill="#e2e8f0" font-family="'DM Sans', monospace" font-size="11" font-weight="600">85mm • ƒ/1.4 • 1/1000s</text>
+  </g>
+
+  <!-- Headline -->
+  <text x="60" y="150" fill="#ffffff" font-family="'Playfair Display', serif" font-weight="800" font-size="32">ROBOTICS &amp; BIOSENSORS LAB</text>
+  <text x="60" y="185" fill="rgba(255,255,255,0.85)" font-family="'DM Sans', sans-serif" font-size="16">Senior Innovators Calibrate Low-Cost Real-Time Water Quality Monitor</text>
+
+  <!-- Photojournalist Byline Box -->
+  <rect x="60" y="380" width="340" height="50" rx="8" fill="rgba(2, 44, 34, 0.75)" stroke="rgba(255,255,255,0.15)" stroke-width="1" />
+  <text x="80" y="402" fill="rgba(255,255,255,0.6)" font-family="'DM Sans', sans-serif" font-size="11" font-weight="600">PHOTOJOURNALIST BYLINE</text>
+  <text x="80" y="420" fill="#34d399" font-family="'DM Sans', sans-serif" font-size="14" font-weight="700">Jillian Santos • Senior Photojournalist</text>
+
+  <!-- Footer Branding -->
+  <text x="60" y="465" fill="rgba(255,255,255,0.4)" font-family="'DM Sans', sans-serif" font-size="11" font-weight="600">THE LENS PUBLICATION • SCI-TECH DOCUMENTARY</text>
+</svg>
+

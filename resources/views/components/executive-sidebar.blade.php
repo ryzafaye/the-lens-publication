@@ -43,7 +43,7 @@
                 <span>Submit article</span>
             </a>
 
-            <!-- Example ng Limitasyon: Huwag ipakita ang Manage Accounts kung Secretary ang naka-login -->
+            <!-- Role Access Control: Restrict Manage Accounts to President and Executive Vice President -->
             @if(in_array(Auth::user()->role->role_name, ['President', 'Executive Vice President']))
                 <a href="/executive/manage-accounts" class="sidebar-nav-item {{ request()->is('executive/manage-accounts*') ? 'active' : '' }}">
                     <i class="fa-solid fa-user-group"></i>

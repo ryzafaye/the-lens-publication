@@ -10,26 +10,26 @@ class CheckRole
 {
     public function handle(Request $request, Closure $next, ...$roles)
     {
-        // Kung hindi pa naka-login, ibalik sa login page
+        // If unauthenticated, redirect to the login page
         if (!Auth::check()) {
             return redirect('/login');
         }
 
-        // Kunin ang role ng nag-login
+        // Retrieve the authenticated user's role
         $userRole = Auth::user()->role->role_name ?? '';
 
-        // Kung ang role niya ay nasa listahan ng pinapayagan (ex. 'Writer'), papasukin
+        // If the user's role is in the authorized roles list, allow the request
         if (in_array($userRole, $roles)) {
             return $next($request);
         }
 
-        // Kung bawal siya rito, ibalik sa login na may error
+        // If unauthorized, log out and redirect to login with an error message
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
         
         return redirect('/login')->withErrors([
-            'student_number' => 'Access Denied: Hindi tugma ang iyong posisyon para sa pahinang ito.',
+            'student_number' => 'Access Denied: Your account role does not have permission to access this page.',
         ]);
     }
 }

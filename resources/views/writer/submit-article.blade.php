@@ -40,18 +40,29 @@
         </button>
     </div>
 
-    <!-- WRAPPER FORM PARA SA LARAVEL -->
+    <!-- Laravel Submission Form -->
     <form id="laravel-article-form" method="POST" action="{{ route('writer.store-article') }}">
         @csrf
-        <input type="hidden" name="article_id" id="hidden-article-id" value="{{ isset($editingDraft) ? $editingDraft->id : '' }}">
-        <input type="hidden" name="content" id="hidden-content">
+        <input type="hidden" name="article_id" id="hidden-article-id" value="{{ old('article_id', isset($editingDraft) ? $editingDraft->id : '') }}">
+        <input type="hidden" name="content" id="hidden-content" value="{{ old('content') }}">
         <input type="hidden" name="status" id="hidden-status" value="Pending Review">
+
+        @if ($errors->any())
+            <div style="background-color: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 16px; border-radius: 8px; margin-bottom: 24px;">
+                <strong style="display: block; margin-bottom: 8px;"><i class="fa-solid fa-triangle-exclamation"></i> Action Failed: Please resolve the following issues:</strong>
+                <ul style="margin: 0; padding-left: 20px; font-size: 0.9rem;">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
 
         <div class="write-view view-container {{ $activeTab === 'drafts' ? 'hidden' : '' }}" id="write-view" role="tabpanel" aria-labelledby="tab-write-btn">
             <div class="writing-canvas-container">
 
                 <div class="headline-box-wrapper" id="headline-box-wrapper">
-                    <textarea id="article-headline" name="title" class="headline-input" rows="1" placeholder="Write your headline here..." maxlength="255" required>{{ isset($editingDraft) ? $editingDraft->title : '' }}</textarea>
+                    <textarea id="article-headline" name="title" class="headline-input" rows="1" placeholder="Write your headline here..." maxlength="255" required>{{ old('title', isset($editingDraft) ? $editingDraft->title : '') }}</textarea>
                     <div class="headline-helper-row">
                         <span></span>
                         <span id="headline-char-count" class="headline-char-count">0 / 255</span>
@@ -63,9 +74,9 @@
                         <label for="article-category" class="category-label"><i class="fa-solid fa-tag"></i><span>Section:</span></label>
                         <div class="select-styled-container" id="category-select-container">
                             <select id="article-category" name="category_id" class="category-dropdown-select" required>
-                                <option value="" disabled {{ !isset($editingDraft) ? 'selected' : '' }}>Select category...</option>
+                                <option value="" disabled {{ (old('category_id') === null && !isset($editingDraft)) ? 'selected' : '' }}>Select category...</option>
                                 @foreach($categories as $category)
-                                    <option value="{{ $category->id }}" {{ (isset($editingDraft) && $editingDraft->category_id == $category->id) ? 'selected' : '' }}>{{ $category->name }}</option>
+                                    <option value="{{ $category->id }}" {{ (old('category_id', isset($editingDraft) ? $editingDraft->category_id : '') == $category->id) ? 'selected' : '' }}>{{ $category->name }}</option>
                                 @endforeach
                             </select>
                             <i class="fa-solid fa-chevron-down select-chevron"></i>
@@ -78,7 +89,7 @@
 
                 <div class="excerpt-box-wrapper" id="excerpt-box-wrapper">
                     <label for="article-excerpt" class="excerpt-label"><i class="fa-solid fa-align-left"></i><span>Excerpt</span></label>
-                    <textarea id="article-excerpt" name="excerpt" class="excerpt-input" rows="2" maxlength="255" placeholder="Write a brief excerpt or teaser..." required>{{ isset($editingDraft) ? $editingDraft->excerpt : '' }}</textarea>
+                    <textarea id="article-excerpt" name="excerpt" class="excerpt-input" rows="2" maxlength="255" placeholder="Write a brief excerpt or teaser..." required>{{ old('excerpt', isset($editingDraft) ? $editingDraft->excerpt : '') }}</textarea>
                     <div class="excerpt-helper-row">
                         <span></span>
                         <span id="excerpt-char-count" class="excerpt-char-count">0 / 255</span>

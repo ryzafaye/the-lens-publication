@@ -31,7 +31,7 @@ class WriterController extends Controller
 
     public function submitArticle(Request $request)
     {
-        // Kukunin natin ang mga categories mula sa database para sa dropdown
+        // Fetch categories from the database for the dropdown
         $categories = Category::all();
         $drafts = Article::with('category')
             ->where('user_id', Auth::id())
@@ -78,53 +78,73 @@ class WriterController extends Controller
 
     public function storeArticle(Request $request)
     {
-        // I-validate ang mga ipinasang data mula sa form
-        $request->validate([
+        $rules = [
             'title' => 'required|string|max:255',
-            'category_id' => 'required|exists:categories,id',
-            'excerpt' => 'required|string|max:255',
-            'content' => 'required|string',
-            'status' => 'required|string', // 'Draft' o 'Pending Review'
+            'category_id' => 'required|exists:categories,id', // Now strictly required for both Draft and Review
+            'status' => 'required|string', 
             'article_id' => 'nullable|integer'
-        ]);
+        ];
+
+        // Conditional validation for the rest
+        if ($request->status === 'Pending Review') {
+            $rules['excerpt'] = 'required|string|max:255';
+            $rules['content'] = 'required|string';
+        } else {
+            $rules['excerpt'] = 'nullable|string|max:255';
+            $rules['content'] = 'nullable|string';
+        }
+
+        $request->validate($rules);
 
         $cleanContent = $this->sanitizeArticleContent($request->content);
 
-        // Kung may article_id, i-update ang existing draft
-        if ($request->filled('article_id')) {
-            $article = Article::where('user_id', Auth::id())->find($request->article_id);
-            if ($article) {
-                $article->update([
-                    'category_id' => $request->category_id,
-                    'title' => $request->title,
-                    'excerpt' => $request->excerpt,
-                    'content' => $cleanContent,
-                    'status' => $request->status,
-                ]);
+        // 2. ERROR CATCHING BLOCK
+        try {
+            // If article_id is present, update the existing draft
+            if ($request->filled('article_id')) {
+                $article = Article::where('user_id', Auth::id())->find($request->article_id);
+                if ($article) {
+                    $article->update([
+                        'category_id' => $request->category_id,
+                        'title' => $request->title,
+                        'excerpt' => $request->excerpt,
+                        'content' => $cleanContent,
+                        'status' => $request->status,
+                    ]);
 
-                if ($request->status === 'Draft') {
-                    return redirect()->route('writer.submit-article', ['tab' => 'drafts'])->with('success', 'Draft saved successfully.');
+                    if ($request->status === 'Draft') {
+                        return redirect()->route('writer.submit-article', ['tab' => 'drafts'])
+                            ->with('success', 'Draft saved successfully.');
+                    }
+                    return redirect()->route('writer.dashboard')
+                        ->with('success', 'Article submitted successfully.');
                 }
-                return redirect()->route('writer.dashboard')->with('success', 'Article submitted successfully.');
             }
-        }
 
-        // Kung bago, i-save sa database
-        Article::create([
-            'user_id' => Auth::id(),
-            'category_id' => $request->category_id,
-            'title' => $request->title,
-            'excerpt' => $request->excerpt,
-            'content' => $cleanContent,
-            'status' => $request->status,
-            'views' => 0,
-            'shares' => 0,
-        ]);
+            // If new, create and save the article in the database
+            Article::create([
+                'user_id' => Auth::id(),
+                'category_id' => $request->category_id,
+                'title' => $request->title,
+                'excerpt' => $request->excerpt,
+                'content' => $cleanContent,
+                'status' => $request->status,
+                'views' => 0,
+                'shares' => 0,
+            ]);
 
-        if ($request->status === 'Draft') {
-            return redirect()->route('writer.submit-article', ['tab' => 'drafts'])->with('success', 'Draft saved successfully.');
+            if ($request->status === 'Draft') {
+                return redirect()->route('writer.submit-article', ['tab' => 'drafts'])
+                    ->with('success', 'Draft saved successfully.');
+            }
+            
+            return redirect()->route('writer.dashboard')
+                ->with('success', 'Article submitted successfully.');
+
+        } catch (\Exception $e) {
+            // If a database error occurs, return the error message with input
+            return back()->withErrors(['system_error' => 'Database Error: ' . $e->getMessage()])->withInput();
         }
-        return redirect()->route('writer.dashboard')->with('success', 'Article submitted successfully.');
     }
 
     public function destroyDraft($id)
@@ -143,7 +163,7 @@ class WriterController extends Controller
     }
 
     /**
-     * Linisin ang content mula sa anumang corrupted HTML entities, spans, at foreign inline styles.
+     * Sanitize content by stripping corrupted HTML entities, spans, and foreign inline styles.
      */
     private function sanitizeArticleContent($content)
     {

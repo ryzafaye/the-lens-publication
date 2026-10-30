@@ -4,7 +4,7 @@
 
 @section('content')
 @php
-    // Kunin ang first name mula sa full name (e.g., "Ryza Faye Javier Reyes" -> "Ryza")
+    // Extract first name from full name (e.g., "Ryza Faye Javier Reyes" -> "Ryza")
     $firstName = explode(' ', Auth::user()->full_name)[0];
 @endphp
 
@@ -58,7 +58,7 @@
             <section class="writer-articles-list">
                 @forelse($recentArticles as $art)
                     @php
-                        // Alamin kung anong kulay ng badge
+                        // Determine status badge class
                         $badgeClass = 'status-draft';
                         $status = $art->status ?? $art['status'];
                         if($status === 'Published') $badgeClass = 'status-published';
@@ -160,6 +160,6 @@
 @endsection
 
 @section('extra-js')
-    <!-- Gagamitin natin ang parehong script na nilinis natin kanina para sa Modals -->
+    <!-- Reusable Modal Controller Script -->
     <script type="module" src="{{ asset('js/executive-dashboard.js') }}"></script>
 @endsection

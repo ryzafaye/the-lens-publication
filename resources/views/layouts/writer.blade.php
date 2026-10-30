@@ -11,7 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,600;1,700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <!-- I-link mo rito ang mga CSS files mula sa public folder -->
+    <!-- Stylesheets -->
     <link rel="stylesheet" href="{{ asset('css/executive-dashboard.css') }}">
     <link rel="stylesheet" href="{{ asset('css/executive-modals.css') }}">
     <link rel="stylesheet" href="{{ asset('css/writer-dashboard.css') }}">
@@ -64,7 +64,7 @@
 
     </div>
 
-    <!-- Ginagamit ng Writer ang parehong shell ng Executive para sa Menu/Clock -->
+    <!-- Executive Shell Script for Menu and Clock -->
     <script src="{{ asset('js/executive-shell.js') }}"></script>
     @yield('extra-js')
 </body>

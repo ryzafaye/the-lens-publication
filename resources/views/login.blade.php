@@ -34,6 +34,7 @@
         .shimmer-button { position: relative; overflow: hidden; }
         .shimmer-button::after { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.28), transparent); transition: 0.5s; }
         .shimmer-button:hover::after { animation: shimmer 1.1s infinite; }
+        input::-ms-reveal, input::-ms-clear { display: none; }
     </style>
 </head>
 <body class="min-h-full bg-white font-body text-stone-900 selection:bg-wine selection:text-white flex items-center justify-center p-4 sm:p-8 md:p-12 lg:p-16 relative overflow-x-hidden">
@@ -64,6 +65,84 @@
                             </div>
                         </div>
                     </div>
+                </div>
+                
+                <!-- Page Curl SVG Animation (Restored to bottom-left corner) -->
+                <div class="hidden lg:block group/curl absolute bottom-0 left-0 lg:w-48 lg:h-48 z-30 pointer-events-auto cursor-pointer select-none" title="Turn page">
+                    <svg class="w-full h-full transition-transform duration-500 ease-out group-hover/curl:-rotate-1 group-hover/curl:scale-[1.03] group-hover/curl:translate-x-1 group-hover/curl:-translate-y-1 origin-bottom-left filter drop-shadow-md" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <!-- Soft Diffusion Filter for Under-Roll Shadow -->
+                            <filter id="softRollShadow" x="-30%" y="-30%" width="160%" height="160%">
+                                <feDropShadow dx="3" dy="-3" stdDeviation="5" flood-color="#000000" flood-opacity="0.55" />
+                            </filter>
+
+                            <!-- Cast Shadow of the Overhanging Roll onto the Dark Wine Page -->
+                            <filter id="pageCastShadow" x="-40%" y="-40%" width="180%" height="180%">
+                                <feGaussianBlur stdDeviation="8" />
+                            </filter>
+
+                            <!-- Parchment Texture for the Exposed Under-Page -->
+                            <linearGradient id="parchmentBase" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#ded8cb" />
+                                <stop offset="40%" stop-color="#ede7db" />
+                                <stop offset="85%" stop-color="#e2dacb" />
+                                <stop offset="100%" stop-color="#cfc7b4" />
+                            </linearGradient>
+
+                            <!-- Shadow on the Exposed Parchment Page (Deepest under the roll) -->
+                            <linearGradient id="creaseDepression" x1="100%" y1="100%" x2="0%" y2="0%">
+                                <stop offset="0%" stop-color="rgba(24, 3, 8, 0.45)" />
+                                <stop offset="35%" stop-color="rgba(30, 4, 10, 0.2)" />
+                                <stop offset="70%" stop-color="rgba(30, 4, 10, 0.05)" />
+                                <stop offset="100%" stop-color="transparent" />
+                            </linearGradient>
+
+                            <!-- Cylindrical Roll Gradient for the Curled Page Flap -->
+                            <linearGradient id="paperRollCylinder" x1="15%" y1="85%" x2="85%" y2="20%">
+                                <stop offset="0%" stop-color="#140207" />
+                                <stop offset="18%" stop-color="#28050e" />
+                                <stop offset="38%" stop-color="#4d091d" />
+                                <stop offset="60%" stop-color="#730f2c" />
+                                <stop offset="78%" stop-color="#9e183e" />
+                                <stop offset="90%" stop-color="#c94b6d" />
+                                <stop offset="96%" stop-color="#f0b6c5" />
+                                <stop offset="100%" stop-color="#ffffff" />
+                            </linearGradient>
+
+                            <!-- Rim Highlight Gradient -->
+                            <linearGradient id="rimLightGrad" x1="0%" y1="0%" x2="100%" y2="30%">
+                                <stop offset="0%" stop-color="rgba(255,255,255,0.2)" />
+                                <stop offset="60%" stop-color="rgba(255,255,255,0.85)" />
+                                <stop offset="100%" stop-color="rgba(255,255,255,0.95)" />
+                            </linearGradient>
+                        </defs>
+
+                        <!-- 1. The Exposed Under-Page (Revealed by the roll, smoothly fitted to corner) -->
+                        <path d="M 0 20 L 0 144 Q 0 160 16 160 L 150 160 C 112 120 54 62 0 20 Z" fill="url(#parchmentBase)" />
+
+                        <!-- Realistic Faint Printed Article Lines on the Exposed Under-Page -->
+                        <g opacity="0.65" stroke="#968c77" stroke-width="1.2" stroke-linecap="round" stroke-dasharray="2 3">
+                            <line x1="10" y1="52" x2="68" y2="110" />
+                            <line x1="12" y1="74" x2="58" y2="120" />
+                            <line x1="14" y1="96" x2="48" y2="130" />
+                            <line x1="18" y1="118" x2="38" y2="138" />
+                        </g>
+
+                        <!-- Soft Shadow on the Exposed Parchment under the roll -->
+                        <path d="M 0 20 L 0 144 Q 0 160 16 160 L 150 160 C 112 120 54 62 0 20 Z" fill="url(#creaseDepression)" />
+
+                        <!-- 2. Soft Cast Ambient Shadow of the Curled Flap onto the main page -->
+                        <path d="M 0 20 C 35 20 85 14 142 26 C 150 68 152 118 150 160 C 120 130 65 75 0 20 Z" fill="rgba(0,0,0,0.55)" filter="url(#pageCastShadow)" />
+
+                        <!-- 3. The Curled Page Roll (Continuous from Left Edge at 0,20 to Bottom Edge at 150,160) -->
+                        <path d="M 0 20 C 35 22 88 15 142 26 C 150 68 153 118 150 160 C 110 122 52 64 0 20 Z" fill="url(#paperRollCylinder)" filter="url(#softRollShadow)" />
+
+                        <!-- 4. Subtle Specular Highlight Curve along the rolled paper crest -->
+                        <path d="M 2 22 C 36 24 88 17 141 28" stroke="url(#rimLightGrad)" stroke-width="1.5" stroke-linecap="round" fill="none" opacity="0.9" />
+
+                        <!-- 5. Delicate Right Flap Rim Light -->
+                        <path d="M 141 28 C 149 70 152 118 149 158" stroke="rgba(255,255,255,0.4)" stroke-width="1" stroke-linecap="round" fill="none" opacity="0.75" />
+                    </svg>
                 </div>
             </section>
 
@@ -134,23 +213,6 @@
         </div>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const passwordInput = document.getElementById('password');
-            const togglePasswordBtn = document.getElementById('toggle-password');
-            const togglePasswordIcon = document.getElementById('toggle-password-icon');
-
-            if (togglePasswordBtn && passwordInput) {
-                togglePasswordBtn.addEventListener('click', () => {
-                    const isPassword = passwordInput.getAttribute('type') === 'password';
-                    passwordInput.setAttribute('type', isPassword ? 'text' : 'password');
-                    if (togglePasswordIcon) {
-                        togglePasswordIcon.classList.toggle('fa-eye', !isPassword);
-                        togglePasswordIcon.classList.toggle('fa-eye-slash', isPassword);
-                    }
-                });
-            }
-        });
-    </script>
+    <script src="{{ asset('js/login.js') }}"></script>
 </body>
 </html>

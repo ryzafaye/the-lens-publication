@@ -18,7 +18,7 @@
 </head>
 <body class="dashboard-body">
 
-    <!-- Tinatawag nito yung sidebar component na ginawa natin sa Step 2 -->
+    <!-- Executive Sidebar Component -->
     @include('components.executive-sidebar')
 
     <div class="main-wrapper">

@@ -26,13 +26,13 @@ return new class extends Migration
             $table->integer('views')->default(0);
             $table->integer('shares')->default(0);
             
-            // Feedback ng mga Editors
+            // Editor Feedback
             $table->text('remarks')->nullable(); 
             
-            // Specific timestamp kung kailan pinindot ang "Publish"
+            // Timestamp when published
             $table->timestamp('published_at')->nullable();
             
-            $table->timestamps(); // Awtomatikong created_at at updated_at
+            $table->timestamps(); // Automatic created_at and updated_at
         });
     }
 

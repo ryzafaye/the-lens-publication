@@ -747,7 +747,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // 11. FORM SUBMISSION (Save Draft vs Submit Article)
     // =========================================================================
     function handleFormSubmit(status) {
-        if (!laravelForm) return;
+        const activeForm = document.getElementById('laravel-article-form') || document.querySelector('form');
+        if (!activeForm) {
+            console.error("Form not found!");
+            return;
+        }
 
         const headline = headlineInput ? headlineInput.value.trim() : '';
         const category = categorySelect ? categorySelect.value : '';
@@ -778,9 +782,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
         } else {
-            // Saving as Draft: require at least title or content
+            // Saving as Draft: require at least title or content, and category
             if (!headline && !contentText) {
                 showToast('Please enter at least a headline or some content to save as draft.', 'error');
+                return;
+            }
+            if (!category) {
+                if (categorySelect) categorySelect.classList.add('input-invalid');
+                showToast('Please select a section category before saving.', 'error');
                 return;
             }
         }
@@ -788,10 +797,26 @@ document.addEventListener('DOMContentLoaded', () => {
         // Clean and sanitize the editor content before sending to Laravel
         const cleanContent = sanitizeArticleContent(editorContent.innerHTML);
 
-        if (hiddenContent) hiddenContent.value = cleanContent;
-        if (hiddenStatus) hiddenStatus.value = status;
+        // Make sure hidden inputs actually exist before assigning
+        if (!hiddenContent) {
+            const hc = document.createElement('input');
+            hc.type = 'hidden'; hc.name = 'content'; hc.id = 'hidden-content';
+            hc.value = cleanContent;
+            activeForm.appendChild(hc);
+        } else {
+            hiddenContent.value = cleanContent;
+        }
 
-        laravelForm.submit();
+        if (!hiddenStatus) {
+            const hs = document.createElement('input');
+            hs.type = 'hidden'; hs.name = 'status'; hs.id = 'hidden-status';
+            hs.value = status;
+            activeForm.appendChild(hs);
+        } else {
+            hiddenStatus.value = status;
+        }
+
+        activeForm.submit();
     }
 
     if (saveDraftBtn) {

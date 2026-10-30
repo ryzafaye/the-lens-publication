@@ -111,12 +111,12 @@
     </div>
 </main>
 
-<!-- Ilagay mo rito sa ibaba yung HTML ng Modals (Article Viewer, Edit, Action) -->
+<!-- Modals Section (Article Viewer, Edit, Action) -->
 <div id="article-viewer-modal" class="modal-overlay hidden">
-    <!-- Paste ang laman ng viewer modal dito -->
+    <!-- Article Viewer Modal Content -->
 </div>
 
-<!-- Container ng Toasts -->
+<!-- Toast Notifications Container -->
 <div id="toast-container" class="toast-container" aria-live="polite"></div>
 @endsection
 

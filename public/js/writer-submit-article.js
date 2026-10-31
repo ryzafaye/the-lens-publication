@@ -719,7 +719,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 const id = deleteBtn.dataset.id;
                 if (id && confirm('Are you sure you want to delete this draft?')) {
                     if (deleteDraftForm) {
-                        deleteDraftForm.action = `/writer/drafts/${id}`;
+                        const basePath = window.location.pathname.startsWith('/section-head') ? '/section-head' : '/writer';
+                        deleteDraftForm.action = `${basePath}/drafts/${id}`;
                         deleteDraftForm.submit();
                     }
                 }

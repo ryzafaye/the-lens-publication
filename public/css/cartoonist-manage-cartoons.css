@@ -1,0 +1,64 @@
+﻿/**
+ * ============================================================================
+ * THE LENS ΓÇö CARTOONIST MANAGE CARTOONS STYLESHEET
+ * Reuses executive and media portal responsive grid, frame-fitted artwork containers,
+ * public archive boxes style, and signature maroon typography.
+ * ============================================================================
+ */
+
+@import url("media-manage-media.css");
+
+/* Prevent mobile drawer from ever rendering on desktop screens */
+#mobile-nav-dropdown,
+.mobile-nav-dropdown,
+#mobile-nav-backdrop,
+.mobile-nav-backdrop,
+.mobile-nav-drawer {
+    display: none;
+}
+
+.mobile-nav-avatar,
+.mobile-nav-avatar img,
+.mobile-avatar-img,
+#mobile-avatar-img {
+    max-width: 44px !important;
+    max-height: 44px !important;
+    width: 44px !important;
+    height: 44px !important;
+    border-radius: 50% !important;
+    object-fit: cover !important;
+}
+
+@media (min-width: 769px) {
+    #mobile-nav-dropdown,
+    .mobile-nav-dropdown,
+    #mobile-nav-backdrop,
+    .mobile-nav-backdrop,
+    .mobile-nav-drawer,
+    .mobile-nav-dropdown.open,
+    .mobile-nav-dropdown.active,
+    .mobile-nav-dropdown.expanded {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        height: 0 !important;
+        max-height: 0 !important;
+        overflow: hidden !important;
+        pointer-events: none !important;
+    }
+}
+
+/* Dedicated Cartoonist Highlights & Badges */
+.cartoonist-category-chip {
+    background: #fdf4ff;
+    color: #701a75;
+    border: 1px solid #f5d0fe;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+

@@ -23,6 +23,16 @@ class CheckRole
             return $next($request);
         }
 
+        // Support SectionHead group alias
+        if (in_array('SectionHead', $roles) && (str_ends_with($userRole, 'Head') || in_array($userRole, [
+            'News Head', 'Literary Head', 'Feature Head', 'Science and Technology Head',
+            'Documentary and Podcast Head', 'Media and Public Communications Head',
+            'Associate Media and Public Communications Head',
+            'Photojournalist Head', 'Cartoonist Head'
+        ]))) {
+            return $next($request);
+        }
+
         // If unauthorized, log out and redirect to login with an error message
         Auth::logout();
         $request->session()->invalidate();

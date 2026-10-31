@@ -52,9 +52,9 @@
                 <div class="topbar-divider"></div>
                 <div class="topbar-user-profile">
                     <div class="topbar-avatar-circle">
-                        <img src="{{ asset('images/member-placeholder.svg') }}" alt="User">
+                        <img id="topbar-avatar-img" src="{{ Auth::user()->profile_picture_url ? asset(Auth::user()->profile_picture_url) : asset('images/member-placeholder.svg') }}" alt="User">
                     </div>
-                    <span id="topbar-user-role" class="topbar-role-badge">Writer</span>
+                    <span id="topbar-user-role" class="topbar-role-badge">{{ Auth::user()->role->role_name ?? 'Writer' }}</span>
                 </div>
             </div>
         </header>

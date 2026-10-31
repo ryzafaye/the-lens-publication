@@ -11,10 +11,10 @@
 
         <div class="sidebar-profile">
             <div class="profile-avatar">
-                <img id="sidebar-avatar-img" src="{{ asset('images/member-placeholder.svg') }}" alt="Writer Avatar">
+                <img id="sidebar-avatar-img" src="{{ Auth::user()->profile_picture_url ? asset(Auth::user()->profile_picture_url) : asset('images/member-placeholder.svg') }}" alt="Writer Avatar">
             </div>
             <div id="sidebar-writer-name" class="profile-name">{{ Auth::user()->full_name ?? 'Writer' }}</div>
-            <div id="sidebar-user-role" class="profile-role-text">Writer</div>
+            <div id="sidebar-user-role" class="profile-role-text">{{ Auth::user()->role->role_name ?? 'Writer' }}</div>
         </div>
 
         <nav class="sidebar-nav" aria-label="Writer Portal Navigation">
@@ -34,7 +34,7 @@
     </div>
 
     <div class="sidebar-footer" id="sidebar-footer">
-        <a href="/writer/settings" class="sidebar-footer-link">
+        <a href="{{ route('writer.profile-settings') }}" class="sidebar-footer-link {{ request()->is('writer/settings*') ? 'active' : '' }}">
             <i class="fa-solid fa-sliders"></i>
             <span>Profile Settings</span>
         </a>

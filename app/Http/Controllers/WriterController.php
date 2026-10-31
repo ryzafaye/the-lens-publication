@@ -35,7 +35,7 @@ class WriterController extends Controller
         $categories = Category::all();
         $drafts = Article::with('category')
             ->where('user_id', Auth::id())
-            ->where('status', 'Draft')
+            ->whereIn('status', ['Draft', 'For Revision'])
             ->latest()
             ->get();
 
@@ -48,6 +48,12 @@ class WriterController extends Controller
         }
 
         return view('writer.submit-article', compact('categories', 'drafts', 'editingDraft'));
+    }
+
+    public function profileSettings()
+    {
+        $user = Auth::user();
+        return view('writer.profile-settings', compact('user'));
     }
 
     public function manageMyArticles()

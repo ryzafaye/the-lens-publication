@@ -30,6 +30,13 @@ class AuthController extends Controller
                 return redirect()->intended('/writer/dashboard');
             } elseif ($role && str_contains($role, 'Editor-in-Chief')) {
                 return redirect()->intended('/eic/dashboard');
+            } elseif ($role && (str_ends_with($role, 'Head') || in_array($role, [
+                'News Head', 'Literary Head', 'Feature Head', 'Science and Technology Head',
+                'Documentary and Podcast Head', 'Media and Public Communications Head',
+                'Associate Media and Public Communications Head',
+                'Photojournalist Head', 'Cartoonist Head'
+            ]))) {
+                return redirect()->intended('/section-head/dashboard');
             }
             
             return redirect()->intended('/dashboard'); 

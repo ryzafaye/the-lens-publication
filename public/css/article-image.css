@@ -1,0 +1,109 @@
+﻿/* =====================================================
+   THE LENS - ARTICLE IMAGE & COVER FRAMES
+   Responsive, non-cropping cover frames with dark wine
+   matte containment for pubmats, cartoons, and photography.
+   ===================================================== */
+
+.article-image {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    width: 100%;
+    background: radial-gradient(circle at center, #24060f 0%, #0d0105 100%);
+    color: white;
+    border-radius: 8px;
+    position: relative;
+}
+
+.article-image img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), filter 0.35s ease;
+}
+
+.article-clickable:hover .article-image img,
+article:hover .article-image img {
+    transform: scale(1.045);
+    filter: brightness(1.03);
+}
+
+.image-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    min-height: 130px;
+    padding: 16px;
+    background: var(--image-color, var(--wine, #571525));
+    color: #f4dfe4;
+    font-family: var(--heading-font, Georgia, serif);
+    font-size: 18px;
+    font-weight: 700;
+    text-align: center;
+}
+
+.featured-image {
+    aspect-ratio: 16 / 9;
+    max-height: 480px;
+    border-radius: 12px;
+}
+
+.featured-image .image-placeholder {
+    font-size: clamp(24px, 3vw, 36px);
+    min-height: 240px;
+}
+
+.latest-image {
+    aspect-ratio: 1 / 1;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.latest-image .image-placeholder {
+    padding: 8px;
+    font-size: 11px;
+    min-height: 80px;
+}
+
+.story-card-image {
+    aspect-ratio: 16 / 10;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.story-card-image .image-placeholder {
+    padding: 12px;
+    font-size: 13px;
+    min-height: 120px;
+}
+
+.small-image {
+    aspect-ratio: 1 / 1;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.small-image .image-placeholder {
+    padding: 6px;
+    font-size: 10px;
+    min-height: 70px;
+}
+
+.category-list-thumb {
+    aspect-ratio: 1 / 1;
+    border-radius: 8px;
+}
+
+.archive-image {
+    aspect-ratio: 1 / 1;
+    border-radius: 8px;
+}
+
+.author-card-image {
+    aspect-ratio: 16 / 10;
+    border-radius: 8px;
+}

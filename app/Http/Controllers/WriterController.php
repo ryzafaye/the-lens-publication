@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use App\Models\Category;
 use App\Models\Article;
 
@@ -13,14 +14,24 @@ class WriterController extends Controller
     {
         $userId = Auth::id();
 
+        // Cached consolidated aggregate query for 30s to keep navigation instantaneous
+        $stats = Cache::remember('writer_dashboard_stats_' . $userId, 30, function () use ($userId) {
+            return Article::where('user_id', $userId)->selectRaw("
+                COALESCE(SUM(views), 0) as total_views,
+                COUNT(CASE WHEN status = 'Published' THEN 1 END) as published,
+                COUNT(CASE WHEN status = 'Pending Review' THEN 1 END) as pending,
+                COUNT(CASE WHEN status = 'Draft' THEN 1 END) as drafts
+            ")->first();
+        });
+
         $writerStats = [
-            'total_views' => (int) Article::where('user_id', $userId)->sum('views'),
-            'published' => Article::where('user_id', $userId)->where('status', 'Published')->count(),
-            'pending' => Article::where('user_id', $userId)->where('status', 'Pending Review')->count(),
-            'drafts' => Article::where('user_id', $userId)->where('status', 'Draft')->count(),
+            'total_views' => (int) ($stats->total_views ?? 0),
+            'published' => (int) ($stats->published ?? 0),
+            'pending' => (int) ($stats->pending ?? 0),
+            'drafts' => (int) ($stats->drafts ?? 0),
         ];
 
-        $recentArticles = Article::with('category')
+        $recentArticles = Article::with(['category', 'user.role'])
             ->where('user_id', $userId)
             ->latest()
             ->take(5)
@@ -33,7 +44,7 @@ class WriterController extends Controller
     {
         // Fetch categories from the database for the dropdown
         $categories = Category::all();
-        $drafts = Article::with('category')
+        $drafts = Article::with(['category', 'user.role'])
             ->where('user_id', Auth::id())
             ->where('status', 'Draft')
             ->latest()
@@ -41,7 +52,7 @@ class WriterController extends Controller
 
         $editingDraft = null;
         if ($request->has('draft_id')) {
-            $editingDraft = Article::with('category')
+            $editingDraft = Article::with(['category', 'user.role'])
                 ->where('user_id', Auth::id())
                 ->whereIn('status', ['Draft', 'For Revision'])
                 ->find($request->draft_id);
@@ -52,11 +63,15 @@ class WriterController extends Controller
 
     public function manageMyArticles()
     {
-        $articles = \App\Models\Article::with('category')
-            ->where('user_id', \Illuminate\Support\Facades\Auth::id())
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        $user?->loadMissing('role');
+
+        $articles = Article::with(['category', 'user.role'])
+            ->where('user_id', Auth::id())
             ->orderBy('created_at', 'desc')
             ->get()
-            ->map(function ($article) {
+            ->map(function ($article) use ($user) {
                 return [
                     'id' => $article->id,
                     'title' => $article->title,
@@ -69,11 +84,16 @@ class WriterController extends Controller
                     'views' => $article->views ?? 0,
                     'shares' => $article->shares ?? 0,
                     'remarks' => $article->remarks,
-                    'author' => \Illuminate\Support\Facades\Auth::user()->full_name,
+                    'author' => $user->full_name ?? ($article->user->full_name ?? 'Staff Writer'),
                 ];
             });
 
         return view('writer.manage-my-articles', compact('articles'));
+    }
+
+    public function profileSettings()
+    {
+        return view('writer.profile-settings');
     }
 
     public function storeArticle(Request $request)
@@ -112,6 +132,15 @@ class WriterController extends Controller
                         'status' => $request->status,
                     ]);
 
+                    Cache::forget('writer_dashboard_stats_' . Auth::id());
+                    Cache::forget('eic_dashboard_stats');
+                    Cache::forget('eic_review_articles_newest');
+                    Cache::forget('eic_review_articles_oldest');
+                    Cache::forget('exec_review_articles_' . $request->category_id . '_newest');
+                    Cache::forget('exec_review_articles_' . $request->category_id . '_oldest');
+                    Cache::forget('exec_review_articles_all_newest');
+                    Cache::forget('exec_review_articles_all_oldest');
+
                     if ($request->status === 'Draft') {
                         return redirect()->route('writer.submit-article', ['tab' => 'drafts'])
                             ->with('success', 'Draft saved successfully.');
@@ -132,6 +161,15 @@ class WriterController extends Controller
                 'views' => 0,
                 'shares' => 0,
             ]);
+
+            Cache::forget('writer_dashboard_stats_' . Auth::id());
+            Cache::forget('eic_dashboard_stats');
+            Cache::forget('eic_review_articles_newest');
+            Cache::forget('eic_review_articles_oldest');
+            Cache::forget('exec_review_articles_' . $request->category_id . '_newest');
+            Cache::forget('exec_review_articles_' . $request->category_id . '_oldest');
+            Cache::forget('exec_review_articles_all_newest');
+            Cache::forget('exec_review_articles_all_oldest');
 
             if ($request->status === 'Draft') {
                 return redirect()->route('writer.submit-article', ['tab' => 'drafts'])

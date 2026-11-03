@@ -2,17 +2,18 @@
 
 @section('title', 'Submit Article')
 
-@section('extra-css')
-    <link rel="stylesheet" href="{{ asset('css/submit-article.css') }}">
-@endsection
+@push('styles')
+    <link rel="stylesheet" href="{{ asset('css/shared-submit-article.css') }}">
+@endpush
 
 @section('content')
 <main class="content-container">
-    <div class="page-title-section">
-        <div class="page-header-row">
-            <h1 class="page-title">Submit Article</h1>
+    <div class="submit-article-container">
+        <div class="page-title-section">
+            <div class="page-header-row">
+                <h1 class="page-title">Submit Article</h1>
+            </div>
         </div>
-    </div>
 
     @if(session('success'))
         <script>
@@ -170,6 +171,7 @@
             </div>
         </div>
     </div>
+    </div>
 </main>
 
 <!-- Hidden form for deleting drafts safely via Laravel DELETE route -->
@@ -198,6 +200,6 @@
 @endif
 @endsection
 
-@section('extra-js')
-    <script src="{{ asset('js/writer-submit-article.js') }}"></script>
-@endsection
+@push('scripts')
+    <script src="{{ asset('js/shared-submit-article.js') }}"></script>
+@endpush

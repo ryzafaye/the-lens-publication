@@ -14,6 +14,13 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
 
     /**
+     * The relationships that should always be eager loaded.
+     *
+     * @var list<string>
+     */
+    protected $with = ['role'];
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var list<string>
@@ -25,6 +32,7 @@ class User extends Authenticatable
         'email',
         'password',
         'profile_picture_url',
+        'avatar',
         'account_status',
     ];
 
@@ -54,5 +62,15 @@ class User extends Authenticatable
     public function role()
     {
         return $this->belongsTo(Role::class);
+    }
+
+    public function getAvatarAttribute()
+    {
+        return $this->attributes['profile_picture_url'] ?? null;
+    }
+
+    public function setAvatarAttribute($value)
+    {
+        $this->attributes['profile_picture_url'] = $value;
     }
 }

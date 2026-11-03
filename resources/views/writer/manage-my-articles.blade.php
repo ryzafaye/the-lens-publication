@@ -2,9 +2,9 @@
 
 @section('title', 'Manage My Articles')
 
-@section('extra-css')
-    <link rel="stylesheet" href="{{ asset('css/manage-my-articles.css') }}">
-@endsection
+@push('styles')
+    <link rel="stylesheet" href="{{ asset('css/shared-manage-my-articles.css') }}">
+@endpush
 
 @section('content')
 <main class="content-container">
@@ -26,23 +26,23 @@
     <!-- Tabs Navigation (All, Published, Pending, Revision, Drafts) -->
     <div class="manage-tabs-container animate-fade-in delay-2" role="tablist" aria-label="Filter my articles">
         <button type="button" class="manage-tab-btn active" data-tab="all" role="tab" aria-selected="true">
-            <span>All Articles</span>
+            <i class="fa-solid fa-layer-group"></i><span>All Articles</span>
             <span id="badge-count-all" class="tab-count-badge">0</span>
         </button>
         <button type="button" class="manage-tab-btn" data-tab="published" role="tab" aria-selected="false">
-            <span>Published</span>
+            <i class="fa-solid fa-circle-check"></i><span>Published</span>
             <span id="badge-count-published" class="tab-count-badge">0</span>
         </button>
         <button type="button" class="manage-tab-btn" data-tab="pending" role="tab" aria-selected="false">
-            <span>Pending Review</span>
+            <i class="fa-regular fa-clock"></i><span>Pending Review</span>
             <span id="badge-count-pending" class="tab-count-badge">0</span>
         </button>
         <button type="button" class="manage-tab-btn" data-tab="revision" role="tab" aria-selected="false">
-            <span>For Revision</span>
+            <i class="fa-solid fa-rotate-left"></i><span>For Revision</span>
             <span id="badge-count-revision" class="tab-count-badge">0</span>
         </button>
         <button type="button" class="manage-tab-btn" data-tab="drafts" role="tab" aria-selected="false">
-            <span>Drafts</span>
+            <i class="fa-regular fa-folder-open"></i><span>Drafts</span>
             <span id="badge-count-drafts" class="tab-count-badge">0</span>
         </button>
     </div>
@@ -87,16 +87,28 @@
 
     <!-- Articles List Container -->
     <section class="writer-articles-list animate-fade-in delay-3" id="writer-manage-list" aria-label="My articles list">
-        <!-- Populated dynamically by js/writer-manage-my-articles.js -->
+        <!-- Populated dynamically by js/shared-manage-my-articles.js -->
     </section>
 
-    <!-- Empty State -->
+    <!-- Empty State (Only Shown When Searching or Filtering) -->
     <div id="manage-empty-state" class="manage-empty-state hidden" role="status" aria-live="polite">
         <div class="manage-empty-icon">
             <i class="fa-regular fa-folder-open" id="manage-empty-icon-i" aria-hidden="true"></i>
         </div>
         <h3 class="manage-empty-title" id="manage-empty-title">No articles found</h3>
-        <p class="manage-empty-desc hidden" id="manage-empty-desc"></p>
+        <p class="manage-empty-desc" id="manage-empty-desc">We couldn't find any articles matching your search query or active filter settings.</p>
+        <button type="button" id="reset-filters-btn" class="modal-btn modal-btn-cancel" style="margin-top: 8px;">
+            <i class="fa-solid fa-rotate-left"></i> Reset Search &amp; Filters
+        </button>
+    </div>
+
+    <!-- Default Empty State (Shown When Category/Tab Has No Articles) -->
+    <div id="manage-no-articles-state" class="manage-empty-state hidden" role="status" aria-live="polite">
+        <div class="manage-empty-icon">
+            <i class="fa-regular fa-newspaper" id="no-articles-icon-i" aria-hidden="true"></i>
+        </div>
+        <h3 class="manage-empty-title" id="no-articles-title">No articles yet</h3>
+        <p class="manage-empty-desc" id="no-articles-desc">You haven't submitted or drafted any articles yet.</p>
     </div>
 
 </main>
@@ -221,10 +233,11 @@
 <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
 @endsection
 
-@section('extra-js')
+@push('scripts')
     <script>
-        window.__WRITER_ARTICLES__ = @json($articles);
+        window.__SHARED_ARTICLES__ = @json($articles);
+        window.__WRITER_ARTICLES__ = window.__SHARED_ARTICLES__;
     </script>
-    <script src="{{ asset('js/writer-manage-my-articles.js') }}"></script>
-@endsection
+    <script src="{{ asset('js/shared-manage-my-articles.js') }}"></script>
+@endpush
 

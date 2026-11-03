@@ -1,6 +1,6 @@
 /**
  * ============================================================================
- * THE LENS — SUBMIT ARTICLE LOGIC (WRITER PORTAL)
+ * THE LENS — SHARED SUBMIT ARTICLE LOGIC (WRITER & EXECUTIVE PORTALS)
  * Ultra-minimalist, distraction-free writing interface (Notion / Medium Style).
  * Backend submission and drafts management handled natively by Laravel.
  * 
@@ -104,6 +104,12 @@ function normalizeUnicodeText(str) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+
+    // =========================================================================
+    // ROLE GUARDS REMOVED:
+    // Route protection is handled strictly by Laravel backend authentication
+    // and middleware. Client-side role checking and redirects are eliminated.
+    // =========================================================================
 
     // Ensure contenteditable uses <div> consistently on Enter across all Chromium browsers
     try {
@@ -719,7 +725,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 const id = deleteBtn.dataset.id;
                 if (id && confirm('Are you sure you want to delete this draft?')) {
                     if (deleteDraftForm) {
-                        deleteDraftForm.action = `/writer/drafts/${id}`;
+                        const isSectionHead = window.location.pathname.startsWith('/section-head');
+                        const isExecutive = window.location.pathname.startsWith('/executive');
+                        const defaultDeleteBase = isSectionHead ? '/section-head/drafts' : (isExecutive ? '/executive/drafts' : '/writer/drafts');
+                        const deleteBase = deleteDraftForm.dataset.baseAction 
+                            || window.__DELETE_DRAFT_BASE_URL__ 
+                            || defaultDeleteBase;
+                        deleteDraftForm.action = `${deleteBase}/${id}`;
                         deleteDraftForm.submit();
                     }
                 }
@@ -814,6 +826,40 @@ document.addEventListener('DOMContentLoaded', () => {
             activeForm.appendChild(hs);
         } else {
             hiddenStatus.value = status;
+        }
+
+        // Sync with sectionHeadReviewQueue_v1 in localStorage as client-side fallback
+        if (status === 'Pending Review') {
+            try {
+                const selectedOption = categorySelect ? categorySelect.options[categorySelect.selectedIndex] : null;
+                const categoryName = selectedOption ? selectedOption.text.trim() : '';
+                const authorName = (document.getElementById('mobile-user-name')?.textContent?.trim()) || localStorage.getItem('userName') || 'Staff Writer';
+
+                const queueItem = {
+                    id: Date.now(),
+                    title: headline,
+                    category: categoryName,
+                    author: authorName,
+                    date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+                    rawDate: new Date().toISOString(),
+                    excerpt: excerpt,
+                    content: cleanContent,
+                    status: 'Pending Review'
+                };
+
+                let q = [];
+                const rawQ = localStorage.getItem('sectionHeadReviewQueue_v1');
+                if (rawQ) {
+                    try {
+                        const parsed = JSON.parse(rawQ);
+                        if (Array.isArray(parsed)) q = parsed;
+                    } catch (e) {}
+                }
+                q.unshift(queueItem);
+                localStorage.setItem('sectionHeadReviewQueue_v1', JSON.stringify(q));
+            } catch (err) {
+                console.warn('Failed to sync queue to localStorage:', err);
+            }
         }
 
         activeForm.submit();

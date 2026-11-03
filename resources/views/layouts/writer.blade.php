@@ -16,6 +16,7 @@
     <link rel="stylesheet" href="{{ asset('css/executive-modals.css') }}">
     <link rel="stylesheet" href="{{ asset('css/writer-dashboard.css') }}">
     @yield('extra-css')
+    @stack('styles')
 </head>
 <body class="dashboard-body">
 
@@ -67,5 +68,6 @@
     <!-- Executive Shell Script for Menu and Clock -->
     <script src="{{ asset('js/executive-shell.js') }}"></script>
     @yield('extra-js')
+    @stack('scripts')
 </body>
 </html>

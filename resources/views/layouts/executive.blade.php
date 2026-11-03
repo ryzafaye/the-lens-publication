@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Executive Portal') | The Lens</title>
 
     <!-- Typography & Icons -->
@@ -15,6 +16,38 @@
     <link rel="stylesheet" href="{{ asset('css/executive-dashboard.css') }}">
     <link rel="stylesheet" href="{{ asset('css/executive-modals.css') }}">
     @yield('extra-css')
+    @stack('styles')
+
+    <script>
+        @auth
+            const rawRole = "{!! Auth::user()->role->role_name ?? 'News Head' !!}";
+            const userName = "{!! Auth::user()->full_name ?? 'Section Head' !!}";
+            
+            // Exact mapping from Database Role to Dropdown Value
+            let derivedSection = rawRole.replace(/ Head/i, '').trim();
+            
+            if (derivedSection.toLowerCase() === 'literary') {
+                derivedSection = 'Literature';
+            } else if (derivedSection.toLowerCase() === 'science and technology') {
+                derivedSection = 'Science & Technology';
+            } else if (derivedSection.toLowerCase() === 'opinion') {
+                derivedSection = 'Opinion';
+            } else if (derivedSection.toLowerCase() === 'feature') {
+                derivedSection = 'Feature'; 
+            }
+
+            // Expose globally for the Vanilla JS to consume
+            window.LARAVEL_USER_ROLE = rawRole;
+            window.LARAVEL_USER_SECTION = derivedSection;
+
+            // Sync for fallback logic in existing JS files
+            localStorage.setItem('userRole', rawRole);
+            localStorage.setItem('userName', userName);
+            localStorage.setItem('sectionHeadRole', rawRole);
+            localStorage.setItem('sectionHeadName', userName);
+            localStorage.setItem('sectionHeadSection', derivedSection);
+        @endauth
+    </script>
 </head>
 <body class="dashboard-body">
 
@@ -43,7 +76,7 @@
             </div>
 
             <div class="topbar-right">
-                <button type="button" class="topbar-notification-btn">
+                <button type="button" class="topbar-notification-btn" aria-label="View notifications">
                     <span class="notification-icon-wrapper">
                         <i class="fa-regular fa-bell"></i>
                         <span class="notification-badge-dot"></span>
@@ -52,19 +85,79 @@
                 </button>
                 <div class="topbar-divider"></div>
                 <div class="topbar-user-profile">
-                    <div class="topbar-avatar-circle">
-                        <img src="{{ asset('images/member-placeholder.svg') }}" alt="User">
+                    <div class="topbar-avatar-circle" title="User Profile">
+                        <img src="{{ asset('images/member-placeholder.svg') }}" alt="User Profile Picture">
                     </div>
-                    <span id="topbar-user-role" class="topbar-role-badge">{{ Auth::user()->role->role_name ?? 'Officer' }}</span>
+                    <span id="topbar-user-role" class="topbar-role-badge">{{ Auth::user()?->role?->role_name ?? 'Executive' }}</span>
                 </div>
             </div>
         </header>
 
+        <!-- Mobile Navigation Menu Dropdown -->
+        <nav id="mobile-nav-dropdown" class="mobile-nav-dropdown" aria-label="Mobile Navigation Menu">
+            <div class="mobile-nav-profile">
+                <div class="mobile-nav-avatar">
+                    <img src="{{ asset('images/member-placeholder.svg') }}" alt="Avatar">
+                </div>
+                <div class="mobile-nav-user-info">
+                    <div id="mobile-user-name" class="mobile-nav-name">{{ Auth::user()?->full_name ?? 'Executive' }}</div>
+                    <div id="mobile-user-role" class="mobile-nav-role">{{ Auth::user()?->role?->role_name ?? 'Officer' }}</div>
+                </div>
+            </div>
+
+            @php
+                $portalPrefix = request()->is('section-head*') ? 'section-head' : 'executive';
+            @endphp
+            <div class="mobile-nav-links">
+                <a href="{{ url($portalPrefix . '/dashboard') }}" class="mobile-nav-link {{ request()->is('*/dashboard') ? 'active' : '' }}">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="{{ url($portalPrefix . '/manage-my-articles') }}" class="mobile-nav-link {{ request()->is('*/manage-my-articles*') || request()->is('*/my-articles*') ? 'active' : '' }}">
+                    <i class="fa-solid fa-file-pen"></i>
+                    <span>Manage My Articles</span>
+                </a>
+                <a href="{{ url($portalPrefix . '/review-articles') }}" class="mobile-nav-link {{ request()->is('*/review-articles*') ? 'active' : '' }}">
+                    <i class="fa-solid fa-clipboard-check"></i>
+                    <span>Review Article</span>
+                </a>
+                <a href="{{ url($portalPrefix . '/submit-article') }}" class="mobile-nav-link {{ request()->is('*/submit-article*') ? 'active' : '' }}">
+                    <i class="fa-solid fa-feather-pointed"></i>
+                    <span>Submit article</span>
+                </a>
+                <a href="{{ url($portalPrefix . '/activity-logs') }}" class="mobile-nav-link {{ request()->is('*/activity-logs*') ? 'active' : '' }}">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <span>Activity log</span>
+                </a>
+            </div>
+
+            <div class="mobile-nav-footer">
+                <a href="{{ url($portalPrefix . '/profile-settings') }}" class="mobile-nav-footer-link">
+                    <i class="fa-solid fa-sliders"></i>
+                    <span>Profile Settings</span>
+                </a>
+                <a href="/" target="_blank" rel="noopener noreferrer" class="mobile-nav-footer-link">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    <span>View public site</span>
+                </a>
+                <form action="{{ route('logout') }}" method="POST" style="margin: 0; padding: 0;">
+                    @csrf
+                    <button type="submit" id="mobile-logout-btn" class="mobile-nav-footer-link logout-btn" style="width: 100%; border: none; background: transparent; cursor: pointer; text-align: left;">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                        <span>Logout</span>
+                    </button>
+                </form>
+            </div>
+        </nav>
+
+        <!-- Dynamic Content Section -->
         @yield('content')
 
     </div>
 
+    <!-- Executive Shell Script for Menu and Clock -->
     <script src="{{ asset('js/executive-shell.js') }}"></script>
     @yield('extra-js')
+    @stack('scripts')
 </body>
 </html>

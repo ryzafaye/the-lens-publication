@@ -4,6 +4,9 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ExecutiveController;
 use App\Http\Controllers\WriterController;
+use App\Http\Controllers\SectionHeadController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\EicController;
 
 Route::get('/', function () {
     return redirect('/login');
@@ -13,6 +16,12 @@ Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
+// Shared Authenticated Profile Routes (All Roles)
+Route::middleware('auth')->group(function () {
+    Route::post('/profile/update-info', [ProfileController::class, 'updateInfo'])->name('profile.update-info');
+    Route::post('/profile/update-password', [ProfileController::class, 'updatePassword'])->name('profile.update-password');
+});
+
 
 Route::middleware(['auth', 'role:President,Executive Vice President,Secretary,Associate Secretary,Treasurer,Auditor,Public Relations Officer'])
     ->prefix('executive')
@@ -20,7 +29,25 @@ Route::middleware(['auth', 'role:President,Executive Vice President,Secretary,As
     ->group(function () {
         
     Route::get('/dashboard', [ExecutiveController::class, 'dashboard'])->name('dashboard');
-    
+    Route::get('/submit-article', [ExecutiveController::class, 'submitArticle'])->name('submit-article');
+    Route::post('/submit-article', [ExecutiveController::class, 'storeArticle'])->name('store-article');
+    Route::get('/manage-my-articles', [ExecutiveController::class, 'manageMyArticles'])->name('manage-my-articles');
+    Route::get('/my-articles', function () {
+        return redirect()->route('executive.manage-my-articles');
+    });
+    Route::get('/review-articles', [ExecutiveController::class, 'reviewArticles'])->name('review-articles');
+    Route::post('/review-articles/{id}/approve', [ExecutiveController::class, 'approveArticle'])->name('approve-article');
+    Route::post('/review-articles/{id}/revision', [ExecutiveController::class, 'returnForRevision'])->name('return-for-revision');
+    Route::get('/activity-logs', [ExecutiveController::class, 'activityLogs'])->name('activity-logs');
+    Route::get('/manage-accounts', [ExecutiveController::class, 'manageAccounts'])->name('manage-accounts');
+    Route::post('/manage-accounts', [ExecutiveController::class, 'storeAccount'])->name('manage-accounts.store');
+    Route::put('/manage-accounts/{id}/role', [ExecutiveController::class, 'updateRole'])->name('manage-accounts.update-role');
+    Route::patch('/manage-accounts/{id}/status', [ExecutiveController::class, 'toggleStatus'])->name('manage-accounts.toggle-status');
+    Route::get('/profile-settings', [ExecutiveController::class, 'profileSettings'])->name('profile-settings');
+    Route::get('/settings', function () {
+        return redirect()->route('executive.profile-settings');
+    });
+    Route::delete('/drafts/{id}', [ExecutiveController::class, 'destroyDraft'])->name('destroyDraft');
     
 });
 
@@ -36,6 +63,63 @@ Route::middleware(['auth', 'role:Writer'])
     Route::get('/manage-articles', function () {
         return redirect()->route('writer.manage-my-articles');
     });
+    Route::get('/profile-settings', [WriterController::class, 'profileSettings'])->name('profile-settings');
+    Route::get('/settings', function () {
+        return redirect()->route('writer.profile-settings');
+    });
     Route::delete('/drafts/{id}', [WriterController::class, 'destroyDraft'])->name('destroyDraft');
 
 });
+
+// Section Head Routes
+Route::middleware('auth')->prefix('section-head')->name('section-head.')->group(function () {
+    Route::get('/dashboard', [SectionHeadController::class, 'dashboard'])->name('dashboard');
+    Route::get('/manage-my-articles', [SectionHeadController::class, 'manageMyArticles'])->name('manage-my-articles');
+    Route::get('/my-articles', function () {
+        return redirect()->route('section-head.manage-my-articles');
+    });
+    Route::get('/review-articles', [SectionHeadController::class, 'reviewArticles'])->name('review-articles');
+    Route::post('/review-articles/{id}/approve', [SectionHeadController::class, 'approveArticle'])->name('approve-article');
+    Route::post('/review-articles/{id}/revision', [SectionHeadController::class, 'returnForRevision'])->name('return-for-revision');
+    Route::get('/submit-article', [SectionHeadController::class, 'submitArticle'])->name('submit-article');
+    Route::post('/submit-article', [SectionHeadController::class, 'storeArticle'])->name('store-article');
+    Route::get('/activity-logs', [SectionHeadController::class, 'activityLogs'])->name('activity-logs');
+    Route::get('/profile-settings', [SectionHeadController::class, 'profileSettings'])->name('profile-settings');
+    Route::get('/settings', function () {
+        return redirect()->route('section-head.profile-settings');
+    });
+    Route::delete('/drafts/{id}', [SectionHeadController::class, 'destroyDraft'])->name('destroyDraft');
+});
+
+// Editor-in-Chief & Associate Editor-in-Chief Routes
+Route::middleware(['auth', 'role:Editor-in-Chief,Associate Editor-in-Chief'])
+    ->prefix('eic')
+    ->name('eic.')
+    ->group(function () {
+        Route::get('/dashboard', [EicController::class, 'dashboard'])->name('dashboard');
+        Route::get('/manage-articles', [EicController::class, 'manageArticles'])->name('manage-articles');
+        Route::get('/manage-my-articles', [EicController::class, 'manageMyArticles'])->name('manage-my-articles');
+        Route::get('/my-articles', function () {
+            return redirect()->route('eic.manage-my-articles');
+        });
+        Route::get('/review-articles', [EicController::class, 'reviewArticles'])->name('review-articles');
+        Route::post('/review-articles/{id}/approve', [EicController::class, 'approveArticle'])->name('approve-article');
+        Route::post('/review-articles/{id}/revision', [EicController::class, 'returnForRevision'])->name('return-for-revision');
+        Route::get('/submit-article', [EicController::class, 'submitArticle'])->name('submit-article');
+        Route::post('/submit-article', [EicController::class, 'storeArticle'])->name('store-article');
+        Route::get('/manage-accounts', [EicController::class, 'manageAccounts'])->name('manage-accounts');
+        Route::post('/manage-accounts', [EicController::class, 'storeAccount'])->name('manage-accounts.store');
+        Route::put('/manage-accounts/{id}/role', [EicController::class, 'updateRole'])->name('manage-accounts.update-role');
+        Route::patch('/manage-accounts/{id}/status', [EicController::class, 'toggleStatus'])->name('manage-accounts.toggle-status');
+        Route::get('/activity-logs', [EicController::class, 'activityLogs'])->name('activity-logs');
+        Route::get('/transparency', [EicController::class, 'transparency'])->name('transparency');
+        Route::get('/feedback-inbox', [EicController::class, 'feedbackInbox'])->name('feedback-inbox');
+        Route::get('/feedback', function () {
+            return redirect()->route('eic.feedback-inbox');
+        });
+        Route::get('/profile-settings', [EicController::class, 'profileSettings'])->name('profile-settings');
+        Route::get('/settings', function () {
+            return redirect()->route('eic.profile-settings');
+        });
+        Route::delete('/drafts/{id}', [EicController::class, 'destroyDraft'])->name('destroyDraft');
+    });

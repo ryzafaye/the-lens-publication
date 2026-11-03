@@ -1,22 +1,29 @@
-﻿/**
+/**
  * ============================================================================
- * THE LENS — WRITER MANAGE ARTICLES CONTROLLER
- * Filter, Search, Sort & Manage Manuscripts Authored by the Active Writer
+ * THE LENS — SHARED MANAGE ARTICLES CONTROLLER
+ * Filter, Search, Sort & Manage Manuscripts Authored by Active Writer or Executive
  * Clean Article Viewing (No visible <div> tags, Author Name & Photo Only,
- * Views/Shares on Published Only, Section Head Feedback)
+ * Views/Shares on Published Only, Editorial Feedback)
  * ============================================================================
  */
 
 document.addEventListener('DOMContentLoaded', () => {
 
     // =========================================================================
-    // 1. ACTIVE WRITER RESOLUTION
+    // 1. PORTAL CONTEXT & ACTIVE USER RESOLUTION (Role-Agnostic)
+    // Note: All client-side role guards and redirects are removed.
+    // Route protection and access control are handled strictly by Laravel Auth.
     // =========================================================================
-    const activeWriterId = (typeof getActiveWriterId === 'function') 
-        ? getActiveWriterId() 
-        : (localStorage.getItem('writerId') || 'sofia-alcaraz');
+    const isSectionHead = window.location.pathname.startsWith('/section-head');
+    const isExecutive = window.location.pathname.startsWith('/executive');
+    const portalPrefix = isSectionHead ? '/section-head' : (isExecutive ? '/executive' : '/writer');
+    const submitArticleUrl = window.__SUBMIT_ARTICLE_URL__ || `${portalPrefix}/submit-article`;
+    const deleteDraftBaseUrl = window.__DELETE_DRAFT_URL__ || `${portalPrefix}/drafts`;
 
-    const storedName = localStorage.getItem('userName') || (activeWriterId === 'marco-valderrama' ? 'Marco L. Valderrama' : 'Sofia M. Alcaraz');
+    const storedName = window.__AUTH_USER_NAME__ 
+        || document.querySelector('.profile-name')?.textContent?.trim() 
+        || localStorage.getItem('userName') 
+        || 'Author';
 
     // DOM Elements - Tabs & Badges
     const tabButtons = document.querySelectorAll('.manage-tab-btn');
@@ -27,12 +34,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const badgeDrafts = document.getElementById('badge-count-drafts');
 
     // DOM Elements - Search & Sort
-    const searchInput = document.getElementById('writer-search-input');
+    const searchInput = document.getElementById('writer-search-input') || document.getElementById('executive-search-input') || document.querySelector('.search-input');
     const clearSearchBtn = document.getElementById('clear-search-btn');
-    const sortSelect = document.getElementById('writer-sort-select');
+    const sortSelect = document.getElementById('writer-sort-select') || document.getElementById('executive-sort-select') || document.querySelector('.review-sort-select');
 
     // DOM Elements - Containers & Empty State
-    const articlesListContainer = document.getElementById('writer-manage-list');
+    const articlesListContainer = document.getElementById('writer-manage-list') || document.getElementById('executive-manage-list') || document.querySelector('.writer-articles-list');
+    const statTotalViews = document.getElementById('stat-total-views');
     const emptyStateEl = document.getElementById('manage-empty-state');
     const resetFiltersBtn = document.getElementById('reset-filters-btn');
 
@@ -187,7 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 3. DATA FETCHING & TAB BADGES
     // =========================================================================
     function fetchMyArticles() {
-        return window.__WRITER_ARTICLES__ || [];
+        return window.__SHARED_ARTICLES__ || window.__WRITER_ARTICLES__ || [];
     }
 
     function updateTabBadges(articles) {
@@ -202,6 +210,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (badgePending) badgePending.textContent = String(pending);
         if (badgeRevision) badgeRevision.textContent = String(revision);
         if (badgeDrafts) badgeDrafts.textContent = String(drafts);
+
+        if (statTotalViews) {
+            const totalViews = articles.reduce((sum, art) => sum + (art.status === 'Published' && art.views ? Number(art.views) : 0), 0);
+            statTotalViews.textContent = formatNumber(totalViews);
+        }
     }
 
     // =========================================================================
@@ -260,35 +273,108 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (articles.length === 0) {
             articlesListContainer.innerHTML = '';
-            if (emptyStateEl) {
-                const emptyTitle = document.getElementById('manage-empty-title');
-                const emptyDesc = document.getElementById('manage-empty-desc');
-                const emptyIcon = document.getElementById('manage-empty-icon-i');
 
-                const isSearching = searchQuery.trim().length > 0;
+            const isSearching = searchQuery.trim().length > 0;
+            const manageNoArticlesState = document.getElementById('manage-no-articles-state');
 
-                if (isSearching) {
-                    if (emptyTitle) emptyTitle.textContent = 'No articles match';
-                    if (emptyDesc) {
-                        emptyDesc.textContent = 'No articles match your active search query.';
-                        emptyDesc.classList.remove('hidden');
-                    }
-                    if (emptyIcon) emptyIcon.className = 'fa-solid fa-magnifying-glass';
-                } else {
+            if (isSearching) {
+                // Active search returned 0 results: Show search empty state with reset button
+                if (manageNoArticlesState) manageNoArticlesState.classList.add('hidden');
+                if (emptyStateEl) {
+                    const emptyTitle = document.getElementById('manage-empty-title') || emptyStateEl.querySelector('.manage-empty-title');
+                    const emptyDesc = document.getElementById('manage-empty-desc') || emptyStateEl.querySelector('.manage-empty-desc');
+                    const emptyIcon = document.getElementById('manage-empty-icon-i') || emptyStateEl.querySelector('.manage-empty-icon i');
+
+                    if (emptyIcon) emptyIcon.className = 'fa-regular fa-folder-open';
                     if (emptyTitle) emptyTitle.textContent = 'No articles found';
                     if (emptyDesc) {
-                        emptyDesc.textContent = '';
-                        emptyDesc.classList.add('hidden');
+                        emptyDesc.textContent = "We couldn't find any articles matching your search query or active filter settings.";
+                        emptyDesc.classList.remove('hidden');
                     }
-                    if (emptyIcon) emptyIcon.className = 'fa-regular fa-folder-open';
+                    if (resetFiltersBtn) resetFiltersBtn.style.display = 'inline-flex';
+                    emptyStateEl.classList.remove('hidden');
                 }
+            } else {
+                // Category/tab is empty (no articles exist yet): Show clean empty state without reset button
+                if (emptyStateEl) emptyStateEl.classList.add('hidden');
+                if (manageNoArticlesState) {
+                    const noTitle = document.getElementById('no-articles-title') || manageNoArticlesState.querySelector('.manage-empty-title');
+                    const noDesc = document.getElementById('no-articles-desc') || manageNoArticlesState.querySelector('.manage-empty-desc');
+                    const noIcon = document.getElementById('no-articles-icon-i') || manageNoArticlesState.querySelector('.manage-empty-icon i');
 
-                emptyStateEl.classList.remove('hidden');
+                    let iconClass = 'fa-regular fa-newspaper';
+                    let titleText = 'No articles yet';
+                    let descText = 'You haven\'t submitted or drafted any articles yet.';
+
+                    if (currentTab === 'published') {
+                        iconClass = 'fa-solid fa-circle-check';
+                        titleText = 'No published articles yet';
+                        descText = 'You don\'t have any published articles in this section yet.';
+                    } else if (currentTab === 'pending') {
+                        iconClass = 'fa-regular fa-clock';
+                        titleText = 'No pending articles';
+                        descText = 'No articles are currently awaiting editorial review.';
+                    } else if (currentTab === 'revision') {
+                        iconClass = 'fa-solid fa-rotate-left';
+                        titleText = 'No articles for revision';
+                        descText = 'No articles are currently returned for revision.';
+                    } else if (currentTab === 'drafts') {
+                        iconClass = 'fa-regular fa-folder-open';
+                        titleText = 'No drafts yet';
+                        descText = 'You don\'t have any saved drafts.';
+                    }
+
+                    if (noIcon) noIcon.className = iconClass;
+                    if (noTitle) noTitle.textContent = titleText;
+                    if (noDesc) {
+                        noDesc.textContent = descText;
+                        noDesc.classList.remove('hidden');
+                    }
+                    manageNoArticlesState.classList.remove('hidden');
+                } else if (emptyStateEl) {
+                    // Fallback if manage-no-articles-state element is not present
+                    const emptyTitle = document.getElementById('manage-empty-title') || emptyStateEl.querySelector('.manage-empty-title');
+                    const emptyDesc = document.getElementById('manage-empty-desc') || emptyStateEl.querySelector('.manage-empty-desc');
+                    const emptyIcon = document.getElementById('manage-empty-icon-i') || emptyStateEl.querySelector('.manage-empty-icon i');
+
+                    let iconClass = 'fa-regular fa-newspaper';
+                    let titleText = 'No articles yet';
+                    let descText = 'You haven\'t submitted or drafted any articles yet.';
+
+                    if (currentTab === 'published') {
+                        iconClass = 'fa-solid fa-circle-check';
+                        titleText = 'No published articles yet';
+                        descText = 'You don\'t have any published articles in this section yet.';
+                    } else if (currentTab === 'pending') {
+                        iconClass = 'fa-regular fa-clock';
+                        titleText = 'No pending articles';
+                        descText = 'No articles are currently awaiting editorial review.';
+                    } else if (currentTab === 'revision') {
+                        iconClass = 'fa-solid fa-rotate-left';
+                        titleText = 'No articles for revision';
+                        descText = 'No articles are currently returned for revision.';
+                    } else if (currentTab === 'drafts') {
+                        iconClass = 'fa-regular fa-folder-open';
+                        titleText = 'No drafts yet';
+                        descText = 'You don\'t have any saved drafts.';
+                    }
+
+                    if (emptyIcon) emptyIcon.className = iconClass;
+                    if (emptyTitle) emptyTitle.textContent = titleText;
+                    if (emptyDesc) {
+                        emptyDesc.textContent = descText;
+                        emptyDesc.classList.remove('hidden');
+                    }
+                    if (resetFiltersBtn) resetFiltersBtn.style.display = 'none';
+                    emptyStateEl.classList.remove('hidden');
+                }
             }
             return;
         }
 
         if (emptyStateEl) emptyStateEl.classList.add('hidden');
+        const manageNoArticlesState = document.getElementById('manage-no-articles-state');
+        if (manageNoArticlesState) manageNoArticlesState.classList.add('hidden');
 
         articlesListContainer.innerHTML = articles.map(item => {
             const badgeClass = getStatusBadgeClass(item.status);
@@ -332,7 +418,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     ${(item.status === 'Draft' || item.status === 'For Revision') ? `
                         <div class="article-card-footer">
                             ${item.status === 'Draft' ? `
-                                <a href="/writer/submit-article?draft_id=${encodeURIComponent(item.id)}" class="btn-box-view" style="text-decoration: none;" title="Edit draft in editor" onclick="event.stopPropagation()">
+                                <a href="${submitArticleUrl}?draft_id=${encodeURIComponent(item.id)}" class="btn-box-view" style="text-decoration: none;" title="Edit draft in editor" onclick="event.stopPropagation()">
                                     <i class="fa-solid fa-pen-to-square"></i>
                                     <span>Edit</span>
                                 </a>
@@ -343,7 +429,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             ` : ''}
 
                             ${item.status === 'For Revision' ? `
-                                <a href="/writer/submit-article?draft_id=${encodeURIComponent(item.id)}" class="btn-box-view" style="text-decoration: none;" title="Edit and revise manuscript" onclick="event.stopPropagation()">
+                                <a href="${submitArticleUrl}?draft_id=${encodeURIComponent(item.id)}" class="btn-box-view" style="text-decoration: none;" title="Edit and revise manuscript" onclick="event.stopPropagation()">
                                     <i class="fa-solid fa-pen-to-square"></i>
                                     <span>Revise</span>
                                 </a>
@@ -609,7 +695,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnEditFromRemarks) {
         btnEditFromRemarks.addEventListener('click', () => {
             if (activeRemarksArticleId) {
-                window.location.href = `/writer/submit-article?draft_id=${encodeURIComponent(activeRemarksArticleId)}`;
+                window.location.href = `${submitArticleUrl}?draft_id=${encodeURIComponent(activeRemarksArticleId)}`;
             }
         });
     }
@@ -628,7 +714,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-            fetch(`/writer/drafts/${pendingDeleteId}`, {
+            fetch(`${deleteDraftBaseUrl}/${pendingDeleteId}`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
@@ -641,6 +727,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 return res.json();
             })
             .then(data => {
+                if (window.__SHARED_ARTICLES__) {
+                    window.__SHARED_ARTICLES__ = window.__SHARED_ARTICLES__.filter(a => String(a.id) !== String(pendingDeleteId));
+                }
                 if (window.__WRITER_ARTICLES__) {
                     window.__WRITER_ARTICLES__ = window.__WRITER_ARTICLES__.filter(a => String(a.id) !== String(pendingDeleteId));
                 }

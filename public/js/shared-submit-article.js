@@ -725,7 +725,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const id = deleteBtn.dataset.id;
                 if (id && confirm('Are you sure you want to delete this draft?')) {
                     if (deleteDraftForm) {
-<<<<<<< HEAD:public/js/shared-submit-article.js
                         const isSectionHead = window.location.pathname.startsWith('/section-head');
                         const isExecutive = window.location.pathname.startsWith('/executive');
                         const defaultDeleteBase = isSectionHead ? '/section-head/drafts' : (isExecutive ? '/executive/drafts' : '/writer/drafts');
@@ -733,10 +732,6 @@ document.addEventListener('DOMContentLoaded', () => {
                             || window.__DELETE_DRAFT_BASE_URL__ 
                             || defaultDeleteBase;
                         deleteDraftForm.action = `${deleteBase}/${id}`;
-=======
-                        const basePath = window.location.pathname.startsWith('/section-head') ? '/section-head' : '/writer';
-                        deleteDraftForm.action = `${basePath}/drafts/${id}`;
->>>>>>> 5b599e1874fdaa84f38395ada5e3509bd80996ab:public/js/writer-submit-article.js
                         deleteDraftForm.submit();
                     }
                 }

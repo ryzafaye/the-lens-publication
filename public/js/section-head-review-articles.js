@@ -1,12 +1,6 @@
-<<<<<<< HEAD
 /**
  * ============================================================================
  * THE LENS — REVIEW ARTICLES (SECTION HEAD PORTAL)
-=======
-﻿/**
- * ============================================================================
- * THE LENS ΓÇö REVIEW ARTICLES (SECTION HEAD PORTAL)
->>>>>>> 5b599e1874fdaa84f38395ada5e3509bd80996ab
  * Exact Executive Queue Layout, Styling & Workflow Parity
  * ============================================================================
  */
@@ -17,15 +11,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================================================================
     // 1. AUTHENTICATION & SESSION
     // =========================================================================
-<<<<<<< HEAD
     const userRole = localStorage.getItem('sectionHeadRole') || localStorage.getItem('userRole') || (document.getElementById('topbar-user-role')?.textContent?.trim()) || 'Section Head';
     const currentSection = localStorage.getItem('sectionHeadSection') || (document.querySelector('.dynamic-section-name')?.textContent?.trim()) || 'News';
     const sectionHeadName = localStorage.getItem('sectionHeadName') || localStorage.getItem('userName') || (document.getElementById('mobile-user-name')?.textContent?.trim()) || 'Section Head';
-=======
-    const userRole = localStorage.getItem('sectionHeadRole') || localStorage.getItem('userRole') || 'News Head';
-    const currentSection = localStorage.getItem('sectionHeadSection') || 'News';
-    const sectionHeadName = localStorage.getItem('sectionHeadName') || localStorage.getItem('userName') || 'Danilo C. Ramos';
->>>>>>> 5b599e1874fdaa84f38395ada5e3509bd80996ab
 
     // =========================================================================
     // 2. DATASET (Pending Manuscripts Queue)
@@ -35,12 +23,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const QUEUE_STORAGE_KEY = 'sectionHeadReviewQueue_v1';
 
     function getPendingQueue() {
-<<<<<<< HEAD
         if (window.__PENDING_ARTICLES__ && Array.isArray(window.__PENDING_ARTICLES__)) {
             return window.__PENDING_ARTICLES__;
         }
-=======
->>>>>>> 5b599e1874fdaa84f38395ada5e3509bd80996ab
         try {
             const raw = localStorage.getItem(QUEUE_STORAGE_KEY);
             if (raw) {
@@ -67,25 +52,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Filter queue matching this Section Head's desk
     function getSectionQueue() {
-<<<<<<< HEAD
         const isSectionHead = /head/i.test(userRole);
         if (!isSectionHead || !currentSection || currentSection === 'All') return reviewList;
-=======
-        if (!currentSection || currentSection === 'All') return reviewList;
->>>>>>> 5b599e1874fdaa84f38395ada5e3509bd80996ab
         const sec = currentSection.toLowerCase();
         return reviewList.filter(item => {
             const cat = (item.category || '').toLowerCase();
             if (sec.includes('science') || sec.includes('tech')) return cat.includes('science') || cat.includes('tech');
             if (sec.includes('feature')) return cat.includes('feature');
-<<<<<<< HEAD
             if (sec.includes('liter')) return cat.includes('liter');
             if (sec.includes('news')) return cat.includes('news');
             if (sec.includes('opinion')) return cat.includes('opinion');
-=======
-            if (sec.includes('literature')) return cat.includes('liter');
-            if (sec.includes('news')) return cat.includes('news');
->>>>>>> 5b599e1874fdaa84f38395ada5e3509bd80996ab
             return cat.includes(sec);
         });
     }
@@ -131,7 +107,6 @@ document.addEventListener('DOMContentLoaded', () => {
             .replace(/'/g, '&#39;');
     }
 
-<<<<<<< HEAD
     function formatCleanArticleContent(rawContent) {
         if (!rawContent || !rawContent.trim()) {
             return '<p style="color: #667085; font-style: italic;">No manuscript text provided.</p>';
@@ -154,8 +129,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return paragraphs.map(p => `<p class="manuscript-paragraph">${escapeHTML(p.trim())}</p>`).join('');
     }
 
-=======
->>>>>>> 5b599e1874fdaa84f38395ada5e3509bd80996ab
     function showToast(message, type = 'success') {
         if (!toastContainer) return;
 
@@ -216,11 +189,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         listContainer.innerHTML = sorted.map(item => `
             <div class="review-box" id="box-${item.id}" data-id="${item.id}">
-<<<<<<< HEAD
                 <!-- Left Stack: Meta Line, Bold Article Title, Excerpt, Author with Pen Nib Icon -->
-=======
-                <!-- Left Stack: Meta Line, Bold Article Title, Author with Pen Nib Icon -->
->>>>>>> 5b599e1874fdaa84f38395ada5e3509bd80996ab
                 <div class="review-box-content">
                     <div class="review-box-meta">
                         <span class="review-box-category">${escapeHTML(item.category || currentSection)}</span>
@@ -231,11 +200,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         ${escapeHTML(item.title)}
                     </button>
 
-<<<<<<< HEAD
                     ${item.excerpt ? `<p class="review-box-excerpt">${escapeHTML(item.excerpt)}</p>` : ''}
 
-=======
->>>>>>> 5b599e1874fdaa84f38395ada5e3509bd80996ab
                     <p class="review-box-author">
                         <i class="fa-solid fa-pen-nib" aria-hidden="true"></i>
                         <span>By <strong>${escapeHTML(item.author)}</strong></span>
@@ -254,11 +220,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </button>
                     <button type="button" class="btn-box-approve" data-action="approve" data-id="${item.id}" title="Approve manuscript">
                         <i class="fa-solid fa-check"></i>
-<<<<<<< HEAD
                         <span>Approve</span>
-=======
-                        <span>Approve Story</span>
->>>>>>> 5b599e1874fdaa84f38395ada5e3509bd80996ab
                     </button>
                 </div>
             </div>
@@ -269,11 +231,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 6. ACTION HANDLERS
     // =========================================================================
     function approveStory(id) {
-<<<<<<< HEAD
         const item = reviewList.find(a => String(a.id) === String(id));
-=======
-        const item = reviewList.find(a => a.id === id);
->>>>>>> 5b599e1874fdaa84f38395ada5e3509bd80996ab
         if (!item) return;
 
         const box = document.getElementById(`box-${id}`);
@@ -281,7 +239,6 @@ document.addEventListener('DOMContentLoaded', () => {
             box.classList.add('box-fade-out');
         }
 
-<<<<<<< HEAD
         // Trigger Laravel backend approval to update the database
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
         const basePath = window.__APPROVE_URL__ || (window.location.pathname.startsWith('/section-head') ? '/section-head/review-articles' : '/executive/review-articles');
@@ -300,10 +257,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (window.__PENDING_ARTICLES__) {
                 window.__PENDING_ARTICLES__ = window.__PENDING_ARTICLES__.filter(a => String(a.id) !== String(id));
             }
-=======
-        setTimeout(() => {
-            reviewList = reviewList.filter(a => a.id !== id);
->>>>>>> 5b599e1874fdaa84f38395ada5e3509bd80996ab
             savePendingQueue(reviewList);
             logActivity('approved and endorsed to EIC', item.title);
 
@@ -317,11 +270,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (Array.isArray(parsed)) eicQueue = parsed;
                     } catch (e) {}
                 }
-<<<<<<< HEAD
                 eicQueue = eicQueue.filter(q => String(q.id) !== String(item.id));
-=======
-                eicQueue = eicQueue.filter(q => q.id !== item.id);
->>>>>>> 5b599e1874fdaa84f38395ada5e3509bd80996ab
                 eicQueue.unshift({
                     ...item,
                     endorsedBy: `${sectionHeadName} (${currentSection} Head)`,
@@ -342,11 +291,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (Array.isArray(writerList)) {
                         let updated = false;
                         writerList = writerList.map(w => {
-<<<<<<< HEAD
                             if (String(w.id) === String(item.id) || w.title === item.title) {
-=======
-                            if (w.id === item.id || w.title === item.title) {
->>>>>>> 5b599e1874fdaa84f38395ada5e3509bd80996ab
                                 updated = true;
                                 return { ...w, status: 'Pending Review', remarks: `Endorsed to EIC by ${sectionHeadName}` };
                             }
@@ -363,11 +308,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function returnStoryForRevision(id, remarks) {
-<<<<<<< HEAD
         const item = reviewList.find(a => String(a.id) === String(id));
-=======
-        const item = reviewList.find(a => a.id === id);
->>>>>>> 5b599e1874fdaa84f38395ada5e3509bd80996ab
         if (!item) return;
 
         const box = document.getElementById(`box-${id}`);
@@ -375,7 +316,6 @@ document.addEventListener('DOMContentLoaded', () => {
             box.classList.add('box-fade-out');
         }
 
-<<<<<<< HEAD
         // Trigger Laravel backend revision to update the database
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
         const basePath = window.__REVISION_URL__ || (window.location.pathname.startsWith('/section-head') ? '/section-head/review-articles' : '/executive/review-articles');
@@ -395,10 +335,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (window.__PENDING_ARTICLES__) {
                 window.__PENDING_ARTICLES__ = window.__PENDING_ARTICLES__.filter(a => String(a.id) !== String(id));
             }
-=======
-        setTimeout(() => {
-            reviewList = reviewList.filter(a => a.id !== id);
->>>>>>> 5b599e1874fdaa84f38395ada5e3509bd80996ab
             savePendingQueue(reviewList);
             logActivity('requested revision on', item.title);
 
@@ -409,11 +345,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (rawEic) {
                     const parsed = JSON.parse(rawEic);
                     if (Array.isArray(parsed)) {
-<<<<<<< HEAD
                         eicQueue = parsed.filter(q => String(q.id) !== String(item.id));
-=======
-                        eicQueue = parsed.filter(q => q.id !== item.id);
->>>>>>> 5b599e1874fdaa84f38395ada5e3509bd80996ab
                         localStorage.setItem('eicPendingReviewQueue', JSON.stringify(eicQueue));
                         localStorage.setItem('executivePendingReviewQueue', JSON.stringify(eicQueue));
                     }
@@ -428,11 +360,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (Array.isArray(writerList)) {
                         let updated = false;
                         writerList = writerList.map(w => {
-<<<<<<< HEAD
                             if (String(w.id) === String(item.id) || w.title === item.title) {
-=======
-                            if (w.id === item.id || w.title === item.title) {
->>>>>>> 5b599e1874fdaa84f38395ada5e3509bd80996ab
                                 updated = true;
                                 return { ...w, status: 'For Revision', remarks: remarks || 'Please revise according to section feedback.' };
                             }
@@ -452,11 +380,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 7. MANUSCRIPT MODAL VIEWER
     // =========================================================================
     function openManuscript(id, options = {}) {
-<<<<<<< HEAD
         const item = reviewList.find(a => String(a.id) === String(id));
-=======
-        const item = reviewList.find(a => a.id === id);
->>>>>>> 5b599e1874fdaa84f38395ada5e3509bd80996ab
         if (!item || !manuscriptModal) return;
 
         currentActiveId = id;
@@ -467,26 +391,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Reset remarks
         if (modalRemarks) {
-<<<<<<< HEAD
             let cleanRemarks = (item.remarks || '').trim();
             if (/^(?:Endorsed to|Approved by)/i.test(cleanRemarks)) {
                 cleanRemarks = '';
             }
             modalRemarks.value = cleanRemarks;
-=======
-            modalRemarks.value = item.remarks || '';
->>>>>>> 5b599e1874fdaa84f38395ada5e3509bd80996ab
             modalRemarks.classList.remove('input-invalid');
             modalRemarks.classList.remove('pulse-focus');
         }
         if (remarksErrorMsg) remarksErrorMsg.classList.add('hidden');
 
         if (modalBody) {
-<<<<<<< HEAD
-=======
-            const raw = item.content || item.excerpt || 'No manuscript body content.';
-            const paragraphs = raw.split(/\n\n+/).filter(p => p.trim());
->>>>>>> 5b599e1874fdaa84f38395ada5e3509bd80996ab
             const modalExcerpt = document.getElementById('modal-excerpt');
             if (modalExcerpt) {
                 if (item.excerpt && item.excerpt.trim()) {
@@ -496,31 +411,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     modalExcerpt.style.display = 'none';
                 }
             }
-<<<<<<< HEAD
             modalBody.innerHTML = formatCleanArticleContent(item.content || item.excerpt);
-=======
-
-            modalBody.innerHTML = paragraphs.map(p => `<p class="manuscript-paragraph">${escapeHTML(p.trim())}</p>`).join('');
->>>>>>> 5b599e1874fdaa84f38395ada5e3509bd80996ab
         }
 
         manuscriptModal.classList.remove('hidden');
         document.body.style.overflow = 'hidden';
 
-<<<<<<< HEAD
         const bodyEl = document.querySelector('.manuscript-body');
         // Direct-to-Remarks flow
         if (options.focusRemarks) {
             setTimeout(() => {
                 if (bodyEl && remarksSection) {
                     bodyEl.scrollTo({ top: remarksSection.offsetTop - 30, behavior: 'smooth' });
-=======
-        // Direct-to-Remarks flow
-        if (options.focusRemarks) {
-            setTimeout(() => {
-                if (remarksSection) {
-                    remarksSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
->>>>>>> 5b599e1874fdaa84f38395ada5e3509bd80996ab
                 }
                 if (modalRemarks) {
                     modalRemarks.focus();
@@ -529,10 +431,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }, 180);
         } else {
-<<<<<<< HEAD
-=======
-            const bodyEl = document.querySelector('.manuscript-body');
->>>>>>> 5b599e1874fdaa84f38395ada5e3509bd80996ab
             if (bodyEl) bodyEl.scrollTop = 0;
         }
     }
@@ -637,7 +535,4 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initial render
     renderReviewBoxes();
 });
-<<<<<<< HEAD
 
-=======
->>>>>>> 5b599e1874fdaa84f38395ada5e3509bd80996ab

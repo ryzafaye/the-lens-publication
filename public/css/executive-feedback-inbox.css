@@ -1,12 +1,6 @@
-<<<<<<< HEAD
 /**
  * ============================================================================
  * THE LENS — FEEDBACK INBOX STYLESHEET (EXECUTIVE PORTAL)
-=======
-﻿/**
- * ============================================================================
- * THE LENS ΓÇö FEEDBACK INBOX STYLESHEET (EXECUTIVE PORTAL)
->>>>>>> 5b599e1874fdaa84f38395ada5e3509bd80996ab
  * Clean, High-End Receiving Area for Reader & Student Feedback
  * ============================================================================
  */
@@ -21,11 +15,7 @@ html {
     max-width: 1200px;
     width: 100%;
     margin: 0 auto;
-<<<<<<< HEAD
     padding-bottom: 20px;
-=======
-    padding-bottom: 48px;
->>>>>>> 5b599e1874fdaa84f38395ada5e3509bd80996ab
 }
 
 /* Page Header */
@@ -108,7 +98,6 @@ html {
     display: none;
 }
 
-<<<<<<< HEAD
 /* Container for ALL tabs across different pages */
 .manage-tabs-container,
 .review-tabs-container,
@@ -167,53 +156,10 @@ html {
 .tab-count-badge,
 .review-tab-badge,
 .drafts-tab-badge,
-=======
-.feedback-filter-tabs {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-}
-
-.tab-filter-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    min-width: 96px;
-    height: 38px;
-    padding: 0 16px;
-    border-radius: 8px;
-    font-size: 0.82rem;
-    font-weight: 600;
-    border: 1px solid #eaecf0;
-    background-color: #ffffff;
-    color: #475467;
-    cursor: pointer;
-    transition: all 0.15s ease;
-    box-sizing: border-box;
-    flex-shrink: 0;
-}
-
-.tab-filter-btn:hover {
-    background-color: #f9fafb;
-    color: #101828;
-    border-color: #d0d5dd;
-}
-
-.tab-filter-btn.active {
-    background-color: var(--sidebar-maroon, #5c0a18);
-    color: #ffffff;
-    border-color: var(--sidebar-maroon, #5c0a18);
-}
-
-/* Stable, Identical Pill Count Dimensions across 0, 1, and multi-digits */
->>>>>>> 5b599e1874fdaa84f38395ada5e3509bd80996ab
 .tab-pill-count {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-<<<<<<< HEAD
     padding: 2px 8px;
     font-size: 0.72rem;
     font-weight: 700;
@@ -231,24 +177,6 @@ html {
 .tab-filter-btn.active .tab-pill-count {
     background-color: #f8eef2;
     color: var(--sidebar-maroon, #5c0a18);
-=======
-    min-width: 22px;
-    height: 20px;
-    padding: 0 6px;
-    border-radius: 999px;
-    font-size: 0.72rem;
-    font-weight: 700;
-    line-height: 1;
-    background-color: #f2f4f7;
-    color: #475467;
-    box-sizing: border-box;
-    flex-shrink: 0;
-}
-
-.tab-filter-btn.active .tab-pill-count {
-    background-color: rgba(255, 255, 255, 0.25);
-    color: #ffffff;
->>>>>>> 5b599e1874fdaa84f38395ada5e3509bd80996ab
 }
 
 .feedback-filters-and-sort {

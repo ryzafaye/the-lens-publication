@@ -118,7 +118,7 @@ class WriterController extends Controller
 
         $request->validate($rules);
 
-        $cleanContent = $this->sanitizeArticleContent($request->content);
+        $cleanContent = $this->sanitizeArticleContent($request->input('content'));
 
         // 2. ERROR CATCHING BLOCK
         try {

@@ -293,18 +293,20 @@ class SectionHeadController extends Controller
 
         $request->validate($rules);
 
+        $content = $request->input('content');
+
         if ($request->filled('article_id')) {
-            $article = Article::where('user_id', Auth::id())->find($request->article_id);
+            $article = Article::where('user_id', Auth::id())->find($request->input('article_id'));
             if ($article) {
                 $article->update([
-                    'category_id' => $request->category_id,
-                    'title' => $request->title,
-                    'excerpt' => $request->excerpt,
-                    'content' => $request->content,
-                    'status' => $request->status,
+                    'category_id' => $request->input('category_id'),
+                    'title' => $request->input('title'),
+                    'excerpt' => $request->input('excerpt'),
+                    'content' => $content,
+                    'status' => $request->input('status'),
                 ]);
 
-                if ($request->status === 'Draft') {
+                if ($request->input('status') === 'Draft') {
                     return redirect()->route('section-head.submit-article', ['tab' => 'drafts'])->with('success', 'Draft updated successfully.');
                 }
                 return redirect()->route('section-head.dashboard')->with('success', 'Article submitted successfully.');
@@ -313,11 +315,11 @@ class SectionHeadController extends Controller
 
         Article::create([
             'user_id' => Auth::id(),
-            'category_id' => $request->category_id,
-            'title' => $request->title,
-            'excerpt' => $request->excerpt,
-            'content' => $request->content,
-            'status' => $request->status,
+            'category_id' => $request->input('category_id'),
+            'title' => $request->input('title'),
+            'excerpt' => $request->input('excerpt'),
+            'content' => $content,
+            'status' => $request->input('status'),
             'views' => 0,
             'shares' => 0,
         ]);

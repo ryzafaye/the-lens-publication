@@ -396,7 +396,7 @@ class EicController extends Controller
 
         $request->validate($rules);
 
-        $cleanContent = $this->sanitizeArticleContent($request->content);
+        $cleanContent = $this->sanitizeArticleContent($request->input('content'));
 
         try {
             if ($request->filled('article_id')) {

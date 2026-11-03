@@ -30,6 +30,7 @@ class CheckRole
             return $next($request);
         }
 
+<<<<<<< HEAD
         // Allow any Chief / EIC role if Editor-in-Chief or Associate Editor-in-Chief is among authorized roles
         if (
             in_array('Editor-in-Chief', $roles) ||
@@ -40,6 +41,16 @@ class CheckRole
             if (str_contains($userRoleLower, 'chief') || str_contains($userRoleLower, 'eic')) {
                 return $next($request);
             }
+=======
+        // Support SectionHead group alias
+        if (in_array('SectionHead', $roles) && (str_ends_with($userRole, 'Head') || in_array($userRole, [
+            'News Head', 'Literary Head', 'Feature Head', 'Science and Technology Head',
+            'Documentary and Podcast Head', 'Media and Public Communications Head',
+            'Associate Media and Public Communications Head',
+            'Photojournalist Head', 'Cartoonist Head'
+        ]))) {
+            return $next($request);
+>>>>>>> 5b599e1874fdaa84f38395ada5e3509bd80996ab
         }
 
         // If unauthorized, log out and redirect to login with an error message

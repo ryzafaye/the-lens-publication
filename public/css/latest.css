@@ -1,0 +1,31 @@
+﻿/* 7. LATEST RELEASES SIDEBAR */
+
+.latest-item {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 88px;
+    align-items: center;
+    gap: 14px;
+}
+
+.latest-category {
+    margin: 0;
+    color: var(--wine);
+    font-size: 8px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.latest-title {
+    margin: 7px 0 6px;
+    font-family: var(--heading-font);
+    font-size: 15px;
+    font-weight: 800;
+    line-height: 1.2;
+}
+
+.latest-views {
+    margin: 0;
+    color: var(--muted);
+    font-size: 10px;
+}

@@ -64,6 +64,7 @@ class User extends Authenticatable
         return $this->belongsTo(Role::class);
     }
 
+<<<<<<< HEAD
     public function getAvatarAttribute()
     {
         return $this->attributes['profile_picture_url'] ?? null;
@@ -72,5 +73,10 @@ class User extends Authenticatable
     public function setAvatarAttribute($value)
     {
         $this->attributes['profile_picture_url'] = $value;
+=======
+    public function articles()
+    {
+        return $this->hasMany(Article::class);
+>>>>>>> 5b599e1874fdaa84f38395ada5e3509bd80996ab
     }
 }

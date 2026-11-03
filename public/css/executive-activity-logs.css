@@ -1,6 +1,12 @@
+<<<<<<< HEAD
 /**
  * ============================================================================
  * THE LENS — ACTIVITY LOGS STYLESHEET (EXECUTIVE PORTAL)
+=======
+﻿/**
+ * ============================================================================
+ * THE LENS ΓÇö ACTIVITY LOGS STYLESHEET (EXECUTIVE PORTAL)
+>>>>>>> 5b599e1874fdaa84f38395ada5e3509bd80996ab
  * Clean, Minimalist, Distraction-Free Editorial Timeline
  * 
  * Features:
@@ -18,7 +24,11 @@
 .activity-logs-container {
     max-width: 980px;
     margin: 0 auto;
+<<<<<<< HEAD
     padding-bottom: 20px;
+=======
+    padding-bottom: 48px;
+>>>>>>> 5b599e1874fdaa84f38395ada5e3509bd80996ab
 }
 
 .activity-page-header {

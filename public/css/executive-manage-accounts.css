@@ -1,5 +1,10 @@
+<<<<<<< HEAD
 /* ==========================================================================
    THE LENS — MANAGE ACCOUNTS STYLESHEET
+=======
+﻿/* ==========================================================================
+   THE LENS ΓÇö MANAGE ACCOUNTS STYLESHEET
+>>>>>>> 5b599e1874fdaa84f38395ada5e3509bd80996ab
    Clean, Minimalist Executive HCI Design
    Modular & Fully Separated CSS for Officer Account Management
    ========================================================================== */
@@ -732,6 +737,7 @@
     font-weight: 600;
 }
 
+<<<<<<< HEAD
 /* Custom Scrollable Role Dropdown Component */
 .custom-select-wrapper {
     position: relative;
@@ -865,4 +871,6 @@
     z-index: -1;
 }
 
+=======
+>>>>>>> 5b599e1874fdaa84f38395ada5e3509bd80996ab
 

@@ -4,14 +4,30 @@
  * Strictly styled to match Executive Dashboard design & formatting
  */
 
+<<<<<<< HEAD
+=======
+import { articles as defaultArticles } from './articles.js';
+
+>>>>>>> 5b599e1874fdaa84f38395ada5e3509bd80996ab
 document.addEventListener('DOMContentLoaded', () => {
 
     // =========================================================================
     // 1. AUTHENTICATION & ROLE VERIFICATION
     // =========================================================================
+<<<<<<< HEAD
     const userRole = localStorage.getItem('sectionHeadRole') || localStorage.getItem('userRole') || (document.getElementById('topbar-user-role')?.textContent?.trim()) || 'Section Head';
     const currentSection = localStorage.getItem('sectionHeadSection') || 'News';
     const sectionHeadName = localStorage.getItem('sectionHeadName') || localStorage.getItem('userName') || (document.getElementById('mobile-user-name')?.textContent?.trim()) || 'Section Head';
+=======
+    const userRole = localStorage.getItem('sectionHeadRole') || localStorage.getItem('userRole') || 'News Head';
+    if (!localStorage.getItem('userRole')) {
+        window.location.href = '/login';
+        return;
+    }
+
+    const currentSection = localStorage.getItem('sectionHeadSection') || 'News';
+    const sectionHeadName = localStorage.getItem('sectionHeadName') || localStorage.getItem('userName') || 'Danilo C. Ramos';
+>>>>>>> 5b599e1874fdaa84f38395ada5e3509bd80996ab
 
     // -------------------------------------------------------------------------
     // Set Dynamic Title: "(Category) Head Dashboard" (No subline)
@@ -145,12 +161,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const sec = currentSection.toLowerCase();
         if (sec.includes('science') || sec.includes('tech')) return cat.includes('science') || cat.includes('tech');
         if (sec.includes('feature')) return cat.includes('feature');
+<<<<<<< HEAD
         if (sec.includes('liter')) return cat.includes('liter');
+=======
+        if (sec.includes('literature')) return cat.includes('liter');
+>>>>>>> 5b599e1874fdaa84f38395ada5e3509bd80996ab
         if (sec.includes('news')) return cat.includes('news');
         return cat.includes(sec);
     });
 
     // Pending Section Submissions Queue
+<<<<<<< HEAD
     let pendingQueue = [];
     if (window.__DASHBOARD_PENDING__ && Array.isArray(window.__DASHBOARD_PENDING__)) {
         pendingQueue = window.__DASHBOARD_PENDING__;
@@ -163,15 +184,32 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } catch (e) {}
     }
+=======
+    const defaultPendingArticles = [];
+
+    let pendingQueue = [];
+    try {
+        const rawQ = localStorage.getItem('sectionHeadReviewQueue_v1');
+        if (rawQ) {
+            const parsedQ = JSON.parse(rawQ);
+            if (Array.isArray(parsedQ)) pendingQueue = parsedQ;
+        }
+    } catch (e) {}
+>>>>>>> 5b599e1874fdaa84f38395ada5e3509bd80996ab
 
     const sectionPending = pendingQueue.filter(a => {
         const cat = (a.category || '').toLowerCase();
         const sec = currentSection.toLowerCase();
         if (sec.includes('science') || sec.includes('tech')) return cat.includes('science') || cat.includes('tech');
         if (sec.includes('feature')) return cat.includes('feature');
+<<<<<<< HEAD
         if (sec.includes('liter')) return cat.includes('liter');
         if (sec.includes('news')) return cat.includes('news');
         if (sec.includes('opinion')) return cat.includes('opinion');
+=======
+        if (sec.includes('literature')) return cat.includes('liter');
+        if (sec.includes('news')) return cat.includes('news');
+>>>>>>> 5b599e1874fdaa84f38395ada5e3509bd80996ab
         return cat.includes(sec);
     });
 
@@ -180,6 +218,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // - Card 1: Total Article Views (Current Month)
     // - Card 2: Section Articles (Published)
     // - Card 3: Pending Section Review
+<<<<<<< HEAD
     // =========================================================================
     const metricsContainer = document.getElementById('metrics-grid');
     if (metricsContainer) {
@@ -195,6 +234,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const pendingCount = (serverMetrics && serverMetrics.pending !== undefined)
             ? serverMetrics.pending
             : sectionPending.length;
+=======
+    // - "My Authored Articles" removed
+    // =========================================================================
+    const metricsContainer = document.getElementById('metrics-grid');
+    if (metricsContainer) {
+        // Calculate total views for the current month across desk
+        const sectionViews = sectionArticles.reduce((sum, a) => sum + (Number(a.views) || 0), 0);
+        const totalCount = sectionArticles.length;
+        const pendingCount = sectionPending.length;
+>>>>>>> 5b599e1874fdaa84f38395ada5e3509bd80996ab
 
         const metrics = [
             {
@@ -284,11 +333,18 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) {}
 
         if (logsToDisplay.length === 0) {
+<<<<<<< HEAD
             activityContainer.innerHTML = '<div style="font-size: 0.85rem; color: #667085; text-align: center; padding: 24px 0;">No recent activities recorded.</div>';
         } else {
             const activityUrl = window.location.pathname.startsWith('/section-head') ? '/section-head/activity-logs' : '/executive/activity-logs';
             activityContainer.innerHTML = logsToDisplay.map(item => `
                 <div class="activity-item" onclick="window.location.href='${activityUrl}'" style="cursor: pointer;" title="Open Activity Log">
+=======
+            activityContainer.innerHTML = '<p class="text-sm text-gray-500 py-4 text-center">No recent activities recorded.</p>';
+        } else {
+            activityContainer.innerHTML = logsToDisplay.map(item => `
+                <div class="activity-item" onclick="window.location.href='section-head-activity-logs.html'" style="cursor: pointer;" title="Open Activity Log">
+>>>>>>> 5b599e1874fdaa84f38395ada5e3509bd80996ab
                     <div class="activity-avatar">
                         <img src="${item.avatar}" alt="${escapeHTML(item.user)}">
                     </div>
@@ -313,6 +369,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .sort((a, b) => (Number(b.views) || 0) - (Number(a.views) || 0))
             .slice(0, 3);
 
+<<<<<<< HEAD
         if (mostViewed.length === 0) {
             mostViewedContainer.innerHTML = '<div style="font-size: 0.85rem; color: #667085; text-align: center; padding: 24px 0;">No data available yet</div>';
         } else {
@@ -336,6 +393,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             `).join('');
         }
+=======
+        mostViewedContainer.innerHTML = mostViewed.map((art, idx) => `
+            <div class="ranked-item" data-article-id="${art.id}">
+                <span class="rank-number ${idx === 0 ? 'top-rank' : ''}">${idx + 1}</span>
+                <div class="ranked-content">
+                    <div class="ranked-category-tag">${escapeHTML(art.category || currentSection)}</div>
+                    <button type="button" class="ranked-title-btn" data-action="view-modal" data-id="${art.id}" title="${escapeHTML(art.title)}">
+                        ${escapeHTML(art.title)}
+                    </button>
+                    <div class="ranked-meta-row">
+                        <span class="ranked-author"><i class="fa-solid fa-pen-nib" aria-hidden="true" style="font-size: 0.70rem; margin-right: 4px; color: var(--text-muted, #667085);"></i>${escapeHTML(art.author || 'Staff Writer')}</span>
+                        <span class="ranked-stats">
+                            <span class="stat-metric" title="Views"><i class="fa-regular fa-eye"></i> ${Number(art.views || 3420 + idx * 800).toLocaleString()}</span>
+                            <span class="stat-sep">&bull;</span>
+                            <span class="stat-metric" title="Shares"><i class="fa-solid fa-share-nodes"></i> ${Number(art.shares || 42 + idx * 12).toLocaleString()}</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+>>>>>>> 5b599e1874fdaa84f38395ada5e3509bd80996ab
     }
 
     // =========================================================================
@@ -354,11 +432,23 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
+<<<<<<< HEAD
+=======
+        // Ensure key writers are populated for demo if pool is small
+        if (Object.keys(authorCounts).length < 3) {
+            authorCounts["Sofia M. Alcaraz"] = 6;
+            authorCounts["Marco L. Valderrama"] = 4;
+            authorCounts["Camille Joy Perez"] = 3;
+            authorCounts["Lia Mendoza"] = 2;
+        }
+
+>>>>>>> 5b599e1874fdaa84f38395ada5e3509bd80996ab
         const topJournalists = Object.entries(authorCounts)
             .sort((a, b) => b[1] - a[1])
             .slice(0, 5)
             .map(([name, count]) => ({ name, count }));
 
+<<<<<<< HEAD
         if (topJournalists.length === 0) {
             topJournalistsTableBody.innerHTML = `<tr><td colspan="2" class="text-center py-6 text-gray-500 text-sm">No data available yet</td></tr>`;
         } else {
@@ -369,6 +459,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 </tr>
             `).join('');
         }
+=======
+        topJournalistsTableBody.innerHTML = topJournalists.map(j => `
+            <tr>
+                <td class="col-author"><span class="author-name">${escapeHTML(j.name)}</span></td>
+                <td class="col-article-count"><span class="article-count-pill">${j.count}</span></td>
+            </tr>
+        `).join('');
+>>>>>>> 5b599e1874fdaa84f38395ada5e3509bd80996ab
     }
 
     // =========================================================================
@@ -429,6 +527,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (viewerReviewBtn) {
         viewerReviewBtn.addEventListener('click', () => {
+<<<<<<< HEAD
             window.location.href = window.location.pathname.startsWith('/section-head') 
                 ? '/section-head/review-articles' 
                 : '/executive/review-articles';
@@ -436,3 +535,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+=======
+            window.location.href = 'section-head-review-articles.html';
+        });
+    }
+});
+>>>>>>> 5b599e1874fdaa84f38395ada5e3509bd80996ab

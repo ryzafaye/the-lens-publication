@@ -27,6 +27,7 @@ class AuthController extends Controller
             // Eager load role relationship immediately for redirection and session state
             $user?->load('role');
 
+<<<<<<< HEAD
             // Fetch relational role name and normalize
             $rawRoleName = $user->role->role_name ?? '';
             $roleName = strtolower(trim($rawRoleName));
@@ -40,6 +41,21 @@ class AuthController extends Controller
                 return redirect()->route('writer.dashboard');
             } elseif (in_array($rawRoleName, ['President', 'Executive Vice President', 'Secretary', 'Associate Secretary', 'Treasurer', 'Auditor', 'Public Relations Officer'])) {
                 return redirect()->route('executive.dashboard');
+=======
+            if ($role && in_array($role, ['President', 'Executive Vice President', 'Secretary', 'Associate Secretary', 'Treasurer', 'Auditor', 'Public Relations Officer'])) {
+                return redirect()->intended('/executive/dashboard');
+            } elseif ($role === 'Writer') {
+                return redirect()->intended('/writer/dashboard');
+            } elseif ($role && str_contains($role, 'Editor-in-Chief')) {
+                return redirect()->intended('/eic/dashboard');
+            } elseif ($role && (str_ends_with($role, 'Head') || in_array($role, [
+                'News Head', 'Literary Head', 'Feature Head', 'Science and Technology Head',
+                'Documentary and Podcast Head', 'Media and Public Communications Head',
+                'Associate Media and Public Communications Head',
+                'Photojournalist Head', 'Cartoonist Head'
+            ]))) {
+                return redirect()->intended('/section-head/dashboard');
+>>>>>>> 5b599e1874fdaa84f38395ada5e3509bd80996ab
             }
 
             // Fallback

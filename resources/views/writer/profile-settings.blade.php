@@ -2,6 +2,7 @@
 
 @section('title', 'Profile Settings')
 
+<<<<<<< HEAD
 @push('styles')
     <link rel="stylesheet" href="{{ asset('css/shared-profile-settings.css') }}">
 @endpush
@@ -9,6 +10,14 @@
 @section('content')
 <main class="content-container">
 
+=======
+@section('extra-css')
+    <link rel="stylesheet" href="{{ asset('css/profile-settings.css') }}">
+@endsection
+
+@section('content')
+<main class="content-container">
+>>>>>>> 5b599e1874fdaa84f38395ada5e3509bd80996ab
     <div class="profile-settings-container">
         
         <!-- Page Header -->
@@ -18,12 +27,31 @@
             </div>
         </div>
 
+<<<<<<< HEAD
         <!-- 2-Column Responsive Settings Grid -->
         <div class="profile-settings-grid">
             
             <!-- ====================================================== -->
             <!-- CARD 1: WRITER PROFILE INFORMATION                    -->
             <!-- ====================================================== -->
+=======
+        @if(session('success'))
+            <div class="alert alert-success" style="background: #e6f4ea; color: #137333; padding: 12px 18px; border-radius: 8px; margin-bottom: 20px; font-weight: 500;">
+                <i class="fa-solid fa-circle-check"></i> {{ session('success') }}
+            </div>
+        @endif
+
+        @if($errors->any())
+            <div class="alert alert-danger" style="background: #fce8e6; color: #c5221f; padding: 12px 18px; border-radius: 8px; margin-bottom: 20px; font-weight: 500;">
+                <i class="fa-solid fa-circle-exclamation"></i> {{ $errors->first() }}
+            </div>
+        @endif
+
+        <!-- 2-Column Responsive Settings Grid -->
+        <div class="profile-settings-grid">
+            
+            <!-- CARD 1: WRITER PROFILE INFORMATION -->
+>>>>>>> 5b599e1874fdaa84f38395ada5e3509bd80996ab
             <section class="settings-card" aria-labelledby="writer-info-heading">
                 <div class="settings-card-header">
                     <div class="settings-card-icon">
@@ -35,13 +63,21 @@
                     </div>
                 </div>
 
+<<<<<<< HEAD
                 <form id="profile-info-form" action="{{ route('profile.update-info') }}" method="POST" enctype="multipart/form-data" class="settings-card-body" novalidate>
+=======
+                <form id="profile-info-form" class="settings-card-body" method="POST" action="{{ route('writer.settings.profile') }}" enctype="multipart/form-data" novalidate>
+>>>>>>> 5b599e1874fdaa84f38395ada5e3509bd80996ab
                     @csrf
                     
                     <!-- Profile Picture Upload Row -->
                     <div class="profile-avatar-row">
                         <div class="avatar-preview-wrapper">
+<<<<<<< HEAD
                             <img id="avatar-preview-img" class="avatar-preview-img" src="{{ Auth::user()->avatar ? asset('storage/' . Auth::user()->avatar) : (Auth::user()->profile_picture_url ? asset(Auth::user()->profile_picture_url) : asset('images/member-placeholder.svg')) }}" alt="Writer Avatar">
+=======
+                            <img id="avatar-preview-img" class="avatar-preview-img" src="{{ Auth::user()->profile_picture_url ? asset(Auth::user()->profile_picture_url) : asset('images/member-placeholder.svg') }}" alt="Writer Avatar">
+>>>>>>> 5b599e1874fdaa84f38395ada5e3509bd80996ab
                         </div>
                         <div class="avatar-upload-info">
                             <span class="settings-label">Profile Picture</span>
@@ -54,9 +90,15 @@
                                     <i class="fa-regular fa-trash-can"></i>
                                     <span>Remove</span>
                                 </button>
+<<<<<<< HEAD
                                 <!-- Hidden Native File Input -->
                                 <input type="file" id="avatar-file-input" name="avatar" accept="image/png, image/jpeg, image/webp" style="display: none;" aria-label="Upload writer profile picture">
                                 <input type="hidden" name="remove_avatar" id="input-remove-avatar" value="0">
+=======
+                                <!-- Native File Input -->
+                                <input type="file" id="avatar-file-input" name="avatar" accept="image/png, image/jpeg, image/webp" style="display: none;" aria-label="Upload writer profile picture">
+                                <input type="hidden" name="remove_avatar" id="remove-avatar-input" value="0">
+>>>>>>> 5b599e1874fdaa84f38395ada5e3509bd80996ab
                             </div>
                             <p class="avatar-hint-text">Supported formats: JPG, PNG, or WEBP.</p>
                         </div>
@@ -72,8 +114,13 @@
                             id="input-student-number" 
                             name="student_number"
                             class="settings-input" 
+<<<<<<< HEAD
                             placeholder="Enter your student number" 
                             value="{{ Auth::user()->student_number }}"
+=======
+                            value="{{ old('student_number', Auth::user()->student_number) }}" 
+                            placeholder="Enter your student number" 
+>>>>>>> 5b599e1874fdaa84f38395ada5e3509bd80996ab
                             required 
                             maxlength="30"
                             autocomplete="off"
@@ -90,8 +137,13 @@
                             id="input-full-name" 
                             name="full_name"
                             class="settings-input" 
+<<<<<<< HEAD
                             placeholder="Enter your full name" 
                             value="{{ Auth::user()->full_name }}"
+=======
+                            value="{{ old('full_name', Auth::user()->full_name) }}" 
+                            placeholder="Enter your full name" 
+>>>>>>> 5b599e1874fdaa84f38395ada5e3509bd80996ab
                             required 
                             maxlength="80"
                             autocomplete="name"
@@ -124,9 +176,13 @@
                 </form>
             </section>
 
+<<<<<<< HEAD
             <!-- ====================================================== -->
             <!-- CARD 2: SECURITY & PASSWORD CHANGE                      -->
             <!-- ====================================================== -->
+=======
+            <!-- CARD 2: SECURITY & PASSWORD CHANGE -->
+>>>>>>> 5b599e1874fdaa84f38395ada5e3509bd80996ab
             <section class="settings-card" aria-labelledby="security-heading">
                 <div class="settings-card-header">
                     <div class="settings-card-icon">
@@ -138,7 +194,11 @@
                     </div>
                 </div>
 
+<<<<<<< HEAD
                 <form id="password-change-form" action="{{ route('profile.update-password') }}" method="POST" class="settings-card-body" novalidate>
+=======
+                <form id="password-change-form" class="settings-card-body" method="POST" action="{{ route('writer.settings.password') }}" novalidate>
+>>>>>>> 5b599e1874fdaa84f38395ada5e3509bd80996ab
                     @csrf
                     
                     <!-- Current Password Field -->
@@ -232,14 +292,23 @@
         </div>
 
     </div>
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5b599e1874fdaa84f38395ada5e3509bd80996ab
 </main>
 
 <!-- Toast Notification Container -->
 <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
 @endsection
 
+<<<<<<< HEAD
 @push('scripts')
     <script src="{{ asset('js/shared-profile-settings.js') }}"></script>
 @endpush
 
+=======
+@section('extra-js')
+    <script src="{{ asset('js/writer-profile-settings.js') }}"></script>
+@endsection
+>>>>>>> 5b599e1874fdaa84f38395ada5e3509bd80996ab

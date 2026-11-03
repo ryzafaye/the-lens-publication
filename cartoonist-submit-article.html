@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submit Article | The Lens Cartoonist Portal</title>
+    
+    <!-- Typography: DM Sans & Playfair Display -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,600;1,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Strictly Separated Modular CSS (Matching Executive & Media Parity) -->
+    <link rel="stylesheet" href="css/executive-dashboard.css">
+    <link rel="stylesheet" href="css/executive-submit-article.css">
+    <link rel="stylesheet" href="css/executive-modals.css">
+</head>
+<body class="dashboard-body">
+
+    <!-- ====================================================================== -->
+    <!-- DEDICATED CARTOONIST SIDEBAR: Desktop Fixed Maroon (#5c0a18)           -->
+    <!-- ====================================================================== -->
+    <aside id="sidebar" class="sidebar" aria-label="Cartoonist Portal Sidebar">
+        
+        <div class="sidebar-top-section">
+            <!-- Brand Lockup -->
+            <div class="sidebar-header">
+                <div class="sidebar-brand-lockup">
+                    <div class="sidebar-logo-square">
+                        <img src="images/logo.jpg" alt="The Lens Logo">
+                    </div>
+                    <span class="sidebar-brand-name">The Lens Publication</span>
+                </div>
+            </div>
+
+            <!-- Profile Section -->
+            <div class="sidebar-profile">
+                <div class="profile-avatar">
+                    <img id="sidebar-avatar-img" src="images/member-placeholder.svg" alt="Cartoonist Avatar">
+                </div>
+                <div id="sidebar-user-name" class="profile-name">Raphael Luna</div>
+                <div id="sidebar-user-role" class="profile-role-text">Cartoonist</div>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="sidebar-nav" aria-label="Main Navigation">
+                <a href="cartoonist-dashboard.html" class="sidebar-nav-item">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </a>
+
+                <a href="cartoonist-submit-article.html" class="sidebar-nav-item active">
+                    <i class="fa-solid fa-feather-pointed"></i>
+                    <span>Submit Article</span>
+                </a>
+
+                <a href="cartoonist-manage-articles.html" class="sidebar-nav-item">
+                    <i class="fa-regular fa-newspaper"></i>
+                    <span>Manage My Articles</span>
+                </a>
+
+                <a href="cartoonist-submit-cartoon.html" class="sidebar-nav-item">
+                    <i class="fa-solid fa-paintbrush"></i>
+                    <span>Submit Cartoon</span>
+                </a>
+
+                <a href="cartoonist-manage-cartoons.html" class="sidebar-nav-item">
+                    <i class="fa-solid fa-palette"></i>
+                    <span>Manage Cartoons</span>
+                </a>
+            </nav>
+        </div>
+
+        <!-- Bottom of Sidebar: Profile Settings, View Public Site, Logout -->
+        <div class="sidebar-footer">
+            <a href="cartoonist-profile-settings.html" class="sidebar-footer-link">
+                <i class="fa-solid fa-sliders"></i>
+                <span>Profile Settings</span>
+            </a>
+
+            <a href="index.html" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                <span>View public site</span>
+            </a>
+
+            <button type="button" id="logout-btn" class="sidebar-footer-link logout-btn">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span>Logout</span>
+            </button>
+        </div>
+
+    </aside>
+
+    <!-- ====================================================================== -->
+    <!-- MAIN CONTENT AREA                                                      -->
+    <!-- ====================================================================== -->
+    <div class="main-wrapper">
+
+        <!-- Top Header Bar (Executive & Media Parity) -->
+        <header class="topbar">
+            
+            <div class="topbar-left">
+                <div class="mobile-header-brand">
+                    <button type="button" id="mobile-hamburger-btn" class="mobile-hamburger-btn" aria-label="Toggle navigation menu" aria-expanded="false">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <div class="mobile-brand-lockup">
+                        <div class="mobile-logo-square">
+                            <img src="images/logo.jpg" alt="The Lens Logo">
+                        </div>
+                        <span class="mobile-brand-title">The Lens</span>
+                    </div>
+                </div>
+
+                <div class="topbar-clock">
+                    <i class="fa-regular fa-clock"></i>
+                    <span id="topbar-clock-display">Loading date &amp; time…</span>
+                </div>
+            </div>
+
+            <div class="topbar-right">
+                <button type="button" class="topbar-notification-btn" aria-label="Notifications">
+                    <div class="notification-icon-wrapper">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="notification-badge-dot"></span>
+                    </div>
+                    <span class="notification-label">Notification</span>
+                </button>
+
+                <div class="topbar-divider"></div>
+
+                <div class="topbar-user-profile">
+                    <div class="topbar-avatar-circle" title="User Profile">
+                        <img id="topbar-avatar-img" src="images/member-placeholder.svg" alt="User Profile Picture">
+                    </div>
+                    <span id="topbar-user-role" class="topbar-role-badge">Cartoonist</span>
+                </div>
+            </div>
+
+        </header>
+
+        <!-- Mobile Navigation Dropdown -->
+        <nav id="mobile-nav-dropdown" class="mobile-nav-dropdown" aria-label="Mobile Navigation Menu">
+            <div class="mobile-nav-profile">
+                <div class="mobile-nav-avatar">
+                    <img id="mobile-avatar-img" src="images/member-placeholder.svg" alt="Cartoonist Avatar">
+                </div>
+                <div class="mobile-nav-user-info">
+                    <div id="mobile-user-name" class="mobile-nav-name">Raphael Luna</div>
+                    <div id="mobile-user-role" class="mobile-nav-role">Cartoonist</div>
+                </div>
+            </div>
+
+            <div class="mobile-nav-links">
+                <a href="cartoonist-dashboard.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="cartoonist-submit-article.html" class="mobile-nav-link active">
+                    <i class="fa-solid fa-feather-pointed"></i>
+                    <span>Submit Article</span>
+                </a>
+                <a href="cartoonist-manage-articles.html" class="mobile-nav-link">
+                    <i class="fa-regular fa-newspaper"></i>
+                    <span>Manage My Articles</span>
+                </a>
+                <a href="cartoonist-submit-cartoon.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-paintbrush"></i>
+                    <span>Submit Cartoon</span>
+                </a>
+                <a href="cartoonist-manage-cartoons.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-palette"></i>
+                    <span>Manage Cartoons</span>
+                </a>
+            </div>
+
+            <div class="mobile-nav-footer">
+                <a href="cartoonist-profile-settings.html" class="mobile-nav-footer-link">
+                    <i class="fa-solid fa-sliders"></i>
+                    <span>Profile Settings</span>
+                </a>
+                <a href="index.html" class="mobile-nav-link" target="_blank">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    <span>View public site</span>
+                </a>
+                <button type="button" id="mobile-logout-btn" class="mobile-nav-footer-link mobile-logout-btn">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span>Logout</span>
+                </button>
+            </div>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="content-container">
+
+            <!-- Top Section: Header with Title -->
+            <div class="page-title-section">
+                <div class="page-header-row">
+                    <h1 class="page-title">Submit Article</h1>
+                </div>
+            </div>
+
+            <!-- Tab Navigation: Write Article & Drafts (Executive Parity) -->
+            <div class="submit-tabs-nav" role="tablist" aria-label="Article Views">
+                <button type="button" class="submit-tab-btn active" data-tab="write" id="tab-write-btn" role="tab" aria-selected="true" aria-controls="write-view">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                    <span>Write Article</span>
+                </button>
+                <button type="button" class="submit-tab-btn" data-tab="drafts" id="tab-drafts-btn" role="tab" aria-selected="false" aria-controls="drafts-view">
+                    <i class="fa-regular fa-folder-open"></i>
+                    <span>Drafts</span>
+                    <span id="drafts-count-badge" class="drafts-tab-badge">0</span>
+                </button>
+            </div>
+
+            <!-- View 1: Write Article View (.write-view) -->
+            <div class="write-view view-container" id="write-view" role="tabpanel" aria-labelledby="tab-write-btn">
+                
+                <!-- Ultra-Minimalist Distraction-Free Writing Canvas (Notion / Medium Style) -->
+                <div class="writing-canvas-container">
+
+                    <!-- 1. Big Box Headline Input (255 Max Characters, Continuous Sentence Enforced) -->
+                    <div class="headline-box-wrapper" id="headline-box-wrapper">
+                        <textarea 
+                            id="article-headline" 
+                            class="headline-input" 
+                            rows="1" 
+                            placeholder="Write your headline here..." 
+                            maxlength="255"
+                            aria-label="Article Headline"
+                            required></textarea>
+                        
+                        <div class="headline-helper-row">
+                            <span></span>
+                            <span id="headline-char-count" class="headline-char-count">0 / 255</span>
+                        </div>
+                    </div>
+
+                    <!-- 2. Section Dropdown & Author Byline -->
+                    <div class="meta-controls-row">
+                        <div class="category-select-wrapper">
+                            <label for="article-category" class="category-label">
+                                <i class="fa-solid fa-tag"></i>
+                                <span>Section:</span>
+                            </label>
+                            <div class="select-styled-container" id="category-select-container">
+                                <select id="article-category" class="category-dropdown-select" aria-label="Select section category" required>
+                                    <option value="" disabled selected>Select category...</option>
+                                    <option value="News">News</option>
+                                    <option value="Opinions">Opinions</option>
+                                    <option value="Features">Features</option>
+                                    <option value="Science and Technology">Science and Technology</option>
+                                    <option value="Literature">Literature</option>
+                                    <option value="Sports">Sports</option>
+                                </select>
+                                <i class="fa-solid fa-chevron-down select-chevron" aria-hidden="true"></i>
+                            </div>
+                        </div>
+
+                        <!-- Author with Pen Nib Icon -->
+                        <div class="author-byline-display">
+                            <i class="fa-solid fa-pen-nib" aria-hidden="true"></i>
+                            <span>By <strong id="author-name-display">Raphael Luna</strong></span>
+                        </div>
+                    </div>
+
+                    <!-- 3. Excerpt Field (255 Max Characters) -->
+                    <div class="excerpt-box-wrapper" id="excerpt-box-wrapper">
+                        <label for="article-excerpt" class="excerpt-label">
+                            <i class="fa-solid fa-align-left"></i>
+                            <span>Excerpt</span>
+                        </label>
+                        <textarea 
+                            id="article-excerpt" 
+                            class="excerpt-input" 
+                            rows="2" 
+                            maxlength="255"
+                            placeholder="Write a brief excerpt or teaser summarizing the article..."
+                            aria-label="Article Excerpt"
+                            required></textarea>
+                        <div class="excerpt-helper-row">
+                            <span></span>
+                            <span id="excerpt-char-count" class="excerpt-char-count">0 / 255</span>
+                        </div>
+                    </div>
+
+                    <!-- 4. Notion / Medium Rich Text Formatting Toolbar -->
+                    <div class="editor-toolbar" id="editor-toolbar" role="toolbar" aria-label="Text Formatting Toolbar">
+                        <button type="button" class="tool-btn" data-command="bold" title="Bold (Ctrl+B)">
+                            <i class="fa-solid fa-bold"></i>
+                        </button>
+                        <button type="button" class="tool-btn" data-command="italic" title="Italic (Ctrl+I)">
+                            <i class="fa-solid fa-italic"></i>
+                        </button>
+                        <button type="button" class="tool-btn" data-command="underline" title="Underline (Ctrl+U)">
+                            <i class="fa-solid fa-underline"></i>
+                        </button>
+                        <button type="button" class="tool-btn" data-command="strikeThrough" title="Strikethrough">
+                            <i class="fa-solid fa-strikethrough"></i>
+                        </button>
+
+                        <div class="toolbar-divider"></div>
+
+                        <button type="button" class="tool-btn" data-command="formatBlock" data-value="<h2>" title="Large Heading (H2)">
+                            <span>H2</span>
+                        </button>
+                        <button type="button" class="tool-btn" data-command="formatBlock" data-value="<h3>" title="Small Heading (H3)">
+                            <span>H3</span>
+                        </button>
+                        <button type="button" class="tool-btn" data-command="formatBlock" data-value="<blockquote>" title="Blockquote">
+                            <i class="fa-solid fa-quote-left"></i>
+                        </button>
+
+                        <div class="toolbar-divider"></div>
+
+                        <button type="button" class="tool-btn" data-command="insertUnorderedList" title="Bulleted List">
+                            <i class="fa-solid fa-list-ul"></i>
+                        </button>
+                        <button type="button" class="tool-btn" data-command="insertOrderedList" title="Numbered List">
+                            <i class="fa-solid fa-list-ol"></i>
+                        </button>
+
+                        <div class="toolbar-divider"></div>
+
+                        <button type="button" class="tool-btn" data-command="createLink" title="Insert Link">
+                            <i class="fa-solid fa-link"></i>
+                        </button>
+                        <button type="button" class="tool-btn" data-command="insertHorizontalRule" title="Horizontal Divider">
+                            <i class="fa-solid fa-minus"></i>
+                        </button>
+                        <button type="button" class="tool-btn" data-command="removeFormat" title="Clear Formatting">
+                            <i class="fa-solid fa-text-slash"></i>
+                        </button>
+                    </div>
+
+                    <!-- 5. Rich Text Editor Body -->
+                    <div class="editor-body-wrapper" id="editor-body-wrapper">
+                        <div 
+                            id="editor-content" 
+                            class="rich-editor-content" 
+                            contenteditable="true" 
+                            spellcheck="true"
+                            role="textbox"
+                            aria-multiline="true"
+                            data-placeholder="Write your article here..."></div>
+                    </div>
+
+                    <!-- 6. Footer Action Bar & Real-Time Metrics -->
+                    <div class="editor-footer-bar">
+                        <div class="editor-metrics-left">
+                            <span class="metric-pill" title="Word count">
+                                <i class="fa-solid fa-font"></i>
+                                <span id="words-count">0 words</span>
+                            </span>
+                            <span class="metric-pill" title="Character count">
+                                <i class="fa-regular fa-keyboard"></i>
+                                <span id="chars-count">0 characters</span>
+                            </span>
+                        </div>
+
+                        <div class="editor-actions-right">
+                            <button type="button" id="btn-save-draft" class="btn-secondary-action" title="Save draft locally">
+                                <i class="fa-regular fa-floppy-disk"></i>
+                                <span>Save Draft</span>
+                            </button>
+
+                            <button type="button" id="btn-submit-article" class="btn-submit-primary" title="Submit article to editorial review queue">
+                                <i class="fa-solid fa-paper-plane"></i>
+                                <span>Submit Article</span>
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- View 2: Drafts View Container (.drafts-view - Executive Parity Layout) -->
+            <div class="drafts-view view-container hidden" id="drafts-view" role="tabpanel" aria-labelledby="tab-drafts-btn">
+                <div class="drafts-view-container">
+                    
+                    <!-- Dynamic Responsive Horizontal List Card Container -->
+                    <div class="drafts-list-container" id="drafts-list-container">
+                        <!-- Populated dynamically by js/cartoonist-submit-article.js -->
+                    </div>
+
+                    <!-- Empty State for Drafts -->
+                    <div id="empty-drafts-state" class="empty-drafts-box hidden">
+                        <i class="fa-regular fa-folder-open"></i>
+                        <h3 class="empty-drafts-title">No Drafts Saved</h3>
+                        <p class="empty-drafts-subtitle">Any articles you save as drafts will appear here for easy editing.</p>
+                    </div>
+
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Clean Success Notification Toast Container -->
+    <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+    <!-- Scripts -->
+    <script src="js/cartoonist-shell.js"></script>
+    <script src="js/cartoonist-data.js"></script>
+    <script src="js/cartoonist-submit-article.js"></script>
+</body>
+</html>

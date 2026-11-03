@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Meet The Lens Publication, the official student journalism body of PUP Biñan Campus.">
+    <title>About Us | The Lens Publication</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="js/tailwind-config.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/main.css">
+</head>
+<body class="bg-white text-stone-900 font-body">
+<header id="header-container" class="site-header w-full font-body border-b border-stone-200 shadow-sm" data-include="header.html"></header>
+<main class="about-page page-shell">
+    <section class="about-hero" aria-labelledby="about-title">
+        <div class="about-hero-copy">
+            <p class="about-eyebrow">INDEPENDENT STUDENT JOURNALISM</p>
+            <h1 id="about-title">The Lens <em>Publication</em></h1>
+            <p class="about-hero-description">The Official Student Journalism Body of Polytechnic University of the Philippines – Biñan Campus.</p>
+            <a class="about-hero-cta" href="#leadership">Meet our officers <i class="fa-solid fa-arrow-down" aria-hidden="true"></i></a>
+        </div>
+        <aside class="about-motto-card" aria-label="The Lens motto">
+            <p class="motto-wordmark"><span>Basta Lente,</span><span>Abante!</span></p>
+        </aside>
+    </section>
+
+    <section class="about-intro-section" aria-labelledby="about-intro-title">
+        <div class="about-section-kicker">WHO WE ARE</div>
+        <div class="about-intro-grid">
+            <div><h2 id="about-intro-title">Stories that serve the campus.</h2></div>
+            <div class="about-intro-copy">
+                <p>The Lens Publication is the official student journalism body of Polytechnic University of the Philippines – Biñan Campus. We document campus life and student perspectives through news, features, opinion, science and technology, literature, photography, and multimedia storytelling.</p>
+                <p>Our work is guided by curiosity, care for our community, and a commitment to clear and responsible student journalism.</p>
+            </div>
+        </div>
+        <div class="about-values-grid">
+            <article class="about-value-card"><span class="about-value-icon"><i class="fa-solid fa-newspaper" aria-hidden="true"></i></span><h3>Campus reporting</h3><p>Stories and information that help the campus community stay informed.</p></article>
+            <article class="about-value-card"><span class="about-value-icon"><i class="fa-solid fa-scale-balanced" aria-hidden="true"></i></span><h3>Editorial responsibility</h3><p>Thoughtful coverage, careful review, and respect for context and accountability.</p></article>
+            <article class="about-value-card"><span class="about-value-icon"><i class="fa-solid fa-microphone-lines" aria-hidden="true"></i></span><h3>Student voices</h3><p>A space for student perspectives, creativity, inquiry, and meaningful conversation.</p></article>
+        </div>
+    </section>
+
+    <section class="about-team-section" id="leadership" aria-labelledby="leadership-title">
+        <div class="about-section-heading">
+            <div><p class="about-section-kicker">THE PEOPLE BEHIND THE STORIES</p><h2 id="leadership-title">Publication Officers</h2></div>
+            <a class="about-outline-link" href="members.html">See all members</a>
+        </div>
+        <div class="about-subsection-heading"><span>01</span><div><h3>Executive Board</h3><p>Publication officers</p></div></div>
+        <div id="executive-grid" class="people-grid" aria-live="polite"></div>
+    </section>
+
+    <section class="about-documents-section" id="documents" aria-labelledby="documents-title">
+        <div class="about-section-heading">
+            <div>
+                <p class="about-section-kicker">DOCUMENT LIBRARY</p>
+                <h2 id="documents-title">Financial Records &amp; Documents</h2>
+                <p class="about-section-lead">Browse document formats and download the available files.</p>
+            </div>
+        </div>
+        <div id="document-library-grid" class="document-library-grid" aria-live="polite"></div>
+    </section>
+
+    <section class="about-social-section" id="socials" aria-label="The Lens official Facebook page">
+        <a class="facebook-page-card" href="https://www.facebook.com/profile.php?id=61560889387183" data-publication-link="facebook" target="_blank" rel="noopener noreferrer" aria-label="Visit The Lens Publication on Facebook">
+            <img class="facebook-page-avatar" src="images/logo.jpg" alt="The Lens Publication logo" loading="lazy">
+            <span class="facebook-page-copy">
+                <span class="facebook-page-platform"><i class="fa-brands fa-facebook-f" aria-hidden="true"></i> OFFICIAL FACEBOOK PAGE</span>
+                <strong class="facebook-page-title">The Lens Publication</strong>
+                <span class="facebook-page-subtitle">Campus stories, announcements, and publication updates.</span>
+            </span>
+            <span class="facebook-page-action">Visit Page <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></span>
+        </a>
+    </section>
+
+    <section class="about-contact-section" id="contact" aria-labelledby="contact-title">
+        <div class="about-contact-icon"><i class="fa-regular fa-envelope" aria-hidden="true"></i></div>
+        <div>
+            <p class="about-section-kicker">CONTACT THE PUBLICATION</p>
+            <h2 id="contact-title">Get in touch with The Lens</h2>
+            <p>For inquiries and publication-related messages, reach us through our official email address.</p>
+            <a class="contact-email-link" href="mailto:thelenspublicationpupbc@gmail.com" data-publication-link="email">thelenspublicationpupbc@gmail.com 
+                <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+            </a>
+        </div>
+    </section>
+
+</main>
+
+    <footer id="footer-container" class="site-footer" data-include="footer.html"></footer>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

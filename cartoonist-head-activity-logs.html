@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Activity Log | The Lens Cartoonist Head Portal</title>
+    
+    <!-- Typography: DM Sans & Playfair Display -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,600;1,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Modular CSS Architecture (Matching Parity) -->
+    <link rel="stylesheet" href="css/executive-dashboard.css">
+    <link rel="stylesheet" href="css/executive-activity-logs.css">
+    <link rel="stylesheet" href="css/executive-modals.css">
+</head>
+<body class="dashboard-body">
+
+    <!-- ====================================================================== -->
+    <!-- DEDICATED CARTOONIST HEAD SIDEBAR                                      -->
+    <!-- ====================================================================== -->
+    <aside id="sidebar" class="sidebar" aria-label="Cartoonist Head Portal Sidebar">
+        
+        <div class="sidebar-top-section">
+            <!-- Brand Lockup -->
+            <div class="sidebar-header">
+                <div class="sidebar-brand-lockup">
+                    <div class="sidebar-logo-square">
+                        <img src="images/logo.jpg" alt="The Lens Logo">
+                    </div>
+                    <span class="sidebar-brand-name">The Lens Publication</span>
+                </div>
+            </div>
+
+            <!-- Profile Section -->
+            <div class="sidebar-profile">
+                <div class="profile-avatar">
+                    <img id="sidebar-user-avatar" src="images/member-placeholder.svg" alt="Danilo Reyes Avatar">
+                </div>
+                <div id="sidebar-user-name" class="profile-name">Danilo Reyes</div>
+                <div id="sidebar-user-role" class="profile-role-text">Cartoonist Head</div>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="sidebar-nav" aria-label="Main Navigation">
+                <a href="cartoonist-head-dashboard.html" class="sidebar-nav-item">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </a>
+
+                <a href="cartoonist-head-media-desk.html" class="sidebar-nav-item">
+                    <i class="fa-solid fa-palette"></i>
+                    <span>Cartoon Desk</span>
+                </a>
+
+                <a href="cartoonist-head-submit-media.html" class="sidebar-nav-item">
+                    <i class="fa-solid fa-paintbrush"></i>
+                    <span>Submit Cartoon</span>
+                </a>
+
+                <a href="cartoonist-head-manage-my-articles.html" class="sidebar-nav-item">
+                    <i class="fa-solid fa-file-pen"></i>
+                    <span>Manage My Articles</span>
+                </a>
+
+                <a href="cartoonist-head-submit-article.html" class="sidebar-nav-item">
+                    <i class="fa-solid fa-feather-pointed"></i>
+                    <span>Submit article</span>
+                </a>
+
+                <a href="cartoonist-head-activity-logs.html" class="sidebar-nav-item active">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <span>Activity log</span>
+                </a>
+
+                <a href="cartoonist-head-transparency.html" class="sidebar-nav-item">
+                    <i class="fa-solid fa-file-invoice-dollar"></i>
+                    <span>Transparency</span>
+                </a>
+            </nav>
+        </div>
+
+        <!-- Bottom of Sidebar: Profile Settings, View Public Site, Logout -->
+        <div class="sidebar-footer">
+            <a href="cartoonist-head-profile-settings.html" class="sidebar-footer-link">
+                <i class="fa-solid fa-sliders"></i>
+                <span>Profile Settings</span>
+            </a>
+
+            <a href="index.html" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                <span>View public site</span>
+            </a>
+
+            <button type="button" id="logout-btn" class="sidebar-footer-link logout-btn">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span>Logout</span>
+            </button>
+        </div>
+
+    </aside>
+
+    <!-- ====================================================================== -->
+    <!-- MAIN CONTENT AREA                                                      -->
+    <!-- ====================================================================== -->
+    <div class="main-wrapper">
+
+        <!-- Top Header Bar -->
+        <header class="topbar">
+            
+            <div class="topbar-left">
+                <div class="mobile-header-brand">
+                    <button type="button" id="mobile-hamburger-btn" class="mobile-hamburger-btn" aria-label="Toggle navigation menu" aria-expanded="false">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <div class="mobile-brand-lockup">
+                        <div class="mobile-logo-square">
+                            <img src="images/logo.jpg" alt="The Lens Logo">
+                        </div>
+                        <span class="mobile-brand-title">The Lens</span>
+                    </div>
+                </div>
+
+                <div class="topbar-clock">
+                    <i class="fa-regular fa-clock"></i>
+                    <span id="topbar-clock-display">Loading date &amp; time…</span>
+                </div>
+            </div>
+
+            <div class="topbar-right">
+                <button type="button" class="topbar-notification-btn" aria-label="Notifications">
+                    <div class="notification-icon-wrapper">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="notification-badge-dot"></span>
+                    </div>
+                    <span class="notification-label">Notification</span>
+                </button>
+
+                <div class="topbar-divider"></div>
+
+                <div class="topbar-user-profile">
+                    <div class="topbar-avatar-circle" title="User Profile">
+                        <img id="topbar-avatar-img" src="images/member-placeholder.svg" alt="User Profile Picture">
+                    </div>
+                    <span id="topbar-user-role" class="topbar-role-badge">Cartoonist Head</span>
+                </div>
+            </div>
+
+        </header>
+
+        <!-- Mobile Navigation Drawer Overlay -->
+        <nav id="mobile-nav-dropdown" class="mobile-nav-dropdown" aria-label="Mobile Navigation">
+            <div class="mobile-nav-profile">
+                <div class="mobile-nav-avatar">
+                    <img id="mobile-avatar-img" src="images/member-placeholder.svg" alt="Danilo Reyes Avatar">
+                </div>
+                <div class="mobile-nav-user-info">
+                    <div id="mobile-user-name" class="mobile-nav-name">Danilo Reyes</div>
+                    <div id="mobile-user-role" class="mobile-nav-role">Cartoonist Head</div>
+                </div>
+            </div>
+
+            <div class="mobile-nav-links">
+                <a href="cartoonist-head-dashboard.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="cartoonist-head-media-desk.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-palette"></i>
+                    <span>Cartoon Desk</span>
+                </a>
+                <a href="cartoonist-head-submit-media.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-paintbrush"></i>
+                    <span>Submit Cartoon</span>
+                </a>
+                <a href="cartoonist-head-manage-my-articles.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-file-pen"></i>
+                    <span>Manage My Articles</span>
+                </a>
+                <a href="cartoonist-head-submit-article.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-feather-pointed"></i>
+                    <span>Submit article</span>
+                </a>
+                <a href="cartoonist-head-activity-logs.html" class="mobile-nav-link active">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <span>Activity log</span>
+                </a>
+                <a href="cartoonist-head-transparency.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-file-invoice-dollar"></i>
+                    <span>Transparency</span>
+                </a>
+                <a href="cartoonist-head-profile-settings.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-sliders"></i>
+                    <span>Profile Settings</span>
+                </a>
+                <a href="index.html" class="mobile-nav-link" target="_blank">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    <span>View public site</span>
+                </a>
+            </div>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="content-container">
+
+            <div class="activity-logs-container">
+
+                <!-- 1. Clean Title of the Page -->
+                <div class="activity-page-header">
+                    <h1 class="activity-page-title">Activity Log</h1>
+                </div>
+
+                <!-- 2. Search Bar + Date Filter -->
+                <div class="activity-filter-bar">
+                    <div class="activity-search-box">
+                        <i class="fa-solid fa-magnifying-glass activity-search-icon"></i>
+                        <input 
+                            type="text" 
+                            id="activity-search-input" 
+                            class="activity-search-input" 
+                            placeholder="Search activity logs..." 
+                            aria-label="Search activity logs">
+                        <button type="button" id="activity-search-clear" class="activity-search-clear" aria-label="Clear search">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+
+                    <div class="activity-date-controls">
+                        <select id="date-filter-select" class="activity-date-select" aria-label="Filter by time range">
+                            <option value="all">All Dates</option>
+                            <option value="today">Today</option>
+                            <option value="7days">Past 7 Days</option>
+                            <option value="30days">Past 30 Days</option>
+                            <option value="specific">Specific Date</option>
+                        </select>
+
+                        <div id="specific-date-wrapper" class="specific-date-wrapper hidden">
+                            <input 
+                                type="date" 
+                                id="specific-date-picker" 
+                                class="specific-date-input" 
+                                aria-label="Choose specific date">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Status Results Counter -->
+                <div id="activity-results-counter" class="activity-results-counter">
+                    Showing all <em>12</em> logged events
+                </div>
+
+                <!-- 4. Clean Timeline Stream -->
+                <section 
+                    id="activity-stream-timeline" 
+                    class="activity-stream-timeline" 
+                    aria-label="Activity events timeline">
+                    <!-- Populated dynamically via js/cartoonist-head-activity-logs.js -->
+                </section>
+
+            </div>
+
+        </main>
+
+    </div>
+
+    <!-- Notification Toast Container -->
+    <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+    <!-- Reusable Shell Controller -->
+    <script src="js/cartoonist-head-shell.js"></script>
+
+    <!-- Page Script -->
+    <script src="js/cartoonist-head-activity-logs.js"></script>
+</body>
+</html>
+

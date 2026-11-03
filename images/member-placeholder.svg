@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 480" role="img" aria-labelledby="title desc">
+<title id="title">Member portrait placeholder</title><desc id="desc">A neutral profile silhouette used until an approved member photo is provided.</desc>
+<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f5e8ed"/><stop offset="1" stop-color="#e6d0d9"/></linearGradient></defs>
+<rect width="640" height="480" fill="url(#bg)"/><circle cx="320" cy="176" r="81" fill="#b99aa7"/><path d="M160 450c12-103 79-159 160-159s148 56 160 159" fill="#b99aa7"/><circle cx="320" cy="240" r="206" fill="none" stroke="#ffffff" stroke-opacity=".6" stroke-width="3"/><text x="320" y="459" text-anchor="middle" fill="#5a1b31" font-family="Arial,sans-serif" font-size="17" font-weight="700" letter-spacing="3">PROFILE PHOTO</text>
+</svg>

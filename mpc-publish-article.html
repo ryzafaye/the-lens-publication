@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Publish Article | The Lens Media &amp; Public Communications</title>
+    
+    <!-- Typography: DM Sans & Playfair Display -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,600;1,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Modular CSS -->
+    <link rel="stylesheet" href="css/executive-dashboard.css">
+    <link rel="stylesheet" href="css/executive-modals.css">
+    <link rel="stylesheet" href="css/mpc-publish-article.css">
+</head>
+<body class="dashboard-body">
+
+    <!-- ====================================================================== -->
+    <!-- SIDEBAR: Left - Desktop Fixed Full-Height Maroon (#5c0a18)             -->
+    <!-- ====================================================================== -->
+    <aside id="sidebar" class="sidebar" aria-label="Media &amp; Public Communications Portal Sidebar">
+        
+        <div class="sidebar-top-section">
+            <!-- Sidebar Header with Square Logo & "The Lens Publication" -->
+            <div class="sidebar-header">
+                <div class="sidebar-brand-lockup">
+                    <div class="sidebar-logo-square">
+                        <img src="images/logo.jpg" alt="The Lens Logo">
+                    </div>
+                    <span class="sidebar-brand-name">The Lens Publication</span>
+                </div>
+            </div>
+
+            <!-- Profile Section -->
+            <div class="sidebar-profile">
+                <div class="profile-avatar">
+                    <img id="sidebar-user-avatar" src="images/member-placeholder.svg" alt="Julian Del Rosario Avatar">
+                </div>
+                <div id="sidebar-user-name" class="profile-name">Julian Del Rosario</div>
+                <div id="sidebar-user-role" class="profile-role-text">M&amp;PC Head</div>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="sidebar-nav" aria-label="Main Navigation">
+                <a href="mpc-dashboard.html" class="sidebar-nav-item">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </a>
+
+                <a href="mpc-publish-article.html" class="sidebar-nav-item active">
+                    <i class="fa-solid fa-globe"></i>
+                    <span>Publish Article</span>
+                </a>
+                <a href="mpc-media-desk.html" class="sidebar-nav-item">
+                    <i class="fa-regular fa-image"></i>
+                    <span>Media Desk</span>
+                </a>
+
+                <a href="mpc-submit-media.html" class="sidebar-nav-item">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <span>Submit Media</span>
+                </a>
+
+                <a href="mpc-manage-my-articles.html" class="sidebar-nav-item">
+                    <i class="fa-solid fa-file-pen"></i>
+                    <span>Manage My Articles</span>
+                </a>
+
+                <a href="mpc-submit-article.html" class="sidebar-nav-item">
+                    <i class="fa-solid fa-feather-pointed"></i>
+                    <span>Submit article</span>
+                </a>
+
+                <a href="mpc-activity-logs.html" class="sidebar-nav-item">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <span>Activity log</span>
+                </a>
+
+                <a href="mpc-transparency.html" class="sidebar-nav-item">
+                    <i class="fa-solid fa-file-invoice-dollar"></i>
+                    <span>Transparency</span>
+                </a>
+            </nav>
+        </div>
+
+        <!-- Bottom of Sidebar: Profile Settings, View Public Site, Logout -->
+        <div class="sidebar-footer">
+            <a href="mpc-profile-settings.html" class="sidebar-footer-link">
+                <i class="fa-solid fa-sliders"></i>
+                <span>Profile Settings</span>
+            </a>
+
+            <a href="index.html" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                <span>View public site</span>
+            </a>
+
+            <button type="button" id="logout-btn" class="sidebar-footer-link logout-btn">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span>Logout</span>
+            </button>
+        </div>
+
+    </aside>
+
+    <!-- ====================================================================== -->
+    <!-- MAIN CONTENT AREA: Right                                              -->
+    <!-- ====================================================================== -->
+    <div class="main-wrapper">
+
+        <!-- Top Header Bar (With Clock, Notification, and User Profile) -->
+        <header class="topbar">
+            
+            <!-- Left Side: Mobile Hamburger before Logo + The Lens -->
+            <div class="topbar-left">
+                <div class="mobile-header-brand">
+                    <button type="button" id="mobile-hamburger-btn" class="mobile-hamburger-btn" aria-label="Toggle navigation menu" aria-expanded="false">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <div class="mobile-brand-lockup">
+                        <div class="mobile-logo-square">
+                            <img src="images/logo.jpg" alt="The Lens Logo">
+                        </div>
+                        <span class="mobile-brand-title">The Lens</span>
+                    </div>
+                </div>
+
+                <!-- Desktop Real-time Clock (Hidden on mobile) -->
+                <div class="topbar-clock">
+                    <i class="fa-regular fa-clock"></i>
+                    <span id="topbar-clock-display">Loading date &amp; time…</span>
+                </div>
+            </div>
+
+            <!-- Right Side: Notification + Circular Profile Picture + Role Badge -->
+            <div class="topbar-right">
+                <button type="button" class="topbar-notification-btn" aria-label="Notifications">
+                    <div class="notification-icon-wrapper">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="notification-badge-dot"></span>
+                    </div>
+                    <span class="notification-label">Notification</span>
+                </button>
+
+                <div class="topbar-divider"></div>
+
+                <!-- User Profile Lockup in Header -->
+                <div class="topbar-user-profile">
+                    <div class="topbar-avatar-circle" title="User Profile">
+                        <img src="images/member-placeholder.svg" alt="User Profile Picture">
+                    </div>
+                    <span id="topbar-user-role" class="topbar-role-badge">M&amp;PC Head</span>
+                </div>
+            </div>
+
+        </header>
+
+        <!-- Mobile Navigation Drawer Overlay (Hidden on desktop via .mobile-nav-dropdown) -->
+        <nav id="mobile-nav-dropdown" class="mobile-nav-dropdown" aria-label="Mobile Navigation">
+            <div class="mobile-nav-profile">
+                <div class="mobile-nav-avatar">
+                    <img src="images/member-placeholder.svg" alt="Julian Del Rosario Avatar">
+                </div>
+                <div class="mobile-nav-user-info">
+                    <div id="mobile-user-name" class="mobile-nav-name">Julian Del Rosario</div>
+                    <div id="mobile-user-role" class="mobile-nav-role">M&amp;PC Head</div>
+                </div>
+            </div>
+
+            <div class="mobile-nav-links">
+                <a href="mpc-dashboard.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="mpc-publish-article.html" class="mobile-nav-link active">
+                    <i class="fa-solid fa-globe"></i>
+                    <span>Publish Article</span>
+                </a>
+                <a href="mpc-media-desk.html" class="mobile-nav-link">
+                    <i class="fa-regular fa-image"></i>
+                    <span>Media Desk</span>
+                </a>
+                <a href="mpc-submit-media.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <span>Submit Media</span>
+                </a>
+                <a href="mpc-manage-my-articles.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-file-pen"></i>
+                    <span>Manage My Articles</span>
+                </a>
+                <a href="mpc-submit-article.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-feather-pointed"></i>
+                    <span>Submit article</span>
+                </a>
+                <a href="mpc-activity-logs.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <span>Activity log</span>
+                </a>
+                <a href="mpc-transparency.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-file-invoice-dollar"></i>
+                    <span>Transparency</span>
+                </a>
+                <a href="mpc-profile-settings.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-sliders"></i>
+                    <span>Profile Settings</span>
+                </a>
+                <a href="index.html" class="mobile-nav-link" target="_blank">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    <span>View public site</span>
+                </a>
+            </div>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="content-container">
+
+            <!-- Top Section: Header with Title and Sort Control -->
+            <div class="page-title-section animate-fade-in delay-1">
+                <div class="page-header-row">
+                    <h1 class="page-title">Publish Article</h1>
+
+                    <!-- Search & Sort Controls Lockup -->
+                    <div class="publish-controls-group">
+                        <!-- Compact Search Bar (not too long) -->
+                        <div class="compact-search-box">
+                            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                            <input type="text" id="mpc-search-input" class="compact-search-input" placeholder="Search articles..." aria-label="Search articles">
+                        </div>
+
+                        <!-- Sort Control -->
+                        <div class="review-sort-container">
+                            <label for="mpc-sort-select" class="review-sort-label">
+                                <i class="fa-solid fa-arrow-down-wide-short"></i>
+                                <span>Sort:</span>
+                            </label>
+                            <div class="sort-select-wrapper">
+                                <select id="mpc-sort-select" class="review-sort-select" aria-label="Sort articles">
+                                    <option value="newest" selected>Newest Approved</option>
+                                    <option value="oldest">Oldest Approved</option>
+                                </select>
+                                <i class="fa-solid fa-chevron-down sort-chevron" aria-hidden="true"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Category Filter Pills (Moved upper, directly above the view tabs) -->
+                <div class="mpc-filters-bar" id="mpc-category-filters-bar">
+                    <div class="mpc-category-pills">
+                        <button type="button" class="mpc-category-pill active" data-category="all">All Categories</button>
+                        <button type="button" class="mpc-category-pill" data-category="news">News</button>
+                        <button type="button" class="mpc-category-pill" data-category="opinion">Opinion</button>
+                        <button type="button" class="mpc-category-pill" data-category="features">Features</button>
+                        <button type="button" class="mpc-category-pill" data-category="scitech">Science and Technology</button>
+                        <button type="button" class="mpc-category-pill" data-category="literature">Literature</button>
+                    </div>
+                </div>
+
+                <!-- Primary View Tabs (Ready to Publish | Published | Unpublished | Covers Library) -->
+                <div class="mpc-view-tabs" role="tablist">
+                    <button type="button" class="mpc-view-tab-btn active" data-view="ready" role="tab" aria-selected="true">
+                        <i class="fa-solid fa-feather-pointed"></i>
+                        <span>Ready to Publish</span>
+                        <span id="badge-tab-ready" class="mpc-tab-count-pill">0</span>
+                    </button>
+                    <button type="button" class="mpc-view-tab-btn" data-view="published" role="tab" aria-selected="false">
+                        <i class="fa-solid fa-globe"></i>
+                        <span>Published Articles</span>
+                        <span id="badge-tab-published" class="mpc-tab-count-pill">0</span>
+                    </button>
+                    <button type="button" class="mpc-view-tab-btn" data-view="unpublished" role="tab" aria-selected="false">
+                        <i class="fa-solid fa-box-archive"></i>
+                        <span>Unpublished</span>
+                        <span id="badge-tab-unpublished" class="mpc-tab-count-pill">0</span>
+                    </button>
+                    <button type="button" class="mpc-view-tab-btn" data-view="covers" role="tab" aria-selected="false">
+                        <i class="fa-regular fa-image"></i>
+                        <span>Approved Covers Library</span>
+                        <span id="badge-tab-covers" class="mpc-tab-count-pill">0</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Articles Queue Grid -->
+            <div id="mpc-articles-grid" class="mpc-articles-grid">
+                <!-- Dynamically populated by js/mpc-publish-article.js -->
+            </div>
+
+            <!-- Covers Library Gallery View (Hidden by default) -->
+            <div id="mpc-covers-library-view" style="display: none;">
+                <div class="page-header-row" style="margin-bottom: 14px;">
+                    <div>
+                        <h2 style="font-size: 1.15rem; font-weight: 700; color: #101828; font-family: var(--font-heading);">Approved Artwork &amp; Cartoon Library</h2>
+                        <p style="font-size: 0.80rem; color: #667085;">These visual assets have been fully endorsed by Section Heads and Executive/EIC for release to M&amp;PC.</p>
+                    </div>
+                </div>
+                <div id="mpc-covers-library-grid" class="mpc-gallery-grid">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div id="mpc-empty-state" class="cover-empty-state" style="display: none; margin-top: 20px;">
+                <i class="fa-regular fa-circle-check"></i>
+                <h3>All Caught Up</h3>
+                <p>No articles currently pending in this queue.</p>
+            </div>
+
+        </main>
+
+    </div>
+
+    <!-- ====================================================================== -->
+    <!-- MODAL 1: Assign Cover Selection Modal                                  -->
+    <!-- ====================================================================== -->
+    <div id="assign-cover-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modal-cover-title">
+        <div class="modal-card mpc-cover-modal-card">
+            
+            <div class="mpc-modal-header">
+                <div class="mpc-modal-header-left">
+                    <h2 id="modal-cover-title" class="mpc-modal-title">Select Article Cover</h2>
+                    <div class="mpc-modal-sub">Choose from approved visual materials for: <strong id="modal-target-article-title">Article</strong></div>
+                </div>
+                <button type="button" id="close-cover-modal-btn" class="cover-modal-close-btn" aria-label="Close modal">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="mpc-cover-gallery-body">
+                
+                <div class="mpc-modal-filter-row">
+                    <div class="mpc-modal-pills">
+                        <button type="button" class="mpc-modal-pill active" data-cover-type="all">All Formats</button>
+                        <button type="button" class="mpc-modal-pill" data-cover-type="pubmat">PUBMAT</button>
+                        <button type="button" class="mpc-modal-pill" data-cover-type="cartoon">CARTOON</button>
+                    </div>
+                    <span style="font-size: 0.76rem; color: #667085;">Click an artwork to select</span>
+                </div>
+
+                <!-- Gallery Items -->
+                <div id="modal-cover-gallery" class="mpc-gallery-grid">
+                    <!-- Populated dynamically -->
+                </div>
+
+            </div>
+
+            <div class="mpc-modal-footer">
+                <button type="button" id="cancel-cover-modal-btn" class="btn-modal-cancel">
+                    <span>Cancel</span>
+                </button>
+                <button type="button" id="confirm-cover-modal-btn" class="btn-inspect-approve">
+                    <i class="fa-solid fa-check"></i>
+                    <span>Confirm &amp; Attach Cover</span>
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ====================================================================== -->
+    <!-- MODAL 2: Full Manuscript Reading Modal                                 -->
+    <!-- ====================================================================== -->
+    <div id="manuscript-viewer-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="reader-title">
+        <div class="modal-card viewer-modal-card">
+            
+            <div class="viewer-modal-header">
+                <div class="viewer-meta-row">
+                    <span id="reader-category" class="viewer-category-tag">CATEGORY</span>
+                    <span class="viewer-dot">&bull;</span>
+                    <span id="reader-date" class="viewer-date">Approved Date</span>
+                </div>
+                <div class="viewer-header-right">
+                    <button type="button" id="close-reader-btn" class="viewer-close-btn" aria-label="Close reader">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="viewer-modal-body">
+                <h1 id="reader-title" class="viewer-title">Article Title</h1>
+                <div class="viewer-byline-row">
+                    <i class="fa-solid fa-pen-nib" style="color: #7a1f2e; font-size: 0.85rem;"></i>
+                    <span style="font-size: 0.85rem; color: #475467;">By: <strong id="reader-author" style="color: #101828;">Author Name</strong></span>
+                </div>
+                <div id="reader-body" class="manuscript-prose" style="font-size: 0.95rem; line-height: 1.7; color: #344054;">
+                    <!-- Body content -->
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+    <!-- Reusable Shell & Controller -->
+    <script src="js/mpc-shell.js"></script>
+    <script src="js/mpc-publish-article.js"></script>
+</body>
+</html>
+

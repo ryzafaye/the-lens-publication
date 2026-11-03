@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home | The Lens</title>
+
+    <!-- Shared head: keep identical on every page -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="js/tailwind-config.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/main.css">
+</head>
+<body class="bg-white text-stone-900 font-body">
+
+    <header id="header-container" class="site-header w-full font-body border-b border-stone-200 shadow-sm" data-include="header.html"></header>
+
+    <main id="home" class="max-w-7xl mx-auto px-6 py-8">
+
+        <!-- Search status message -->
+        <p id="search-message" class="hidden mb-5 text-sm text-wine"></p>
+
+        <!-- Featured article and latest releases -->
+        <section class="home-feature-layout">
+            <div id="featured-article"></div>
+            <aside id="latest" class="latest-section">
+                <h2 class="section-label">LATEST RELEASES</h2>
+                <div id="latest-articles" class="space-y-7 mt-6"></div>
+            </aside>
+        </section>
+
+        <!-- More stories -->
+        <section class="mt-14" id="more-stories">
+            <div class="section-heading">
+                <h2>More stories</h2>
+                <a href="latest.html" class="text-wine text-sm font-bold">Explore latest →</a>
+            </div>
+            <div id="more-articles" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+        </section>
+
+        <!-- News -->
+        <section id="news" class="category-section">
+            <div class="section-heading">
+                <h2>News</h2>
+                <a href="news.html" class="category-button">View all →</a>
+            </div>
+            <div id="news-articles" class="category-grid"></div>
+        </section>
+
+        <!-- Features -->
+        <section id="features" class="category-section">
+            <div class="section-heading">
+                <h2>Features</h2>
+                <a href="features.html" class="category-button">View all →</a>
+            </div>
+            <div id="features-articles" class="category-grid"></div>
+        </section>
+
+        <!-- Opinion -->
+        <section id="opinion" class="category-section">
+            <div class="section-heading">
+                <h2>Opinion</h2>
+                <a href="opinion.html" class="category-button">View all →</a>
+            </div>
+            <div id="opinion-articles" class="category-grid"></div>
+        </section>
+
+        <!-- Science & Technology -->
+        <section id="science" class="category-section">
+            <div class="section-heading">
+                <h2>Science & Technology</h2>
+                <a href="science.html" class="category-button">View all →</a>
+            </div>
+            <div id="science-articles" class="category-grid"></div>
+        </section>
+
+        <!-- Literature -->
+        <section id="literature" class="category-section">
+            <div class="section-heading">
+                <h2>Literature</h2>
+                <a href="literature.html" class="category-button">View all →</a>
+            </div>
+            <div id="literature-articles" class="category-grid"></div>
+        </section>
+
+
+    </main>
+
+    <footer id="footer-container" class="site-footer" data-include="footer.html"></footer>
+
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

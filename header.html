@@ -1,0 +1,114 @@
+<!-- Shared public header. All shared assets live in css/, js/, and images/. -->
+<div class="top-bar">
+    <div class="top-bar-inner">
+        <div class="top-bar-details">
+            <span class="top-bar-item date-item"><i class="fa-regular fa-calendar" aria-hidden="true"></i><time id="current-date">Loading date…</time></span>
+            <span class="top-bar-divider campus-divider" aria-hidden="true">|</span>
+            <span class="campus-name"><i class="fa-solid fa-graduation-cap campus-icon" aria-hidden="true">
+            </i><span>Polytechnic University of the Philippines – Biñan Campus</span></span>
+        </div>
+        <div class="top-bar-actions">
+            <a class="facebook-link" href="https://www.facebook.com/profile.php?id=61560889387183" data-publication-link="facebook" target="_blank" rel="noopener noreferrer" aria-label="The Lens Publication on Facebook" title="The Lens on Facebook"><i class="fa-brands fa-facebook-f" aria-hidden="true"></i></a>
+            <a class="email-link" href="mailto:thelenspublicationpupbc@gmail.com" data-publication-link="email" aria-label="Email The Lens Publication" title="The Lens email"><i class="fa-regular fa-envelope" aria-hidden="true"></i></a>
+            <span class="top-bar-divider login-divider" aria-hidden="true">|</span>
+            <a href="login.html" id="member-login-btn" class="member-login-btn">
+                <i class="fa-regular fa-user" aria-hidden="true"></i>
+                <span>Login as a Member</span>
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="brand-search-row">
+    <button id="menu-button" class="mobile-menu-button" type="button" aria-label="Open navigation" aria-expanded="false" aria-controls="navigation">
+        <span class="menu-glyph" aria-hidden="true">☰</span>
+    </button>
+
+    <a href="index.html" class="brand-lockup" aria-label="The Lens home">
+        <img src="images/logo.jpg" alt="The Lens logo" class="site-logo">
+        <span class="brand-copy">
+            <span class="brand-name">THE LENS</span>
+            <span class="brand-tagline">Basta Lente, Abante!</span>
+        </span>
+    </a>
+
+    <div class="search-shell" id="global-search-shell">
+        <form id="search-form" class="search-form" role="search">
+            <i class="fa-solid fa-magnifying-glass search-leading-icon" aria-hidden="true"></i>
+            <input type="search" id="search-input" class="search-input" placeholder="Search articles, authors, or topics…" aria-label="Search articles and authors" autocomplete="off">
+            <button type="button" id="sort-filter-btn" class="sort-filter-btn" aria-expanded="false" aria-controls="filter-dropdown">
+                <i class="fa-solid fa-sliders" aria-hidden="true"></i><span>Sort &amp; Filter</span><i class="fa-solid fa-chevron-down filter-chevron" aria-hidden="true"></i>
+            </button>
+        </form>
+        <div id="filter-dropdown" class="filter-dropdown hidden">
+            <div class="filter-panel-heading">
+                <span>Sort &amp; Filter</span>
+                <button type="button" id="close-filter-btn" class="icon-button" aria-label="Close filters"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+            </div>
+            <div class="filter-grid">
+                <div class="filter-field">
+                    <label for="sort-select">Sort by</label>
+                    <select id="sort-select" class="archive-select">
+                        <option value="newest">Newest</option><option value="oldest">Oldest</option><option value="popular">Most Viewed</option><option value="az">A-Z</option>
+                    </select>
+                </div>
+                <div class="filter-field">
+                    <label for="category-select">Category</label>
+                    <select id="category-select" class="archive-select">
+                        <option value="All">All categories</option><option value="News">News</option><option value="Features">Features</option><option value="Opinion">Opinion</option><option value="Science and Technology">Science &amp; Technology</option><option value="Literature">Literature</option>
+                    </select>
+                </div>
+                <div class="filter-field filter-date-field">
+                    <label for="date-filter-type">Published date</label>
+                    <div class="published-date-controls">
+                        <select id="date-filter-type" class="archive-select">
+                            <option value="any">Any date</option><option value="today">Today</option><option value="this_week">This week</option><option value="choose">Choose date</option>
+                        </select>
+                        <div class="date-filter-selects" id="date-filter-value-wrap" hidden>
+                            <select id="date-month-select" class="archive-select date-filter-select" aria-label="Month" disabled>
+                                <option value="">Month</option><option value="1">Jan</option><option value="2">Feb</option><option value="3">Mar</option><option value="4">Apr</option><option value="5">May</option><option value="6">Jun</option><option value="7">Jul</option><option value="8">Aug</option><option value="9">Sep</option><option value="10">Oct</option><option value="11">Nov</option><option value="12">Dec</option>
+                            </select>
+                            <select id="date-day-select" class="archive-select date-filter-select" aria-label="Day" disabled>
+                                <option value="">Day</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option>
+                            </select>
+                            <select id="date-year-select" class="archive-select date-filter-select" aria-label="Year" disabled><option value="">Year</option></select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="filter-panel-footer">
+                <button type="button" id="clear-filters-btn" class="clear-filters-btn">Clear filters</button>
+                <button type="submit" form="search-form" class="apply-filters-btn"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i> Apply</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="header-utility-links" aria-label="Publication links">
+        <a href="about.html" class="header-utility-link" data-header-action="about-us"><i class="fa-regular fa-circle-question" aria-hidden="true"></i><span>About Us</span></a>
+        <a href="feedback.html" class="header-utility-link" data-header-action="send-feedback"><i class="fa-regular fa-paper-plane" aria-hidden="true"></i><span>Send Feedback</span></a>
+    </div>
+</div>
+
+<div class="mobile-nav-backdrop" id="mobile-nav-backdrop" aria-hidden="true"></div>
+
+<nav class="navigation" id="navigation" aria-label="Main navigation">
+    <div class="navigation-inner">
+        <div class="mobile-nav-top"><span>Explore The Lens</span><button type="button" id="close-nav-btn" aria-label="Close navigation"><span class="close-glyph" aria-hidden="true">×</span></button></div>
+        <ul class="nav-list">
+            <li><a href="index.html" class="nav-link">Home</a></li>
+            <li><a href="latest.html" class="nav-link">Latest</a></li>
+            <li><a href="news.html" class="nav-link">News</a></li>
+            <li><a href="features.html" class="nav-link">Features</a></li>
+            <li><a href="opinion.html" class="nav-link">Opinion</a></li>
+            <li><a href="science.html" class="nav-link">Science &amp; Technology</a></li>
+            <li><a href="literature.html" class="nav-link">Literature</a></li>
+            <li><a href="archives.html" class="nav-link">Archives</a></li>
+            <li class="mobile-only-nav-item"><a href="about.html" class="nav-link">About Us</a></li>
+            <li class="mobile-only-nav-item"><a href="feedback.html" class="nav-link"><span>Send Feedback</span></a></li>
+        </ul>
+        <div class="mobile-nav-socials" aria-label="Publication contact links">
+            <a href="https://www.facebook.com/profile.php?id=61560889387183" data-publication-link="facebook" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-facebook-f" aria-hidden="true"></i><span>Visit Facebook Page</span></a>
+            <a href="mailto:thelenspublicationpupbc@gmail.com" data-publication-link="email"><i class="fa-regular fa-envelope" aria-hidden="true"></i><span>Email The Lens</span></a>
+        </div>
+    </div>
+</nav>

@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="100%" height="100%">
+  <defs>
+    <linearGradient id="warmSketch" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fdf4ff"/>
+      <stop offset="100%" stop-color="#fae8ff"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="500" fill="url(#warmSketch)"/>
+  
+  <rect x="25" y="25" width="750" height="450" fill="none" stroke="#3b0764" stroke-width="3" rx="6"/>
+
+  <rect x="50" y="50" width="165" height="28" rx="4" fill="#701a75"/>
+  <text x="132" y="69" fill="#ffffff" font-family="'DM Sans', sans-serif" font-weight="800" font-size="12" text-anchor="middle" letter-spacing="1">EDITORIAL CARTOON</text>
+
+  <text x="50" y="115" fill="#3b0764" font-family="'Playfair Display', serif" font-weight="800" font-size="28">THE 24-UNIT BURDEN</text>
+  <text x="50" y="140" fill="#6b21a8" font-family="'DM Sans', sans-serif" font-size="15">Subject: Mandatory Overload Directives Straining Collegiate Instructors</text>
+
+  <!-- Illustration: Towering stack of paper weighing down teacher's desk -->
+  <g transform="translate(240, 150)">
+    <!-- Desk -->
+    <rect x="20" y="210" width="280" height="15" rx="3" fill="#581c87"/>
+    <rect x="50" y="225" width="14" height="60" fill="#581c87"/>
+    <rect x="250" y="225" width="14" height="60" fill="#581c87"/>
+
+    <!-- Exhausted Professor Silhouette / Outline -->
+    <circle cx="90" cy="155" r="22" fill="#7e22ce"/>
+    <path d="M 65,210 C 65,178 115,178 115,210 Z" fill="#7e22ce"/>
+    <!-- Head on desk sleeping -->
+    <path d="M 90,175 Q 120,205 130,210" stroke="#7e22ce" stroke-width="6" fill="none" stroke-linecap="round"/>
+
+    <!-- Gigantic Leaning Tower of Papers -->
+    <g transform="translate(160, 20)">
+      <rect x="0" y="160" width="120" height="45" rx="3" fill="#ffffff" stroke="#581c87" stroke-width="2"/>
+      <rect x="-8" y="120" width="126" height="38" rx="3" fill="#ffffff" stroke="#581c87" stroke-width="2" transform="rotate(-3 50 140)"/>
+      <rect x="5" y="80" width="120" height="38" rx="3" fill="#ffffff" stroke="#581c87" stroke-width="2" transform="rotate(4 60 100)"/>
+      <rect x="-4" y="40" width="118" height="38" rx="3" fill="#ffffff" stroke="#581c87" stroke-width="2" transform="rotate(-5 55 60)"/>
+      <rect x="8" y="0" width="110" height="38" rx="3" fill="#fde047" stroke="#ca8a04" stroke-width="2"/>
+      <text x="63" y="24" fill="#854d0e" font-family="'DM Sans', sans-serif" font-weight="800" font-size="12" text-anchor="middle">24 UNITS</text>
+    </g>
+  </g>
+
+  <text x="730" y="445" fill="#3b0764" font-family="'Playfair Display', serif" font-weight="700" font-style="italic" font-size="14" text-anchor="end">Bea Soriano '26</text>
+  <text x="50" y="445" fill="#7e22ce" font-family="'DM Sans', sans-serif" font-size="12">THE LENS PUBLICATION • NEWS DESK</text>
+</svg>

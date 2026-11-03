@@ -1,0 +1,68 @@
+/* 3. BUTTONS */
+
+.main-button {
+    padding: 11px 17px;
+    border: 1px solid var(--wine);
+    border-radius: 4px;
+    background: var(--wine);
+    color: white;
+    font-size: 12px;
+    font-weight: 700;
+    transition: background 0.2s;
+}
+
+.main-button:hover {
+    background: var(--burgundy);
+}
+
+.secondary-button {
+    padding: 10px 15px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: white;
+    color: var(--wine);
+    font-size: 12px;
+}
+
+/* 8. BUTTONS AND FILTERS */
+.main-button {
+    padding: 10px 18px;
+    background-color: var(--maroon);
+    color: var(--white);
+    border: 1px solid var(--maroon);
+    border-radius: 3px;
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.main-button:hover {
+    background-color: var(--maroon-dark);
+}
+
+.secondary-button {
+    padding: 10px 18px;
+    color: var(--maroon);
+    background-color: var(--white);
+    border: 1px solid var(--maroon);
+    border-radius: 3px;
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.archive-select,
+.search-input {
+    padding: 10px 12px;
+    background-color: var(--white);
+    border: 1px solid var(--border-color);
+    border-radius: 3px;
+    color: var(--text-dark);
+    font-size: 13px;
+}
+
+.archive-select:focus,
+.search-input:focus {
+    outline: 2px solid var(--maroon);
+    outline-offset: 2px;
+}

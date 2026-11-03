@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cartoon Desk | The Lens Cartoonist Head Portal</title>
+    
+    <!-- Typography: DM Sans & Playfair Display -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,600;1,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Strictly Separated Modular CSS (M&PC Media Desk Parity) -->
+    <link rel="stylesheet" href="css/executive-dashboard.css">
+    <link rel="stylesheet" href="css/executive-cover-review.css">
+    <link rel="stylesheet" href="css/executive-modals.css">
+</head>
+<body class="dashboard-body">
+
+    <!-- ====================================================================== -->
+    <!-- SIDEBAR: Left - Desktop Fixed Full-Height Maroon (#5c0a18)             -->
+    <!-- ====================================================================== -->
+    <aside id="sidebar" class="sidebar" aria-label="Cartoonist Head Portal Sidebar">
+        
+        <div class="sidebar-top-section">
+            <!-- Sidebar Header with Square Logo & "The Lens Publication" -->
+            <div class="sidebar-header">
+                <div class="sidebar-brand-lockup">
+                    <div class="sidebar-logo-square">
+                        <img src="images/logo.jpg" alt="The Lens Logo">
+                    </div>
+                    <span class="sidebar-brand-name">The Lens Publication</span>
+                </div>
+            </div>
+
+            <!-- Profile Section -->
+            <div class="sidebar-profile">
+                <div class="profile-avatar">
+                    <img id="sidebar-user-avatar" src="images/member-placeholder.svg" alt="Danilo Reyes Avatar">
+                </div>
+                <div id="sidebar-user-name" class="profile-name">Danilo Reyes</div>
+                <div id="sidebar-user-role" class="profile-role-text">Cartoonist Head</div>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="sidebar-nav" aria-label="Main Navigation">
+                <a href="cartoonist-head-dashboard.html" class="sidebar-nav-item">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </a>
+
+                <a href="cartoonist-head-media-desk.html" class="sidebar-nav-item active">
+                    <i class="fa-solid fa-palette"></i>
+                    <span>Cartoon Desk</span>
+                </a>
+
+                <a href="cartoonist-head-submit-media.html" class="sidebar-nav-item">
+                    <i class="fa-solid fa-paintbrush"></i>
+                    <span>Submit Cartoon</span>
+                </a>
+
+                <a href="cartoonist-head-manage-my-articles.html" class="sidebar-nav-item">
+                    <i class="fa-solid fa-file-pen"></i>
+                    <span>Manage My Articles</span>
+                </a>
+
+                <a href="cartoonist-head-submit-article.html" class="sidebar-nav-item">
+                    <i class="fa-solid fa-feather-pointed"></i>
+                    <span>Submit article</span>
+                </a>
+
+                <a href="cartoonist-head-activity-logs.html" class="sidebar-nav-item">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <span>Activity log</span>
+                </a>
+
+                <a href="cartoonist-head-transparency.html" class="sidebar-nav-item">
+                    <i class="fa-solid fa-file-invoice-dollar"></i>
+                    <span>Transparency</span>
+                </a>
+            </nav>
+        </div>
+
+        <!-- Bottom of Sidebar: Profile Settings, View Public Site, Logout -->
+        <div class="sidebar-footer">
+            <a href="cartoonist-head-profile-settings.html" class="sidebar-footer-link">
+                <i class="fa-solid fa-sliders"></i>
+                <span>Profile Settings</span>
+            </a>
+
+            <a href="index.html" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                <span>View public site</span>
+            </a>
+
+            <button type="button" id="logout-btn" class="sidebar-footer-link logout-btn">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span>Logout</span>
+            </button>
+        </div>
+
+    </aside>
+
+    <!-- ====================================================================== -->
+    <!-- MAIN CONTENT AREA: Right                                              -->
+    <!-- ====================================================================== -->
+    <div class="main-wrapper">
+
+        <!-- Top Header Bar (With Clock, Notification, and User Profile) -->
+        <header class="topbar">
+            
+            <!-- Left Side: Mobile Hamburger before Logo + The Lens -->
+            <div class="topbar-left">
+                <div class="mobile-header-brand">
+                    <button type="button" id="mobile-hamburger-btn" class="mobile-hamburger-btn" aria-label="Toggle navigation menu" aria-expanded="false">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <div class="mobile-brand-lockup">
+                        <div class="mobile-logo-square">
+                            <img src="images/logo.jpg" alt="The Lens Logo">
+                        </div>
+                        <span class="mobile-brand-title">The Lens</span>
+                    </div>
+                </div>
+
+                <!-- Desktop Real-time Clock (Hidden on mobile) -->
+                <div class="topbar-clock">
+                    <i class="fa-regular fa-clock"></i>
+                    <span id="topbar-clock-display">Loading date &amp; time…</span>
+                </div>
+            </div>
+
+            <!-- Right Side: Notification + Circular Profile Picture + Role Badge -->
+            <div class="topbar-right">
+                <button type="button" class="topbar-notification-btn" aria-label="Notifications">
+                    <div class="notification-icon-wrapper">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="notification-badge-dot"></span>
+                    </div>
+                    <span class="notification-label">Notification</span>
+                </button>
+
+                <div class="topbar-divider"></div>
+
+                <div class="topbar-user-profile">
+                    <div class="topbar-avatar-circle" title="User Profile">
+                        <img src="images/member-placeholder.svg" alt="Danilo Reyes Avatar">
+                    </div>
+                    <span id="topbar-user-role" class="topbar-role-badge">Cartoonist Head</span>
+                </div>
+            </div>
+
+        </header>
+
+        <!-- Mobile Navigation Drawer Overlay -->
+        <nav id="mobile-nav-dropdown" class="mobile-nav-dropdown" aria-label="Mobile Navigation">
+            <div class="mobile-nav-profile">
+                <div class="mobile-nav-avatar">
+                    <img src="images/member-placeholder.svg" alt="Danilo Reyes Avatar">
+                </div>
+                <div class="mobile-nav-user-info">
+                    <div id="mobile-user-name" class="mobile-nav-name">Danilo Reyes</div>
+                    <div id="mobile-user-role" class="mobile-nav-role">Cartoonist Head</div>
+                </div>
+            </div>
+
+            <div class="mobile-nav-links">
+                <a href="cartoonist-head-dashboard.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="cartoonist-head-media-desk.html" class="mobile-nav-link active">
+                    <i class="fa-solid fa-palette"></i>
+                    <span>Cartoon Desk</span>
+                </a>
+                <a href="cartoonist-head-submit-media.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-paintbrush"></i>
+                    <span>Submit Cartoon</span>
+                </a>
+                <a href="cartoonist-head-manage-my-articles.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-file-pen"></i>
+                    <span>Manage My Articles</span>
+                </a>
+                <a href="cartoonist-head-submit-article.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-feather-pointed"></i>
+                    <span>Submit article</span>
+                </a>
+                <a href="cartoonist-head-activity-logs.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <span>Activity log</span>
+                </a>
+                <a href="cartoonist-head-transparency.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-file-invoice-dollar"></i>
+                    <span>Transparency</span>
+                </a>
+                <a href="cartoonist-head-profile-settings.html" class="mobile-nav-link">
+                    <i class="fa-solid fa-sliders"></i>
+                    <span>Profile Settings</span>
+                </a>
+                <a href="index.html" class="mobile-nav-link" target="_blank">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    <span>View public site</span>
+                </a>
+                <button type="button" id="mobile-logout-btn" class="mobile-nav-footer-link mobile-logout-btn">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span>Logout</span>
+                </button>
+            </div>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="content-container">
+
+            <!-- Top Header Section (M&PC Media Desk Parity - Clean without tabs for Cartoonist Head approval) -->
+            <div class="cover-page-header-section animate-fade-in delay-1">
+                <div class="cover-header-row">
+                    <h1 class="cover-page-title">Cartoon Desk</h1>
+
+                    <!-- Sort Dropdown -->
+                    <div class="cover-sort-container">
+                        <label for="cover-sort-select" class="cover-sort-label">
+                            <i class="fa-solid fa-arrow-down-wide-short"></i>
+                            <span>Sort:</span>
+                        </label>
+                        <select id="cover-sort-select" class="cover-sort-select" aria-label="Sort pending cartoons by date">
+                            <option value="newest" selected>Newest First</option>
+                            <option value="oldest">Oldest First</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Responsive Artwork Cards Grid (M&PC Media Desk Picture & Formatting) -->
+            <div id="cover-cards-grid" class="cover-cards-grid">
+                <!-- Dynamically populated by js/cartoonist-head-media-desk.js -->
+            </div>
+
+            <!-- Empty Queue State -->
+            <div id="cover-empty-state" class="cover-empty-state" style="display: none;">
+                <i class="fa-regular fa-circle-check"></i>
+                <h3>All Caught Up</h3>
+                <p>No cartoons currently pending Cartoonist Head review.</p>
+            </div>
+
+        </main>
+
+    </div>
+
+    <!-- ====================================================================== -->
+    <!-- MODAL 1: Full-Size Theater Artwork Inspection Modal (M&PC Media Desk)  -->
+    <!-- ====================================================================== -->
+    <div id="cover-inspect-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="inspect-artist">
+        <div class="modal-card cover-inspect-modal-card">
+            
+            <!-- Modal Header: Tag & Artist on Left, X Close on Upper Right -->
+            <div class="cover-inspect-header">
+                <div class="cover-inspect-header-left">
+                    <span id="inspect-type-tag" class="cover-type-tag cartoon">CARTOON</span>
+                    <div class="cover-inspect-artist-row">
+                        <i class="fa-solid fa-paintbrush" aria-hidden="true"></i>
+                        <span>Cartoonist: <strong id="inspect-artist">Artist Name</strong></span>
+                    </div>
+                </div>
+                <div class="cover-inspect-header-right">
+                    <button type="button" id="close-inspect-btn" class="cover-modal-close-btn" aria-label="Close artwork inspector">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Fullscreen / Theater Artwork Stage -->
+            <div class="cover-inspect-theater">
+                <img id="inspect-image" src="" alt="Publication Artwork Full View" class="cover-inspect-image-fullscreen">
+            </div>
+
+            <!-- Modal Footer: Clean Action Buttons -->
+            <div class="cover-inspect-footer-bar">
+                <div class="inspect-endorsement-note">
+                    <i class="fa-solid fa-pen-nib"></i>
+                    <span>Title: <strong id="inspect-title">Artwork Title</strong></span>
+                </div>
+                <div class="inspect-footer-buttons">
+                    <button type="button" id="inspect-return-btn" class="btn-inspect-return">
+                        <i class="fa-solid fa-rotate-left"></i>
+                        <span>Return to Cartoonist</span>
+                    </button>
+                    <button type="button" id="inspect-approve-btn" class="btn-inspect-approve">
+                        <i class="fa-solid fa-check"></i>
+                        <span>Endorse to EIC</span>
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ====================================================================== -->
+    <!-- MODAL 2: Mandatory Return to Cartoonist Revision Modal (M&PC Parity)   -->
+    <!-- ====================================================================== -->
+    <div id="return-remarks-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="return-head-name">
+        <div class="modal-card return-modal-card">
+            
+            <div class="return-modal-header">
+                <div class="return-modal-header-left">
+                    <div class="return-modal-header-titles">
+                        <span class="return-modal-badge">
+                            <i class="fa-solid fa-rotate-left"></i>
+                            <span>Return for Revision</span>
+                        </span>
+                        <h2 class="return-modal-title">Return Artwork to Cartoonist</h2>
+                    </div>
+                </div>
+                <div class="return-modal-header-right">
+                    <button type="button" id="close-return-modal-btn" class="return-modal-close-btn" aria-label="Close revision modal">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="return-modal-body">
+                <!-- Revision Banner Notice -->
+                <div class="revision-banner">
+                    <div class="revision-banner-avatar">
+                        <i class="fa-solid fa-user-pen"></i>
+                    </div>
+                    <div class="revision-banner-info">
+                        <div class="revision-banner-label">Returning to Staff Cartoonist</div>
+                        <div id="return-head-name" class="revision-banner-head">Raphael Luna</div>
+                    </div>
+                </div>
+
+                <div class="return-remarks-section">
+                    <div class="return-remarks-label-row">
+                        <label for="return-remarks-text" class="return-remarks-label-text">
+                            <i class="fa-solid fa-comment-dots"></i>
+                            <span>Mandatory Revision Remarks:</span>
+                        </label>
+                        <span class="required-badge">Required</span>
+                    </div>
+                    <textarea id="return-remarks-text" class="return-remarks-textarea" placeholder="Provide specific visual adjustment guidance for the cartoonist before returning this artwork..."></textarea>
+                    <div id="return-remarks-error" class="return-remarks-error hidden">
+                        <i class="fa-solid fa-circle-exclamation"></i>
+                        <span>Revision remarks are required. You cannot return without remarks.</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="return-modal-footer">
+                <button type="button" id="cancel-return-btn" class="btn-modal-cancel">
+                    <span>Cancel</span>
+                </button>
+                <button type="button" id="confirm-return-btn" class="btn-revision-confirm">
+                    <i class="fa-solid fa-rotate-left"></i>
+                    <span>Confirm Return to Cartoonist</span>
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Clean Success Notification Toast Container -->
+    <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+    <!-- Shell & Page Controller Scripts -->
+    <script src="js/cartoonist-head-shell.js"></script>
+    <script src="js/cartoonist-head-media-desk.js"></script>
+</body>
+</html>

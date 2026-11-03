@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EIC &amp; Executive Portal Parity Verification Sandbox</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --wine: #5c0a18;
+            --wine-hover: #460611;
+            --wine-light: #fbf5f6;
+            --wine-border: #f0dfe2;
+            --bg-gray: #f8fafc;
+            --border-color: #e2e8f0;
+            --text-dark: #1e293b;
+            --text-muted: #64748b;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-gray);
+            color: var(--text-dark);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        /* Top Navigation Header */
+        .preview-topbar {
+            background: #ffffff;
+            border-bottom: 1px solid var(--border-color);
+            padding: 10px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-shrink: 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+            z-index: 10;
+        }
+        .preview-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .preview-badge {
+            background: var(--wine);
+            color: #ffffff;
+            font-size: 0.70rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 4px 8px;
+            border-radius: 6px;
+        }
+        .preview-title {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 1.10rem;
+            font-weight: 700;
+            color: var(--wine);
+        }
+        .portal-nav-pills {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: #f1f5f9;
+            padding: 4px;
+            border-radius: 10px;
+            flex-wrap: wrap;
+        }
+        .portal-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 11px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            border: none;
+            background: transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+        .portal-pill:hover {
+            color: var(--text-dark);
+        }
+        .portal-pill.active {
+            background: #ffffff;
+            color: var(--wine);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+        .viewport-controls {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .viewport-btn {
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            padding: 6px 10px;
+            border-radius: 7px;
+            cursor: pointer;
+            font-size: 0.80rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.15s ease;
+        }
+        .viewport-btn:hover {
+            background: #f8fafc;
+            color: var(--text-dark);
+        }
+        .viewport-btn.active {
+            background: var(--wine-light);
+            border-color: var(--wine-border);
+            color: var(--wine);
+            font-weight: 600;
+        }
+
+        /* Banner info row */
+        .info-ribbon {
+            background: #ffffff;
+            border-bottom: 1px solid var(--border-color);
+            padding: 8px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.80rem;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .credentials-chips {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .chip {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 3px 8px;
+            border-radius: 7px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.76rem;
+        }
+        .chip strong {
+            color: var(--wine);
+        }
+        .chip code {
+            background: #f1f5f9;
+            padding: 1px 5px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.78rem;
+            color: #334155;
+        }
+        .chip-login-btn {
+            background: var(--wine);
+            color: #ffffff;
+            border: none;
+            padding: 2px 7px;
+            border-radius: 4px;
+            font-size: 0.70rem;
+            cursor: pointer;
+            font-weight: 600;
+            margin-left: 3px;
+            transition: background 0.15s ease;
+        }
+        .chip-login-btn:hover {
+            background: var(--wine-hover);
+        }
+
+        .highlight-tags {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.76rem;
+            color: #475569;
+        }
+        .highlight-pill {
+            background: #f1f5f9;
+            padding: 2px 7px;
+            border-radius: 5px;
+            font-weight: 600;
+            color: var(--wine);
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* Iframe preview container */
+        .preview-body {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: stretch;
+            background: #cbd5e1;
+            padding: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+        .preview-frame-wrapper {
+            background: #ffffff;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: width 0.3s ease, height 0.3s ease;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        .preview-frame-wrapper.desktop {
+            width: 100%;
+            max-width: 100%;
+        }
+        .preview-frame-wrapper.tablet {
+            width: 820px;
+            margin: 0 auto;
+        }
+        .preview-frame-wrapper.mobile {
+            width: 390px;
+            height: 844px;
+            margin: auto;
+            border-radius: 36px;
+            border: 10px solid #1e293b;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.25);
+        }
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: #ffffff;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Navigation & Viewport Toggle -->
+    <header class="preview-topbar">
+        <div class="preview-brand">
+            <span class="preview-badge">EIC &amp; Executive Suite</span>
+            <span class="preview-title">The Lens Verification Sandbox</span>
+        </div>
+
+        <nav class="portal-nav-pills">
+            <button class="portal-pill active" data-url="mpc-publish-article.html">
+                <i class="fa-solid fa-globe"></i> M&amp;PC Publish Article
+            </button>
+            <button class="portal-pill" data-url="mpc-dashboard.html">
+                <i class="fa-solid fa-gauge-high"></i> M&amp;PC Dashboard
+            </button>
+            <button class="portal-pill" data-url="mpc-media-desk.html">
+                <i class="fa-regular fa-image"></i> M&amp;PC Media Desk
+            </button>
+            <button class="portal-pill" data-url="mpc-submit-media.html">
+                <i class="fa-solid fa-cloud-arrow-up"></i> M&amp;PC Submit Media
+            </button>
+            <button class="portal-pill" data-url="eic-review-articles.html">
+                <i class="fa-solid fa-clipboard-check"></i> EIC Review Articles
+            </button>
+            <button class="portal-pill" data-url="executive-review-articles.html">
+                <i class="fa-solid fa-file-circle-check"></i> Exec Review Articles
+            </button>
+            <button class="portal-pill" data-url="mpc-manage-my-articles.html">
+                <i class="fa-solid fa-file-pen"></i> M&amp;PC Manage My
+            </button>
+            <button class="portal-pill" data-url="mpc-submit-article.html">
+                <i class="fa-solid fa-feather-pointed"></i> M&amp;PC Submit
+            </button>
+            <button class="portal-pill" data-url="mpc-activity-logs.html">
+                <i class="fa-solid fa-clock-rotate-left"></i> M&amp;PC Activity Log
+            </button>
+            <button class="portal-pill" data-url="mpc-profile-settings.html">
+                <i class="fa-solid fa-sliders"></i> M&amp;PC Profile
+            </button>
+            <button class="portal-pill" data-url="eic-feedback-inbox.html">
+                <i class="fa-regular fa-comments"></i> EIC Feedback
+            </button>
+            <button class="portal-pill" data-url="executive-feedback-inbox.html">
+                <i class="fa-regular fa-comment-dots"></i> Exec Feedback
+            </button>
+            <button class="portal-pill" data-url="eic-manage-my-articles.html">
+                <i class="fa-solid fa-file-pen"></i> EIC Manage My
+            </button>
+            <button class="portal-pill" data-url="executive-manage-my-articles.html">
+                <i class="fa-solid fa-file-lines"></i> Exec Manage My
+            </button>
+            <button class="portal-pill" data-url="eic-activity-logs.html">
+                <i class="fa-solid fa-clock-rotate-left"></i> EIC Activity Log
+            </button>
+            <button class="portal-pill" data-url="executive-activity-logs.html">
+                <i class="fa-solid fa-timeline"></i> Exec Activity Log
+            </button>
+            <button class="portal-pill" data-url="eic-dashboard.html">
+                <i class="fa-solid fa-chart-pie"></i> EIC Dashboard
+            </button>
+            <button class="portal-pill" data-url="executive-dashboard.html">
+                <i class="fa-solid fa-gauge-high"></i> Exec Dashboard
+            </button>
+        </nav>
+
+        <div class="viewport-controls">
+            <button class="viewport-btn active" data-viewport="desktop" title="Desktop 100%">
+                <i class="fa-solid fa-desktop"></i> Desktop
+            </button>
+            <button class="viewport-btn" data-viewport="tablet" title="Tablet (820px)">
+                <i class="fa-solid fa-tablet-screen-button"></i> Tablet
+            </button>
+            <button class="viewport-btn" data-viewport="mobile" title="Mobile (390px)">
+                <i class="fa-solid fa-mobile-screen-button"></i> Mobile
+            </button>
+            <a id="external-preview-link" href="mpc-media-desk.html" target="_blank" class="viewport-btn" title="Open in new window">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+            </a>
+        </div>
+    </header>
+
+    <!-- Information Ribbon with Dummy Accounts & Feature Highlights -->
+    <div class="info-ribbon">
+        <div class="credentials-chips">
+            <span style="font-weight: 600; color: #475569;">Quick Session:</span>
+            
+            <div class="chip">
+                <span>Victoria Reyes (<strong>EIC</strong>):</span>
+                <code>2024-00010-BN-0</code>
+                <button type="button" class="chip-login-btn" onclick="loginAs('Editorial-In-Chief', 'Victoria Reyes', '2024-00010-BN-0', 'eic-dashboard.html')">Login EIC</button>
+            </div>
+
+            <div class="chip">
+                <span>Marcus Vance (<strong>Assoc. EIC</strong>):</span>
+                <code>2024-00011-BN-0</code>
+                <button type="button" class="chip-login-btn" onclick="loginAs('Associate Editor-in-Chief', 'Marcus Vance', '2024-00011-BN-0', 'eic-dashboard.html')">Login Assoc</button>
+            </div>
+
+            <div class="chip">
+                <span>Juan Dela Cruz (<strong>Executive</strong>):</span>
+                <code>2024-00001-BN-0</code>
+                <button type="button" class="chip-login-btn" onclick="loginAs('Executive', 'Juan Dela Cruz', '2024-00001-BN-0', 'executive-dashboard.html')">Login Exec</button>
+            </div>
+
+            <div class="chip">
+                <span>Julian Del Rosario (<strong>M&amp;PC Head</strong>):</span>
+                <code>2024-00020-BN-0</code>
+                <button type="button" class="chip-login-btn" onclick="loginAs('M&PC Head', 'Julian Del Rosario', '2024-00020-BN-0', 'mpc-media-desk.html')">Login M&amp;PC</button>
+            </div>
+        </div>
+
+        <div class="highlight-tags">
+            <span class="highlight-pill"><i class="fa-solid fa-check"></i> Media Desk (M&amp;PC Head &amp; Assoc Head Only)</span>
+            <span class="highlight-pill"><i class="fa-solid fa-check"></i> 4 Tabs: PUBMAT, PHOTOS, CARTOON, LIBRARY</span>
+            <span class="highlight-pill"><i class="fa-solid fa-check"></i> Review Articles: Section Head Approval</span>
+            <span class="highlight-pill"><i class="fa-solid fa-check"></i> Standardized X &amp; Remarks Modal</span>
+        </div>
+    </div>
+
+    <!-- Live Preview Sandbox -->
+    <div class="preview-body">
+        <div class="preview-frame-wrapper desktop" id="frame-wrapper">
+            <iframe id="preview-frame" src="mpc-media-desk.html" title="Portal Preview"></iframe>
+        </div>
+    </div>
+
+    <script>
+        const frame = document.getElementById('preview-frame');
+        const frameWrapper = document.getElementById('frame-wrapper');
+        const navPills = document.querySelectorAll('.portal-pill');
+        const viewportBtns = document.querySelectorAll('.viewport-btn[data-viewport]');
+        const externalLink = document.getElementById('external-preview-link');
+
+        // Portal Switcher
+        navPills.forEach(pill => {
+            pill.addEventListener('click', () => {
+                navPills.forEach(p => p.classList.remove('active'));
+                pill.classList.add('active');
+                const url = pill.getAttribute('data-url');
+                frame.src = url;
+                if (externalLink) externalLink.href = url;
+            });
+        });
+
+        // Viewport Switcher
+        viewportBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                viewportBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                const vp = btn.getAttribute('data-viewport');
+                frameWrapper.className = `preview-frame-wrapper ${vp}`;
+            });
+        });
+
+        // Auto-login session setter for quick testing
+        window.loginAs = function(role, name, studentNum, redirectUrl) {
+            try {
+                localStorage.setItem('userRole', role);
+                localStorage.setItem('userName', name);
+                localStorage.setItem('studentNumber', studentNum);
+                localStorage.setItem('eicRole', role);
+                localStorage.setItem('eicName', name);
+                localStorage.setItem('eicStudentNumber', studentNum);
+                localStorage.setItem('userAvatar', 'images/member-placeholder.svg');
+            } catch(e) {}
+            
+            if (redirectUrl) {
+                navPills.forEach(p => {
+                    if (p.getAttribute('data-url') === redirectUrl) {
+                        navPills.forEach(item => item.classList.remove('active'));
+                        p.classList.add('active');
+                    }
+                });
+                frame.src = redirectUrl;
+                if (externalLink) externalLink.href = redirectUrl;
+            } else {
+                frame.contentWindow.location.reload();
+            }
+        };
+
+        // Ensure default EIC session exists if not set
+        if (!localStorage.getItem('userRole') && !localStorage.getItem('eicRole')) {
+            localStorage.setItem('userRole', 'Editorial-In-Chief');
+            localStorage.setItem('userName', 'Victoria Reyes');
+            localStorage.setItem('studentNumber', '2024-00010-BN-0');
+            localStorage.setItem('eicRole', 'Editorial-In-Chief');
+            localStorage.setItem('eicName', 'Victoria Reyes');
+            localStorage.setItem('eicStudentNumber', '2024-00010-BN-0');
+            localStorage.setItem('userAvatar', 'images/member-placeholder.svg');
+        }
+    </script>
+</body>
+</html>

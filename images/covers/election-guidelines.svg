@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="100%" height="100%">
+  <defs>
+    <linearGradient id="electionBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4a0814"/>
+      <stop offset="50%" stop-color="#5c0a18"/>
+      <stop offset="100%" stop-color="#230308"/>
+    </linearGradient>
+    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#fbbf24"/>
+      <stop offset="100%" stop-color="#d97706"/>
+    </linearGradient>
+    <linearGradient id="cardGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.12)"/>
+      <stop offset="100%" stop-color="rgba(255,255,255,0.04)"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background Canvas -->
+  <rect width="800" height="500" fill="url(#electionBg)"/>
+
+  <!-- Geometric Grid & Architectural Motifs -->
+  <circle cx="720" cy="100" r="180" fill="none" stroke="rgba(251,191,36,0.12)" stroke-width="2"/>
+  <circle cx="720" cy="100" r="120" fill="none" stroke="rgba(255,255,255,0.08)" stroke-dasharray="6,6"/>
+  <line x1="50" y1="50" x2="750" y2="50" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+  <line x1="50" y1="450" x2="750" y2="450" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+
+  <!-- Category Badge -->
+  <rect x="50" y="70" width="165" height="26" rx="4" fill="url(#goldGradient)"/>
+  <text x="132" y="87" fill="#3b0811" font-family="'DM Sans', -apple-system, sans-serif" font-weight="800" font-size="11" text-anchor="middle" letter-spacing="1.2">OFFICIAL GUIDELINES</text>
+
+  <!-- Main Headline -->
+  <text x="50" y="145" fill="#ffffff" font-family="'Playfair Display', Georgia, serif" font-weight="800" font-size="32">2026 UNIVERSITY STUDENT COUNCIL</text>
+  <text x="50" y="180" fill="url(#goldGradient)" font-family="'DM Sans', sans-serif" font-weight="700" font-size="20" letter-spacing="0.5">General Elections Calendar &amp; Polling Precincts</text>
+
+  <!-- Timeline Cards Matrix -->
+  <!-- Box 1: Filing of Candidacy -->
+  <g transform="translate(50, 220)">
+    <rect width="215" height="185" rx="10" fill="url(#cardGrad)" stroke="rgba(255,255,255,0.18)" stroke-width="1.2"/>
+    <rect x="18" y="18" width="34" height="34" rx="8" fill="rgba(251,191,36,0.2)"/>
+    <text x="35" y="40" fill="#fbbf24" font-family="'DM Sans', sans-serif" font-weight="800" font-size="16" text-anchor="middle">01</text>
+    <text x="18" y="82" fill="#ffffff" font-family="'DM Sans', sans-serif" font-weight="700" font-size="14">Filing Period</text>
+    <text x="18" y="105" fill="#fde68a" font-family="'DM Sans', sans-serif" font-weight="600" font-size="12">Nov 03 – Nov 07, 2026</text>
+    <text x="18" y="130" fill="rgba(255,255,255,0.7)" font-family="'DM Sans', sans-serif" font-size="11" width="180">Submission of certificates of candidacy at COMELEC HQ</text>
+    <rect x="18" y="152" width="75" height="18" rx="4" fill="rgba(16,185,129,0.2)"/>
+    <text x="55" y="165" fill="#34d399" font-family="'DM Sans', sans-serif" font-size="10" font-weight="700" text-anchor="middle">Verified</text>
+  </g>
+
+  <!-- Box 2: Campaign Period -->
+  <g transform="translate(290, 220)">
+    <rect width="215" height="185" rx="10" fill="url(#cardGrad)" stroke="rgba(255,255,255,0.18)" stroke-width="1.2"/>
+    <rect x="18" y="18" width="34" height="34" rx="8" fill="rgba(251,191,36,0.2)"/>
+    <text x="35" y="40" fill="#fbbf24" font-family="'DM Sans', sans-serif" font-weight="800" font-size="16" text-anchor="middle">02</text>
+    <text x="18" y="82" fill="#ffffff" font-family="'DM Sans', sans-serif" font-weight="700" font-size="14">Campaign Period</text>
+    <text x="18" y="105" fill="#fde68a" font-family="'DM Sans', sans-serif" font-weight="600" font-size="12">Nov 10 – Nov 18, 2026</text>
+    <text x="18" y="130" fill="rgba(255,255,255,0.7)" font-family="'DM Sans', sans-serif" font-size="11">University Grand Debates at Central Gymnasium</text>
+    <rect x="18" y="152" width="85" height="18" rx="4" fill="rgba(245,158,11,0.2)"/>
+    <text x="60" y="165" fill="#fbbf24" font-family="'DM Sans', sans-serif" font-size="10" font-weight="700" text-anchor="middle">Debate Series</text>
+  </g>
+
+  <!-- Box 3: Polling Day -->
+  <g transform="translate(530, 220)">
+    <rect width="220" height="185" rx="10" fill="rgba(251,191,36,0.1)" stroke="url(#goldGradient)" stroke-width="1.5"/>
+    <rect x="18" y="18" width="34" height="34" rx="8" fill="url(#goldGradient)"/>
+    <text x="35" y="40" fill="#3b0811" font-family="'DM Sans', sans-serif" font-weight="800" font-size="16" text-anchor="middle">03</text>
+    <text x="18" y="82" fill="#ffffff" font-family="'DM Sans', sans-serif" font-weight="700" font-size="14">Miting de Avance</text>
+    <text x="18" y="105" fill="#fbbf24" font-family="'DM Sans', sans-serif" font-weight="700" font-size="12">Nov 20, 2026</text>
+    <text x="18" y="130" fill="rgba(255,255,255,0.85)" font-family="'DM Sans', sans-serif" font-size="11">Automated student portal ballots open 8:00 AM – 6:00 PM</text>
+    <rect x="18" y="152" width="100" height="18" rx="4" fill="rgba(251,191,36,0.25)"/>
+    <text x="68" y="165" fill="#fbbf24" font-family="'DM Sans', sans-serif" font-size="10" font-weight="700" text-anchor="middle">Election Day</text>
+  </g>
+
+  <!-- Footer Masthead -->
+  <text x="50" y="472" fill="rgba(255,255,255,0.6)" font-family="'DM Sans', sans-serif" font-size="11" font-weight="600" letter-spacing="0.5">THE LENS PUBLICATION • MEDIA &amp; COMMUNICATION DESK • OFFICIAL RELEASE</text>
+  <text x="750" y="472" fill="#fbbf24" font-family="'DM Sans', sans-serif" font-size="11" font-weight="700" text-anchor="end">COMELEC ACCREDITED</text>
+</svg>
+

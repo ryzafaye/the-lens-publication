@@ -16,5 +16,15 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        $exceptions->respond(function ($response, $e, $request) {
+            if ($response->getStatusCode() === 419) {
+                if ($request->expectsJson() || $request->ajax()) {
+                    return response()->json(['message' => 'Your session has expired. Please refresh the page and try again.'], 419);
+                }
+                return redirect()->route('login')->withErrors([
+                    'student_number' => 'Your session expired. Please sign in again.',
+                ])->withInput($request->except('password', '_token'));
+            }
+            return $response;
+        });
     })->create();

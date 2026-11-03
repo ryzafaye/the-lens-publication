@@ -1,4 +1,4 @@
-﻿/**
+/**
  * The Lens — Editor-in-Chief (EIC) Dashboard Script
  * Clean, Reusable & Modular Implementation matching Executive Dashboard logic & design
  * 
@@ -324,7 +324,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <td><span class="status-badge status-review">Pending</span></td>
                         <td class="hide-on-mobile"><span class="table-date">${escapeHTML(art.date)}</span></td>
                         <td class="text-right">
-                            <a href="eic-review-articles.html" class="table-manage-btn" title="Review Article">
+                            <a href="${window.__REVIEW_ARTICLES_URL__ || '/eic/review-articles'}" class="table-manage-btn" title="Review Article">
                                 Manage
                             </a>
                         </td>

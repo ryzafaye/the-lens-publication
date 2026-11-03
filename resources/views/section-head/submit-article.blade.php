@@ -3,7 +3,8 @@
 @section('title', 'Submit Article | Section Head Portal')
 
 @section('extra-css')
-    <link rel="stylesheet" href="{{ asset('css/submit-article.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/section-head-submit-article.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/shared-submit-article.css') }}">
 @endsection
 
 @section('content')
@@ -198,5 +199,5 @@
 @endsection
 
 @section('extra-js')
-    <script src="{{ asset('js/writer-submit-article.js') }}"></script>
+    <script src="{{ asset('js/shared-submit-article.js') }}"></script>
 @endsection

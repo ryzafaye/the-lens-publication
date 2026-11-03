@@ -36,4 +36,26 @@ document.addEventListener('DOMContentLoaded', () => {
             e.target.value = formatted;
         });
     }
+
+    // --- 3. Prevent Stale Token from Back/Forward Cache (bfcache) ---
+    window.addEventListener('pageshow', function (event) {
+        if (event.persisted) {
+            window.location.reload();
+        }
+    });
+
+    // --- 4. Refresh if tab was inactive for more than 20 minutes ---
+    let lastActiveTime = Date.now();
+    document.addEventListener('visibilitychange', function () {
+        if (document.visibilityState === 'visible') {
+            if (Date.now() - lastActiveTime > 20 * 60 * 1000) {
+                window.location.reload();
+            }
+        }
+    });
+
+    // --- 5. Periodic Session Keepalive while login tab remains open ---
+    setInterval(function () {
+        fetch(window.location.href, { method: 'HEAD', cache: 'no-store' }).catch(function () {});
+    }, 10 * 60 * 1000);
 });

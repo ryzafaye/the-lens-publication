@@ -6,6 +6,16 @@
     <title>Login | The Lens</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { wine: "#700f2b", burgundy: "#4a091b" },
+                    fontFamily: { display: ["Playfair Display", "serif"], body: ["DM Sans", "sans-serif"] }
+                }
+            }
+        };
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,500;1,600&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -38,6 +48,14 @@
     </style>
 </head>
 <body class="min-h-full bg-white font-body text-stone-900 selection:bg-wine selection:text-white flex items-center justify-center p-4 sm:p-8 md:p-12 lg:p-16 relative overflow-x-hidden">
+
+    <!-- Floating Back to Public Site Pill Button -->
+    <div class="fixed top-4 left-4 z-50">
+        <a href="{{ url('/') }}" class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold text-stone-700 hover:text-rose-900 bg-white/95 hover:bg-white backdrop-blur shadow-sm hover:shadow border border-stone-200 transition-all duration-200 group" title="Return to The Lens homepage">
+            <i class="fa-solid fa-arrow-left text-xs transition-transform group-hover:-translate-x-1 text-rose-900"></i>
+            <span>Back to Public Site</span>
+        </a>
+    </div>
 
     <div class="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_40%,rgba(112,15,43,0.04),transparent_70%)]"></div>
 
@@ -151,10 +169,17 @@
                 <div class="pointer-events-none absolute inset-4 sm:inset-6 rounded-2xl border border-stone-200/60 hidden sm:block"></div>
 
                 <div class="w-full max-w-sm mx-auto relative z-20">
-                    <div class="mb-6 sm:mb-8 pt-4 sm:pt-0">
-                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold tracking-widest uppercase bg-rose-900/10 text-rose-900 mb-3">
+                    <div class="mb-4 flex items-center justify-between gap-3 pt-2 sm:pt-0">
+                        <a href="{{ url('/') }}" class="inline-flex items-center gap-1.5 text-xs font-semibold text-stone-500 hover:text-rose-900 transition-colors group" title="Return to The Lens homepage">
+                            <i class="fa-solid fa-arrow-left text-[11px] transition-transform group-hover:-translate-x-1 text-stone-400 group-hover:text-rose-900"></i>
+                            <span>Public Page</span>
+                        </a>
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold tracking-widest uppercase bg-rose-900/10 text-rose-900">
                             Member Portal
                         </span>
+                    </div>
+
+                    <div class="mb-6 sm:mb-8">
                         <h1 class="font-display text-2xl sm:text-3xl font-bold text-stone-900 tracking-tight">
                             Sign In
                         </h1>
@@ -163,6 +188,13 @@
                         </p>
                     </div>
 
+                    @if (session('success'))
+                        <div class="mb-6 p-3.5 rounded-xl text-xs sm:text-sm font-medium bg-emerald-50 text-emerald-800 border border-emerald-200 flex items-center gap-2">
+                            <i class="fa-solid fa-circle-check text-emerald-600"></i>
+                            <span>{{ session('success') }}</span>
+                        </div>
+                    @endif
+
                     @if ($errors->any())
                         <div class="mb-6 p-3.5 rounded-xl text-xs sm:text-sm font-medium bg-rose-50 text-rose-700 border border-rose-200 flex items-center gap-2">
                             <i class="fa-solid fa-circle-exclamation text-rose-500"></i>
@@ -170,7 +202,7 @@
                         </div>
                     @endif
 
-                    <form id="login-form" method="POST" action="{{ route('login.post') }}" class="space-y-5">
+                    <form id="login-form" method="POST" action="{{ route('login.post', [], false) }}" class="space-y-5">
                         @csrf
                         
                         <div class="space-y-1.5">
@@ -208,6 +240,13 @@
                             </button>
                         </div>
                     </form>
+
+                    <div class="mt-5 text-center">
+                        <a href="{{ url('/') }}" class="inline-flex items-center gap-2 text-xs font-semibold text-stone-500 hover:text-rose-900 transition-colors group">
+                            <i class="fa-solid fa-arrow-left text-xs transition-transform group-hover:-translate-x-1 text-stone-400 group-hover:text-rose-900"></i>
+                            <span>Return to The Lens Public Site</span>
+                        </a>
+                    </div>
                 </div>
             </main>
         </div>

@@ -35,7 +35,7 @@
         </div>
         <div class="writer-stat-card">
             <div class="stat-number">{{ number_format($writerStats['pending'] ?? 0) }}</div>
-            <div class="stat-label">Pending Revision</div>
+            <div class="stat-label">In Review</div>
         </div>
         <div class="writer-stat-card">
             <div class="stat-number">{{ number_format($writerStats['drafts'] ?? 0) }}</div>
@@ -62,7 +62,8 @@
                         $badgeClass = 'status-draft';
                         $status = $art->status ?? $art['status'];
                         if($status === 'Published') $badgeClass = 'status-published';
-                        elseif($status === 'Pending Review') $badgeClass = 'status-pending';
+                        elseif(in_array($status, ['Pending Review', 'Pending EIC Review', 'Pending M&PC Review'])) $badgeClass = 'status-pending';
+                        elseif($status === 'Declined') $badgeClass = 'status-revision';
 
                         $categoryName = $art->category->name ?? ($art['category']['name'] ?? ($art['category'] ?? 'Uncategorized'));
                         $formattedDate = $art->created_at ? $art->created_at->format('M d, Y') : ($art['date'] ?? '');
@@ -100,7 +101,7 @@
                             <h3 class="article-card-title">{{ $art->title ?? $art['title'] }}</h3>
                             <p class="article-card-excerpt">{{ $art->excerpt ?? $art['excerpt'] }}</p>
                         </div>
-                        @if($status !== 'Published' && $status !== 'Pending Review')
+                        @if(in_array($status, ['Draft', 'For Revision']))
                             <div class="article-card-footer">
                                 <a href="{{ route('writer.submit-article', ['draft_id' => $art->id ?? $art['id']]) }}" class="btn-box-edit" onclick="event.stopPropagation()">
                                     <i class="fa-solid fa-pen-to-square"></i>

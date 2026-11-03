@@ -10,6 +10,7 @@ use App\Models\Category;
 use App\Models\User;
 use App\Models\Role;
 use App\Models\Feedback;
+use App\Models\ActivityLog;
 use Illuminate\Support\Facades\Hash;
 
 class EicController extends Controller
@@ -20,18 +21,13 @@ class EicController extends Controller
         $user = Auth::user();
         $user?->loadMissing('role');
 
-        // Cache consolidated dashboard metrics for 30s to keep navigation instantaneous
-        $stats = Cache::remember('eic_dashboard_stats', 30, function () {
-            return Article::selectRaw("
-                COALESCE(SUM(views), 0) as total_views,
-                COUNT(CASE WHEN status = 'Published' THEN 1 END) as published_stories,
-                COUNT(CASE WHEN status = 'Pending EIC Review' THEN 1 END) as pending
-            ")->first();
-        });
+        $stats = Article::selectRaw("
+            COALESCE(SUM(views), 0) as total_views,
+            COUNT(CASE WHEN status = 'Published' THEN 1 END) as published_stories,
+            COUNT(CASE WHEN status = 'Pending EIC Review' THEN 1 END) as pending
+        ")->first();
 
-        $activeMembers = Cache::remember('eic_active_members', 60, function () {
-            return User::count();
-        });
+        $activeMembers = User::count();
 
         $metrics = [
             'total_views' => (int) ($stats->total_views ?? 0),
@@ -43,7 +39,7 @@ class EicController extends Controller
         $pendingArticles = Article::with(['user.role', 'category'])
             ->where('status', 'Pending EIC Review')
             ->latest()
-            ->take(5)
+            ->take(10)
             ->get()
             ->map(function ($art) {
                 return [
@@ -55,10 +51,23 @@ class EicController extends Controller
                     'date' => $art->created_at->format('M d, Y'),
                     'content' => $art->content,
                     'excerpt' => $art->excerpt,
+                    'remarks' => $art->remarks,
                 ];
             });
 
-        return view('eic.dashboard', compact('metrics', 'pendingArticles'));
+        $recentActivities = ActivityLog::latest()->take(10)->get()->map(function ($log) {
+            return [
+                'user' => $log->causer_name,
+                'role' => $log->causer_role,
+                'action' => $log->action,
+                'subjectType' => $log->subject_type,
+                'target' => $log->subject_name,
+                'time' => $log->created_at->diffForHumans(),
+                'avatar' => asset('images/member-placeholder.svg'),
+            ];
+        });
+
+        return view('eic.dashboard', compact('metrics', 'pendingArticles', 'recentActivities'));
     }
 
     public function manageArticles()
@@ -263,20 +272,26 @@ class EicController extends Controller
         $user = Auth::user();
         $user?->loadMissing('role');
 
-        $article = Article::findOrFail($id);
+        $article = Article::with(['user', 'category'])->where('status', 'Pending EIC Review')->findOrFail($id);
         $article->update([
-            'status' => 'Approved',
+            'status' => 'Pending M&PC Review',
+            'remarks' => trim(($article->remarks ? $article->remarks . "\n" : '')
+                . 'Approved by EIC: ' . ($user->full_name ?? 'Editor-in-Chief') . ' on ' . now()->format('M d, Y h:i A')),
         ]);
 
+        ActivityLog::record($user, 'approved and forwarded to M&PC', $article);
+
         Cache::forget('eic_dashboard_stats');
+        Cache::forget('mpc_dashboard_stats');
         Cache::forget('eic_review_articles_newest');
         Cache::forget('eic_review_articles_oldest');
+        Cache::forget('writer_dashboard_stats_' . $article->user_id);
 
         if ($request->wantsJson() || $request->ajax()) {
-            return response()->json(['success' => true, 'message' => 'Article approved and forwarded to Media & Publication Committee.']);
+            return response()->json(['success' => true, 'message' => 'Article approved and forwarded to Media & Public Communications.']);
         }
 
-        return redirect()->back()->with('success', 'Article approved.');
+        return redirect()->back()->with('success', 'Article approved and forwarded to Media & Public Communications.');
     }
 
     public function returnForRevision(Request $request, $id)
@@ -285,21 +300,60 @@ class EicController extends Controller
             'remarks' => 'required|string',
         ]);
 
-        $article = Article::findOrFail($id);
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        $user?->loadMissing('role');
+
+        $article = Article::with(['user', 'category'])->where('status', 'Pending EIC Review')->findOrFail($id);
         $article->update([
             'status' => 'For Revision',
             'remarks' => $request->remarks,
         ]);
 
+        ActivityLog::record($user, 'returned for revision', $article, $request->remarks);
+
         Cache::forget('eic_dashboard_stats');
+        Cache::forget('mpc_dashboard_stats');
         Cache::forget('eic_review_articles_newest');
         Cache::forget('eic_review_articles_oldest');
+        Cache::forget('writer_dashboard_stats_' . $article->user_id);
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json(['success' => true, 'message' => 'Article returned to writer with revision remarks.']);
         }
 
         return redirect()->back()->with('warning', 'Article returned to writer with revision remarks.');
+    }
+
+    public function declineArticle(Request $request, $id)
+    {
+        $request->validate([
+            'remarks' => 'required|string',
+        ]);
+
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        $user?->loadMissing('role');
+
+        $article = Article::with(['user', 'category'])->where('status', 'Pending EIC Review')->findOrFail($id);
+        $article->update([
+            'status' => 'Declined',
+            'remarks' => $request->remarks,
+        ]);
+
+        ActivityLog::record($user, 'declined', $article, $request->remarks);
+
+        Cache::forget('eic_dashboard_stats');
+        Cache::forget('mpc_dashboard_stats');
+        Cache::forget('eic_review_articles_newest');
+        Cache::forget('eic_review_articles_oldest');
+        Cache::forget('writer_dashboard_stats_' . $article->user_id);
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['success' => true, 'message' => 'Article declined and returned to writer.']);
+        }
+
+        return redirect()->back()->with('warning', 'Article declined and returned to writer.');
     }
 
     public function submitArticle(Request $request)
@@ -546,7 +600,22 @@ class EicController extends Controller
 
     public function activityLogs()
     {
-        return view('eic.activity-logs');
+        $activities = ActivityLog::latest()->take(100)->get()->map(function ($log) {
+            return [
+                'id' => $log->id,
+                'causer' => $log->causer_name,
+                'causerRole' => $log->causer_role,
+                'action' => $log->action,
+                'subjectType' => $log->subject_type,
+                'subjectName' => $log->subject_name,
+                'remarks' => $log->remarks,
+                'timestampText' => $log->created_at->diffForHumans(),
+                'isoDate' => $log->created_at->toIso8601String(),
+                'formattedDate' => $log->created_at->format('M d, Y • h:i A'),
+            ];
+        });
+
+        return view('eic.activity-logs', compact('activities'));
     }
 
     public function transparency()

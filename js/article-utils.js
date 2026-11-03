@@ -89,7 +89,10 @@ export function getPublicArticles() {
     } catch (e) {}
 
     const staticList = (articles || []).filter(article => !isArchivedArticle(article));
-    const combined = [...storageArticles];
+    const serverArticles = Array.isArray(window.LARAVEL_PUBLISHED_ARTICLES)
+        ? window.LARAVEL_PUBLISHED_ARTICLES.filter(article => !isArchivedArticle(article))
+        : [];
+    const combined = [...storageArticles, ...serverArticles];
     staticList.forEach(s => {
         if (!combined.some(c => String(c.id) === String(s.id))) {
             combined.push(s);

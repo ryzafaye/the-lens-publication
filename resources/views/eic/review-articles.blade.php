@@ -131,6 +131,10 @@
         <!-- Modal Footer -->
         <div class="manuscript-footer">
             <div class="modal-footer-right">
+                <button type="button" id="modal-decline-btn" class="btn-box-decline">
+                    <i class="fa-solid fa-xmark"></i>
+                    <span>Decline</span>
+                </button>
                 <button type="button" id="modal-revision-btn" class="btn-box-revision">
                     <i class="fa-solid fa-rotate-left"></i>
                     <span>For Revision</span>
@@ -152,6 +156,7 @@
         window.__CATEGORY_HEADS__ = @json($categoryHeads ?? []);
         window.__APPROVE_URL__ = "{{ url('/eic/review-articles') }}";
         window.__REVISION_URL__ = "{{ url('/eic/review-articles') }}";
+        window.__DECLINE_URL__ = "{{ url('/eic/review-articles') }}";
     </script>
     <script src="{{ asset('js/eic-review-articles.js') }}"></script>
 @endpush

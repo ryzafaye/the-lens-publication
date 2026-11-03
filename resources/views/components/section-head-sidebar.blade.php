@@ -46,7 +46,7 @@
     </div>
 
     <div class="sidebar-footer">
-        <a href="{{ route('section-head.profile-settings') }}" class="sidebar-footer-link {{ request()->is('section-head/settings*') ? 'active' : '' }}">
+        <a href="{{ route('section-head.profile-settings') }}" class="sidebar-footer-link {{ request()->routeIs('section-head.profile-settings') || request()->is('section-head/settings*') || request()->is('section-head/profile-settings*') ? 'active' : '' }}">
             <i class="fa-solid fa-sliders"></i>
             <span>Profile Settings</span>
         </a>

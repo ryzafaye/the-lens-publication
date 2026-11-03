@@ -129,6 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const remarksErrorMsg = document.getElementById('remarks-error-msg');
     const modalApproveBtn = document.getElementById('modal-approve-btn');
     const modalRevisionBtn = document.getElementById('modal-revision-btn');
+    const modalDeclineBtn = document.getElementById('modal-decline-btn');
 
     // =========================================================================
     // 2. HELPER UTILITIES: ESCAPE HTML & SMOOTH TOAST
@@ -306,11 +307,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     </p>
                 </div>
 
-                <!-- Right Actions: 3 small buttons in a row -->
+                <!-- Right Actions: 4 small buttons in a row -->
                 <div class="review-box-actions">
                     <button type="button" class="btn-box-read" data-action="read" data-id="${item.id}" title="Read full manuscript">
                         <i class="fa-regular fa-eye"></i>
                         <span>Read</span>
+                    </button>
+                    <button type="button" class="btn-box-decline" data-action="decline" data-id="${item.id}" title="Decline manuscript">
+                        <i class="fa-solid fa-xmark"></i>
+                        <span>Decline</span>
                     </button>
                     <button type="button" class="btn-box-revision" data-action="revision" data-id="${item.id}" title="Direct to revision remarks">
                         <i class="fa-solid fa-rotate-left"></i>
@@ -412,7 +417,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (e) {}
 
             renderReviewBoxes();
-            showToast('Article approved and forwarded to the Media & Publication Committee (M&PC).', 'success');
+            showToast('Article approved and forwarded to the Media & Public Communications Head.', 'success');
         }, 220);
     }
 
@@ -466,6 +471,41 @@ document.addEventListener('DOMContentLoaded', () => {
 
             renderReviewBoxes();
             showToast('Article returned to writer for revision.', 'warning');
+        }, 220);
+    }
+
+    function declineStory(id, remarks) {
+        const item = reviewList.find(a => String(a.id) === String(id));
+        if (!item) return;
+
+        const box = document.getElementById(`box-${id}`);
+        if (box) {
+            box.classList.add('box-fade-out');
+        }
+
+        setTimeout(() => {
+            reviewList = reviewList.filter(a => String(a.id) !== String(id));
+            savePendingQueue(reviewList);
+
+            // Backend sync if running on Laravel
+            try {
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                const declineUrl = window.__DECLINE_URL__ || '/eic/review-articles';
+                if (declineUrl && csrfToken) {
+                    fetch(`${declineUrl}/${id}/decline`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({ remarks: remarks || 'Declined by Editor-in-Chief.' })
+                    }).catch(err => console.error('Error declining article on backend:', err));
+                }
+            } catch (err) {}
+
+            renderReviewBoxes();
+            showToast('Article declined and returned to writer.', 'warning');
         }, 220);
     }
 
@@ -606,6 +646,32 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    if (modalDeclineBtn) {
+        modalDeclineBtn.addEventListener('click', () => {
+            if (!currentActiveId) return;
+
+            const remarks = modalRemarks ? modalRemarks.value.trim() : '';
+            if (!remarks) {
+                if (remarksErrorMsg) {
+                    remarksErrorMsg.textContent = 'Please enter decline feedback for the writer.';
+                    remarksErrorMsg.classList.remove('hidden');
+                }
+                if (modalRemarks) {
+                    modalRemarks.classList.add('input-invalid');
+                    modalRemarks.focus();
+                }
+                if (remarksSection) {
+                    remarksSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+                return;
+            }
+
+            const targetId = currentActiveId;
+            closeManuscript();
+            declineStory(targetId, remarks);
+        });
+    }
+
     // =========================================================================
     // 8. LIST EVENT DELEGATION
     // =========================================================================
@@ -620,6 +686,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (action === 'read') {
                 openManuscript(id, { focusRemarks: false });
+            } else if (action === 'decline') {
+                openManuscript(id, { focusRemarks: true });
             } else if (action === 'revision') {
                 openManuscript(id, { focusRemarks: true });
             } else if (action === 'approve-mpc') {

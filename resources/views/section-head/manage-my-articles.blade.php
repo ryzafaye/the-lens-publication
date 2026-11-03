@@ -3,7 +3,8 @@
 @section('title', 'Manage My Articles | Section Head Portal')
 
 @section('extra-css')
-    <link rel="stylesheet" href="{{ asset('css/manage-my-articles.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/section-head-manage-my-articles.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/shared-manage-my-articles.css') }}">
 @endsection
 
 @section('content')
@@ -211,6 +212,7 @@
 @section('extra-js')
     <script>
         window.__WRITER_ARTICLES__ = @json($articles);
+        window.__SHARED_ARTICLES__ = @json($articles);
     </script>
-    <script src="{{ asset('js/writer-manage-my-articles.js') }}"></script>
+    <script src="{{ asset('js/shared-manage-my-articles.js') }}"></script>
 @endsection

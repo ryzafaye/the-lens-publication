@@ -19,7 +19,7 @@ return new class extends Migration
             $table->text('excerpt')->nullable();
             $table->longText('content')->nullable(); 
             
-            // Workflow Status: Draft, Pending Review, For Revision, Published, Unpublished
+            // Workflow Status: Draft, Pending Review, Pending EIC Review, Pending M&PC Review, For Revision, Declined, Published, Unpublished
             $table->string('status')->default('Draft'); 
             
             // Analytics

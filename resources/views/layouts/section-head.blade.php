@@ -15,6 +15,7 @@
     <link rel="stylesheet" href="{{ asset('css/section-head-dashboard.css') }}">
     <link rel="stylesheet" href="{{ asset('css/executive-modals.css') }}">
     @yield('extra-css')
+    @stack('styles')
 </head>
 <body class="dashboard-body">
 
@@ -66,5 +67,6 @@
     <!-- Scripts -->
     <script src="{{ asset('js/section-head-shell.js') }}"></script>
     @yield('extra-js')
+    @stack('scripts')
 </body>
 </html>

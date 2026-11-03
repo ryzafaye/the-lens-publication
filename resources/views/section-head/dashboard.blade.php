@@ -80,10 +80,12 @@
                                     <td>
                                         @if($submission->status === 'Pending Review')
                                             <span class="status-badge status-review">Pending Review</span>
-                                        @elseif($submission->status === 'Approved' || $submission->status === 'Published')
+                                        @elseif(in_array($submission->status, ['Pending EIC Review', 'Pending M&PC Review', 'Published']))
                                             <span class="status-badge status-approved">{{ $submission->status }}</span>
                                         @elseif($submission->status === 'For Revision')
                                             <span class="status-badge status-review" style="background: #fef3f2; color: #b42318; border-color: #fda29b;">For Revision</span>
+                                        @elseif($submission->status === 'Declined')
+                                            <span class="status-badge status-review" style="background: #fef3f2; color: #b42318; border-color: #fda29b;">Declined</span>
                                         @else
                                             <span class="status-badge status-draft">{{ $submission->status }}</span>
                                         @endif

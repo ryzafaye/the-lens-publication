@@ -4,32 +4,11 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-<<<<<<< HEAD
-use App\Models\Article;
-use App\Models\Category;
-
-class SectionHeadController extends ExecutiveController
-{
-    public function dashboard()
-    {
-        return parent::dashboard();
-    }
-
-    public function manageMyArticles()
-    {
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
-        $user?->loadMissing('role');
-
-        $articles = Article::with(['category', 'user.role'])
-            ->where('user_id', Auth::id())
-            ->orderBy('created_at', 'desc')
-            ->get()
-            ->map(function ($article) use ($user) {
-=======
+use Illuminate\Support\Facades\Cache;
 use App\Models\Category;
 use App\Models\Article;
 use App\Models\User;
+use App\Models\ActivityLog;
 
 class SectionHeadController extends Controller
 {
@@ -142,12 +121,21 @@ class SectionHeadController extends Controller
      */
     public function approveArticle(Request $request, $id)
     {
-        $article = Article::findOrFail($id);
+        $article = Article::with(['user', 'category'])->where('status', 'Pending Review')->findOrFail($id);
+        $user = Auth::user();
+        $user?->loadMissing('role');
 
         $article->update([
-            'status' => 'Approved',
-            'remarks' => 'Endorsed to EIC by ' . Auth::user()->full_name . ' (' . (Auth::user()->role->role_name ?? 'Section Head') . ')',
+            'status' => 'Pending EIC Review',
+            'remarks' => 'Endorsed to EIC by ' . ($user->full_name ?? 'Section Head') . ' (' . ($user->role->role_name ?? 'Section Head') . ') on ' . now()->format('M d, Y h:i A'),
         ]);
+
+        ActivityLog::record($user, 'approved and endorsed to EIC', $article);
+
+        Cache::forget('eic_dashboard_stats');
+        Cache::forget('eic_review_articles_newest');
+        Cache::forget('eic_review_articles_oldest');
+        Cache::forget('writer_dashboard_stats_' . $article->user_id);
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
@@ -159,6 +147,34 @@ class SectionHeadController extends Controller
         return redirect()->route('section-head.review-articles')->with('success', "Approved \"{$article->title}\" and forwarded to Editor-in-Chief.");
     }
 
+    /** Decline a submission and return it to the writer with an explanation. */
+    public function declineArticle(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'remarks' => 'required|string|min:3|max:1000',
+        ]);
+
+        $article = Article::with(['user', 'category'])->where('status', 'Pending Review')->findOrFail($id);
+        $user = Auth::user();
+        $user?->loadMissing('role');
+
+        $article->update([
+            'status' => 'Declined',
+            'remarks' => $validated['remarks'],
+        ]);
+
+        ActivityLog::record($user, 'declined', $article, $validated['remarks']);
+
+        Cache::forget('writer_dashboard_stats_' . $article->user_id);
+        Cache::forget('eic_dashboard_stats');
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['success' => true, 'message' => "Declined \"{$article->title}\" and returned it to the writer."]);
+        }
+
+        return redirect()->route('section-head.review-articles')->with('warning', "Declined \"{$article->title}\".");
+    }
+
     /**
      * Return manuscript for mandatory revision to the writer with remarks.
      */
@@ -168,12 +184,19 @@ class SectionHeadController extends Controller
             'remarks' => 'required|string|min:3|max:1000',
         ]);
 
-        $article = Article::findOrFail($id);
+        $article = Article::with(['user', 'category'])->where('status', 'Pending Review')->findOrFail($id);
+        $user = Auth::user();
+        $user?->loadMissing('role');
 
         $article->update([
             'status' => 'For Revision',
             'remarks' => $request->remarks,
         ]);
+
+        ActivityLog::record($user, 'returned for revision', $article, $request->remarks);
+
+        Cache::forget('writer_dashboard_stats_' . $article->user_id);
+        Cache::forget('eic_dashboard_stats');
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
@@ -186,6 +209,14 @@ class SectionHeadController extends Controller
     }
 
     /**
+     * Alias for returning revision to match alternative route name.
+     */
+    public function returnForRevision(Request $request, $id)
+    {
+        return $this->requestRevision($request, $id);
+    }
+
+    /**
      * Manage section head's own articles.
      */
     public function manageMyArticles()
@@ -195,7 +226,6 @@ class SectionHeadController extends Controller
             ->latest()
             ->get()
             ->map(function ($article) {
->>>>>>> 5b599e1874fdaa84f38395ada5e3509bd80996ab
                 return [
                     'id' => $article->id,
                     'title' => $article->title,
@@ -208,26 +238,6 @@ class SectionHeadController extends Controller
                     'views' => $article->views ?? 0,
                     'shares' => $article->shares ?? 0,
                     'remarks' => $article->remarks,
-<<<<<<< HEAD
-                    'author' => $user->full_name ?? ($article->user->full_name ?? 'Staff Writer'),
-                ];
-            });
-
-        return view('executive.manage-my-articles', compact('articles'));
-    }
-
-    public function reviewArticles(Request $request)
-    {
-        return parent::reviewArticles($request);
-    }
-
-    public function submitArticle(Request $request)
-    {
-        $categories = Category::all();
-
-        $drafts = Article::with(['category', 'user.role'])
-            ->where('user_id', Auth::id())
-=======
                     'author' => Auth::user()->full_name,
                 ];
             });
@@ -246,37 +256,18 @@ class SectionHeadController extends Controller
 
         $drafts = Article::with('category')
             ->where('user_id', $user->id)
->>>>>>> 5b599e1874fdaa84f38395ada5e3509bd80996ab
             ->whereIn('status', ['Draft', 'For Revision'])
             ->latest()
             ->get();
 
         $editingDraft = null;
         if ($request->has('draft_id')) {
-<<<<<<< HEAD
-            $editingDraft = Article::with(['category', 'user.role'])
-                ->where('user_id', Auth::id())
-=======
             $editingDraft = Article::with('category')
                 ->where('user_id', $user->id)
->>>>>>> 5b599e1874fdaa84f38395ada5e3509bd80996ab
                 ->whereIn('status', ['Draft', 'For Revision'])
                 ->find($request->draft_id);
         }
 
-<<<<<<< HEAD
-        return view('executive.submit-article', compact('categories', 'drafts', 'editingDraft'));
-    }
-
-    public function activityLogs()
-    {
-        return view('executive.activity-logs');
-    }
-
-    public function profileSettings()
-    {
-        return view('executive.profile-settings');
-=======
         return view('section-head.submit-article', compact('categories', 'drafts', 'editingDraft', 'defaultCategory'));
     }
 
@@ -371,6 +362,5 @@ class SectionHeadController extends Controller
     {
         $user = Auth::user();
         return view('section-head.profile-settings', compact('user'));
->>>>>>> 5b599e1874fdaa84f38395ada5e3509bd80996ab
     }
 }

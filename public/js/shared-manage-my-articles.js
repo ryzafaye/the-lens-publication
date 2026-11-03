@@ -165,7 +165,11 @@ document.addEventListener('DOMContentLoaded', () => {
             case 'Published':
                 return 'status-published';
             case 'Pending Review':
+            case 'Pending EIC Review':
+            case 'Pending M&PC Review':
                 return 'status-pending';
+            case 'Declined':
+                return 'status-revision';
             case 'For Revision':
                 return 'status-revision';
             case 'Draft':
@@ -201,7 +205,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateTabBadges(articles) {
         const total = articles.length;
         const published = articles.filter(a => a.status === 'Published').length;
-        const pending = articles.filter(a => a.status === 'Pending Review').length;
+        const pending = articles.filter(a => ['Pending Review', 'Pending EIC Review', 'Pending M&PC Review'].includes(a.status)).length;
         const revision = articles.filter(a => a.status === 'For Revision').length;
         const drafts = articles.filter(a => a.status === 'Draft').length;
 
@@ -227,7 +231,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Filter by tab
         let filtered = allMyArticles.filter(item => {
             if (currentTab === 'published') return item.status === 'Published';
-            if (currentTab === 'pending') return item.status === 'Pending Review';
+            if (currentTab === 'pending') return ['Pending Review', 'Pending EIC Review', 'Pending M&PC Review'].includes(item.status);
             if (currentTab === 'revision') return item.status === 'For Revision';
             if (currentTab === 'drafts') return item.status === 'Draft';
             return true; // 'all'

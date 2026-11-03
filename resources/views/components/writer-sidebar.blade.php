@@ -34,11 +34,7 @@
     </div>
 
     <div class="sidebar-footer" id="sidebar-footer">
-<<<<<<< HEAD
-        <a href="{{ route('writer.profile-settings') }}" class="sidebar-footer-link {{ request()->routeIs('writer.profile-settings') ? 'active' : '' }}">
-=======
-        <a href="{{ route('writer.profile-settings') }}" class="sidebar-footer-link {{ request()->is('writer/settings*') ? 'active' : '' }}">
->>>>>>> 5b599e1874fdaa84f38395ada5e3509bd80996ab
+        <a href="{{ route('writer.profile-settings') }}" class="sidebar-footer-link {{ request()->routeIs('writer.profile-settings') || request()->is('writer/settings*') || request()->is('writer/profile-settings*') ? 'active' : '' }}">
             <i class="fa-solid fa-sliders"></i>
             <span>Profile Settings</span>
         </a>

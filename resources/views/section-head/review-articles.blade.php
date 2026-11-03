@@ -71,11 +71,19 @@
                         <i class="fa-solid fa-rotate-left"></i>
                         <span>For Revision</span>
                     </button>
+                    <form id="decline-form-{{ $article->id }}" method="POST" action="{{ route('section-head.decline-article', $article->id) }}" style="margin: 0; display: inline-flex;">
+                        @csrf
+                        <input type="hidden" name="remarks" id="decline-remarks-{{ $article->id }}">
+                        <button type="button" class="btn-box-decline" onclick="declineArticle({{ $article->id }})" title="Decline and return to writer">
+                            <i class="fa-solid fa-xmark"></i>
+                            <span>Decline</span>
+                        </button>
+                    </form>
                     <form method="POST" action="{{ route('section-head.approve-article', $article->id) }}" style="margin: 0; display: inline-flex;">
                         @csrf
-                        <button type="submit" class="btn-box-approve" onclick="return confirm('Approve this story for publication?')" title="Approve and endorse story for final review">
+                        <button type="submit" class="btn-box-approve" onclick="return confirm('Approve and send this story to the Editor-in-Chief?')" title="Approve and endorse story for EIC review">
                             <i class="fa-solid fa-check"></i>
-                            <span>Approve for Publication</span>
+                            <span>Approve for EIC</span>
                         </button>
                     </form>
                 </div>
@@ -185,6 +193,17 @@
 @section('extra-js')
 <script>
     let currentActiveId = null;
+
+    function declineArticle(id) {
+        const remarks = window.prompt('Why are you declining this article? The writer will see this feedback.');
+        if (remarks === null) return;
+        if (remarks.trim().length < 3) {
+            window.alert('Please enter at least 3 characters of feedback.');
+            return;
+        }
+        document.getElementById('decline-remarks-' + id).value = remarks.trim();
+        document.getElementById('decline-form-' + id).submit();
+    }
 
     function openManuscript(id, focusRemarks = false) {
         currentActiveId = id;

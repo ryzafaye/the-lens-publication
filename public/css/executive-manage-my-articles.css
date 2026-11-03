@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 /**
-=======
-﻿/**
->>>>>>> 5b599e1874fdaa84f38395ada5e3509bd80996ab
  * ============================================================================
  * THE LENS ΓÇö EXECUTIVE MANAGE MY ARTICLES STYLESHEET
  * Reuses Writer Dashboard Analytics Cards & Manage My Articles formatting
@@ -79,7 +75,6 @@
 }
 
 /* Tabs Navigation Adjusted Directly Under Page Title */
-<<<<<<< HEAD
 /* Container for ALL tabs across different pages */
 .manage-tabs-container,
 .review-tabs-container,
@@ -159,17 +154,6 @@
 .tab-filter-btn.active .tab-pill-count {
     background-color: #f8eef2;
     color: var(--sidebar-maroon, #5c0a18);
-=======
-.manage-tabs-container {
-    margin-top: 0 !important;
-    margin-bottom: 4px !important;
-    border-bottom: 1px solid #eaecf0 !important;
-}
-
-.manage-tab-btn {
-    padding: 8px 16px 12px 16px !important;
-    font-size: 0.88rem !important;
->>>>>>> 5b599e1874fdaa84f38395ada5e3509bd80996ab
 }
 
 @media (max-width: 640px) {

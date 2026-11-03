@@ -234,6 +234,13 @@
 @endsection
 
 @push('scripts')
+<script>
+    window.__DASHBOARD_METRICS__ = @json($metrics ?? []);
+    window.__PENDING_ARTICLES__ = @json($pendingArticles ?? []);
+    window.__RECENT_ACTIVITIES__ = @json($recentActivities ?? []);
+    window.__REVIEW_ARTICLES_URL__ = "{{ route('eic.review-articles') }}";
+    window.__ACTIVITY_LOGS_URL__ = "{{ route('eic.activity-logs') }}";
+</script>
 <script type="module" src="{{ asset('js/eic-dashboard.js') }}"></script>
 @endpush
 

@@ -19,7 +19,7 @@ class WriterController extends Controller
             return Article::where('user_id', $userId)->selectRaw("
                 COALESCE(SUM(views), 0) as total_views,
                 COUNT(CASE WHEN status = 'Published' THEN 1 END) as published,
-                COUNT(CASE WHEN status = 'Pending Review' THEN 1 END) as pending,
+                COUNT(CASE WHEN status IN ('Pending Review', 'Pending EIC Review', 'Pending M&PC Review') THEN 1 END) as pending,
                 COUNT(CASE WHEN status = 'Draft' THEN 1 END) as drafts
             ")->first();
         });
@@ -97,17 +97,13 @@ class WriterController extends Controller
         return view('writer.manage-my-articles', compact('articles'));
     }
 
-    public function profileSettings()
-    {
-        return view('writer.profile-settings');
-    }
 
     public function storeArticle(Request $request)
     {
         $rules = [
             'title' => 'required|string|max:255',
             'category_id' => 'required|exists:categories,id', // Now strictly required for both Draft and Review
-            'status' => 'required|string', 
+            'status' => 'required|in:Draft,Pending Review',
             'article_id' => 'nullable|integer'
         ];
 
@@ -128,7 +124,9 @@ class WriterController extends Controller
         try {
             // If article_id is present, update the existing draft
             if ($request->filled('article_id')) {
-                $article = Article::where('user_id', Auth::id())->find($request->article_id);
+                $article = Article::where('user_id', Auth::id())
+                    ->whereIn('status', ['Draft', 'For Revision'])
+                    ->find($request->article_id);
                 if ($article) {
                     $article->update([
                         'category_id' => $request->category_id,

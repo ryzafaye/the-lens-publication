@@ -49,155 +49,255 @@
                 <i class="fa-solid fa-chevron-down filter-chevron" aria-hidden="true"></i>
             </button>
 
-            <!-- Floating Filter Popover -->
-            <div id="filter-dropdown" class="filter-dropdown-menu hidden" role="region" aria-label="Sort and filter options">
-                
-                <!-- Filter Section: Section Category -->
-                <div class="filter-group">
-                    <label for="filter-category" class="filter-group-label">Category</label>
-                    <select id="filter-category" class="filter-select">
-                        <option value="all">All Categories</option>
-                        <option value="News">News</option>
-                        <option value="Opinion">Opinion</option>
-                        <option value="Feature">Feature</option>
-                        <option value="SciTech">SciTech</option>
-                        <option value="Literature">Literature</option>
-                    </select>
+            <!-- Exact Public Site Filter Dropdown Popup -->
+            <div id="filter-dropdown" class="filter-dropdown hidden">
+                <div class="filter-panel-heading">
+                    <span>Sort &amp; Filter</span>
+                    <button type="button" id="close-filter-btn" class="icon-button" aria-label="Close filters">
+                        <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                    </button>
                 </div>
-
-                <!-- Filter Section: Sorting Order -->
-                <div class="filter-group">
-                    <label for="filter-sort" class="filter-group-label">Sort Order</label>
-                    <select id="filter-sort" class="filter-select">
-                        <option value="newest">Newest First</option>
-                        <option value="oldest">Oldest First</option>
-                        <option value="views-desc">Most Viewed</option>
-                        <option value="views-asc">Least Viewed</option>
-                        <option value="title-asc">Title (A &rarr; Z)</option>
-                        <option value="title-desc">Title (Z &rarr; A)</option>
-                    </select>
+                <div class="filter-grid">
+                    <div class="filter-field">
+                        <label for="sort-select">Sort by</label>
+                        <select id="sort-select" class="archive-select">
+                            <option value="newest">Newest</option>
+                            <option value="oldest">Oldest</option>
+                            <option value="popular">Most Viewed</option>
+                            <option value="az">A-Z</option>
+                        </select>
+                    </div>
+                    <div class="filter-field">
+                        <label for="category-select">Category</label>
+                        <select id="category-select" class="archive-select">
+                            <option value="All">All categories</option>
+                            <option value="News">News</option>
+                            <option value="Features">Features</option>
+                            <option value="Opinion">Opinion</option>
+                            <option value="Science and Technology">Science &amp; Technology</option>
+                            <option value="Literature">Literature</option>
+                        </select>
+                    </div>
+                    <div class="filter-field filter-date-field">
+                        <label for="date-filter-type">Published date</label>
+                        <div class="published-date-controls">
+                            <select id="date-filter-type" class="archive-select">
+                                <option value="any">Any date</option>
+                                <option value="today">Today</option>
+                                <option value="this_week">This week</option>
+                                <option value="choose">Choose date</option>
+                            </select>
+                            <div class="date-filter-selects" id="date-filter-value-wrap" hidden>
+                                <select id="date-month-select" class="archive-select date-filter-select" aria-label="Month" disabled>
+                                    <option value="">Month</option>
+                                    <option value="1">Jan</option><option value="2">Feb</option><option value="3">Mar</option>
+                                    <option value="4">Apr</option><option value="5">May</option><option value="6">Jun</option>
+                                    <option value="7">Jul</option><option value="8">Aug</option><option value="9">Sep</option>
+                                    <option value="10">Oct</option><option value="11">Nov</option><option value="12">Dec</option>
+                                </select>
+                                <select id="date-day-select" class="archive-select date-filter-select" aria-label="Day" disabled>
+                                    <option value="">Day</option>
+                                    <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option>
+                                    <option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option>
+                                    <option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option>
+                                    <option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option>
+                                    <option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option>
+                                    <option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option>
+                                    <option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option>
+                                    <option value="29">29</option><option value="30">30</option><option value="31">31</option>
+                                </select>
+                                <select id="date-year-select" class="archive-select date-filter-select" aria-label="Year" disabled>
+                                    <option value="">Year</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-
-                <!-- Popover Action Buttons -->
-                <div class="filter-actions-row">
-                    <button type="button" id="reset-filter-btn" class="btn-filter-reset">Reset</button>
-                    <button type="button" id="apply-filter-btn" class="btn-filter-apply">Apply</button>
+                <div class="filter-panel-footer">
+                    <button type="button" id="clear-filters-btn" class="clear-filters-btn">Clear filters</button>
+                    <button type="button" id="apply-filters-btn" class="apply-filters-btn">
+                        <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                        <span>Apply</span>
+                    </button>
                 </div>
-
             </div>
         </div>
 
     </div>
 
-    <!-- Active Filters Summary Chips Bar (Hidden when default) -->
-    <div id="active-filters-chips" class="active-chips-bar hidden" aria-live="polite">
-        <span class="chips-label">Filters:</span>
-        <div id="chips-container" class="chips-container"></div>
-        <button type="button" id="clear-all-chips-btn" class="btn-clear-chips">Clear All</button>
-    </div>
+    <!-- Active Filter Chips -->
+    <div id="active-filter-chips" class="active-filter-chips hidden animate-fade-in"></div>
 
-    <!-- Results Status Announcement (Screen Reader friendly + Visual summary) -->
-    <div class="results-meta-row animate-fade-in delay-3">
-        <span id="results-count-summary" class="results-count-summary">Showing 0 articles</span>
-    </div>
-
-    <!-- Responsive Cards Grid View -->
-    <div id="manage-cards-grid" class="manage-cards-grid animate-fade-in delay-3">
-        <!-- Dynamically populated article cards generated by js/executive-manage-articles.js -->
-    </div>
-
-    <!-- Empty State View -->
-    <div id="empty-state-view" class="manage-empty-state hidden">
-        <div class="empty-icon-circle">
-            <i class="fa-regular fa-folder-open" aria-hidden="true"></i>
+    <!-- Articles Cards Panel -->
+    <section class="articles-panel animate-fade-in delay-3" aria-labelledby="articles-panel-heading">
+        
+        <!-- Section Header Metadata -->
+        <div class="articles-header-meta">
+            <div class="meta-left">
+                <span id="articles-results-counter" class="articles-results-counter">Loading articles…</span>
+            </div>
         </div>
-        <h2 id="empty-state-title" class="empty-state-title">No Articles Found</h2>
-        <p id="empty-state-desc" class="empty-state-desc">There are currently no articles matching your active search or filters.</p>
-        <button type="button" id="empty-reset-btn" class="btn-empty-reset">Reset Filters</button>
-    </div>
+
+        <!-- 2-column Grid of Article Cards -->
+        <div id="articles-grid" class="articles-grid" aria-label="Article cards list">
+            <!-- Cards populated dynamically via JS -->
+        </div>
+
+        <!-- Empty State (Only Shown When Searching or Filtering) -->
+        <div id="manage-empty-state" class="table-empty-state hidden">
+            <div class="empty-state-icon">
+                <i class="fa-regular fa-folder-open"></i>
+            </div>
+            <div class="empty-state-title">No articles found</div>
+            <p class="empty-state-desc">We couldn't find any articles matching your search query or active filter settings.</p>
+            <button type="button" id="reset-empty-filters-btn" class="modal-btn modal-btn-cancel" style="margin-top: 8px;">
+                Reset filters
+            </button>
+        </div>
+
+        <!-- Default Empty State (Shown When Category/Tab Has No Articles) -->
+        <div id="manage-no-articles-state" class="table-empty-state hidden">
+            <div class="empty-state-icon">
+                <i class="fa-regular fa-newspaper" id="no-articles-icon"></i>
+            </div>
+            <div class="empty-state-title" id="no-articles-title">No articles yet</div>
+            <p class="empty-state-desc" id="no-articles-desc">There are currently no active articles.</p>
+        </div>
+
+    </section>
 
 </main>
 
 <!-- ====================================================================== -->
-<!-- MODAL: Minimalist Full Story Reader (Preview Full Article)              -->
+<!-- MODAL 1: Full Article Viewer Modal (For Executive to View Article)     -->
 <!-- ====================================================================== -->
-<div id="story-reader-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modal-story-title">
-    <div class="modal-card reader-modal-card">
-        
-        <!-- Reader Header -->
-        <div class="reader-modal-header">
-            <div class="reader-header-meta">
-                <span id="reader-category" class="reader-category-pill">News</span>
-                <span class="reader-meta-dot">&bull;</span>
-                <span id="reader-date" class="reader-date-text">Oct 18, 2026</span>
-                <span class="reader-meta-dot">&bull;</span>
-                <span id="reader-read-time" class="reader-read-time-text">3 min read</span>
+<div id="article-viewer-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="viewer-title">
+    <div class="modal-card viewer-modal-card">
+        <div class="viewer-modal-header">
+            <div class="viewer-meta-row">
+                <span id="viewer-category" class="viewer-category-tag">News</span>
+                <span class="viewer-dot">·</span>
+                <span id="viewer-date" class="viewer-date">Oct 12, 2026</span>
             </div>
-            <button type="button" id="close-reader-btn" class="viewer-close-btn" aria-label="Close article reader">
-                <i class="fa-solid fa-xmark"></i>
+            <div class="viewer-header-right">
+                <span class="viewer-reading-time"><i class="fa-regular fa-clock"></i> <span id="viewer-read-time">2 min read</span></span>
+                <button type="button" id="close-viewer-btn" class="viewer-close-btn" aria-label="Close article preview">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="viewer-modal-body">
+            <h1 id="viewer-title" class="viewer-title">Article Title</h1>
+            
+            <div class="viewer-byline-row">
+                <div class="viewer-author-avatar">
+                    <img src="{{ asset('images/member-placeholder.svg') }}" alt="Author avatar">
+                </div>
+                <div class="viewer-byline-text">
+                    <span class="viewer-by">By <strong id="viewer-author">Author Name</strong></span>
+                </div>
+            </div>
+
+            <p id="viewer-excerpt" class="viewer-excerpt" style="display: none;"></p>
+
+            <div id="viewer-banner-wrap" class="viewer-banner">
+                <img id="viewer-banner-img" src="{{ asset('images/maroon.jpg') }}" alt="Article banner">
+            </div>
+
+            <div id="viewer-content" class="viewer-content-text">
+                <!-- Paragraphs populated dynamically -->
+            </div>
+
+            <div class="viewer-stats-bar">
+                <span class="stat-pill"><i class="fa-regular fa-eye"></i> <span id="viewer-views">0</span></span>
+                <span class="stat-pill"><i class="fa-solid fa-share-nodes"></i> <span id="viewer-shares">0</span></span>
+            </div>
+        </div>
+
+        <div class="viewer-modal-footer">
+            <button type="button" id="viewer-action-edit" class="modal-btn modal-btn-secondary">
+                <i class="fa-regular fa-pen-to-square"></i> Edit Article
+            </button>
+            <button type="button" id="viewer-action-archive" class="modal-btn modal-btn-warning">
+                <i class="fa-solid fa-box-archive"></i> <span id="viewer-archive-label">Move to Archive</span>
+            </button>
+            <button type="button" id="viewer-action-delete" class="modal-btn modal-btn-danger">
+                <i class="fa-regular fa-trash-can"></i> Emergency Delete
             </button>
         </div>
-
-        <!-- Reader Body -->
-        <div class="reader-modal-body">
-            <h1 id="modal-story-title" class="reader-headline">Article Title Headline</h1>
-
-            <!-- Byline Banner -->
-            <div class="reader-byline-banner">
-                <div class="reader-avatar-wrap">
-                    <img id="reader-author-avatar" src="{{ asset('images/member-placeholder.svg') }}" alt="Author avatar">
-                </div>
-                <div class="reader-author-info">
-                    <span id="reader-author-name" class="reader-author-name">Author Name</span>
-                    <span id="reader-author-role" class="reader-author-role">Staff Writer</span>
-                </div>
-            </div>
-
-            <!-- Stats Bar (Views & Shares) -->
-            <div class="reader-stats-banner">
-                <div class="reader-stat-item">
-                    <i class="fa-regular fa-eye" aria-hidden="true"></i>
-                    <span id="reader-views-count">0</span>
-                    <span class="stat-unit">views</span>
-                </div>
-                <div class="reader-stat-item">
-                    <i class="fa-solid fa-share-nodes" aria-hidden="true"></i>
-                    <span id="reader-shares-count">0</span>
-                    <span class="stat-unit">shares</span>
-                </div>
-                <div id="reader-archived-badge" class="reader-status-badge hidden">
-                    <i class="fa-solid fa-box-archive"></i>
-                    <span>Archived</span>
-                </div>
-            </div>
-
-            <!-- Excerpt Callout -->
-            <div id="reader-excerpt-callout" class="reader-excerpt-callout">
-                <p id="reader-excerpt-text"></p>
-            </div>
-
-            <!-- Full Article Body -->
-            <div id="reader-article-body" class="reader-article-content"></div>
-        </div>
-
-        <!-- Reader Footer -->
-        <div class="reader-modal-footer">
-            <button type="button" id="reader-close-bottom-btn" class="btn-reader-close">Close</button>
-        </div>
-
     </div>
 </div>
 
 <!-- ====================================================================== -->
-<!-- MODAL: Confirmation Dialog (Archive / Restore)                          -->
+<!-- MODAL 2: Edit Article Modal                                            -->
 <!-- ====================================================================== -->
-<div id="action-confirm-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-    <div class="modal-card confirm-modal-card">
-        <div class="modal-body-confirm">
-            <div class="modal-icon-wrap" id="modal-icon-wrap">
-                <i id="confirm-modal-icon" class="fa-solid fa-triangle-exclamation"></i>
+<div id="edit-article-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="edit-modal-title">
+    <div class="modal-card edit-modal-card">
+        <div class="modal-header-simple">
+            <h2 id="edit-modal-title" class="modal-title">
+                <i class="fa-solid fa-pen-nib"></i> Edit Article
+            </h2>
+            <button type="button" id="close-edit-btn" class="icon-button" aria-label="Close edit dialog">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <form id="edit-article-form" class="edit-modal-form">
+            <input type="hidden" id="edit-article-id">
+
+            <div class="form-field">
+                <label for="edit-title-input">Article Title</label>
+                <input type="text" id="edit-title-input" class="form-input" required>
             </div>
-            <div class="modal-confirm-texts">
+
+            <div class="form-row-2">
+                <div class="form-field">
+                    <label for="edit-author-input">Author</label>
+                    <input type="text" id="edit-author-input" class="form-input" required>
+                </div>
+                <div class="form-field">
+                    <label for="edit-category-select">Category</label>
+                    <select id="edit-category-select" class="form-select">
+                        <option value="News">News</option>
+                        <option value="Features">Features</option>
+                        <option value="Opinion">Opinion</option>
+                        <option value="Science and Technology">Science and Technology</option>
+                        <option value="Literature">Literature</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-field">
+                <label for="edit-readtime-input">Estimated Read Time</label>
+                <input type="text" id="edit-readtime-input" class="form-input" placeholder="e.g. 2 min read">
+            </div>
+
+            <div class="form-field">
+                <label for="edit-excerpt-input">Excerpt / Brief Summary</label>
+                <textarea id="edit-excerpt-input" class="form-textarea" rows="3" required></textarea>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" id="cancel-edit-btn" class="modal-btn modal-btn-cancel">Cancel</button>
+                <button type="submit" class="modal-btn modal-btn-confirm-primary">
+                    <i class="fa-solid fa-check"></i> Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ====================================================================== -->
+<!-- MODAL 3: Interactive Action Confirmation Modal (Archive/Restore/Delete) -->
+<!-- ====================================================================== -->
+<div id="action-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-card">
+        <div class="modal-body">
+            <div id="modal-icon-header" class="modal-icon-header warning">
+                <i id="modal-icon" class="fa-solid fa-box-archive"></i>
+            </div>
+            <div>
                 <h2 id="modal-title" class="modal-title">Confirm Action</h2>
                 <p id="modal-description" class="modal-description">Are you sure you want to perform this action?</p>
             </div>

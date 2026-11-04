@@ -293,11 +293,19 @@ class AuthAndMpcTest extends TestCase
         $presManageResp->assertStatus(200);
         $presManageResp->assertSee('window.LARAVEL_EXECUTIVE_ARTICLES =', false);
         $presManageResp->assertSee('Campus Governance Report');
+        $presManageResp->assertSee('id="articles-grid"', false);
+        $presManageResp->assertSee('id="manage-empty-state"', false);
+        $presManageResp->assertSee('id="articles-results-counter"', false);
+        $presManageResp->assertDontSee('id="manage-cards-grid"', false);
 
         // EIC accessing Manage Articles
         $eicManageResp = $this->actingAs($eic)->get('/eic/manage-articles');
         $eicManageResp->assertStatus(200);
         $eicManageResp->assertSee('window.LARAVEL_EXECUTIVE_ARTICLES =', false);
         $eicManageResp->assertSee('Campus Governance Report');
+        $eicManageResp->assertSee('id="articles-grid"', false);
+        $eicManageResp->assertSee('id="manage-empty-state"', false);
+        $eicManageResp->assertSee('id="articles-results-counter"', false);
+        $eicManageResp->assertDontSee('id="manage-cards-grid"', false);
     }
 }

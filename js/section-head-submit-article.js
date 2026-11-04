@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 2. AUTHOR BYLINE & ROLE INITIALIZATION
     // =========================================================================
     const userRole = localStorage.getItem('sectionHeadRole') || localStorage.getItem('userRole') || 'News Head';
-    const authorName = localStorage.getItem('sectionHeadName') || localStorage.getItem('userName') || 'Danilo C. Ramos';
+    const authorName = localStorage.getItem('sectionHeadName') || localStorage.getItem('userName') || '';
     const currentSection = localStorage.getItem('sectionHeadSection') || 'News';
 
     if (authorNameDisplay) {

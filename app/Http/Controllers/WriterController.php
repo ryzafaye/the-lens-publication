@@ -14,15 +14,12 @@ class WriterController extends Controller
     {
         $userId = Auth::id();
 
-        // Cached consolidated aggregate query for 30s to keep navigation instantaneous
-        $stats = Cache::remember('writer_dashboard_stats_' . $userId, 30, function () use ($userId) {
-            return Article::where('user_id', $userId)->selectRaw("
-                COALESCE(SUM(views), 0) as total_views,
-                COUNT(CASE WHEN status = 'Published' THEN 1 END) as published,
-                COUNT(CASE WHEN status IN ('Pending Review', 'Pending EIC Review', 'Pending M&PC Review') THEN 1 END) as pending,
-                COUNT(CASE WHEN status = 'Draft' THEN 1 END) as drafts
-            ")->first();
-        });
+        $stats = Article::where('user_id', $userId)->selectRaw("
+            COALESCE(SUM(views), 0) as total_views,
+            COUNT(CASE WHEN status = 'Published' THEN 1 END) as published,
+            COUNT(CASE WHEN status IN ('Pending Review', 'Pending EIC Review', 'Pending M&PC Review') THEN 1 END) as pending,
+            COUNT(CASE WHEN status = 'Draft' THEN 1 END) as drafts
+        ")->first();
 
         $writerStats = [
             'total_views' => (int) ($stats->total_views ?? 0),
@@ -34,10 +31,17 @@ class WriterController extends Controller
         $recentArticles = Article::with(['category', 'user.role'])
             ->where('user_id', $userId)
             ->latest()
+            ->take(7)
+            ->get();
+
+        $topArticles = Article::with(['category', 'user.role'])
+            ->where('user_id', $userId)
+            ->where('status', 'Published')
+            ->orderBy('views', 'desc')
             ->take(5)
             ->get();
 
-        return view('writer.dashboard', compact('writerStats', 'recentArticles'));
+        return view('writer.dashboard', compact('writerStats', 'recentArticles', 'topArticles'));
     }
 
     public function submitArticle(Request $request)

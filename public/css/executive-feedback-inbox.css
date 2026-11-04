@@ -15,7 +15,7 @@ html {
     max-width: 1200px;
     width: 100%;
     margin: 0 auto;
-    padding-bottom: 20px;
+    padding-bottom: 48px;
 }
 
 /* Page Header */
@@ -98,85 +98,66 @@ html {
     display: none;
 }
 
-/* Container for ALL tabs across different pages */
-.manage-tabs-container,
-.review-tabs-container,
-.feedback-filter-tabs,
-.submit-tabs-nav,
-.write-tabs-container {
+.feedback-filter-tabs {
     display: flex;
     align-items: center;
     gap: 8px;
-    border-bottom: 1px solid var(--border-subtle, #eaecf0);
-    margin-bottom: 20px;
+    flex-wrap: wrap;
 }
 
-/* Button styles for ALL tabs */
-.manage-tab-btn,
-.review-tab-btn,
-.tab-filter-btn,
-.submit-tab-btn,
-.write-tab-btn {
+.tab-filter-btn {
     display: inline-flex;
     align-items: center;
-    gap: 10px;
-    padding: 10px 18px 12px 18px;
-    background: transparent;
-    border: none;
-    border-bottom: 2px solid transparent; 
-    font-family: var(--font-sans);
-    font-size: 0.92rem;
+    justify-content: center;
+    gap: 8px;
+    min-width: 96px;
+    height: 38px;
+    padding: 0 16px;
+    border-radius: 8px;
+    font-size: 0.82rem;
     font-weight: 600;
-    color: var(--text-muted, #667085);
+    border: 1px solid #eaecf0;
+    background-color: #ffffff;
+    color: #475467;
     cursor: pointer;
-    transition: all 0.2s ease;
-    margin-bottom: -1px; 
+    transition: all 0.15s ease;
+    box-sizing: border-box;
+    flex-shrink: 0;
 }
 
-/* Hover State */
-.manage-tab-btn:hover,
-.review-tab-btn:hover,
-.tab-filter-btn:hover,
-.submit-tab-btn:hover,
-.write-tab-btn:hover {
-    color: var(--sidebar-maroon, #5c0a18);
+.tab-filter-btn:hover {
+    background-color: #f9fafb;
+    color: #101828;
+    border-color: #d0d5dd;
 }
 
-/* Active State */
-.manage-tab-btn.active,
-.review-tab-btn.active,
-.tab-filter-btn.active,
-.submit-tab-btn.active,
-.write-tab-btn.active {
-    color: var(--sidebar-maroon, #5c0a18);
-    border-bottom-color: var(--sidebar-maroon, #5c0a18);
+.tab-filter-btn.active {
+    background-color: var(--sidebar-maroon, #5c0a18);
+    color: #ffffff;
+    border-color: var(--sidebar-maroon, #5c0a18);
 }
 
-/* Tab Counter Badges for ALL tabs */
-.tab-count-badge,
-.review-tab-badge,
-.drafts-tab-badge,
+/* Stable, Identical Pill Count Dimensions across 0, 1, and multi-digits */
 .tab-pill-count {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 2px 8px;
+    min-width: 22px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 999px;
     font-size: 0.72rem;
     font-weight: 700;
-    border-radius: 9999px;
+    line-height: 1;
     background-color: #f2f4f7;
-    color: var(--text-secondary, #344054);
-    transition: all 0.2s ease;
+    color: #475467;
+    box-sizing: border-box;
+    flex-shrink: 0;
 }
 
-/* Active Tab Badge State */
-.manage-tab-btn.active .tab-count-badge,
-.review-tab-btn.active .review-tab-badge,
-.submit-tab-btn.active .drafts-tab-badge,
-.write-tab-btn.active .drafts-tab-badge,
 .tab-filter-btn.active .tab-pill-count {
-    background-color: #f8eef2;
-    color: var(--sidebar-maroon, #5c0a18);
+    background-color: rgba(255, 255, 255, 0.25);
+    color: #ffffff;
 }
 
 .feedback-filters-and-sort {

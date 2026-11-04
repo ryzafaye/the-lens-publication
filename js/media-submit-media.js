@@ -188,7 +188,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const dateStr = formatDateDisplay(now);
             const rawDateStr = now.toISOString().split('T')[0];
 
-            const authorName = localStorage.getItem('mediaName') || localStorage.getItem('userName') || 'Alyssa Marie Dizon';
+            const authorName = localStorage.getItem('mediaName') || localStorage.getItem('userName') || '';
             const userRole = localStorage.getItem('mediaRole') || 'Media & Communication';
 
             const newId = 'cov-' + Date.now();

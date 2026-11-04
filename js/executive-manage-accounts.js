@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 1. AUTHENTICATION & ROLE VERIFICATION
     // =========================================================================
     const userRole = localStorage.getItem('userRole') || 'President';
-    const userName = localStorage.getItem('userName') || 'Juan Dela Cruz';
+    const userName = localStorage.getItem('userName') || '';
 
     if (!localStorage.getItem('userRole')) {
         localStorage.setItem('userRole', 'President');
@@ -81,7 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const defaultOfficers = [
         {
             id: 'off-01',
-            name: "Juan Dela Cruz",
+            name: "",
             studentNumber: "2022-01452-BN-0",
             role: "President",
             avatar: "images/member-placeholder.svg",
@@ -162,6 +162,16 @@ document.addEventListener('DOMContentLoaded', () => {
     ];
 
     function loadOfficers() {
+        if (Array.isArray(window.OFFICER_DATA) && window.OFFICER_DATA.length > 0) {
+            return window.OFFICER_DATA.map(user => ({
+                id: user.id,
+                name: user.full_name || 'Officer',
+                studentNumber: user.student_number || '',
+                role: user.role ? (user.role.role_name || user.role) : 'Officer',
+                avatar: user.avatar || user.profile_picture_url || 'images/member-placeholder.svg',
+                status: user.account_status || (user.is_active === 0 || user.is_active === false ? 'deactivated' : 'active')
+            }));
+        }
         try {
             const raw = localStorage.getItem(ACCOUNTS_STORAGE_KEY);
             if (raw) {
@@ -427,11 +437,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // If edited officer is currently signed in, sync userRole in localStorage and live chrome
             const activeUserRole = localStorage.getItem('userRole');
-            if (activeUserRole === oldRole || officer.name === (localStorage.getItem('userName') || 'Juan Dela Cruz')) {
+            if (activeUserRole === oldRole || officer.name === (localStorage.getItem('userName') || '')) {
                 localStorage.setItem('userRole', newRole);
                 if (window.ExecutiveShell && window.ExecutiveShell.hydrateUserRole) {
                     window.ExecutiveShell.hydrateUserRole();
                 }
+            }
+
+            // Sync with backend if available
+            if (window.__ACCOUNT_ROUTES__ && window.__ACCOUNT_ROUTES__.updateRole && !String(targetEditRoleId).startsWith('off-')) {
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+                fetch(`${window.__ACCOUNT_ROUTES__.updateRole}/${targetEditRoleId}/role`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ role: newRole })
+                }).catch(err => console.warn('Could not sync role to backend:', err));
             }
 
             closeEditRoleModal();

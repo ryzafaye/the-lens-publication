@@ -8,33 +8,20 @@
 @import "executive-dashboard.css";
 @import "executive-modals.css";
 
-/* 3-Column Metrics Grid Layout for Section Heads - Spanning Container Evenly */
-.metrics-grid,
+/* 3-Column Metrics Grid Layout for Section Heads */
 .metrics-grid-3 {
-    display: grid !important;
     grid-template-columns: repeat(3, 1fr) !important;
-    gap: 20px !important;
-    width: 100% !important;
-}
-
-.metric-card {
-    width: 100% !important;
-    box-sizing: border-box !important;
 }
 
 @media (max-width: 1024px) {
-    .metrics-grid,
     .metrics-grid-3 {
         grid-template-columns: repeat(2, 1fr) !important;
-        gap: 14px !important;
     }
 }
 
 @media (max-width: 640px) {
-    .metrics-grid,
     .metrics-grid-3 {
         grid-template-columns: 1fr !important;
-        gap: 10px !important;
     }
 }
 

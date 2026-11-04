@@ -1,5 +1,5 @@
 /**
- * THE LENS ΓÇö REVIEW ARTICLES (EXECUTIVE QUEUE)
+ * THE LENS — REVIEW ARTICLES (EXECUTIVE QUEUE)
  * Responsive Horizontal List Card (Box) Layout
  * Features:
  * 1. Direct-to-Remarks Revision Workflow (No browser alert/prompt popups)
@@ -16,50 +16,19 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================================================================
     // 2. DATASET (Articles Awaiting Executive / EIC Decision)
     // =========================================================================
-    const defaultPendingArticles = [];
-
-    // Helper to resolve the correct Section Head who approved the story based on category of submitted article
-    function resolveEndorser(item) {
-        if (!item) return 'Section Head';
-        const cat = (item.category || '').trim();
-        const catLower = cat.toLowerCase();
-
-        // 1. Strictly resolve Section Head based on the submitted article's category
-        const heads = window.__CATEGORY_HEADS__ || {};
-        for (const [key, val] of Object.entries(heads)) {
-            if (catLower.includes(key.toLowerCase()) || key.toLowerCase().includes(catLower)) {
-                return val;
-            }
-        }
-        const fallbackMap = {
-            'news': 'Arquero (News Head)',
-            'opinions': 'Briones (Opinion Head)',
-            'opinion': 'Briones (Opinion Head)',
-            'features': 'Dela Cruz (Feature Head)',
-            'feature': 'Dela Cruz (Feature Head)',
-            'science and technology': 'Apilado (SciTech Head)',
-            'scitech': 'Apilado (SciTech Head)',
-            'science & technology': 'Apilado (SciTech Head)',
-            'literature': 'Llandelar (Literary Head)',
-            'literary': 'Llandelar (Literary Head)'
-        };
-        if (fallbackMap[catLower]) {
-            return fallbackMap[catLower];
-        }
-        for (const [fKey, fVal] of Object.entries(fallbackMap)) {
-            if (catLower.includes(fKey) || fKey.includes(catLower)) {
-                return fVal;
-            }
-        }
-
-        // 2. Fallback to item.endorsedBy if category could not be resolved and not a mock name
-        const isMockName = /(?:Aris Thorne|Elena Ramos|Sofia Alcantara|Fax\s*Opinion|Fax\s*\(Opinion)/i.test(item.endorsedBy || '');
-        if (item.endorsedBy && item.endorsedBy !== 'Section Head' && !isMockName) {
-            return item.endorsedBy;
-        }
-
-        return 'Section Head';
+    // Helper to determine Section Head who endorsed/approved the article
+    function getEndorserForCategory(cat) {
+        if (!cat) return 'Section Editorial Head';
+        const c = cat.toLowerCase();
+        if (c.includes('news')) return 'Elena Ramos (News Head)';
+        if (c.includes('sci') || c.includes('tech')) return 'Dr. Aris Thorne (SciTech Head)';
+        if (c.includes('feat')) return 'Sofia Alcantara (Feature Head)';
+        if (c.includes('op')) return 'Patricia Gomez (Opinion Head)';
+        if (c.includes('lit')) return 'Lucas Gabriel (Literature Head)';
+        return 'Section Editorial Head';
     }
+
+    const defaultPendingArticles = [];
 
     // LocalStorage Queue Management
     function getStoredPendingQueue() {
@@ -70,7 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (Array.isArray(parsed) && parsed.length > 0) {
                     return parsed.map(item => ({
                         ...item,
-                        endorsedBy: resolveEndorser(item)
+                        endorsedBy: item.endorsedBy || getEndorserForCategory(item.category)
                     }));
                 }
             }
@@ -257,7 +226,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="review-box-meta">
                         <span class="review-box-category">${escapeHTML(item.category)}</span>
                         <span class="review-box-date"><i class="fa-regular fa-calendar" aria-hidden="true"></i> ${escapeHTML(item.date)}</span>
-                        <span class="review-box-endorsed"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Approved by <strong>${escapeHTML(resolveEndorser(item))}</strong></span>
+                        <span class="review-box-endorsed"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Approved by <strong>${escapeHTML(item.endorsedBy || getEndorserForCategory(item.category))}</strong></span>
                     </div>
 
                     <button type="button" class="review-box-title" data-action="read" data-id="${item.id}" title="${escapeHTML(item.title)}">
@@ -407,16 +376,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (modalDate) modalDate.textContent = item.date;
         if (modalWriter) modalWriter.textContent = item.author;
         const modalEndorser = document.getElementById('modal-endorser');
-        if (modalEndorser) modalEndorser.textContent = resolveEndorser(item);
+        if (modalEndorser) modalEndorser.textContent = item.endorsedBy || getEndorserForCategory(item.category);
 
         // Reset remarks and validation state
         if (modalRemarks) {
-            let cleanRemarks = (item.remarks || '').trim();
-            // Do not pre-populate system endorsement/approval logs; remarks must be written by the account owner
-            if (/^(?:Endorsed to|Approved by)/i.test(cleanRemarks)) {
-                cleanRemarks = '';
-            }
-            modalRemarks.value = cleanRemarks;
+            modalRemarks.value = item.remarks || '';
             modalRemarks.classList.remove('input-invalid');
             modalRemarks.classList.remove('pulse-focus');
         }

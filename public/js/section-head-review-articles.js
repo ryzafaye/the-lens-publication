@@ -11,9 +11,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================================================================
     // 1. AUTHENTICATION & SESSION
     // =========================================================================
-    const userRole = localStorage.getItem('sectionHeadRole') || localStorage.getItem('userRole') || (document.getElementById('topbar-user-role')?.textContent?.trim()) || 'Section Head';
-    const currentSection = localStorage.getItem('sectionHeadSection') || (document.querySelector('.dynamic-section-name')?.textContent?.trim()) || 'News';
-    const sectionHeadName = localStorage.getItem('sectionHeadName') || localStorage.getItem('userName') || (document.getElementById('mobile-user-name')?.textContent?.trim()) || 'Section Head';
+    const userRole = localStorage.getItem('sectionHeadRole') || localStorage.getItem('userRole') || 'News Head';
+    const currentSection = localStorage.getItem('sectionHeadSection') || 'News';
+    const sectionHeadName = localStorage.getItem('sectionHeadName') || localStorage.getItem('userName') || '';
 
     // =========================================================================
     // 2. DATASET (Pending Manuscripts Queue)
@@ -23,9 +23,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const QUEUE_STORAGE_KEY = 'sectionHeadReviewQueue_v1';
 
     function getPendingQueue() {
-        if (window.__PENDING_ARTICLES__ && Array.isArray(window.__PENDING_ARTICLES__)) {
-            return window.__PENDING_ARTICLES__;
-        }
         try {
             const raw = localStorage.getItem(QUEUE_STORAGE_KEY);
             if (raw) {
@@ -46,22 +43,26 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    let reviewList = getPendingQueue();
+    function getCsrfToken() {
+        return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+    }
+
+    const isBackend = typeof window.__PENDING_ARTICLES__ !== 'undefined' && Array.isArray(window.__PENDING_ARTICLES__);
+    let reviewList = isBackend ? [...window.__PENDING_ARTICLES__] : getPendingQueue();
     let currentSort = 'newest';
     let currentActiveId = null;
 
     // Filter queue matching this Section Head's desk
     function getSectionQueue() {
-        const isSectionHead = /head/i.test(userRole);
-        if (!isSectionHead || !currentSection || currentSection === 'All') return reviewList;
+        if (isBackend) return reviewList;
+        if (!currentSection || currentSection === 'All') return reviewList;
         const sec = currentSection.toLowerCase();
         return reviewList.filter(item => {
             const cat = (item.category || '').toLowerCase();
             if (sec.includes('science') || sec.includes('tech')) return cat.includes('science') || cat.includes('tech');
             if (sec.includes('feature')) return cat.includes('feature');
-            if (sec.includes('liter')) return cat.includes('liter');
+            if (sec.includes('literature')) return cat.includes('liter');
             if (sec.includes('news')) return cat.includes('news');
-            if (sec.includes('opinion')) return cat.includes('opinion');
             return cat.includes(sec);
         });
     }
@@ -105,28 +106,6 @@ document.addEventListener('DOMContentLoaded', () => {
             .replace(/>/g, '&gt;')
             .replace(/"/g, '&quot;')
             .replace(/'/g, '&#39;');
-    }
-
-    function formatCleanArticleContent(rawContent) {
-        if (!rawContent || !rawContent.trim()) {
-            return '<p style="color: #667085; font-style: italic;">No manuscript text provided.</p>';
-        }
-
-        // If it contains HTML markup, clean and preserve formatted paragraphs
-        if (/<[a-z][\s\S]*>/i.test(rawContent)) {
-            let cleaned = rawContent
-                .replace(/<\/?span[^>]*>/gi, '')
-                .replace(/\s*style="[^"]*"/gi, '')
-                .replace(/\s*style='[^']*'/gi, '')
-                .replace(/\s*class="[^"]*"/gi, '');
-            return cleaned;
-        }
-
-        const paragraphs = rawContent.split(/\n\n+/).filter(p => p.trim().length > 0);
-        if (paragraphs.length === 0) {
-            return '<p style="color: #667085; font-style: italic;">No manuscript text provided.</p>';
-        }
-        return paragraphs.map(p => `<p class="manuscript-paragraph">${escapeHTML(p.trim())}</p>`).join('');
     }
 
     function showToast(message, type = 'success') {
@@ -189,7 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         listContainer.innerHTML = sorted.map(item => `
             <div class="review-box" id="box-${item.id}" data-id="${item.id}">
-                <!-- Left Stack: Meta Line, Bold Article Title, Excerpt, Author with Pen Nib Icon -->
+                <!-- Left Stack: Meta Line, Bold Article Title, Author with Pen Nib Icon -->
                 <div class="review-box-content">
                     <div class="review-box-meta">
                         <span class="review-box-category">${escapeHTML(item.category || currentSection)}</span>
@@ -199,8 +178,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     <button type="button" class="review-box-title" data-action="read" data-id="${item.id}" title="${escapeHTML(item.title)}">
                         ${escapeHTML(item.title)}
                     </button>
-
-                    ${item.excerpt ? `<p class="review-box-excerpt">${escapeHTML(item.excerpt)}</p>` : ''}
 
                     <p class="review-box-author">
                         <i class="fa-solid fa-pen-nib" aria-hidden="true"></i>
@@ -220,7 +197,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </button>
                     <button type="button" class="btn-box-approve" data-action="approve" data-id="${item.id}" title="Approve manuscript">
                         <i class="fa-solid fa-check"></i>
-                        <span>Approve</span>
+                        <span>Approve Story</span>
                     </button>
                 </div>
             </div>
@@ -230,33 +207,39 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================================================================
     // 6. ACTION HANDLERS
     // =========================================================================
-    function approveStory(id) {
+    async function approveStory(id) {
         const item = reviewList.find(a => String(a.id) === String(id));
         if (!item) return;
+
+        if (window.__APPROVE_URL__) {
+            try {
+                const res = await fetch(`${window.__APPROVE_URL__}/${id}/approve`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': getCsrfToken(),
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok || data.success === false) {
+                    showToast(data.message || 'Failed to approve story.', 'error');
+                    return;
+                }
+            } catch (err) {
+                console.error('Failed to submit approval to backend:', err);
+                showToast('Network error while approving story.', 'error');
+                return;
+            }
+        }
 
         const box = document.getElementById(`box-${id}`);
         if (box) {
             box.classList.add('box-fade-out');
         }
 
-        // Trigger Laravel backend approval to update the database
-        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-        const basePath = window.__APPROVE_URL__ || (window.location.pathname.startsWith('/section-head') ? '/section-head/review-articles' : '/executive/review-articles');
-
-        fetch(`${basePath}/${id}/approve`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': csrfToken,
-                'Accept': 'application/json'
-            }
-        }).catch(err => console.warn('Backend approve call failed:', err));
-
         setTimeout(() => {
             reviewList = reviewList.filter(a => String(a.id) !== String(id));
-            if (window.__PENDING_ARTICLES__) {
-                window.__PENDING_ARTICLES__ = window.__PENDING_ARTICLES__.filter(a => String(a.id) !== String(id));
-            }
             savePendingQueue(reviewList);
             logActivity('approved and endorsed to EIC', item.title);
 
@@ -270,7 +253,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (Array.isArray(parsed)) eicQueue = parsed;
                     } catch (e) {}
                 }
-                eicQueue = eicQueue.filter(q => String(q.id) !== String(item.id));
+                eicQueue = eicQueue.filter(q => q.id !== item.id);
                 eicQueue.unshift({
                     ...item,
                     endorsedBy: `${sectionHeadName} (${currentSection} Head)`,
@@ -291,7 +274,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (Array.isArray(writerList)) {
                         let updated = false;
                         writerList = writerList.map(w => {
-                            if (String(w.id) === String(item.id) || w.title === item.title) {
+                            if (w.id === item.id || w.title === item.title) {
                                 updated = true;
                                 return { ...w, status: 'Pending Review', remarks: `Endorsed to EIC by ${sectionHeadName}` };
                             }
@@ -307,34 +290,40 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 220);
     }
 
-    function returnStoryForRevision(id, remarks) {
+    async function returnStoryForRevision(id, remarks) {
         const item = reviewList.find(a => String(a.id) === String(id));
         if (!item) return;
+
+        if (window.__REVISION_URL__) {
+            try {
+                const res = await fetch(`${window.__REVISION_URL__}/${id}/revision`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': getCsrfToken(),
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ remarks: remarks })
+                });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok || data.success === false) {
+                    showToast(data.message || 'Failed to return story for revision.', 'error');
+                    return;
+                }
+            } catch (err) {
+                console.error('Failed to submit revision to backend:', err);
+                showToast('Network error while returning story for revision.', 'error');
+                return;
+            }
+        }
 
         const box = document.getElementById(`box-${id}`);
         if (box) {
             box.classList.add('box-fade-out');
         }
 
-        // Trigger Laravel backend revision to update the database
-        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-        const basePath = window.__REVISION_URL__ || (window.location.pathname.startsWith('/section-head') ? '/section-head/review-articles' : '/executive/review-articles');
-
-        fetch(`${basePath}/${id}/revision`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': csrfToken,
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify({ remarks: remarks })
-        }).catch(err => console.warn('Backend revision call failed:', err));
-
         setTimeout(() => {
             reviewList = reviewList.filter(a => String(a.id) !== String(id));
-            if (window.__PENDING_ARTICLES__) {
-                window.__PENDING_ARTICLES__ = window.__PENDING_ARTICLES__.filter(a => String(a.id) !== String(id));
-            }
             savePendingQueue(reviewList);
             logActivity('requested revision on', item.title);
 
@@ -345,7 +334,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (rawEic) {
                     const parsed = JSON.parse(rawEic);
                     if (Array.isArray(parsed)) {
-                        eicQueue = parsed.filter(q => String(q.id) !== String(item.id));
+                        eicQueue = parsed.filter(q => q.id !== item.id);
                         localStorage.setItem('eicPendingReviewQueue', JSON.stringify(eicQueue));
                         localStorage.setItem('executivePendingReviewQueue', JSON.stringify(eicQueue));
                     }
@@ -360,7 +349,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (Array.isArray(writerList)) {
                         let updated = false;
                         writerList = writerList.map(w => {
-                            if (String(w.id) === String(item.id) || w.title === item.title) {
+                            if (w.id === item.id || w.title === item.title) {
                                 updated = true;
                                 return { ...w, status: 'For Revision', remarks: remarks || 'Please revise according to section feedback.' };
                             }
@@ -380,7 +369,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 7. MANUSCRIPT MODAL VIEWER
     // =========================================================================
     function openManuscript(id, options = {}) {
-        const item = reviewList.find(a => String(a.id) === String(id));
+        const item = reviewList.find(a => a.id === id);
         if (!item || !manuscriptModal) return;
 
         currentActiveId = id;
@@ -391,17 +380,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Reset remarks
         if (modalRemarks) {
-            let cleanRemarks = (item.remarks || '').trim();
-            if (/^(?:Endorsed to|Approved by)/i.test(cleanRemarks)) {
-                cleanRemarks = '';
-            }
-            modalRemarks.value = cleanRemarks;
+            modalRemarks.value = item.remarks || '';
             modalRemarks.classList.remove('input-invalid');
             modalRemarks.classList.remove('pulse-focus');
         }
         if (remarksErrorMsg) remarksErrorMsg.classList.add('hidden');
 
         if (modalBody) {
+            const raw = item.content || item.excerpt || 'No manuscript body content.';
+            const paragraphs = raw.split(/\n\n+/).filter(p => p.trim());
             const modalExcerpt = document.getElementById('modal-excerpt');
             if (modalExcerpt) {
                 if (item.excerpt && item.excerpt.trim()) {
@@ -411,18 +398,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     modalExcerpt.style.display = 'none';
                 }
             }
-            modalBody.innerHTML = formatCleanArticleContent(item.content || item.excerpt);
+
+            modalBody.innerHTML = paragraphs.map(p => `<p class="manuscript-paragraph">${escapeHTML(p.trim())}</p>`).join('');
         }
 
         manuscriptModal.classList.remove('hidden');
         document.body.style.overflow = 'hidden';
 
-        const bodyEl = document.querySelector('.manuscript-body');
         // Direct-to-Remarks flow
         if (options.focusRemarks) {
             setTimeout(() => {
-                if (bodyEl && remarksSection) {
-                    bodyEl.scrollTo({ top: remarksSection.offsetTop - 30, behavior: 'smooth' });
+                if (remarksSection) {
+                    remarksSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }
                 if (modalRemarks) {
                     modalRemarks.focus();
@@ -431,6 +418,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }, 180);
         } else {
+            const bodyEl = document.querySelector('.manuscript-body');
             if (bodyEl) bodyEl.scrollTop = 0;
         }
     }
@@ -535,4 +523,3 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initial render
     renderReviewBoxes();
 });
-

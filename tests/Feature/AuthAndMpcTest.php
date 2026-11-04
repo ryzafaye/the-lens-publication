@@ -126,4 +126,107 @@ class AuthAndMpcTest extends TestCase
         $responseReview = $this->actingAs($eic)->get('/eic/review-article');
         $responseReview->assertRedirect('/eic/review-articles');
     }
+
+    public function test_mpc_publish_article_page_bootstraps_database_articles_and_covers(): void
+    {
+        $this->artisan('migrate');
+
+        $role = \App\Models\Role::firstOrCreate(['role_name' => 'Media and Public Communications Head']);
+        $mpcUser = \App\Models\User::create([
+            'student_number' => '2024-00040-BN-0',
+            'full_name' => 'Sherise Katelyn A. De Castro',
+            'email' => 'sherise.mpc@pup.edu.ph',
+            'password' => bcrypt('password123'),
+            'role_id' => $role->id,
+        ]);
+        $category = \App\Models\Category::firstOrCreate([
+            'name' => 'Literature',
+            'slug' => 'literature',
+        ]);
+
+        $pendingArticle = \App\Models\Article::create([
+            'title' => 'Pending Review Manuscript',
+            'category_id' => $category->id,
+            'user_id' => $mpcUser->id,
+            'status' => 'Pending M&PC Review',
+            'content' => '<p>Article body for pending publication</p>',
+        ]);
+
+        $publishedArticle = \App\Models\Article::create([
+            'title' => 'Live Published Story',
+            'category_id' => $category->id,
+            'user_id' => $mpcUser->id,
+            'status' => 'Published',
+            'published_at' => now(),
+            'cover_image' => 'images/covers/portal-pubmat.svg',
+            'content' => '<p>Live published content</p>',
+        ]);
+
+        $response = $this->actingAs($mpcUser)->get('/mpc-head/publish-article');
+        $response->assertStatus(200);
+
+        // Asserts bootstrap script and data are injected into the HTML
+        $response->assertSee('window.LARAVEL_MPC_ARTICLES =', false);
+        $response->assertSee('window.LARAVEL_APPROVED_COVERS =', false);
+        $response->assertSee('Pending Review Manuscript');
+        $response->assertSee('Live Published Story');
+        $response->assertSee('csrf-token');
+    }
+
+    public function test_mpc_publish_article_approve_and_republish_workflow(): void
+    {
+        $this->artisan('migrate');
+
+        $role = \App\Models\Role::firstOrCreate(['role_name' => 'Media and Public Communications Head']);
+        $mpcUser = \App\Models\User::create([
+            'student_number' => '2024-00041-BN-0',
+            'full_name' => 'Sherise Katelyn A. De Castro',
+            'email' => 'sherise2.mpc@pup.edu.ph',
+            'password' => bcrypt('password123'),
+            'role_id' => $role->id,
+        ]);
+        $category = \App\Models\Category::firstOrCreate([
+            'name' => 'News',
+            'slug' => 'news',
+        ]);
+
+        $article = \App\Models\Article::create([
+            'title' => 'Editorial to be Released',
+            'category_id' => $category->id,
+            'user_id' => $mpcUser->id,
+            'status' => 'Pending M&PC Review',
+            'content' => '<p>Manuscript text</p>',
+        ]);
+
+        // Publish via AJAX / JSON
+        $publishResponse = $this->actingAs($mpcUser)->postJson("/mpc-head/articles/{$article->id}/approve", [
+            'cover_image' => 'images/covers/portal-pubmat.svg',
+        ]);
+
+        $publishResponse->assertStatus(200);
+        $publishResponse->assertJson(['success' => true]);
+
+        $article->refresh();
+        $this->assertEquals('Published', $article->status);
+        $this->assertEquals('images/covers/portal-pubmat.svg', $article->cover_image);
+        $this->assertNotNull($article->published_at);
+
+        // Takedown
+        $takedownResponse = $this->actingAs($mpcUser)->postJson("/mpc-head/articles/{$article->id}/takedown");
+        $takedownResponse->assertStatus(200);
+        $takedownResponse->assertJson(['success' => true]);
+
+        $article->refresh();
+        $this->assertEquals('Unpublished', $article->status);
+
+        // Republish
+        $republishResponse = $this->actingAs($mpcUser)->postJson("/mpc-head/articles/{$article->id}/approve", [
+            'cover_image' => 'images/covers/portal-pubmat.svg',
+        ]);
+        $republishResponse->assertStatus(200);
+        $republishResponse->assertJson(['success' => true]);
+
+        $article->refresh();
+        $this->assertEquals('Published', $article->status);
+    }
 }

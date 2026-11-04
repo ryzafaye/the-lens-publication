@@ -20,16 +20,27 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================================================================
     // 1. DYNAMIC WRITER STATE HYDRATION
     // =========================================================================
-    let userName = localStorage.getItem('writerName') || (localStorage.getItem('userName') && !['Juan Dela Cruz', 'Maria Clara Santos', 'President'].includes(localStorage.getItem('userName')) ? localStorage.getItem('userName') : 'Sofia M. Alcaraz');
-    let studentNumber = localStorage.getItem('writerStudentNumber') || (localStorage.getItem('studentNumber') && !localStorage.getItem('studentNumber').startsWith('2024-0000') ? localStorage.getItem('studentNumber') : '2024-00101-BN-0');
-    let writerAvatar = localStorage.getItem('writerAvatar') || 'images/member-placeholder.svg';
+    const initialInputName = document.getElementById('input-full-name')?.value?.trim();
+    const initialInputNum = document.getElementById('input-student-number')?.value?.trim();
+
+    let userName = (initialInputName && initialInputName !== 'undefined')
+        ? initialInputName
+        : (localStorage.getItem('userName') || localStorage.getItem('writerName') || '');
+    let studentNumber = (initialInputNum && initialInputNum !== 'undefined')
+        ? initialInputNum
+        : (localStorage.getItem('studentNumber') || localStorage.getItem('writerStudentNumber') || '');
+    let writerAvatar = localStorage.getItem('writerAvatar') || localStorage.getItem('userAvatar') || 'images/member-placeholder.svg';
 
     localStorage.setItem('userRole', 'Writer');
-    localStorage.setItem('userName', userName);
-    localStorage.setItem('studentNumber', studentNumber);
+    if (userName) {
+        localStorage.setItem('userName', userName);
+        localStorage.setItem('writerName', userName);
+    }
+    if (studentNumber) {
+        localStorage.setItem('studentNumber', studentNumber);
+        localStorage.setItem('writerStudentNumber', studentNumber);
+    }
     localStorage.setItem('writerRole', 'Writer');
-    localStorage.setItem('writerName', userName);
-    localStorage.setItem('writerStudentNumber', studentNumber);
 
     // Sync avatars across DOM
     function updateAllAvatars(src) {
@@ -91,8 +102,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnResetAvatar = document.getElementById('btn-reset-avatar');
     const profileInfoForm = document.getElementById('profile-info-form');
 
-    if (inputStudentNumber) inputStudentNumber.value = studentNumber;
-    if (inputFullName) inputFullName.value = userName;
+    if (inputStudentNumber) {
+        if (!inputStudentNumber.value || inputStudentNumber.value.trim() === '' || inputStudentNumber.value === 'undefined') {
+            inputStudentNumber.value = studentNumber;
+        } else {
+            studentNumber = inputStudentNumber.value.trim();
+            localStorage.setItem('studentNumber', studentNumber);
+            localStorage.setItem('writerStudentNumber', studentNumber);
+        }
+    }
+    if (inputFullName) {
+        if (!inputFullName.value || inputFullName.value.trim() === '' || inputFullName.value === 'undefined') {
+            inputFullName.value = userName;
+        } else {
+            userName = inputFullName.value.trim();
+            localStorage.setItem('userName', userName);
+            localStorage.setItem('writerName', userName);
+        }
+    }
     if (inputWriterRole) inputWriterRole.value = 'Writer';
 
     // Trigger file dialog

@@ -105,13 +105,45 @@
             </div>
 
             <div class="mobile-nav-links">
-                <a href="{{ route('mpc-head.dashboard') }}" class="mobile-nav-link active">
+                <a href="{{ route('mpc-head.dashboard') }}" class="mobile-nav-link {{ request()->routeIs('mpc-head.dashboard*') ? 'active' : '' }}">
                     <i class="fa-solid fa-chart-pie"></i>
                     <span>Dashboard</span>
+                </a>
+                <a href="{{ route('mpc-head.publish-article') }}" class="mobile-nav-link {{ request()->routeIs('mpc-head.publish-article*') ? 'active' : '' }}">
+                    <i class="fa-solid fa-globe"></i>
+                    <span>Publish Article</span>
+                </a>
+                <a href="{{ route('mpc-head.media-desk') }}" class="mobile-nav-link {{ request()->routeIs('mpc-head.media-desk*') ? 'active' : '' }}">
+                    <i class="fa-regular fa-image"></i>
+                    <span>Media Desk</span>
+                </a>
+                <a href="{{ route('mpc-head.submit-media') }}" class="mobile-nav-link {{ request()->routeIs('mpc-head.submit-media*') ? 'active' : '' }}">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <span>Submit Media</span>
+                </a>
+                <a href="{{ route('mpc-head.manage-my-articles') }}" class="mobile-nav-link {{ request()->routeIs('mpc-head.manage-my-articles*') ? 'active' : '' }}">
+                    <i class="fa-solid fa-file-pen"></i>
+                    <span>Manage My Articles</span>
+                </a>
+                <a href="{{ route('mpc-head.submit-article') }}" class="mobile-nav-link {{ request()->routeIs('mpc-head.submit-article*') ? 'active' : '' }}">
+                    <i class="fa-solid fa-feather-pointed"></i>
+                    <span>Submit article</span>
+                </a>
+                <a href="{{ route('mpc-head.activity-logs') }}" class="mobile-nav-link {{ request()->routeIs('mpc-head.activity-logs*') ? 'active' : '' }}">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <span>Activity log</span>
+                </a>
+                <a href="{{ route('mpc-head.transparency') }}" class="mobile-nav-link {{ request()->routeIs('mpc-head.transparency*') ? 'active' : '' }}">
+                    <i class="fa-solid fa-file-invoice-dollar"></i>
+                    <span>Transparency</span>
                 </a>
             </div>
 
             <div class="mobile-nav-footer">
+                <a href="{{ route('mpc-head.profile-settings') }}" class="mobile-nav-footer-link {{ request()->routeIs('mpc-head.profile-settings*') ? 'active' : '' }}">
+                    <i class="fa-solid fa-sliders"></i>
+                    <span>Profile Settings</span>
+                </a>
                 <a href="{{ url('/') }}" target="_blank" rel="noopener noreferrer" class="mobile-nav-footer-link">
                     <i class="fa-solid fa-arrow-up-right-from-square"></i>
                     <span>View public site</span>

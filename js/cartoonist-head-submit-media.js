@@ -188,7 +188,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const dateStr = formatDateDisplay(now);
             const rawDateStr = now.toISOString().split('T')[0];
 
-            const authorName = localStorage.getItem('cartoonistHeadName') || 'Danilo Reyes';
+            const authorName = localStorage.getItem('cartoonistHeadName') || '';
             const userRole = 'Cartoonist Head';
 
             const newId = 'cart-' + Date.now();

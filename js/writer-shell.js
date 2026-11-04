@@ -64,23 +64,14 @@ try {
         // 1. DYNAMIC WRITER PROFILE & ROLE HYDRATION
         // =====================================================================
         function hydrateWriterProfile() {
-            let writerName = localStorage.getItem('writerName') || 'Sofia M. Alcaraz';
+            let writerName = localStorage.getItem('writerName') || localStorage.getItem('userName') || 'Writer';
             let writerRole = 'Writer';
-            let writerId = localStorage.getItem('writerId') || 'sofia-alcaraz';
+            let writerId = localStorage.getItem('writerId') || 'staff-writer';
 
             try {
-                const storedRole = localStorage.getItem('userRole');
-                const storedName = localStorage.getItem('userName');
-
-                // If user is actively logged in as a writer, keep writer state in sync
-                if (storedRole === 'Writer' && storedName) {
+                const storedName = localStorage.getItem('writerName') || localStorage.getItem('userName');
+                if (storedName && storedName !== 'Sofia M. Alcaraz') {
                     writerName = storedName;
-                } else if (!storedRole) {
-                    // Only initialize default writer if no session role exists at all
-                    localStorage.setItem('userRole', 'Writer');
-                    localStorage.setItem('userName', 'Sofia M. Alcaraz');
-                    localStorage.setItem('writerName', 'Sofia M. Alcaraz');
-                    localStorage.setItem('writerId', 'sofia-alcaraz');
                 }
             } catch (e) {
                 // Storage unavailable
@@ -90,6 +81,15 @@ try {
             writerRole = 'Writer';
 
             const sidebarWriterName = document.getElementById('sidebar-writer-name');
+            const serverName = sidebarWriterName?.textContent?.trim();
+            if (serverName && serverName !== 'Writer' && serverName !== 'Staff Writer' && !serverName.includes('Sofia')) {
+                writerName = serverName;
+                try {
+                    localStorage.setItem('userName', writerName);
+                    localStorage.setItem('writerName', writerName);
+                } catch (e) {}
+            }
+
             const sidebarUserRole = document.getElementById('sidebar-user-role');
             const topbarUserRole = document.getElementById('topbar-user-role');
             const mobileUserRole = document.getElementById('mobile-user-role');
@@ -235,16 +235,10 @@ try {
         function triggerLogout() {
             showLogoutModal(() => {
                 try {
-                    localStorage.removeItem('userRole');
-                    localStorage.removeItem('studentNumber');
-                    localStorage.removeItem('userName');
-                    localStorage.removeItem('writerId');
-                    localStorage.removeItem('writerName');
-                    localStorage.removeItem('writerRole');
-                    localStorage.removeItem('writerSection');
+                    localStorage.clear();
                     sessionStorage.clear();
                 } catch (err) {}
-                window.location.href = 'login.html';
+                window.location.href = '/logout';
             });
         }
 

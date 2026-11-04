@@ -1,18 +1,18 @@
-/**
+﻿/**
  * The Lens — Media & Public Communications (M&PC) Dashboard Script
- * Built with full parity to the Editor-in-Chief (EIC) Dashboard.
+ * Clean, Reusable & Modular Implementation matching Executive Dashboard logic & design
  * 
- * Capabilities:
- * 1. 4 Metrics Cards (Awaiting Publication, Monthly Readership, Active Members, Published Stories)
- * 2. Pending Approval Table (with direct article preview and approval action)
- * 3. Activity Log (Top recent actions)
- * 4. Most Viewed Articles (Current month with views, shares, and Take Down capability once posted)
- * 5. Top Performing Journalists Leaderboard
- * 6. Full Article Viewer Modal with:
- *    - "Approve & Publish" button when viewing pending submissions
- *    - "Take Down Article" button when viewing posted/published articles
- * 7. Interactive Action Confirmation Modal
- * 8. Real-time Toast Notifications & CSRF-protected Backend Integration
+ * Features:
+ * 1. Auth Guard (Redirects to login if userRole is missing)
+ * 2. Data-Driven Hydration from Shared Dataset:
+ *    - 4 Metrics Cards (Pending Approvals, Monthly Readership, Active Members, Published Stories)
+ *    - Pending Approval (Top 5 table with direct article viewer modal triggers)
+ *    - Activity Log with "View all"
+ *    - Most Viewed Articles (Maroon category above title, Pen-nib author icon, Views & Shares)
+ *    - Top Performing Journalists Leaderboard
+ * 3. In-Place Article Viewer Modal:
+ *    - Opens full story overlay directly
+ *    - Actions: Close, Open in Publish Article
  */
 
 import { articles as defaultArticles } from './articles.js';
@@ -20,60 +20,18 @@ import { articles as defaultArticles } from './articles.js';
 document.addEventListener('DOMContentLoaded', () => {
 
     // =========================================================================
-    // 1. DATA SOURCES & INITIALIZATION
+    // 1. AUTHENTICATION & ROLE VERIFICATION
     // =========================================================================
-    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-    const APPROVE_URL_BASE = window.__APPROVE_URL__ || '/mpc-head/articles';
-    const REVISION_URL_BASE = window.__REVISION_URL__ || '/mpc-head/articles';
-    const DECLINE_URL_BASE = window.__DECLINE_URL__ || '/mpc-head/articles';
-    const TAKEDOWN_URL_BASE = window.__TAKEDOWN_URL__ || '/mpc-head/articles';
+    const userRole = localStorage.getItem('mpcRole') || localStorage.getItem('userRole');
 
-    // Retrieve database-backed lists passed from MpcHeadController
-    const serverPending = Array.isArray(window.__PENDING_ARTICLES__) ? window.__PENDING_ARTICLES__ : [];
-    const serverPublished = Array.isArray(window.__PUBLISHED_ARTICLES__) ? window.__PUBLISHED_ARTICLES__ : [];
-    const serverMetrics = window.__DASHBOARD_METRICS__ || null;
-    const serverJournalists = Array.isArray(window.__TOP_JOURNALISTS__) ? window.__TOP_JOURNALISTS__ : [];
-    const serverActivities = Array.isArray(window.__RECENT_ACTIVITIES__) ? window.__RECENT_ACTIVITIES__ : [];
-
-    // Fallback helpers for localStorage
-    function getStoredPublishedArticles() {
-        if (serverPublished.length > 0) return serverPublished;
-        try {
-            const pubRaw = localStorage.getItem('theLensPublishedArticles');
-            if (pubRaw) {
-                const pubParsed = JSON.parse(pubRaw);
-                if (Array.isArray(pubParsed) && pubParsed.length > 0) return pubParsed;
-            }
-            const raw = localStorage.getItem('executiveArticles');
-            if (raw) {
-                const parsed = JSON.parse(raw);
-                if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-            }
-        } catch (e) {
-            console.warn('Could not read published articles from localStorage', e);
-        }
-        return Array.isArray(defaultArticles) ? defaultArticles : [];
+    // Route Guard: If not signed in with a valid role, redirect to login
+    if (!userRole) {
+        window.location.href = 'login.html';
+        return;
     }
 
-    function getStoredPendingArticles() {
-        if (serverPending.length > 0) return serverPending;
-        try {
-            const raw = localStorage.getItem('mpc_publish_articles_v2') || localStorage.getItem('mpc_publish_articles_v1') || localStorage.getItem('eicPendingReviewQueue');
-            if (raw) {
-                const parsed = JSON.parse(raw);
-                if (Array.isArray(parsed)) return parsed;
-            }
-        } catch (e) {
-            console.warn('Could not read pending articles from localStorage', e);
-        }
-        return [];
-    }
-
-    let publishedArticles = getStoredPublishedArticles();
-    let pendingArticles = getStoredPendingArticles();
-
     // =========================================================================
-    // 2. HELPER UTILITIES: ESCAPING & TOASTS
+    // 2. HELPER UTILITIES: ESCAPE HTML & TOAST NOTIFICATIONS
     // =========================================================================
     function escapeHTML(str) {
         if (!str) return '';
@@ -102,11 +60,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function formatCleanArticleContent(rawContent) {
         if (!rawContent) {
-            return '<p style="color: #98a2b3; font-style: italic;">No manuscript content available.</p>';
+            return '<p style="color: #98a2b3; font-style: italic;">No content available for this manuscript.</p>';
         }
 
         let decoded = decodeCorruptedHtmlEntities(rawContent);
 
+        // Aggressively strip any literal or encoded span tags and style attributes
         decoded = decoded
             .replace(/&lt;\/?span[^&>]*&gt;/gi, '')
             .replace(/<\/?span[^>]*>/gi, '')
@@ -127,7 +86,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .filter(p => p.length > 0);
 
         if (paragraphs.length === 0) {
-            return '<p style="color: #98a2b3; font-style: italic;">No manuscript content available.</p>';
+            return '<p style="color: #98a2b3; font-style: italic;">No content available for this manuscript.</p>';
         }
 
         return paragraphs.map(p => `<p class="viewer-paragraph">${escapeHTML(p)}</p>`).join('');
@@ -142,68 +101,97 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const toast = document.createElement('div');
         toast.className = `toast-message ${type}`;
+
         toast.innerHTML = `<span class="toast-bullet-dot"></span><span>${escapeHTML(message)}</span>`;
         toastContainer.appendChild(toast);
 
         setTimeout(() => {
             toast.classList.add('toast-dismissing');
             setTimeout(() => toast.remove(), 260);
-        }, 3400);
+        }, 3200);
     }
 
     // =========================================================================
-    // 3. DASHBOARD RENDERING PIPELINE
+    // 3. SHARED ARTICLES DATASET & PERSISTENCE
+    // =========================================================================
+    function getPublishedArticles() {
+        try {
+            const raw = localStorage.getItem('mpc_publish_articles_v2') || localStorage.getItem('theLensPublishedArticles');
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                if (Array.isArray(parsed)) {
+                    return parsed.filter(a => a.status === 'published' || a.status === 'Published');
+                }
+            }
+        } catch (e) {}
+        return [];
+    }
+
+    function getPendingQueue() {
+        try {
+            const raw = localStorage.getItem('mpc_publish_articles_v2');
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                if (Array.isArray(parsed)) {
+                    return parsed.filter(a => a.status === 'ready' || a.status === 'Ready');
+                }
+            }
+        } catch (e) {}
+        return [];
+    }
+
+    // =========================================================================
+    // 4. DYNAMIC MONTH & DATA HYDRATION
+    // =========================================================================
+    const now = new Date();
+    const currentMonthName = now.toLocaleString('en-US', { month: 'long' });
+
+    // Set dynamic month badge in Most Viewed Articles panel
+    const mostViewedMonthBadge = document.getElementById('most-viewed-month-badge');
+    if (mostViewedMonthBadge) {
+        mostViewedMonthBadge.textContent = currentMonthName;
+    }
+
+    // Activity Log Static Entries
+    const ACTIVITY_LOG_DATA = [];
+
+    // =========================================================================
+    // 5. DASHBOARD RENDERING PIPELINE
     // =========================================================================
     function renderDashboard() {
-        const now = new Date();
-        const currentMonthName = now.toLocaleString('en-US', { month: 'long' });
+        const activeArticles = getPublishedArticles();
+        const totalViews = activeArticles.reduce((sum, a) => sum + (Number(a.views) || 0), 0);
+        const pendingList = getPendingQueue();
 
-        // A. Dynamic Month Badge
-        const mostViewedMonthBadge = document.getElementById('most-viewed-month-badge');
-        if (mostViewedMonthBadge) {
-            mostViewedMonthBadge.textContent = currentMonthName;
-        }
-
-        // B. Metrics Calculation
-        const totalViews = serverMetrics?.total_views ?? publishedArticles.reduce((sum, a) => sum + (Number(a.views) || 0), 0);
-        const publishedCount = serverMetrics?.published_stories ?? publishedArticles.length;
-        const pendingCount = serverMetrics?.pending ?? pendingArticles.length;
-        const activeMembersCount = serverMetrics?.active_members ?? 28;
-
-        const pendingBadge = document.getElementById('pending-count-badge');
-        if (pendingBadge) {
-            pendingBadge.textContent = `${pendingCount} awaiting review`;
-        }
-
-        // C. Metrics Cards
+        // A. Metrics Cards (4 Cards)
         const metricsContainer = document.getElementById('metrics-grid');
         if (metricsContainer) {
             const metrics = [
                 {
-                    label: "Awaiting Publication",
-                    value: String(pendingCount),
-                    subtitle: "Approved by EIC, ready for M&PC",
+                    label: "Pending Approvals",
+                    value: String(pendingList.length),
+                    subtitle: "Awaiting editorial review",
                     icon: "fa-regular fa-clock",
                     delayClass: "delay-1"
                 },
                 {
                     label: "Monthly Readership",
-                    value: Number(totalViews).toLocaleString(),
-                    subtitle: "Total views across public site",
+                    value: totalViews.toLocaleString(),
+                    subtitle: "Views across all desks",
                     icon: "fa-regular fa-eye",
                     delayClass: "delay-2"
                 },
                 {
                     label: "Active Members",
-                    value: String(activeMembersCount),
+                    value: "28",
                     subtitle: "Staff & editorial roster",
                     icon: "fa-solid fa-users",
                     delayClass: "delay-3"
                 },
                 {
                     label: "Published Stories",
-                    value: String(publishedCount),
-                    subtitle: "Live stories on public site",
+                    value: String(activeArticles.length),
+                    subtitle: "Total overall published",
                     icon: "fa-regular fa-newspaper",
                     delayClass: "delay-4"
                 }
@@ -223,205 +211,156 @@ document.addEventListener('DOMContentLoaded', () => {
             `).join('');
         }
 
-        // D. Pending Approval Table (Left Column Section 1)
-        const submissionsTableBody = document.getElementById('submissions-table-body');
-        if (submissionsTableBody) {
-            if (pendingArticles.length === 0) {
-                submissionsTableBody.innerHTML = `
-                    <tr>
-                        <td colspan="5" style="text-align: center; padding: 28px; color: var(--text-muted, #667085);">
-                            <i class="fa-regular fa-circle-check" style="margin-right: 6px; color: #137333;"></i>
-                            All caught up. No articles awaiting M&amp;PC publication review.
-                        </td>
-                    </tr>
-                `;
-            } else {
-                submissionsTableBody.innerHTML = pendingArticles.slice(0, 5).map(art => {
-                    const categoryName = art.category?.name || art.category || 'General';
-                    let formattedCat = escapeHTML(categoryName);
-                    if (/^science\s+(and|&)\s+technology$/i.test(categoryName)) {
-                        formattedCat = 'Science &amp;<br>Technology';
-                    }
-
-                    return `
-                        <tr>
-                            <td>
-                                <div class="table-article-info">
-                                    <button type="button" class="table-article-btn" data-action="view-pending" data-id="${escapeHTML(art.id)}" title="${escapeHTML(art.title)}">
-                                        ${escapeHTML(art.title)}
-                                    </button>
-                                    <div class="table-author-subline">
-                                        <i class="fa-solid fa-pen-nib"></i>
-                                        <span>${escapeHTML(art.author || 'Staff Writer')}</span>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="hide-on-mobile">
-                                <span class="table-section-tag">${formattedCat}</span>
-                            </td>
-                            <td>
-                                <span class="status-badge status-review">Pending M&amp;PC</span>
-                            </td>
-                            <td class="hide-on-mobile">
-                                <span class="table-date">${escapeHTML(art.date || 'Recent')}</span>
-                            </td>
-                            <td class="text-right">
-                                <button type="button" class="table-manage-btn" data-action="view-pending" data-id="${escapeHTML(art.id)}">
-                                    <i class="fa-solid fa-eye"></i> Review
-                                </button>
-                            </td>
-                        </tr>
-                    `;
-                }).join('');
-            }
-        }
-
-        // E. Activity Log (Left Column Section 2)
+        // B. Activity Log (Top 5 Recent with Causer Action Subject Format)
         const activityContainer = document.getElementById('recent-activity-list');
         if (activityContainer) {
-            let logsToDisplay = [];
-
-            if (serverActivities.length > 0) {
-                logsToDisplay = serverActivities.map(item => ({
-                    user: item.user || 'Editorial Member',
-                    avatar: item.avatar || '/images/member-placeholder.svg',
-                    action: item.action || 'updated',
-                    subjectType: item.subjectType || 'Article',
-                    target: item.target || 'Article',
-                    time: item.time || 'Recent'
-                }));
-            } else {
-                try {
-                    const storedLogs = localStorage.getItem('mpcActivityLogs_v1') || localStorage.getItem('executiveActivityLogs_v1');
-                    if (storedLogs) {
-                        const parsed = JSON.parse(storedLogs);
-                        if (Array.isArray(parsed) && parsed.length > 0) {
-                            logsToDisplay = parsed.slice(0, 5).map(item => ({
-                                user: item.causer || 'M&PC Head',
-                                avatar: item.causerAvatar || '/images/member-placeholder.svg',
-                                action: item.action || 'updated',
-                                subjectType: item.subjectType || 'Article',
-                                target: item.subjectName || 'Article',
-                                time: item.timestampText || item.formattedDate || 'Recent'
-                            }));
-                        }
+            let logsToDisplay = ACTIVITY_LOG_DATA;
+            try {
+                const storedLogs = localStorage.getItem('mpcActivityLogs_v1') || localStorage.getItem('executiveActivityLogs_v1');
+                if (storedLogs) {
+                    const parsed = JSON.parse(storedLogs);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        logsToDisplay = parsed.slice(0, 5).map(item => ({
+                            user: item.causer,
+                            avatar: item.causerAvatar || 'images/member-placeholder.svg',
+                            action: item.action,
+                            subjectType: item.subjectType || 'Article',
+                            target: item.subjectName,
+                            time: item.timestampText
+                        }));
                     }
-                } catch (e) {}
+                }
+            } catch (e) {
+                // Fallback to default
             }
 
             if (logsToDisplay.length === 0) {
-                logsToDisplay = [
-                    {
-                        user: 'Julian Del Rosario',
-                        avatar: '/images/member-placeholder.svg',
-                        action: 'published',
-                        subjectType: 'Article',
-                        target: 'Campus Journalism in the Digital Era',
-                        time: '2 hours ago'
-                    },
-                    {
-                        user: 'Samantha Cruz',
-                        avatar: '/images/member-placeholder.svg',
-                        action: 'reviewed',
-                        subjectType: 'Article',
-                        target: 'PUPQC Celebrates 27th Foundation Anniversary',
-                        time: 'Yesterday'
-                    }
-                ];
+                activityContainer.innerHTML = '<p class="text-sm text-gray-500 py-6 text-center">No recent activities.</p>';
+            } else {
+                activityContainer.innerHTML = logsToDisplay.map(item => `
+                    <div class="activity-item" onclick="window.location.href='mpc-activity-logs.html'" style="cursor: pointer;" title="Open Activity Log">
+                        <div class="activity-avatar">
+                            <img src="${item.avatar}" alt="${escapeHTML(item.user)}">
+                        </div>
+                        <div class="activity-details">
+                            <p class="activity-text">
+                                <strong>${escapeHTML(item.user)}</strong> ${escapeHTML(item.action)} the ${escapeHTML(item.subjectType || 'Article')} <em>"${escapeHTML(item.target)}"</em> <span style="color:#667085; font-size:0.75rem; margin-left:3px;">${escapeHTML(item.time)}.</span>
+                            </p>
+                            <span class="activity-time">${escapeHTML(item.time)}</span>
+                        </div>
+                    </div>
+                `).join('');
             }
-
-            activityContainer.innerHTML = logsToDisplay.map(item => `
-                <div class="activity-item">
-                    <div class="activity-avatar">
-                        <img src="${item.avatar}" alt="${escapeHTML(item.user)}">
-                    </div>
-                    <div class="activity-details">
-                        <p class="activity-text">
-                            <strong>${escapeHTML(item.user)}</strong> ${escapeHTML(item.action)} the ${escapeHTML(item.subjectType)} <em>"${escapeHTML(item.target)}"</em> <span style="color:#667085; font-size:0.75rem; margin-left:3px;">${escapeHTML(item.time)}.</span>
-                        </p>
-                        <span class="activity-time">${escapeHTML(item.time)}</span>
-                    </div>
-                </div>
-            `).join('');
         }
 
-        // F. Most Viewed Articles (Right Column Section 1) — With TAKE DOWN capability!
-        const mostViewedContainer = document.getElementById('most-viewed-list');
-        if (mostViewedContainer) {
-            if (publishedArticles.length === 0) {
-                mostViewedContainer.innerHTML = `
-                    <div style="text-align: center; padding: 28px 16px; color: var(--text-muted, #667085); font-size: 0.90rem;">
-                        No published articles found on the public site yet.
-                    </div>
-                `;
-            } else {
-                mostViewedContainer.innerHTML = publishedArticles.slice(0, 5).map((art, idx) => {
-                    const categoryName = art.category?.name || art.category || 'News';
-                    const views = Number(art.views) || 0;
-                    const shares = Number(art.shares) || 0;
+        // C. Pending Approval (Top 5 Table with Direct Modal View Trigger)
+        const tableBody = document.getElementById('submissions-table-body');
+        
+        function formatSectionBadgeHtml(category) {
+            if (!category) return '';
+            const catStr = String(category).trim();
+            if (/^science\s+and\s+technology$/i.test(catStr)) {
+                return `<span class="table-section-tag section-tag-multiline">Science and<br>Technology</span>`;
+            }
+            if (/^science\s+&\s+technology$/i.test(catStr)) {
+                return `<span class="table-section-tag section-tag-multiline">Science &amp;<br>Technology</span>`;
+            }
+            return `<span class="table-section-tag">${escapeHTML(catStr)}</span>`;
+        }
 
-                    return `
-                        <div class="ranked-item" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border-bottom: 1px solid #f2f4f7;">
-                            <div style="flex: 1; min-width: 0;">
-                                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
-                                    <span class="viewer-category-tag" style="font-size: 0.68rem; padding: 2px 7px;">${escapeHTML(categoryName)}</span>
-                                    <span style="font-size: 0.72rem; color: #98a2b3;">${escapeHTML(art.date || '')}</span>
-                                </div>
-                                <button type="button" class="table-article-btn" data-action="view-published" data-id="${escapeHTML(art.id)}" style="font-weight: 600; text-align: left; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;">
+        if (tableBody) {
+            const topPending = pendingList.slice(0, 5);
+
+            if (topPending.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 24px; color: var(--text-muted, #667085);">No pending submissions awaiting review.</td></tr>`;
+            } else {
+                tableBody.innerHTML = topPending.map(art => `
+                    <tr>
+                        <td>
+                            <div class="table-article-info">
+                                <button type="button" class="table-article-btn" data-action="view" data-id="${escapeHTML(art.id)}" title="${escapeHTML(art.title)}">
                                     ${escapeHTML(art.title)}
                                 </button>
-                                <div style="display: flex; align-items: center; gap: 12px; font-size: 0.74rem; color: #667085; margin-top: 4px;">
-                                    <span><i class="fa-solid fa-pen-nib"></i> ${escapeHTML(art.author || 'Staff Writer')}</span>
-                                    <span><i class="fa-regular fa-eye"></i> ${views.toLocaleString()}</span>
-                                    <span><i class="fa-solid fa-share-nodes"></i> ${shares.toLocaleString()}</span>
+                                <div class="table-author-subline">
+                                    <i class="fa-solid fa-pen-nib"></i>
+                                    <span>${escapeHTML(art.author)}</span>
                                 </div>
                             </div>
-                            <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
-                                <button type="button" class="modal-btn modal-btn-danger" data-action="takedown-direct" data-id="${escapeHTML(art.id)}" title="Take down this article from public site" style="padding: 6px 10px; font-size: 0.75rem; border-radius: 7px; display: inline-flex; align-items: center; gap: 5px;">
-                                    <i class="fa-solid fa-arrow-down-from-bracket"></i>
-                                    <span class="hide-on-mobile">Take Down</span>
-                                </button>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-            }
-        }
-
-        // G. Top Performing Journalists (Right Column Section 2)
-        const topJournalistsTableBody = document.getElementById('top-journalists-table-body');
-        if (topJournalistsTableBody) {
-            let journalists = serverJournalists;
-
-            if (journalists.length === 0) {
-                // Compute from published articles
-                const authorCounts = {};
-                publishedArticles.forEach(a => {
-                    const author = a.author || 'Staff Writer';
-                    authorCounts[author] = (authorCounts[author] || 0) + 1;
-                });
-                journalists = Object.entries(authorCounts)
-                    .map(([name, count]) => ({ name, count }))
-                    .sort((a, b) => b.count - a.count)
-                    .slice(0, 5);
-            }
-
-            if (journalists.length === 0) {
-                topJournalistsTableBody.innerHTML = `
-                    <tr>
-                        <td colspan="2" style="text-align: center; padding: 24px; color: var(--text-muted, #667085); font-size: 0.85rem;">
-                            No published journalist records yet.
                         </td>
-                    </tr>
-                `;
-            } else {
-                topJournalistsTableBody.innerHTML = journalists.map(j => `
-                    <tr>
-                        <td class="col-author"><strong>${escapeHTML(j.name)}</strong></td>
-                        <td class="col-article-count">${j.count} ${j.count === 1 ? 'article' : 'articles'}</td>
+                        <td class="hide-on-mobile">${formatSectionBadgeHtml(art.category)}</td>
+                        <td><span class="status-badge status-review">Pending</span></td>
+                        <td class="hide-on-mobile"><span class="table-date">${escapeHTML(art.dateApproved || art.date || 'Recent')}</span></td>
+                        <td class="text-right">
+                            <a href="mpc-publish-article.html" class="table-manage-btn" title="Manage &amp; Publish">
+                                Manage
+                            </a>
+                        </td>
                     </tr>
                 `).join('');
             }
+        }
+
+        // D. Most Viewed Articles (Top 3 by Views: Category ABOVE title in maroon, Title in middle, Author below)
+        const mostViewedContainer = document.getElementById('most-viewed-list');
+        if (mostViewedContainer) {
+            const mostViewed = [...activeArticles]
+                .sort((a, b) => (b.views || 0) - (a.views || 0))
+                .slice(0, 3);
+
+            if (mostViewed.length === 0) {
+                mostViewedContainer.innerHTML = '<p class="text-sm text-gray-500 py-6 text-center">No published articles yet.</p>';
+            } else {
+                mostViewedContainer.innerHTML = mostViewed.map((art, idx) => `
+                    <div class="ranked-item" data-article-id="${art.id}">
+                        <span class="rank-number ${idx === 0 ? 'top-rank' : ''}">${idx + 1}</span>
+                        <div class="ranked-content">
+                            <div class="ranked-category-tag">${escapeHTML(art.category)}</div>
+                            <button type="button" class="ranked-title-btn" data-action="view" data-id="${art.id}" title="${escapeHTML(art.title)}">
+                                ${escapeHTML(art.title)}
+                            </button>
+                            <div class="ranked-meta-row">
+                                <span class="ranked-author"><i class="fa-solid fa-pen-nib" aria-hidden="true" style="font-size: 0.70rem; margin-right: 4px; color: var(--text-muted, #667085);"></i>${escapeHTML(art.author)}</span>
+                                <span class="ranked-stats">
+                                    <span class="stat-metric" title="Views"><i class="fa-regular fa-eye"></i> ${Number(art.views || 0).toLocaleString()}</span>
+                                    <span class="stat-sep">•</span>
+                                    <span class="stat-metric" title="Shares"><i class="fa-solid fa-share-nodes"></i> ${Number(art.shares || 0).toLocaleString()}</span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // E. Top Performing Journalists (Table Layout: Name & Number Only)
+        const topJournalistsTableBody = document.getElementById('top-journalists-table-body');
+
+        const authorCounts = {};
+        activeArticles.forEach(a => {
+            if (a.author) {
+                authorCounts[a.author] = (authorCounts[a.author] || 0) + 1;
+            }
+        });
+
+        const topJournalists = Object.entries(authorCounts)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 5)
+            .map(([name, count]) => ({
+                name,
+                count
+            }));
+
+        if (topJournalists.length === 0) {
+            if (topJournalistsTableBody) {
+                topJournalistsTableBody.innerHTML = '<tr><td colspan="2" class="text-center py-4 text-gray-500 text-sm">No journalist data available yet.</td></tr>';
+            }
+        } else if (topJournalistsTableBody) {
+            topJournalistsTableBody.innerHTML = topJournalists.map(j => `
+                <tr>
+                    <td class="col-author-name">${escapeHTML(j.name)}</td>
+                    <td class="col-article-count">${j.count}</td>
+                </tr>
+            `).join('');
         }
     }
 
@@ -429,62 +368,32 @@ document.addEventListener('DOMContentLoaded', () => {
     renderDashboard();
 
     // =========================================================================
-    // 4. ARTICLE VIEWER MODAL LOGIC (Approve vs Take Down)
+    // 6. MODALS SYSTEM: VIEWER MODAL
     // =========================================================================
-    let currentViewingArticle = null;
-    let currentViewingType = null; // 'pending' | 'published'
-
     const viewerModal = document.getElementById('article-viewer-modal');
     const closeViewerBtn = document.getElementById('close-viewer-btn');
     const viewerCancelBtn = document.getElementById('viewer-cancel-btn');
-    const viewerActionApprove = document.getElementById('viewer-action-approve');
-    const viewerActionRevision = document.getElementById('viewer-action-revision');
-    const viewerActionDecline = document.getElementById('viewer-action-decline');
-    const viewerActionTakedown = document.getElementById('viewer-action-takedown');
-
-    const viewerRemarksSection = document.getElementById('viewer-remarks-section');
-    const viewerRemarksInput = document.getElementById('viewer-remarks-input');
-    const viewerRemarksError = document.getElementById('viewer-remarks-error');
-
+    const viewerPublishBtn = document.getElementById('viewer-publish-btn');
     const viewerTitle = document.getElementById('viewer-title');
     const viewerCategory = document.getElementById('viewer-category');
     const viewerDate = document.getElementById('viewer-date');
     const viewerAuthor = document.getElementById('viewer-author');
     const viewerReadTime = document.getElementById('viewer-read-time');
-    const viewerExcerpt = document.getElementById('viewer-excerpt');
     const viewerContent = document.getElementById('viewer-content');
-    const viewerViews = document.getElementById('viewer-views');
-    const viewerShares = document.getElementById('viewer-shares');
-    const viewerStatusBadge = document.getElementById('viewer-status-badge');
 
-    function openViewerModal(article, type = 'published') {
-        if (!viewerModal || !article) return;
-        currentViewingArticle = article;
-        currentViewingType = type;
+    function openViewerModal(art) {
+        if (!viewerModal || !art) return;
 
-        const isPublished = (type === 'published') || (article.status === 'Published');
+        if (viewerTitle) viewerTitle.textContent = art.title || 'Untitled';
+        if (viewerCategory) viewerCategory.textContent = art.category || 'General';
+        if (viewerDate) viewerDate.textContent = art.date || 'Oct 2026';
+        if (viewerAuthor) viewerAuthor.textContent = art.author || 'The Lens Staff';
+        if (viewerReadTime) viewerReadTime.textContent = art.readTime || '3 min read';
 
-        if (viewerTitle) viewerTitle.textContent = article.title || 'Untitled Article';
-        if (viewerCategory) viewerCategory.textContent = article.category?.name || article.category || 'General';
-        if (viewerDate) viewerDate.textContent = article.date || 'Recent';
-        if (viewerAuthor) viewerAuthor.textContent = article.author || 'Staff Writer';
-        
-        // Calculate estimated read time
-        const wordCount = (article.content || article.excerpt || '').replace(/<[^>]+>/g, '').trim().split(/\s+/).length;
-        const readMin = Math.max(1, Math.ceil(wordCount / 220));
-        if (viewerReadTime) viewerReadTime.textContent = `${readMin} min read`;
-
-        if (viewerViews) viewerViews.textContent = Number(article.views || 0).toLocaleString();
-        if (viewerShares) viewerShares.textContent = Number(article.shares || 0).toLocaleString();
-
-        if (viewerStatusBadge) {
-            viewerStatusBadge.textContent = isPublished ? 'Published' : 'Pending M&PC';
-            viewerStatusBadge.className = isPublished ? 'status-badge status-approved' : 'status-badge status-review';
-        }
-
+        const viewerExcerpt = document.getElementById('viewer-excerpt');
         if (viewerExcerpt) {
-            if (article.excerpt && article.excerpt.trim()) {
-                viewerExcerpt.textContent = article.excerpt.trim();
+            if (art.excerpt && art.excerpt.trim()) {
+                viewerExcerpt.textContent = art.excerpt.trim();
                 viewerExcerpt.style.display = 'block';
             } else {
                 viewerExcerpt.style.display = 'none';
@@ -492,409 +401,61 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (viewerContent) {
-            viewerContent.innerHTML = formatCleanArticleContent(article.content || article.excerpt);
-        }
-
-        // Reset remarks input and validation error
-        if (viewerRemarksInput) viewerRemarksInput.value = '';
-        if (viewerRemarksError) viewerRemarksError.style.display = 'none';
-
-        // Configure footer action buttons and remarks box according to status:
-        if (isPublished) {
-            // Once posted: Show "Take Down Article" button!
-            if (viewerActionTakedown) viewerActionTakedown.style.display = 'inline-flex';
-            if (viewerActionApprove) viewerActionApprove.style.display = 'none';
-            if (viewerActionRevision) viewerActionRevision.style.display = 'none';
-            if (viewerActionDecline) viewerActionDecline.style.display = 'none';
-            if (viewerRemarksSection) viewerRemarksSection.style.display = 'none';
-        } else {
-            // Pending: Show "Approve & Publish", "For Revision", and "Reject" buttons + Remarks
-            if (viewerActionTakedown) viewerActionTakedown.style.display = 'none';
-            if (viewerActionApprove) viewerActionApprove.style.display = 'inline-flex';
-            if (viewerActionRevision) viewerActionRevision.style.display = 'inline-flex';
-            if (viewerActionDecline) viewerActionDecline.style.display = 'inline-flex';
-            if (viewerRemarksSection) viewerRemarksSection.style.display = 'block';
+            viewerContent.innerHTML = formatCleanArticleContent(art.content || art.excerpt);
         }
 
         viewerModal.classList.remove('hidden');
         document.body.style.overflow = 'hidden';
     }
 
-    function closeViewerModal() {
+    function closeViewer() {
         if (!viewerModal) return;
         viewerModal.classList.add('hidden');
         document.body.style.overflow = '';
-        if (viewerRemarksInput) viewerRemarksInput.value = '';
-        if (viewerRemarksError) viewerRemarksError.style.display = 'none';
-        currentViewingArticle = null;
-        currentViewingType = null;
     }
 
-    if (viewerRemarksInput) {
-        viewerRemarksInput.addEventListener('input', () => {
-            if (viewerRemarksInput.value.trim().length > 0 && viewerRemarksError) {
-                viewerRemarksError.style.display = 'none';
-            }
+    if (closeViewerBtn) closeViewerBtn.addEventListener('click', closeViewer);
+    if (viewerCancelBtn) viewerCancelBtn.addEventListener('click', closeViewer);
+    if (viewerPublishBtn) {
+        viewerPublishBtn.addEventListener('click', () => {
+            closeViewer();
+            window.location.href = 'mpc-publish-article.html';
         });
     }
 
-    if (closeViewerBtn) closeViewerBtn.addEventListener('click', closeViewerModal);
-    if (viewerCancelBtn) viewerCancelBtn.addEventListener('click', closeViewerModal);
     if (viewerModal) {
         viewerModal.addEventListener('click', (e) => {
-            if (e.target === viewerModal) closeViewerModal();
+            if (e.target === viewerModal) closeViewer();
         });
     }
 
-    // =========================================================================
-    // 5. ACTION CONFIRMATION MODAL (Take Down & Approve)
-    // =========================================================================
-    const actionModal = document.getElementById('action-modal');
-    const modalTitle = document.getElementById('modal-title');
-    const modalDesc = document.getElementById('modal-description');
-    const modalIcon = document.getElementById('modal-icon');
-    const modalIconHeader = document.getElementById('modal-icon-header');
-    const modalConfirmBtn = document.getElementById('modal-confirm-btn');
-    const modalCancelBtn = document.getElementById('modal-cancel-btn');
-
-    let onModalConfirmCallback = null;
-
-    function openActionModal({ title, description, confirmText, type = 'warning', onConfirm }) {
-        if (!actionModal) return;
-
-        if (modalTitle) modalTitle.textContent = title;
-        if (modalDesc) modalDesc.textContent = description;
-        if (modalConfirmBtn) {
-            modalConfirmBtn.textContent = confirmText;
-            modalConfirmBtn.className = type === 'danger' ? 'modal-btn modal-btn-danger' : 'modal-btn modal-btn-confirm-primary';
-        }
-
-        if (modalIconHeader) {
-            modalIconHeader.className = `modal-icon-header ${type}`;
-        }
-        if (modalIcon) {
-            if (type === 'danger') modalIcon.className = 'fa-solid fa-arrow-down-from-bracket';
-            else if (type === 'success') modalIcon.className = 'fa-solid fa-circle-check';
-            else modalIcon.className = 'fa-solid fa-triangle-exclamation';
-        }
-
-        onModalConfirmCallback = onConfirm;
-        actionModal.classList.remove('hidden');
-    }
-
-    function closeActionModal() {
-        if (!actionModal) return;
-        actionModal.classList.add('hidden');
-        onModalConfirmCallback = null;
-    }
-
-    if (modalCancelBtn) modalCancelBtn.addEventListener('click', closeActionModal);
-    if (modalConfirmBtn) {
-        modalConfirmBtn.addEventListener('click', () => {
-            if (typeof onModalConfirmCallback === 'function') {
-                const cb = onModalConfirmCallback;
-                closeActionModal();
-                cb();
-            }
-        });
-    }
-
-    // =========================================================================
-    // 6. TAKE DOWN ARTICLE WORKFLOW
-    // =========================================================================
-    function executeTakedown(articleId) {
-        const id = String(articleId);
-        const article = publishedArticles.find(a => String(a.id) === id) || currentViewingArticle;
-        const title = article ? article.title : 'this article';
-
-        openActionModal({
-            title: 'Take Down Article',
-            description: `Are you sure you want to take down "${title}" from the public site? It will immediately be unpublished and removed from public circulation.`,
-            confirmText: 'Take Down Article',
-            type: 'danger',
-            onConfirm: () => {
-                showToast('Taking down article from public site…', 'info');
-
-                // Call backend route
-                fetch(`${TAKEDOWN_URL_BASE}/${id}/takedown`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': csrfToken,
-                        'Accept': 'application/json',
-                    },
-                    body: JSON.stringify({ id })
-                })
-                .then(res => {
-                    if (!res.ok) throw new Error('Network response was not ok');
-                    return res.json().catch(() => ({ success: true }));
-                })
-                .then(data => {
-                    // Sync localStorage
-                    try {
-                        const rawPub = localStorage.getItem('theLensPublishedArticles');
-                        if (rawPub) {
-                            let list = JSON.parse(rawPub);
-                            if (Array.isArray(list)) {
-                                list = list.filter(a => String(a.id) !== id);
-                                localStorage.setItem('theLensPublishedArticles', JSON.stringify(list));
-                            }
-                        }
-                    } catch (e) {}
-
-                    // Log activity
-                    try {
-                        const rawLogs = localStorage.getItem('mpcActivityLogs_v1');
-                        let logs = rawLogs ? JSON.parse(rawLogs) : [];
-                        if (!Array.isArray(logs)) logs = [];
-                        logs.unshift({
-                            id: 'mpc-act-' + Date.now(),
-                            causer: localStorage.getItem('userName') || 'M&PC Head',
-                            action: 'took down',
-                            subjectType: 'Article',
-                            subjectName: title,
-                            timestampText: 'Just now',
-                            time: 'Just now'
-                        });
-                        localStorage.setItem('mpcActivityLogs_v1', JSON.stringify(logs.slice(0, 30)));
-                    } catch (e) {}
-
-                    showToast(`"${title}" has been taken down from the public site.`, 'warning');
-                    closeViewerModal();
-
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 1100);
-                })
-                .catch(err => {
-                    console.error('Takedown error:', err);
-                    showToast('Failed to take down article. Please try again.', 'danger');
-                });
-            }
-        });
-    }
-
-    // =========================================================================
-    // 7. APPROVE & PUBLISH WORKFLOW
-    // =========================================================================
-    function executeApprove(articleId) {
-        const id = String(articleId);
-        const article = pendingArticles.find(a => String(a.id) === id) || currentViewingArticle;
-        const title = article ? article.title : 'this article';
-
-        openActionModal({
-            title: 'Approve & Publish Article',
-            description: `Publish "${title}" live to the public site now?`,
-            confirmText: 'Publish Now',
-            type: 'success',
-            onConfirm: () => {
-                showToast('Publishing article to public site…', 'info');
-
-                fetch(`${APPROVE_URL_BASE}/${id}/approve`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': csrfToken,
-                        'Accept': 'application/json',
-                    },
-                    body: JSON.stringify({ id })
-                })
-                .then(res => {
-                    if (!res.ok) throw new Error('Network response was not ok');
-                    return res.json().catch(() => ({ success: true }));
-                })
-                .then(data => {
-                    showToast(`"${title}" is now published live on The Lens!`, 'success');
-                    closeViewerModal();
-
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 1100);
-                })
-                .catch(err => {
-                    console.error('Publish error:', err);
-                    showToast('Failed to publish article. Please try again.', 'danger');
-                });
-            }
-        });
-    }
-
-    // =========================================================================
-    // 8. RETURN FOR REVISION WORKFLOW
-    // =========================================================================
-    function executeRevision(articleId, remarks) {
-        const id = String(articleId);
-        const article = pendingArticles.find(a => String(a.id) === id) || currentViewingArticle;
-        const title = article ? article.title : 'this article';
-
-        openActionModal({
-            title: 'Return for Revision',
-            description: `Are you sure you want to return "${title}" to the writer for revision? Your editorial remarks will be attached.`,
-            confirmText: 'Return for Revision',
-            type: 'warning',
-            onConfirm: () => {
-                showToast('Returning article for revision…', 'info');
-
-                fetch(`${REVISION_URL_BASE}/${id}/revision`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': csrfToken,
-                        'Accept': 'application/json',
-                    },
-                    body: JSON.stringify({ remarks })
-                })
-                .then(res => {
-                    if (!res.ok) throw new Error('Network response was not ok');
-                    return res.json().catch(() => ({ success: true }));
-                })
-                .then(data => {
-                    showToast(`"${title}" returned for revision.`, 'warning');
-                    closeViewerModal();
-
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 1100);
-                })
-                .catch(err => {
-                    console.error('Revision error:', err);
-                    showToast('Failed to return for revision. Please try again.', 'danger');
-                });
-            }
-        });
-    }
-
-    // =========================================================================
-    // 9. REJECT / DECLINE WORKFLOW
-    // =========================================================================
-    function executeDecline(articleId, remarks) {
-        const id = String(articleId);
-        const article = pendingArticles.find(a => String(a.id) === id) || currentViewingArticle;
-        const title = article ? article.title : 'this article';
-
-        openActionModal({
-            title: 'Reject Article',
-            description: `Are you sure you want to reject "${title}"? This will mark the manuscript as Declined.`,
-            confirmText: 'Reject Article',
-            type: 'danger',
-            onConfirm: () => {
-                showToast('Rejecting article…', 'info');
-
-                fetch(`${DECLINE_URL_BASE}/${id}/decline`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': csrfToken,
-                        'Accept': 'application/json',
-                    },
-                    body: JSON.stringify({ remarks })
-                })
-                .then(res => {
-                    if (!res.ok) throw new Error('Network response was not ok');
-                    return res.json().catch(() => ({ success: true }));
-                })
-                .then(data => {
-                    showToast(`"${title}" has been rejected.`, 'danger');
-                    closeViewerModal();
-
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 1100);
-                })
-                .catch(err => {
-                    console.error('Decline error:', err);
-                    showToast('Failed to reject article. Please try again.', 'danger');
-                });
-            }
-        });
-    }
-
-    // =========================================================================
-    // 10. EVENT DELEGATION & LISTENERS
-    // =========================================================================
-    if (viewerActionTakedown) {
-        viewerActionTakedown.addEventListener('click', () => {
-            if (currentViewingArticle) {
-                executeTakedown(currentViewingArticle.id);
-            }
-        });
-    }
-
-    if (viewerActionApprove) {
-        viewerActionApprove.addEventListener('click', () => {
-            if (currentViewingArticle) {
-                executeApprove(currentViewingArticle.id);
-            }
-        });
-    }
-
-    if (viewerActionRevision) {
-        viewerActionRevision.addEventListener('click', () => {
-            if (!currentViewingArticle) return;
-            const remarks = viewerRemarksInput ? viewerRemarksInput.value.trim() : '';
-            if (!remarks) {
-                if (viewerRemarksError) viewerRemarksError.style.display = 'flex';
-                if (viewerRemarksInput) viewerRemarksInput.focus();
-                return;
-            }
-            if (viewerRemarksError) viewerRemarksError.style.display = 'none';
-            executeRevision(currentViewingArticle.id, remarks);
-        });
-    }
-
-    if (viewerActionDecline) {
-        viewerActionDecline.addEventListener('click', () => {
-            if (!currentViewingArticle) return;
-            const remarks = viewerRemarksInput ? viewerRemarksInput.value.trim() : '';
-            if (!remarks) {
-                if (viewerRemarksError) viewerRemarksError.style.display = 'flex';
-                if (viewerRemarksInput) viewerRemarksInput.focus();
-                return;
-            }
-            if (viewerRemarksError) viewerRemarksError.style.display = 'none';
-            executeDecline(currentViewingArticle.id, remarks);
-        });
-    }
-
-    // Click delegate for pending table buttons and published cards
+    // Delegate click for table buttons & ranked title buttons
     document.addEventListener('click', (e) => {
-        // View pending article
-        const viewPendingBtn = e.target.closest('[data-action="view-pending"]');
-        if (viewPendingBtn) {
-            const id = viewPendingBtn.getAttribute('data-id');
-            const art = pendingArticles.find(a => String(a.id) === String(id));
-            if (art) openViewerModal(art, 'pending');
+        const btn = e.target.closest('[data-action="view"]');
+        if (!btn) return;
+
+        const id = btn.getAttribute('data-id');
+        if (!id) return;
+
+        const pendingList = getPendingQueue();
+        const foundPending = pendingList.find(a => String(a.id) === String(id));
+        if (foundPending) {
+            openViewerModal(foundPending);
             return;
         }
 
-        // View published article
-        const viewPublishedBtn = e.target.closest('[data-action="view-published"]');
-        if (viewPublishedBtn) {
-            const id = viewPublishedBtn.getAttribute('data-id');
-            const art = publishedArticles.find(a => String(a.id) === String(id));
-            if (art) openViewerModal(art, 'published');
-            return;
-        }
-
-        // Direct take down button from Most Viewed Articles list
-        const takedownDirectBtn = e.target.closest('[data-action="takedown-direct"]');
-        if (takedownDirectBtn) {
-            const id = takedownDirectBtn.getAttribute('data-id');
-            if (id) executeTakedown(id);
-            return;
+        const publishedList = getPublishedArticles();
+        const foundArticle = publishedList.find(a => String(a.id) === String(id));
+        if (foundArticle) {
+            openViewerModal(foundArticle);
         }
     });
 
-    // Keyboard ESC to close modals
+    // Keyboard ESC listener
     document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-            if (actionModal && !actionModal.classList.contains('hidden')) {
-                closeActionModal();
-                return;
-            }
-            if (viewerModal && !viewerModal.classList.contains('hidden')) {
-                closeViewerModal();
-            }
+        if (e.key === 'Escape' && viewerModal && !viewerModal.classList.contains('hidden')) {
+            closeViewer();
         }
     });
+
 });

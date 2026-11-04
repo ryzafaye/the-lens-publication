@@ -67,7 +67,17 @@ class EicController extends Controller
             ];
         });
 
-        return view('eic.dashboard', compact('metrics', 'pendingArticles', 'recentActivities'));
+        $mostViewed = Article::with('category')
+            ->where('status', 'Published')
+            ->orderBy('views', 'desc')
+            ->take(5)
+            ->get();
+
+        $topJournalists = User::whereHas('role', function ($q) {
+            $q->where('role_name', 'Writer');
+        })->withCount('articles')->orderBy('articles_count', 'desc')->take(5)->get();
+
+        return view('eic.dashboard', compact('metrics', 'pendingArticles', 'recentActivities', 'mostViewed', 'topJournalists'));
     }
 
     public function manageArticles()
@@ -198,9 +208,26 @@ class EicController extends Controller
      */
     protected function resolveEndorserForArticle($article, array $categoryHeadsMap): string
     {
+        // 1. If author is a Category Head or Editor, this is a direct submission
+        $authorRole = $article->user->role->role_name ?? '';
+        if (!empty($authorRole) && (stripos($authorRole, 'head') !== false || stripos($authorRole, 'editor') !== false)) {
+            return ($article->user->full_name ?? 'Category Head') . ' (' . $authorRole . ')';
+        }
+
+        // 2. Check remarks if an explicit endorsement or submission is recorded
+        if (!empty($article->remarks)) {
+            if (preg_match('/(?:Submitted by|Endorsed to EIC by|Approved by(?: Section Head)?:?)\s*([^\r\n]+)/i', $article->remarks, $matches)) {
+                $matched = trim($matches[1]);
+                $isMock = preg_match('/(?:Aris Thorne|Elena Ramos|Sofia Alcantara)/i', $matched);
+                if (!empty($matched) && !$isMock) {
+                    return $matched;
+                }
+            }
+        }
+
         $categoryName = $article->category->name ?? '';
 
-        // 1. Strictly resolve the Section Head based on the submitted article's category
+        // 3. Strictly resolve the Section Head based on the submitted article's category
         if (!empty($categoryName)) {
             if (isset($categoryHeadsMap[$categoryName])) {
                 return $categoryHeadsMap[$categoryName];
@@ -212,55 +239,41 @@ class EicController extends Controller
             }
         }
 
-        // 2. Fallback: check remarks if category was not set
-        if (!empty($article->remarks)) {
-            if (preg_match('/(?:Endorsed to EIC by|Approved by(?: Section Head)?:?)\s*([^\r\n]+)/i', $article->remarks, $matches)) {
-                $matched = trim($matches[1]);
-                $isMock = preg_match('/(?:Aris Thorne|Elena Ramos|Sofia Alcantara)/i', $matched);
-                if (!empty($matched) && !$isMock) {
-                    return $matched;
-                }
-            }
-        }
-
         return $article->endorser ?? 'Section Head';
     }
 
     public function reviewArticles(Request $request)
     {
         $sort = $request->query('sort', 'newest');
-        $cacheKey = 'eic_review_articles_' . $sort;
         $categoryHeads = $this->getCategoryHeadsMap();
 
-        $pendingArticles = Cache::remember($cacheKey, 30, function () use ($sort, $categoryHeads) {
-            $query = Article::with(['user.role', 'category'])
-                ->where('status', 'Pending EIC Review');
+        $query = Article::with(['user.role', 'category'])
+            ->where('status', 'Pending EIC Review');
 
-            if ($sort === 'oldest') {
-                $query->oldest();
-            } else {
-                $query->latest();
-            }
+        if ($sort === 'oldest') {
+            $query->oldest();
+        } else {
+            $query->latest();
+        }
 
-            return $query->get()->map(function ($article) use ($categoryHeads) {
-                $endorsedBy = $this->resolveEndorserForArticle($article, $categoryHeads);
+        $pendingArticles = $query->get()->map(function ($article) use ($categoryHeads) {
+            $endorsedBy = $this->resolveEndorserForArticle($article, $categoryHeads);
 
-                return [
-                    'id' => $article->id,
-                    'title' => $article->title,
-                    'category' => $article->category->name ?? 'General',
-                    'category_id' => $article->category_id,
-                    'excerpt' => $article->excerpt,
-                    'content' => $article->content,
-                    'status' => $article->status,
-                    'date' => $article->created_at->format('M d, Y'),
-                    'rawDate' => $article->created_at->toIso8601String(),
-                    'author' => $article->user->full_name ?? 'Staff Writer',
-                    'author_avatar' => $article->user->avatar ?? asset('images/member-placeholder.svg'),
-                    'remarks' => $article->remarks,
-                    'endorsedBy' => $endorsedBy,
-                ];
-            });
+            return [
+                'id' => $article->id,
+                'title' => $article->title,
+                'category' => $article->category->name ?? 'General',
+                'category_id' => $article->category_id,
+                'excerpt' => $article->excerpt,
+                'content' => $article->content,
+                'status' => $article->status,
+                'date' => $article->created_at->format('M d, Y'),
+                'rawDate' => $article->created_at->toIso8601String(),
+                'author' => $article->user->full_name ?? 'Staff Writer',
+                'author_avatar' => $article->user->avatar ?? asset('images/member-placeholder.svg'),
+                'remarks' => $article->remarks,
+                'endorsedBy' => $endorsedBy,
+            ];
         });
 
         return view('eic.review-articles', compact('pendingArticles', 'sort', 'categoryHeads'));
@@ -494,6 +507,10 @@ class EicController extends Controller
             $roleObj = Role::where('role_name', $request->input('role'))->first();
             $roleId = $roleObj?->id;
         }
+        if ($roleId && !is_numeric($roleId)) {
+            $roleObj = Role::where('role_name', $roleId)->first();
+            $roleId = $roleObj?->id;
+        }
         $request->merge(['role_id' => $roleId]);
 
         $validated = $request->validate([
@@ -530,6 +547,10 @@ class EicController extends Controller
         $roleId = $request->input('role_id');
         if (!$roleId && $request->filled('role')) {
             $roleObj = Role::where('role_name', $request->input('role'))->first();
+            $roleId = $roleObj?->id;
+        }
+        if ($roleId && !is_numeric($roleId)) {
+            $roleObj = Role::where('role_name', $roleId)->first();
             $roleId = $roleObj?->id;
         }
         $request->merge(['role_id' => $roleId]);

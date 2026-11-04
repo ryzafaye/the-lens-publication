@@ -60,7 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================================================================
     // 2. AUTHOR BYLINE & ROLE INITIALIZATION
     // =========================================================================
-    const headName = localStorage.getItem('cartoonistHeadName') || localStorage.getItem('userName') || 'Danilo Reyes';
+    const headName = localStorage.getItem('cartoonistHeadName') || localStorage.getItem('userName') || '';
     const headRole = 'Cartoonist Head';
 
     if (authorNameDisplay) {

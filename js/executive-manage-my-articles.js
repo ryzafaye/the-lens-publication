@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Active executive details
-    const executiveName = localStorage.getItem('executiveName') || localStorage.getItem('userName') || 'Juan Dela Cruz';
+    const executiveName = localStorage.getItem('executiveName') || localStorage.getItem('userName') || '';
     const executiveRole = localStorage.getItem('executiveRole') || (activeRole !== 'Writer' ? activeRole : 'President');
 
     // DOM Elements - Personal Analytics Cards (Exact Writer Dashboard Format)

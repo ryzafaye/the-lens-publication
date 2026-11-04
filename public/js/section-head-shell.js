@@ -45,7 +45,7 @@ try {
 } catch (e) {}
 /**
  * ============================================================================
- * THE LENS ΓÇö REUSABLE SECTION HEAD SHELL CONTROLLER
+ * THE LENS — REUSABLE SECTION HEAD SHELL CONTROLLER
  * Shared Chrome & Navigation across all Section Head Portal Pages
  * ============================================================================
  */
@@ -63,16 +63,48 @@ try {
         // =====================================================================
         // 1. DYNAMIC SECTION HEAD PROFILE & ROLE HYDRATION
         // =====================================================================
-        // 1. DYNAMIC PROFILE SYNC (Preserve server-rendered Auth values)
-        // =====================================================================
         function hydrateSectionHeadProfile() {
-            // Do not clobber server-rendered Auth user data with hardcoded prototype strings
+            let role = 'Section Head';
+            let name = localStorage.getItem('sectionHeadName') || localStorage.getItem('userName') || 'Section Head';
+            let section = 'General';
+            let studentNum = localStorage.getItem('sectionHeadStudentNumber') || localStorage.getItem('studentNumber') || '';
+
+            try {
+                const storedRole = localStorage.getItem('sectionHeadRole') || localStorage.getItem('userRole');
+                const storedName = localStorage.getItem('sectionHeadName') || localStorage.getItem('userName');
+                const storedSection = localStorage.getItem('sectionHeadSection');
+                const storedNum = localStorage.getItem('sectionHeadStudentNumber') || localStorage.getItem('studentNumber');
+
+                if (storedRole) role = storedRole;
+                if (storedName && storedName !== 'Danilo C. Ramos') name = storedName;
+                if (storedSection) section = storedSection;
+                if (storedNum) studentNum = storedNum;
+            } catch (e) {
+                // Storage unavailable
+            }
+
             const sidebarUserName = document.getElementById('sidebar-user-name');
-            if (sidebarUserName && sidebarUserName.textContent.trim() && sidebarUserName.textContent.trim() !== 'Section Head') {
-                try {
-                    localStorage.setItem('userName', sidebarUserName.textContent.trim());
-                    localStorage.setItem('sectionHeadName', sidebarUserName.textContent.trim());
-                } catch (e) {}
+            const sidebarUserRole = document.getElementById('sidebar-user-role');
+            const topbarUserRole = document.getElementById('topbar-user-role');
+            const mobileUserRole = document.getElementById('mobile-user-role');
+            const mobileUserName = document.getElementById('mobile-user-name');
+            const sectionBadges = document.querySelectorAll('.dynamic-section-name');
+
+            if (sidebarUserName) sidebarUserName.textContent = name;
+            if (sidebarUserRole) sidebarUserRole.textContent = role;
+            if (topbarUserRole) topbarUserRole.textContent = role;
+            if (mobileUserRole) mobileUserRole.textContent = role;
+            if (mobileUserName) mobileUserName.textContent = name;
+
+            sectionBadges.forEach(badge => {
+                badge.textContent = section;
+            });
+
+            // Hydrate avatar if present
+            const avatarImg = localStorage.getItem('sectionHeadAvatar') || localStorage.getItem('userAvatar') || 'images/member-placeholder.svg';
+            const sidebarAvatar = document.getElementById('sidebar-avatar-img') || document.querySelector('.sidebar-profile .profile-avatar img');
+            if (sidebarAvatar && avatarImg) {
+                sidebarAvatar.src = avatarImg;
             }
         }
 
@@ -227,33 +259,10 @@ try {
         function triggerLogout() {
             showLogoutModal(() => {
                 try {
-                    localStorage.removeItem('userRole');
-                    localStorage.removeItem('userName');
-                    localStorage.removeItem('studentNumber');
-                    localStorage.removeItem('sectionHeadRole');
-                    localStorage.removeItem('sectionHeadName');
-                    localStorage.removeItem('sectionHeadSection');
-                    localStorage.removeItem('sectionHeadStudentNumber');
+                    localStorage.clear();
                     sessionStorage.clear();
                 } catch (err) {}
-                const existingForm = document.querySelector('form[action*="logout"]');
-                if (existingForm) {
-                    existingForm.submit();
-                } else {
-                    const form = document.createElement('form');
-                    form.method = 'POST';
-                    form.action = '/logout';
-                    const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-                    if (csrf) {
-                        const input = document.createElement('input');
-                        input.type = 'hidden';
-                        input.name = '_token';
-                        input.value = csrf;
-                        form.appendChild(input);
-                    }
-                    document.body.appendChild(form);
-                    form.submit();
-                }
+                window.location.href = '/logout';
             });
         }
 

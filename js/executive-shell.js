@@ -317,15 +317,10 @@ try {
         function triggerLogout() {
             showLogoutModal(() => {
                 try {
-                    localStorage.removeItem('userRole');
-                    localStorage.removeItem('studentNumber');
-                    localStorage.removeItem('userName');
-                    localStorage.removeItem('executiveRole');
-                    localStorage.removeItem('executiveName');
-                    localStorage.removeItem('executiveStudentNumber');
+                    localStorage.clear();
                     sessionStorage.clear();
                 } catch (err) {}
-                window.location.href = 'login.html';
+                window.location.href = '/logout';
             });
         }
 

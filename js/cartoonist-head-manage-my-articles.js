@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
     'use strict';
 
     // Active Cartoonist Head details
-    const headName = localStorage.getItem('cartoonistHeadName') || localStorage.getItem('userName') || 'Danilo Reyes';
+    const headName = localStorage.getItem('cartoonistHeadName') || localStorage.getItem('userName') || '';
     const headRole = 'Cartoonist Head';
 
     // DOM Elements - Personal Analytics Cards / Header Metric Pill

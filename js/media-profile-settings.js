@@ -12,18 +12,29 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================================================================
     // 1. AUTHENTICATION & ROLE VERIFICATION
     // =========================================================================
-    const userRole = localStorage.getItem('mediaRole') || localStorage.getItem('userRole') || 'Media & Communication';
-    let userName = localStorage.getItem('mediaName') || localStorage.getItem('userName') || 'Alyssa Marie Dizon';
-    let studentNumber = localStorage.getItem('mediaStudentNumber') || localStorage.getItem('studentNumber') || '2024-00080-BN-0';
-    let userAvatar = localStorage.getItem('mediaAvatar') || localStorage.getItem('userAvatar') || 'images/member-placeholder.svg';
+    const initialInputName = document.getElementById('input-full-name')?.value?.trim();
+    const initialInputNum = document.getElementById('input-student-number')?.value?.trim();
+
+    const userRole = localStorage.getItem('userRole') || localStorage.getItem('mediaRole') || 'Media & Communication';
+    let userName = (initialInputName && initialInputName !== 'undefined')
+        ? initialInputName
+        : (localStorage.getItem('userName') || localStorage.getItem('mediaName') || '');
+    let studentNumber = (initialInputNum && initialInputNum !== 'undefined')
+        ? initialInputNum
+        : (localStorage.getItem('studentNumber') || localStorage.getItem('mediaStudentNumber') || '');
+    let userAvatar = localStorage.getItem('userAvatar') || localStorage.getItem('mediaAvatar') || 'images/member-placeholder.svg';
 
     // Cache clean credentials
     localStorage.setItem('userRole', userRole);
-    localStorage.setItem('userName', userName);
-    localStorage.setItem('studentNumber', studentNumber);
+    if (userName) {
+        localStorage.setItem('userName', userName);
+        localStorage.setItem('mediaName', userName);
+    }
+    if (studentNumber) {
+        localStorage.setItem('studentNumber', studentNumber);
+        localStorage.setItem('mediaStudentNumber', studentNumber);
+    }
     localStorage.setItem('mediaRole', userRole);
-    localStorage.setItem('mediaName', userName);
-    localStorage.setItem('mediaStudentNumber', studentNumber);
 
     // Sync roles across DOM
     const topbarRoleBadge = document.getElementById('topbar-user-role');
@@ -102,8 +113,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnResetAvatar = document.getElementById('btn-reset-avatar');
     const profileInfoForm = document.getElementById('profile-info-form');
 
-    if (inputStudentNumber) inputStudentNumber.value = studentNumber;
-    if (inputFullName) inputFullName.value = userName;
+    if (inputStudentNumber) {
+        if (!inputStudentNumber.value || inputStudentNumber.value.trim() === '' || inputStudentNumber.value === 'undefined') {
+            inputStudentNumber.value = studentNumber;
+        } else {
+            studentNumber = inputStudentNumber.value.trim();
+            localStorage.setItem('studentNumber', studentNumber);
+            localStorage.setItem('mediaStudentNumber', studentNumber);
+        }
+    }
+    if (inputFullName) {
+        if (!inputFullName.value || inputFullName.value.trim() === '' || inputFullName.value === 'undefined') {
+            inputFullName.value = userName;
+        } else {
+            userName = inputFullName.value.trim();
+            localStorage.setItem('userName', userName);
+            localStorage.setItem('mediaName', userName);
+        }
+    }
     if (inputOfficerRole) inputOfficerRole.value = userRole;
 
     // Trigger file dialog

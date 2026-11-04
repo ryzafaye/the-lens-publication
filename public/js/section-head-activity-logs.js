@@ -1,6 +1,6 @@
-﻿/**
+/**
  * ============================================================================
- * THE LENS ΓÇö ACTIVITY LOGS LOGIC (SECTION HEAD PORTAL)
+ * THE LENS — ACTIVITY LOGS LOGIC (SECTION HEAD PORTAL)
  * Clean, Minimalist, Distraction-Free Implementation
  * Identical Design, Format & Logic to Executive Portal
  * 
@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 1. AUTHENTICATION & ROLE VERIFICATION
     // =========================================================================
     const userRole = localStorage.getItem('userRole') || localStorage.getItem('sectionHeadRole') || 'News Head';
-    const userName = localStorage.getItem('userName') || localStorage.getItem('sectionHeadName') || 'Danilo C. Ramos';
+    const userName = localStorage.getItem('userName') || localStorage.getItem('sectionHeadName') || '';
 
     // =========================================================================
     // 2. ESCAPE HTML HELPER
@@ -162,7 +162,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                                 <div class="activity-subrow">
                                     <span class="activity-role-text">${escapeHTML(item.causerRole)}</span>
-                                    <span class="activity-subrow-dot">ΓÇó</span>
+                                    <span class="activity-subrow-dot">•</span>
                                     <span class="activity-exact-time">${escapeHTML(item.formattedDate)}</span>
                                 </div>
                             </div>

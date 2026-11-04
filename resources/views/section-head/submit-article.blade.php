@@ -46,7 +46,7 @@
         @csrf
         <input type="hidden" name="article_id" id="hidden-article-id" value="{{ old('article_id', isset($editingDraft) ? $editingDraft->id : '') }}">
         <input type="hidden" name="content" id="hidden-content" value="{{ old('content') }}">
-        <input type="hidden" name="status" id="hidden-status" value="Pending Review">
+        <input type="hidden" name="status" id="hidden-status" value="Pending EIC Review">
 
         @if (isset($errors) && $errors->any())
             <div style="background-color: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 16px; border-radius: 8px; margin-bottom: 24px;">

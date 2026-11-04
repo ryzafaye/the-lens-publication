@@ -1,4 +1,4 @@
-﻿/* Author profile and byline interaction styles. */
+/* Author profile and byline interaction styles. */
 .author-profile-link { color: var(--maroon, #700f2b); font-weight: 800; text-decoration: none; text-decoration-thickness: 1px; text-underline-offset: 3px; transition: color .18s ease, text-decoration-color .18s ease; }
 .author-profile-link:hover, .author-profile-link:focus-visible { color: var(--maroon-dark, #4a091b); text-decoration: underline; }
 .author-profile-link:focus-visible { outline: 2px solid rgba(112,15,43,.22); outline-offset: 3px; border-radius: 2px; }

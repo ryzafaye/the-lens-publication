@@ -107,26 +107,12 @@
 
             <div class="form-field">
                 <label for="officer-input-role">Role *</label>
-                <div class="custom-select-wrapper" id="add-role-select-wrapper">
-                    <button type="button" class="form-select custom-select-trigger" id="add-role-trigger" aria-haspopup="listbox" aria-expanded="false">
-                        <span class="custom-select-label" id="add-role-label">Select role...</span>
-                        <i class="fa-solid fa-chevron-down custom-select-arrow" aria-hidden="true"></i>
-                    </button>
-                    <div class="custom-select-menu hidden" id="add-role-menu" role="listbox">
-                        @foreach($roles ?? [] as $roleItem)
-                            <div class="custom-select-option" data-value="{{ $roleItem->id }}" data-role-name="{{ $roleItem->role_name }}" role="option">
-                                <span>{{ $roleItem->role_name }}</span>
-                                <i class="fa-solid fa-check option-check" aria-hidden="true"></i>
-                            </div>
-                        @endforeach
-                    </div>
-                    <select id="officer-input-role" name="role_id" class="hidden-native-select" required>
-                        <option value="" disabled selected>Select role...</option>
-                        @foreach($roles ?? [] as $roleItem)
-                            <option value="{{ $roleItem->id }}" data-role-name="{{ $roleItem->role_name }}">{{ $roleItem->role_name }}</option>
-                        @endforeach
-                    </select>
-                </div>
+                <select id="officer-input-role" name="role_id" class="form-select" required>
+                    <option value="" disabled selected>Select role...</option>
+                    @foreach($roles ?? [] as $roleItem)
+                        <option value="{{ $roleItem->role_name }}" data-id="{{ $roleItem->id }}">{{ $roleItem->role_name }}</option>
+                    @endforeach
+                </select>
             </div>
 
             <!-- Footer with Maroon Designed Create Account Button -->
@@ -209,26 +195,12 @@
 
             <div class="form-field">
                 <label for="edit-role-select">Select New Role *</label>
-                <div class="custom-select-wrapper" id="edit-role-select-wrapper">
-                    <button type="button" class="form-select custom-select-trigger" id="edit-role-trigger" aria-haspopup="listbox" aria-expanded="false">
-                        <span class="custom-select-label" id="edit-role-label">Select role...</span>
-                        <i class="fa-solid fa-chevron-down custom-select-arrow" aria-hidden="true"></i>
-                    </button>
-                    <div class="custom-select-menu hidden" id="edit-role-menu" role="listbox">
-                        @foreach($roles ?? [] as $roleItem)
-                            <div class="custom-select-option" data-value="{{ $roleItem->id }}" data-role-name="{{ $roleItem->role_name }}" role="option">
-                                <span>{{ $roleItem->role_name }}</span>
-                                <i class="fa-solid fa-check option-check" aria-hidden="true"></i>
-                            </div>
-                        @endforeach
-                    </div>
-                    <select id="edit-role-select" name="role_id" class="hidden-native-select" required>
-                        <option value="" disabled selected>Select role...</option>
-                        @foreach($roles ?? [] as $roleItem)
-                            <option value="{{ $roleItem->id }}" data-role-name="{{ $roleItem->role_name }}">{{ $roleItem->role_name }}</option>
-                        @endforeach
-                    </select>
-                </div>
+                <select id="edit-role-select" name="role_id" class="form-select" required>
+                    <option value="" disabled selected>Select role...</option>
+                    @foreach($roles ?? [] as $roleItem)
+                        <option value="{{ $roleItem->role_name }}" data-id="{{ $roleItem->id }}">{{ $roleItem->role_name }}</option>
+                    @endforeach
+                </select>
             </div>
 
             <div class="modal-single-btn-footer">

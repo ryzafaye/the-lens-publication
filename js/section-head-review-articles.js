@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================================================================
     const userRole = localStorage.getItem('sectionHeadRole') || localStorage.getItem('userRole') || 'News Head';
     const currentSection = localStorage.getItem('sectionHeadSection') || 'News';
-    const sectionHeadName = localStorage.getItem('sectionHeadName') || localStorage.getItem('userName') || 'Danilo C. Ramos';
+    const sectionHeadName = localStorage.getItem('sectionHeadName') || localStorage.getItem('userName') || '';
 
     // =========================================================================
     // 2. DATASET (Pending Manuscripts Queue)
@@ -43,12 +43,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    let reviewList = getPendingQueue();
+    function getCsrfToken() {
+        return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+    }
+
+    const isBackend = typeof window.__PENDING_ARTICLES__ !== 'undefined' && Array.isArray(window.__PENDING_ARTICLES__);
+    let reviewList = isBackend ? [...window.__PENDING_ARTICLES__] : getPendingQueue();
     let currentSort = 'newest';
     let currentActiveId = null;
 
     // Filter queue matching this Section Head's desk
     function getSectionQueue() {
+        if (isBackend) return reviewList;
         if (!currentSection || currentSection === 'All') return reviewList;
         const sec = currentSection.toLowerCase();
         return reviewList.filter(item => {
@@ -201,9 +207,31 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================================================================
     // 6. ACTION HANDLERS
     // =========================================================================
-    function approveStory(id) {
-        const item = reviewList.find(a => a.id === id);
+    async function approveStory(id) {
+        const item = reviewList.find(a => String(a.id) === String(id));
         if (!item) return;
+
+        if (window.__APPROVE_URL__) {
+            try {
+                const res = await fetch(`${window.__APPROVE_URL__}/${id}/approve`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': getCsrfToken(),
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok || data.success === false) {
+                    showToast(data.message || 'Failed to approve story.', 'error');
+                    return;
+                }
+            } catch (err) {
+                console.error('Failed to submit approval to backend:', err);
+                showToast('Network error while approving story.', 'error');
+                return;
+            }
+        }
 
         const box = document.getElementById(`box-${id}`);
         if (box) {
@@ -211,7 +239,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         setTimeout(() => {
-            reviewList = reviewList.filter(a => a.id !== id);
+            reviewList = reviewList.filter(a => String(a.id) !== String(id));
             savePendingQueue(reviewList);
             logActivity('approved and endorsed to EIC', item.title);
 
@@ -262,9 +290,32 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 220);
     }
 
-    function returnStoryForRevision(id, remarks) {
-        const item = reviewList.find(a => a.id === id);
+    async function returnStoryForRevision(id, remarks) {
+        const item = reviewList.find(a => String(a.id) === String(id));
         if (!item) return;
+
+        if (window.__REVISION_URL__) {
+            try {
+                const res = await fetch(`${window.__REVISION_URL__}/${id}/revision`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': getCsrfToken(),
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ remarks: remarks })
+                });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok || data.success === false) {
+                    showToast(data.message || 'Failed to return story for revision.', 'error');
+                    return;
+                }
+            } catch (err) {
+                console.error('Failed to submit revision to backend:', err);
+                showToast('Network error while returning story for revision.', 'error');
+                return;
+            }
+        }
 
         const box = document.getElementById(`box-${id}`);
         if (box) {
@@ -272,7 +323,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         setTimeout(() => {
-            reviewList = reviewList.filter(a => a.id !== id);
+            reviewList = reviewList.filter(a => String(a.id) !== String(id));
             savePendingQueue(reviewList);
             logActivity('requested revision on', item.title);
 

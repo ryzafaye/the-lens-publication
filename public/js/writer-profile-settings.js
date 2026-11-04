@@ -1,18 +1,48 @@
 /**
  * ============================================================================
  * THE LENS — WRITER PROFILE SETTINGS CONTROLLER
- * Full Backend & Supabase Integration with Real-Time Validation
+ * Dedicated Settings for Staff Writers: Profile, Bio, Avatar & Password Security
  * ============================================================================
  */
 
 document.addEventListener('DOMContentLoaded', () => {
     'use strict';
 
-    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+    // =========================================================================
+    // 0. ROLE GUARD: REDIRECT EXECUTIVES TO EXECUTIVE PROFILE SETTINGS
+    // =========================================================================
+    const activeRole = localStorage.getItem('userRole') || '';
+    if (activeRole && activeRole !== 'Writer' && !activeRole.toLowerCase().includes('writer') && !activeRole.toLowerCase().includes('contributor')) {
+        window.location.replace('executive-profile-settings.html');
+        return;
+    }
 
     // =========================================================================
-    // 1. AVATAR HELPERS
+    // 1. DYNAMIC WRITER STATE HYDRATION
     // =========================================================================
+    const initialInputName = document.getElementById('input-full-name')?.value?.trim();
+    const initialInputNum = document.getElementById('input-student-number')?.value?.trim();
+
+    let userName = (initialInputName && initialInputName !== 'undefined')
+        ? initialInputName
+        : (localStorage.getItem('userName') || localStorage.getItem('writerName') || '');
+    let studentNumber = (initialInputNum && initialInputNum !== 'undefined')
+        ? initialInputNum
+        : (localStorage.getItem('studentNumber') || localStorage.getItem('writerStudentNumber') || '');
+    let writerAvatar = localStorage.getItem('writerAvatar') || localStorage.getItem('userAvatar') || 'images/member-placeholder.svg';
+
+    localStorage.setItem('userRole', 'Writer');
+    if (userName) {
+        localStorage.setItem('userName', userName);
+        localStorage.setItem('writerName', userName);
+    }
+    if (studentNumber) {
+        localStorage.setItem('studentNumber', studentNumber);
+        localStorage.setItem('writerStudentNumber', studentNumber);
+    }
+    localStorage.setItem('writerRole', 'Writer');
+
+    // Sync avatars across DOM
     function updateAllAvatars(src) {
         const previewImg = document.getElementById('avatar-preview-img');
         const sidebarImg = document.getElementById('sidebar-avatar-img');
@@ -24,9 +54,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (topbarImg) topbarImg.src = src;
         if (mobileImg) mobileImg.src = src;
     }
+    updateAllAvatars(writerAvatar);
 
     // =========================================================================
-    // 2. TOAST NOTIFICATIONS
+    // 2. TOAST NOTIFICATIONS (DEFAULT EXECUTIVE PILL WITH GLOWING BULLET DOT)
     // =========================================================================
     function escapeHTML(str) {
         if (!str) return '';
@@ -57,20 +88,39 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => {
             toast.classList.add('toast-dismissing');
             setTimeout(() => toast.remove(), 260);
-        }, 3600);
+        }, 3200);
     }
 
     // =========================================================================
-    // 3. PROFILE FORM & AVATAR UPLOAD
+    // 3. PROFILE HYDRATION & PHOTO UPLOAD
     // =========================================================================
     const inputStudentNumber = document.getElementById('input-student-number');
     const inputFullName = document.getElementById('input-full-name');
+    const inputWriterRole = document.getElementById('input-writer-role');
     const avatarFileInput = document.getElementById('avatar-file-input');
-    const removeAvatarInput = document.getElementById('remove-avatar-input');
     const btnChangeAvatar = document.getElementById('btn-change-avatar');
     const btnResetAvatar = document.getElementById('btn-reset-avatar');
     const profileInfoForm = document.getElementById('profile-info-form');
-    const btnSaveProfile = document.getElementById('btn-save-profile');
+
+    if (inputStudentNumber) {
+        if (!inputStudentNumber.value || inputStudentNumber.value.trim() === '' || inputStudentNumber.value === 'undefined') {
+            inputStudentNumber.value = studentNumber;
+        } else {
+            studentNumber = inputStudentNumber.value.trim();
+            localStorage.setItem('studentNumber', studentNumber);
+            localStorage.setItem('writerStudentNumber', studentNumber);
+        }
+    }
+    if (inputFullName) {
+        if (!inputFullName.value || inputFullName.value.trim() === '' || inputFullName.value === 'undefined') {
+            inputFullName.value = userName;
+        } else {
+            userName = inputFullName.value.trim();
+            localStorage.setItem('userName', userName);
+            localStorage.setItem('writerName', userName);
+        }
+    }
+    if (inputWriterRole) inputWriterRole.value = 'Writer';
 
     // Trigger file dialog
     if (btnChangeAvatar && avatarFileInput) {
@@ -79,7 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Handle chosen file (Preview immediately)
+    // Handle chosen file
     if (avatarFileInput) {
         avatarFileInput.addEventListener('change', (e) => {
             const file = e.target.files && e.target.files[0];
@@ -99,14 +149,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            if (removeAvatarInput) removeAvatarInput.value = '0';
-
             const reader = new FileReader();
             reader.onload = (loadEvt) => {
                 const dataUrl = loadEvt.target.result;
-                const previewImg = document.getElementById('avatar-preview-img');
-                if (previewImg) previewImg.src = dataUrl;
-                showToast('Photo selected. Click "Save Profile" to apply changes.');
+                try {
+                    localStorage.setItem('writerAvatar', dataUrl);
+                    localStorage.setItem('userAvatar', dataUrl);
+                    writerAvatar = dataUrl;
+                    updateAllAvatars(dataUrl);
+                    showToast('Writer profile photo updated.');
+                } catch (err) {
+                    console.warn('Could not store full avatar dataUrl in localStorage:', err);
+                    updateAllAvatars(dataUrl);
+                    showToast('Profile photo preview updated.');
+                }
             };
             reader.readAsDataURL(file);
         });
@@ -115,18 +171,19 @@ document.addEventListener('DOMContentLoaded', () => {
     // Reset avatar to placeholder
     if (btnResetAvatar) {
         btnResetAvatar.addEventListener('click', () => {
-            const defaultPlaceholder = '/images/member-placeholder.svg';
+            const defaultPlaceholder = 'images/member-placeholder.svg';
+            localStorage.setItem('writerAvatar', defaultPlaceholder);
+            localStorage.setItem('userAvatar', defaultPlaceholder);
+            writerAvatar = defaultPlaceholder;
+            updateAllAvatars(defaultPlaceholder);
             if (avatarFileInput) avatarFileInput.value = '';
-            if (removeAvatarInput) removeAvatarInput.value = '1';
-            const previewImg = document.getElementById('avatar-preview-img');
-            if (previewImg) previewImg.src = defaultPlaceholder;
-            showToast('Profile photo set to remove. Click "Save Profile" to save.', 'warning');
+            showToast('Profile photo reset to default placeholder.');
         });
     }
 
-    // Profile Information Form Submit via AJAX to Supabase backend
+    // Profile Information Form Submit
     if (profileInfoForm) {
-        profileInfoForm.addEventListener('submit', async (e) => {
+        profileInfoForm.addEventListener('submit', (e) => {
             e.preventDefault();
 
             const newName = inputFullName ? inputFullName.value.trim() : '';
@@ -144,50 +201,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            const origBtnHtml = btnSaveProfile ? btnSaveProfile.innerHTML : '';
-            if (btnSaveProfile) {
-                btnSaveProfile.disabled = true;
-                btnSaveProfile.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>Saving...</span>';
-            }
+            // Save to localStorage
+            localStorage.setItem('userName', newName);
+            localStorage.setItem('studentNumber', newStudentNum);
+            localStorage.setItem('writerName', newName);
+            localStorage.setItem('writerStudentNumber', newStudentNum);
+            userName = newName;
+            studentNumber = newStudentNum;
 
-            try {
-                const formData = new FormData(profileInfoForm);
-                const response = await fetch(profileInfoForm.action, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': csrfToken,
-                        'Accept': 'application/json'
-                    },
-                    body: formData
-                });
+            // Sync with sidebar and mobile drawer
+            const sidebarWriterName = document.getElementById('sidebar-writer-name');
+            const mobileWriterName = document.getElementById('mobile-writer-name') || document.querySelector('.mobile-nav-name');
+            if (sidebarWriterName) sidebarWriterName.textContent = newName;
+            if (mobileWriterName) mobileWriterName.textContent = newName;
 
-                const data = await response.json();
-
-                if (response.ok && data.success) {
-                    showToast(data.message || 'Profile updated successfully.', 'success');
-
-                    // Sync UI
-                    const sidebarWriterName = document.getElementById('sidebar-writer-name');
-                    if (sidebarWriterName && data.user) sidebarWriterName.textContent = data.user.full_name;
-
-                    if (data.user && data.user.profile_picture_url) {
-                        updateAllAvatars(data.user.profile_picture_url);
-                    } else if (removeAvatarInput && removeAvatarInput.value === '1') {
-                        updateAllAvatars('/images/member-placeholder.svg');
-                    }
-                } else {
-                    const msg = data.message || (data.errors ? Object.values(data.errors).flat().join(' ') : 'Failed to update profile.');
-                    showToast(msg, 'danger');
-                }
-            } catch (err) {
-                console.error(err);
-                showToast('A network error occurred while updating profile.', 'danger');
-            } finally {
-                if (btnSaveProfile) {
-                    btnSaveProfile.disabled = false;
-                    btnSaveProfile.innerHTML = origBtnHtml;
-                }
-            }
+            showToast('Writer profile updated successfully.');
         });
     }
 
@@ -198,7 +226,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const inputCurrentPass = document.getElementById('input-current-password');
     const inputNewPass = document.getElementById('input-new-password');
     const inputConfirmPass = document.getElementById('input-confirm-password');
-    const btnUpdatePassword = document.getElementById('btn-update-password');
 
     // Eye toggle buttons
     document.querySelectorAll('.password-toggle-btn').forEach(btn => {
@@ -245,9 +272,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (inputNewPass) inputNewPass.addEventListener('input', updatePasswordCriteria);
     if (inputConfirmPass) inputConfirmPass.addEventListener('input', updatePasswordCriteria);
 
-    // Password Form Submit via AJAX to Supabase backend
+    // Password Form Submit
     if (passwordForm) {
-        passwordForm.addEventListener('submit', async (e) => {
+        passwordForm.addEventListener('submit', (e) => {
             e.preventDefault();
 
             const currentVal = inputCurrentPass ? inputCurrentPass.value.trim() : '';
@@ -284,47 +311,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            const origBtnHtml = btnUpdatePassword ? btnUpdatePassword.innerHTML : '';
-            if (btnUpdatePassword) {
-                btnUpdatePassword.disabled = true;
-                btnUpdatePassword.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>Updating...</span>';
-            }
+            // Save new password in localStorage
+            localStorage.setItem('writerAccountPassword', newVal);
 
-            try {
-                const response = await fetch(passwordForm.action, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': csrfToken,
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        current_password: currentVal,
-                        new_password: newVal,
-                        new_password_confirmation: confirmVal
-                    })
-                });
+            // Reset inputs
+            if (inputCurrentPass) inputCurrentPass.value = '';
+            if (inputNewPass) inputNewPass.value = '';
+            if (inputConfirmPass) inputConfirmPass.value = '';
+            updatePasswordCriteria();
 
-                const data = await response.json();
-
-                if (response.ok && data.success) {
-                    showToast(data.message || 'Password updated successfully.', 'success');
-                    passwordForm.reset();
-                    updatePasswordCriteria();
-                } else {
-                    const msg = data.message || (data.errors ? Object.values(data.errors).flat().join(' ') : 'Failed to update password.');
-                    showToast(msg, 'danger');
-                }
-            } catch (err) {
-                console.error(err);
-                showToast('A network error occurred while updating password.', 'danger');
-            } finally {
-                if (btnUpdatePassword) {
-                    btnUpdatePassword.disabled = false;
-                    btnUpdatePassword.innerHTML = origBtnHtml;
-                }
-            }
+            showToast('Writer password updated successfully.');
         });
     }
 
 });
+

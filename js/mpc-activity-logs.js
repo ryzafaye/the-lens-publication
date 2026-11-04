@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 1. ACTIVE M&PC OFFICER VERIFICATION
     // =========================================================================
     const userRole = localStorage.getItem('mpcRole') || localStorage.getItem('userRole') || 'M&PC Head';
-    const userName = localStorage.getItem('mpcName') || localStorage.getItem('userName') || (userRole.includes('Assoc') ? 'Samantha Cruz' : 'Julian Del Rosario');
+    const userName = localStorage.getItem('mpcName') || localStorage.getItem('userName') || (userRole.includes('Assoc') ? '' : '');
 
     // =========================================================================
     // 2. ESCAPE HTML HELPER

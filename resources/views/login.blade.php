@@ -4,6 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login | The Lens</title>
+    <script>
+        if (typeof localStorage !== 'undefined') {
+            try {
+                localStorage.clear();
+                sessionStorage.clear();
+            } catch (e) {}
+        }
+    </script>
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -252,6 +260,28 @@
         </div>
     </div>
 
-    <script src="{{ asset('js/login.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const togglePasswordBtn = document.getElementById('toggle-password');
+            const passwordInput = document.getElementById('password');
+            const togglePasswordIcon = document.getElementById('toggle-password-icon');
+
+            if (togglePasswordBtn && passwordInput && togglePasswordIcon) {
+                togglePasswordBtn.addEventListener('click', () => {
+                    const isPassword = passwordInput.getAttribute('type') === 'password';
+                    passwordInput.setAttribute('type', isPassword ? 'text' : 'password');
+                    togglePasswordIcon.classList.toggle('fa-eye', !isPassword);
+                    togglePasswordIcon.classList.toggle('fa-eye-slash', isPassword);
+                });
+            }
+
+            const studentInput = document.getElementById('student-number');
+            if (studentInput) {
+                studentInput.addEventListener('input', (e) => {
+                    e.target.value = e.target.value.toUpperCase();
+                });
+            }
+        });
+    </script>
 </body>
 </html>

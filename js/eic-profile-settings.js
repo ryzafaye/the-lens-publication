@@ -14,10 +14,28 @@ document.addEventListener('DOMContentLoaded', () => {
     // -------------------------------------------------------------------------
     // 1. DATA INITIALIZATION & HYDRATION
     // -------------------------------------------------------------------------
-    let role = localStorage.getItem('eicRole') || userRole || 'Editor-in-Chief';
-    let name = localStorage.getItem('eicName') || localStorage.getItem('userName') || 'Victoria Reyes';
-    let studentNumber = localStorage.getItem('eicStudentNumber') || localStorage.getItem('studentNumber') || '2024-00010-BN-0';
-    let avatar = localStorage.getItem('eicAvatar') || localStorage.getItem('userAvatar') || 'images/member-placeholder.svg';
+    const initialInputName = document.getElementById('input-full-name')?.value?.trim();
+    const initialInputNum = document.getElementById('input-student-number')?.value?.trim();
+
+    let role = localStorage.getItem('userRole') || localStorage.getItem('eicRole') || userRole || 'Editor-in-Chief';
+    let name = (initialInputName && initialInputName !== 'undefined')
+        ? initialInputName
+        : (localStorage.getItem('userName') || localStorage.getItem('eicName') || '');
+    let studentNumber = (initialInputNum && initialInputNum !== 'undefined')
+        ? initialInputNum
+        : (localStorage.getItem('studentNumber') || localStorage.getItem('eicStudentNumber') || '');
+    let avatar = localStorage.getItem('userAvatar') || localStorage.getItem('eicAvatar') || 'images/member-placeholder.svg';
+
+    if (name) {
+        localStorage.setItem('userName', name);
+        localStorage.setItem('eicName', name);
+    }
+    if (studentNumber) {
+        localStorage.setItem('studentNumber', studentNumber);
+        localStorage.setItem('eicStudentNumber', studentNumber);
+    }
+    localStorage.setItem('userRole', role);
+    localStorage.setItem('eicRole', role);
 
     // DOM Elements
     const inputStudentNumber = document.getElementById('input-student-number');
@@ -32,8 +50,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const toastContainer = document.getElementById('toast-container');
 
     // Populate Fields
-    if (inputStudentNumber) inputStudentNumber.value = studentNumber;
-    if (inputFullName) inputFullName.value = name;
+    if (inputStudentNumber) {
+        if (!inputStudentNumber.value || inputStudentNumber.value.trim() === '' || inputStudentNumber.value === 'undefined') {
+            inputStudentNumber.value = studentNumber;
+        } else {
+            studentNumber = inputStudentNumber.value.trim();
+            localStorage.setItem('studentNumber', studentNumber);
+            localStorage.setItem('eicStudentNumber', studentNumber);
+        }
+    }
+    if (inputFullName) {
+        if (!inputFullName.value || inputFullName.value.trim() === '' || inputFullName.value === 'undefined') {
+            inputFullName.value = name;
+        } else {
+            name = inputFullName.value.trim();
+            localStorage.setItem('userName', name);
+            localStorage.setItem('eicName', name);
+        }
+    }
     if (inputOfficerRole) inputOfficerRole.value = role;
     if (avatarPreviewImg) avatarPreviewImg.src = avatar;
 

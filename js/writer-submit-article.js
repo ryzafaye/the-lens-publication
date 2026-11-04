@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
         : (localStorage.getItem('writerId') || 'sofia-alcaraz');
 
     const currentUserName = localStorage.getItem('userName') || 
-        (activeWriterId === 'marco-valderrama' ? 'Marco L. Valderrama' : 'Sofia M. Alcaraz');
+        (activeWriterId === 'marco-valderrama' ? '' : '');
 
     // =========================================================================
     // 2. DOM ELEMENT REFERENCES

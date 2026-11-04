@@ -78,7 +78,7 @@
                         localStorage.removeItem('userName');
                         localStorage.removeItem('studentNumber');
                     } catch (e) {}
-                    window.location.href = 'login.html';
+                    window.location.href = '/logout';
                 }
             });
         }
@@ -105,7 +105,7 @@
                         localStorage.removeItem('userName');
                         localStorage.removeItem('studentNumber');
                     } catch (err) {}
-                    window.location.href = 'login.html';
+                    window.location.href = '/logout';
                 });
             }, true); // Use capture phase to intercept before older inline confirm() listeners
         });
@@ -125,7 +125,7 @@
                     localStorage.removeItem('userName');
                     localStorage.removeItem('studentNumber');
                 } catch (err) {}
-                window.location.href = 'login.html';
+                window.location.href = '/logout';
             });
         }
     }, true);

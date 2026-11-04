@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 1. ACTIVE CARTOONIST HEAD OFFICER
     // =========================================================================
     const userRole = localStorage.getItem('cartoonistHeadRole') || localStorage.getItem('userRole') || 'Cartoonist Head';
-    const userName = localStorage.getItem('cartoonistHeadName') || localStorage.getItem('userName') || 'Danilo Reyes';
+    const userName = localStorage.getItem('cartoonistHeadName') || localStorage.getItem('userName') || '';
 
     // Helper: Escape HTML
     function escapeHTML(str) {

@@ -190,7 +190,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const rawDateStr = now.toISOString().split('T')[0];
 
             const userRole = localStorage.getItem('mpcRole') || localStorage.getItem('userRole') || 'M&PC Head';
-            const authorName = localStorage.getItem('mpcName') || localStorage.getItem('userName') || (userRole.includes('Assoc') ? 'Samantha Cruz' : 'Julian Del Rosario');
+            const authorName = localStorage.getItem('mpcName') || localStorage.getItem('userName') || (userRole.includes('Assoc') ? '' : '');
 
             const newId = 'cov-' + Date.now();
             const newPubmatItem = {

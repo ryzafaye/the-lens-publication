@@ -43,17 +43,25 @@ try {
         localStorage.setItem(CLEAR_FLAG, 'true');
     }
 } catch (e) {}
-
 /**
  * ============================================================================
- * THE LENS — EXECUTIVE SHELL CONTROLLER
+ * THE LENS — REUSABLE EXECUTIVE SHELL CONTROLLER
  * Shared Chrome & Navigation across all Executive Portal Pages
+ * 
+ * Clean, readable, modular controller that handles:
+ *  1. User Role Hydration (topbar, sidebar, mobile nav)
+ *  2. Real-Time Desktop Clock (Asia/Manila time)
+ *  3. Mobile Hamburger Menu Toggle, Backdrop, Outside-Click, Escape & Resize
+ *  4. Active Page Navigation Highlighting
+ *  5. Reusable Sidebar Footer slot injection
+ *  6. Executive Logout Handling (Square Modal, No Subtitle)
  * ============================================================================
  */
 
 (function () {
     'use strict';
 
+    // Prevent duplicate initialization if included multiple times
     if (window.__executiveShellInitialized) {
         return;
     }
@@ -62,59 +70,53 @@ try {
     function initExecutiveShell() {
 
         // =====================================================================
-        // 1. DYNAMIC PROFILE & ROLE HYDRATION
+        // 1. REUSABLE SIDEBAR FOOTER INJECTION (if placeholder exists)
         // =====================================================================
-        function hydrateExecutiveProfile() {
-            const sidebarUserName = document.getElementById('sidebar-user-name') || document.querySelector('.sidebar-profile .profile-name');
-            const sidebarUserRole = document.getElementById('sidebar-user-role');
-            const topbarUserRole = document.getElementById('topbar-user-role');
-            const mobileUserRole = document.getElementById('mobile-user-role');
-            const mobileUserName = document.getElementById('mobile-user-name');
-            const sectionBadges = document.querySelectorAll('.dynamic-section-name');
-
-            // Fallback values from storage if DOM elements are empty
-            let role = topbarUserRole?.textContent?.trim() || sidebarUserRole?.textContent?.trim() || 'Executive';
-            let name = sidebarUserName?.textContent?.trim() || mobileUserName?.textContent?.trim() || 'Executive User';
-            let section = 'Editorial';
-
-            try {
-                const storedRole = localStorage.getItem('sectionHeadRole') || localStorage.getItem('userRole');
-                const storedName = localStorage.getItem('sectionHeadName') || localStorage.getItem('userName');
-                const storedSection = localStorage.getItem('sectionHeadSection');
-
-                if (storedRole && (!role || role === 'Executive' || role === 'Officer')) role = storedRole;
-                if (storedName && (!name || name === 'Executive User')) name = storedName;
-                if (storedSection) section = storedSection;
-            } catch (e) {
-                // Storage unavailable
-            }
-
-            if (sidebarUserName && !sidebarUserName.textContent.trim()) sidebarUserName.textContent = name;
-            if (sidebarUserRole && !sidebarUserRole.textContent.trim()) sidebarUserRole.textContent = role;
-            if (topbarUserRole && !topbarUserRole.textContent.trim()) topbarUserRole.textContent = role;
-            if (mobileUserRole && !mobileUserRole.textContent.trim()) mobileUserRole.textContent = role;
-            if (mobileUserName && !mobileUserName.textContent.trim()) mobileUserName.textContent = name;
-
-            sectionBadges.forEach(badge => {
-                if (!badge.textContent.trim() || badge.textContent.trim() === 'News') {
-                    badge.textContent = section;
-                }
-            });
-
-            // Hydrate avatar if present in storage and not already set
-            try {
-                const avatarImg = localStorage.getItem('sectionHeadAvatar') || localStorage.getItem('userAvatar');
-                const sidebarAvatar = document.getElementById('sidebar-avatar-img') || document.querySelector('.sidebar-profile .profile-avatar img');
-                if (sidebarAvatar && avatarImg && !sidebarAvatar.getAttribute('src')?.includes('data:')) {
-                    sidebarAvatar.src = avatarImg;
-                }
-            } catch (e) {}
+        const footerSlot = document.querySelector('[data-include="executive-sidebar-footer.html"], [data-slot="sidebar-footer"]');
+        if (footerSlot && footerSlot.children.length === 0) {
+            footerSlot.innerHTML = `
+                <a href="executive-profile-settings.html" class="sidebar-footer-link" data-page="executive-profile-settings.html">
+                    <i class="fa-solid fa-sliders"></i>
+                    <span>Profile Settings</span>
+                </a>
+                <a href="index.html" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    <span>View public site</span>
+                </a>
+                <button type="button" id="logout-btn" class="sidebar-footer-link logout-btn">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span>Logout</span>
+                </button>
+            `;
+            footerSlot.classList.add('sidebar-footer');
         }
 
-        hydrateExecutiveProfile();
+        // =====================================================================
+        // 2. DYNAMIC USER ROLE HYDRATION
+        // =====================================================================
+        function hydrateUserRole() {
+            let role = 'President';
+            try {
+                role = localStorage.getItem('userRole') || localStorage.getItem('executiveRole') || 'President';
+                if (!localStorage.getItem('userRole')) {
+                    localStorage.setItem('userRole', role);
+                }
+            } catch (e) {
+                // LocalStorage blocked or unavailable
+            }
+
+            const topbarRole = document.getElementById('topbar-user-role');
+            const sidebarRole = document.getElementById('sidebar-user-role');
+            const mobileRole = document.getElementById('mobile-user-role');
+
+            if (topbarRole) topbarRole.textContent = role;
+            if (sidebarRole) sidebarRole.textContent = role;
+            if (mobileRole) mobileRole.textContent = role;
+        }
+        hydrateUserRole();
 
         // =====================================================================
-        // 2. REAL-TIME DESKTOP CLOCK (Asia/Manila)
+        // 3. REAL-TIME DESKTOP CLOCK (Asia/Manila)
         // =====================================================================
         function updateDesktopClock() {
             const clockDisplays = document.querySelectorAll('#topbar-clock-display, .topbar-clock span:last-child');
@@ -141,12 +143,13 @@ try {
         setInterval(updateDesktopClock, 1000);
 
         // =====================================================================
-        // 3. MOBILE HAMBURGER NAVIGATION & ACCORDION
+        // 4. MOBILE HAMBURGER NAVIGATION & ACCORDION
         // =====================================================================
         const mobileHamburgerBtn = document.getElementById('mobile-hamburger-btn');
         const mobileNavDropdown = document.getElementById('mobile-nav-dropdown');
 
         if (mobileHamburgerBtn && mobileNavDropdown) {
+            // Ensure backdrop element exists for clean click-outside overlay
             let backdrop = document.getElementById('mobile-nav-backdrop');
             if (!backdrop) {
                 backdrop = document.createElement('div');
@@ -156,7 +159,9 @@ try {
             }
 
             function isNavOpen() {
-                return mobileNavDropdown.classList.contains('open');
+                return mobileNavDropdown.classList.contains('open') || 
+                       mobileNavDropdown.classList.contains('active') || 
+                       mobileNavDropdown.classList.contains('expanded');
             }
 
             function setNavState(open) {
@@ -166,61 +171,87 @@ try {
                     if (backdrop) backdrop.classList.add('open', 'active', 'expanded');
                     mobileHamburgerBtn.setAttribute('aria-expanded', 'true');
                     document.body.classList.add('mobile-nav-open');
-                    if (icon) { icon.classList.remove('fa-bars'); icon.classList.add('fa-xmark'); }
+                    if (icon) {
+                        icon.classList.remove('fa-bars');
+                        icon.classList.add('fa-xmark');
+                    }
                 } else {
                     mobileNavDropdown.classList.remove('open', 'active', 'expanded');
                     if (backdrop) backdrop.classList.remove('open', 'active', 'expanded');
                     mobileHamburgerBtn.setAttribute('aria-expanded', 'false');
                     document.body.classList.remove('mobile-nav-open');
-                    if (icon) { icon.classList.remove('fa-xmark'); icon.classList.add('fa-bars'); }
+                    if (icon) {
+                        icon.classList.remove('fa-xmark');
+                        icon.classList.add('fa-bars');
+                    }
                 }
             }
 
+            // Burger button click toggle
             mobileHamburgerBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 setNavState(!isNavOpen());
             });
 
-            if (backdrop) backdrop.addEventListener('click', () => setNavState(false));
+            // Tap backdrop to close
+            if (backdrop) {
+                backdrop.addEventListener('click', () => setNavState(false));
+            }
 
+            // Tap anywhere outside to close
             document.addEventListener('click', (e) => {
-                if (isNavOpen() && !mobileNavDropdown.contains(e.target) && !mobileHamburgerBtn.contains(e.target)) {
-                    setNavState(false);
+                if (isNavOpen()) {
+                    if (!mobileNavDropdown.contains(e.target) && !mobileHamburgerBtn.contains(e.target)) {
+                        setNavState(false);
+                    }
                 }
             });
 
-            window.addEventListener('resize', () => {
-                if (window.innerWidth > 768 && isNavOpen()) setNavState(false);
-            });
-
+            // Close on Escape key press
             document.addEventListener('keydown', (e) => {
                 if (e.key === 'Escape' && isNavOpen()) {
                     setNavState(false);
                 }
             });
-        }
 
-        // =====================================================================
-        // 4. ACTIVE PAGE NAVIGATION HIGHLIGHTING
-        // =====================================================================
-        function highlightActiveNavigation() {
-            const currentPath = window.location.pathname;
-            const navItems = document.querySelectorAll('.sidebar-nav-item, .mobile-nav-link');
-            navItems.forEach(item => {
-                const href = item.getAttribute('href');
-                if (!href) return;
-                if (item.classList.contains('active')) return;
-
-                if (href === currentPath || (currentPath.startsWith(href) && href !== '/' && href !== '#')) {
-                    item.classList.add('active');
-                    item.setAttribute('aria-current', 'page');
+            // Automatically close if screen resized back to desktop (> 768px)
+            window.addEventListener('resize', () => {
+                if (window.innerWidth > 768 && isNavOpen()) {
+                    setNavState(false);
                 }
             });
+
+            // Close menu when clicking any nav link inside mobile dropdown
+            const mobileLinks = mobileNavDropdown.querySelectorAll('.mobile-nav-link, .mobile-nav-footer-link');
+            mobileLinks.forEach(link => {
+                link.addEventListener('click', () => {
+                    setNavState(false);
+                });
+            });
+
+            // Expose helper on window for debugging or manual control
+            window.setExecutiveMobileNav = setNavState;
         }
-        highlightActiveNavigation();
 
         // =====================================================================
-        // 5. CUSTOM DESIGNED LOGOUT CONFIRMATION MODAL
+        // 5. ACTIVE NAVIGATION LINK HIGHLIGHTING
+        // =====================================================================
+        const currentPath = window.location.pathname.split('/').pop() || 'executive-dashboard.html';
+        const navLinks = document.querySelectorAll('.sidebar-nav-item, .mobile-nav-link');
+        navLinks.forEach(link => {
+            const href = link.getAttribute('href');
+            if (href) {
+                const targetFile = href.split('#')[0];
+                if (targetFile === currentPath || (currentPath === '' && targetFile === 'executive-dashboard.html')) {
+                    link.classList.add('active');
+                } else if (!href.startsWith('#')) {
+                    link.classList.remove('active');
+                }
+            }
+        });
+
+        // =====================================================================
+        // 6. CUSTOM DESIGNED LOGOUT CONFIRMATION MODAL (Square, Compact, No Subtitle)
         // =====================================================================
         function showLogoutModal(onConfirm) {
             let modal = document.getElementById('lens-logout-modal');
@@ -283,29 +314,13 @@ try {
             modal.classList.remove('hidden');
         }
 
-        function triggerLogout(targetForm) {
+        function triggerLogout() {
             showLogoutModal(() => {
                 try {
-                    localStorage.removeItem('userRole');
-                    localStorage.removeItem('userName');
-                    localStorage.removeItem('studentNumber');
-                    localStorage.removeItem('sectionHeadRole');
-                    localStorage.removeItem('sectionHeadName');
-                    localStorage.removeItem('sectionHeadSection');
-                    localStorage.removeItem('sectionHeadStudentNumber');
+                    localStorage.clear();
                     sessionStorage.clear();
                 } catch (err) {}
-
-                if (targetForm && typeof targetForm.submit === 'function') {
-                    targetForm.submit();
-                } else {
-                    const fallbackForm = document.querySelector('form[action*="logout"]');
-                    if (fallbackForm) {
-                        fallbackForm.submit();
-                    } else {
-                        window.location.href = '/login';
-                    }
-                }
+                window.location.href = '/logout';
             });
         }
 
@@ -316,12 +331,19 @@ try {
                 e.preventDefault();
                 e.stopPropagation();
                 e.stopImmediatePropagation();
-                const parentForm = btn.closest('form');
-                triggerLogout(parentForm);
+                triggerLogout();
             }
         }, true);
+
+        // Expose API namespace
+        window.ExecutiveShell = {
+            hydrateUserRole,
+            updateDesktopClock,
+            setNavState: window.setExecutiveMobileNav || (() => {})
+        };
     }
 
+    // Initialize as soon as DOM is ready
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initExecutiveShell);
     } else {

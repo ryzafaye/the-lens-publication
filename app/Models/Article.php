@@ -15,6 +15,7 @@ class Article extends Model
         'category_id',
         'excerpt',
         'content',
+        'cover_image',
         'status',
         'views',
         'shares',

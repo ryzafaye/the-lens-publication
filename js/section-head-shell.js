@@ -64,36 +64,21 @@ try {
         // 1. DYNAMIC SECTION HEAD PROFILE & ROLE HYDRATION
         // =====================================================================
         function hydrateSectionHeadProfile() {
-            let role = 'News Head';
-            let name = 'Danilo C. Ramos';
-            let section = 'News';
-            let studentNum = '2024-00051-BN-0';
+            let role = 'Section Head';
+            let name = localStorage.getItem('sectionHeadName') || localStorage.getItem('userName') || 'Section Head';
+            let section = 'General';
+            let studentNum = localStorage.getItem('sectionHeadStudentNumber') || localStorage.getItem('studentNumber') || '';
 
             try {
-                const storedRole = localStorage.getItem('sectionHeadRole') || (localStorage.getItem('userRole') && localStorage.getItem('userRole').toLowerCase().includes('head') ? localStorage.getItem('userRole') : null);
-                const storedName = localStorage.getItem('sectionHeadName') || (storedRole ? localStorage.getItem('userName') : null);
+                const storedRole = localStorage.getItem('sectionHeadRole') || localStorage.getItem('userRole');
+                const storedName = localStorage.getItem('sectionHeadName') || localStorage.getItem('userName');
                 const storedSection = localStorage.getItem('sectionHeadSection');
-                const storedNum = localStorage.getItem('sectionHeadStudentNumber') || (storedRole ? localStorage.getItem('studentNumber') : null);
+                const storedNum = localStorage.getItem('sectionHeadStudentNumber') || localStorage.getItem('studentNumber');
 
-                if (storedRole && storedRole.toLowerCase().includes('head')) {
-                    role = storedRole;
-                    if (storedName) name = storedName;
-                    if (storedSection) section = storedSection;
-                    if (storedNum) studentNum = storedNum;
-                } else {
-                    // Initialize default News Head session
-                    role = 'News Head';
-                    name = 'Danilo C. Ramos';
-                    section = 'News';
-                    studentNum = '2024-00051-BN-0';
-                    localStorage.setItem('userRole', 'News Head');
-                    localStorage.setItem('userName', 'Danilo C. Ramos');
-                    localStorage.setItem('studentNumber', '2024-00051-BN-0');
-                    localStorage.setItem('sectionHeadRole', 'News Head');
-                    localStorage.setItem('sectionHeadName', 'Danilo C. Ramos');
-                    localStorage.setItem('sectionHeadSection', 'News');
-                    localStorage.setItem('sectionHeadStudentNumber', '2024-00051-BN-0');
-                }
+                if (storedRole) role = storedRole;
+                if (storedName && storedName !== 'Danilo C. Ramos') name = storedName;
+                if (storedSection) section = storedSection;
+                if (storedNum) studentNum = storedNum;
             } catch (e) {
                 // Storage unavailable
             }
@@ -274,16 +259,10 @@ try {
         function triggerLogout() {
             showLogoutModal(() => {
                 try {
-                    localStorage.removeItem('userRole');
-                    localStorage.removeItem('userName');
-                    localStorage.removeItem('studentNumber');
-                    localStorage.removeItem('sectionHeadRole');
-                    localStorage.removeItem('sectionHeadName');
-                    localStorage.removeItem('sectionHeadSection');
-                    localStorage.removeItem('sectionHeadStudentNumber');
+                    localStorage.clear();
                     sessionStorage.clear();
                 } catch (err) {}
-                window.location.href = 'login.html';
+                window.location.href = '/logout';
             });
         }
 

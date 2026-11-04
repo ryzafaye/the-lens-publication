@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     'use strict';
 
     // 1. User Resolution
-    const storedName = localStorage.getItem('cartoonistName') || localStorage.getItem('userName') || 'Raphael Luna';
+    const storedName = localStorage.getItem('cartoonistName') || localStorage.getItem('userName') || '';
     const firstName = storedName.split(' ')[0] || 'Raphael';
     const cartoonistNameEl = document.getElementById('cartoonist-name-display');
     if (cartoonistNameEl) cartoonistNameEl.textContent = firstName;
@@ -156,7 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="media-card-meta" style="margin-bottom: 8px;">
                             <span><i class="fa-regular fa-calendar"></i> ${escapeHTML(item.date)}</span>
                             <span>&bull;</span>
-                            <span><i class="fa-solid fa-palette"></i> ${escapeHTML(item.artist || 'Raphael Luna')}</span>
+                            <span><i class="fa-solid fa-palette"></i> ${escapeHTML(item.artist || '')}</span>
                         </div>
 
                         <div class="media-card-actions" style="margin-top: 12px; display: flex; align-items: center; justify-content: flex-end;">

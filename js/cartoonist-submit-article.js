@@ -61,7 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 2. AUTHOR BYLINE & ROLE INITIALIZATION
     // =========================================================================
     const currentUserRole = localStorage.getItem('cartoonistRole') || localStorage.getItem('userRole') || 'Cartoonist';
-    const currentUserName = localStorage.getItem('cartoonistName') || localStorage.getItem('userName') || 'Raphael Luna';
+    const currentUserName = localStorage.getItem('cartoonistName') || localStorage.getItem('userName') || '';
 
     if (authorNameDisplay) {
         authorNameDisplay.textContent = currentUserName;

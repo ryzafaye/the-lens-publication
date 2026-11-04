@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const currentSection = localStorage.getItem('sectionHeadSection') || 'News';
-    const sectionHeadName = localStorage.getItem('sectionHeadName') || localStorage.getItem('userName') || 'Danilo C. Ramos';
+    const sectionHeadName = localStorage.getItem('sectionHeadName') || localStorage.getItem('userName') || '';
 
     // -------------------------------------------------------------------------
     // Set Dynamic Title: "(Category) Head Dashboard" (No subline)

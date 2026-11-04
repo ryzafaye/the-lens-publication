@@ -6,6 +6,7 @@ const roleByCategory = Object.freeze({
     "Features": "Features Writer",
     "Opinion": "Opinion Columnist",
     "Science and Technology": "Science & Technology Contributor",
+    "Science & Technology": "Science & Technology Contributor",
     "Literature": "Literary Contributor"
 });
 
@@ -40,10 +41,12 @@ export function initAuthorPage() {
 
     const requestedName = (new URLSearchParams(window.location.search).get("name") || "").trim();
     const publicList = getPublicArticles();
-    const authorArticles = publicList.filter(article => String(article.author || "").trim().toLocaleLowerCase() === requestedName.toLocaleLowerCase());
+    const authorArticles = requestedName 
+        ? publicList.filter(article => String(article.author || "").trim().toLocaleLowerCase() === requestedName.toLocaleLowerCase())
+        : [];
     const authorName = authorArticles[0]?.author || requestedName;
 
-    if (!authorName || !authorArticles.length) {
+    if (!authorName) {
         container.innerHTML = `
             <section class="author-not-found">
                 <span><i class="fa-regular fa-user" aria-hidden="true"></i></span>
@@ -55,20 +58,35 @@ export function initAuthorPage() {
         return;
     }
 
-    const role = getRoleForAuthor(authorArticles);
+    const role = authorArticles.length ? getRoleForAuthor(authorArticles) : "Staff Contributor";
     document.title = `${authorName} | The Lens Author Profile`;
     container.innerHTML = `
-        <section class="author-summary-card">
-            <div class="author-avatar"><i class="fa-solid fa-user-pen" aria-hidden="true"></i></div>
-            <div class="author-summary-copy">
-                <p class="author-role-chip">${escapeHTML(role)}</p>
-                <h1>${escapeHTML(authorName)}</h1>
-                <p class="author-summary-bio">Staff contributor covering university news, campus affairs, and community developments for The Lens Publication.</p>
+        <section class="author-profile-hero">
+            <div class="author-avatar-wrap">
+                <img class="author-avatar" src="images/member-placeholder.svg" alt="${escapeHTML(authorName)}">
             </div>
-            <div class="author-article-count"><strong>${authorArticles.length}</strong><span>${authorArticles.length === 1 ? "Published article" : "Published articles"}</span></div>
+            <div class="author-identity">
+                <p class="author-profile-eyebrow">AUTHOR PROFILE</p>
+                <h1>${escapeHTML(authorName)}</h1>
+                <p class="author-role"><i class="fa-solid fa-pen-nib"></i> ${escapeHTML(role)}</p>
+                <p class="author-profile-summary">Staff contributor covering university news, campus affairs, and community developments for The Lens Publication.</p>
+            </div>
+            <div class="author-article-count">
+                <strong>${authorArticles.length}</strong>
+                <span>${authorArticles.length === 1 ? "Published article" : "Published articles"}</span>
+            </div>
         </section>
         <section class="author-articles-section" aria-labelledby="articles-by-author-title">
-            <div class="author-articles-heading"><div><p class="author-profile-eyebrow">BYLINE ARCHIVE</p><h2 id="articles-by-author-title">Articles by ${escapeHTML(authorName)}</h2></div><span class="author-count-chip">${authorArticles.length} ${authorArticles.length === 1 ? "story" : "stories"}</span></div>
-            <div class="author-articles-grid">${authorArticles.map(renderAuthorArticle).join("")}</div>
+            <div class="author-articles-heading">
+                <div>
+                    <p class="author-profile-eyebrow">BYLINE ARCHIVE</p>
+                    <h2 id="articles-by-author-title">Articles by ${escapeHTML(authorName)}</h2>
+                </div>
+                <span class="author-count-chip">${authorArticles.length} ${authorArticles.length === 1 ? "story" : "stories"}</span>
+            </div>
+            ${authorArticles.length 
+                ? `<div class="author-articles-grid">${authorArticles.map(renderAuthorArticle).join("")}</div>`
+                : `<div class="author-not-found" style="padding: 40px 20px;"><p>No published articles under this author yet.</p></div>`
+            }
         </section>`;
 }

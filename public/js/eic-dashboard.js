@@ -24,7 +24,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================================================================
     // 1. AUTHENTICATION & ROLE VERIFICATION
     // =========================================================================
-    const userRole = window.LARAVEL_USER_ROLE || localStorage.getItem('eicRole') || localStorage.getItem('userRole') || 'Editor-in-Chief';
+    const userRole = localStorage.getItem('eicRole') || localStorage.getItem('userRole');
+
+    // Route Guard: If not signed in with a valid role, redirect to login
+    if (!userRole) {
+        window.location.href = 'login.html';
+        return;
+    }
 
     // =========================================================================
     // 2. HELPER UTILITIES: ESCAPE HTML & TOAST NOTIFICATIONS
@@ -158,9 +164,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const DEFAULT_PENDING_ARTICLES = [];
 
     function getPendingQueue() {
-        if (Array.isArray(window.__PENDING_ARTICLES__) && window.__PENDING_ARTICLES__.length > 0) {
-            return window.__PENDING_ARTICLES__;
-        }
         try {
             const raw = localStorage.getItem('eicPendingReviewQueue') || localStorage.getItem('executivePendingReviewQueue');
             if (raw) {
@@ -195,37 +198,31 @@ document.addEventListener('DOMContentLoaded', () => {
         // A. Metrics Cards (4 Cards)
         const metricsContainer = document.getElementById('metrics-grid');
         if (metricsContainer) {
-            const serverM = window.__DASHBOARD_METRICS__ || {};
-            const pCount = serverM.pending !== undefined ? serverM.pending : pendingList.length;
-            const rViews = serverM.total_views !== undefined ? serverM.total_views : totalViews;
-            const aMembers = serverM.active_members !== undefined ? serverM.active_members : 28;
-            const pStories = serverM.published_stories !== undefined ? serverM.published_stories : activeArticles.length;
-
             const metrics = [
                 {
                     label: "Pending Approvals",
-                    value: String(pCount),
+                    value: String(pendingList.length),
                     subtitle: "Awaiting editorial review",
                     icon: "fa-regular fa-clock",
                     delayClass: "delay-1"
                 },
                 {
                     label: "Monthly Readership",
-                    value: Number(rViews).toLocaleString(),
+                    value: totalViews.toLocaleString(),
                     subtitle: "Views across all desks",
                     icon: "fa-regular fa-eye",
                     delayClass: "delay-2"
                 },
                 {
                     label: "Active Members",
-                    value: String(aMembers),
+                    value: "28",
                     subtitle: "Staff & editorial roster",
                     icon: "fa-solid fa-users",
                     delayClass: "delay-3"
                 },
                 {
                     label: "Published Stories",
-                    value: String(pStories),
+                    value: String(activeArticles.length),
                     subtitle: "Total overall published",
                     icon: "fa-regular fa-newspaper",
                     delayClass: "delay-4"
@@ -249,36 +246,31 @@ document.addEventListener('DOMContentLoaded', () => {
         // B. Activity Log (Top 5 Recent with Causer Action Subject Format)
         const activityContainer = document.getElementById('recent-activity-list');
         if (activityContainer) {
-            let logsToDisplay = (Array.isArray(window.__RECENT_ACTIVITIES__) && window.__RECENT_ACTIVITIES__.length > 0)
-                ? window.__RECENT_ACTIVITIES__
-                : ACTIVITY_LOG_DATA;
-            if (logsToDisplay.length === 0) {
-                try {
-                    const storedLogs = localStorage.getItem('executiveActivityLogs_v1');
-                    if (storedLogs) {
-                        const parsed = JSON.parse(storedLogs);
-                        if (Array.isArray(parsed) && parsed.length > 0) {
-                            logsToDisplay = parsed.slice(0, 5).map(item => ({
-                                user: item.causer,
-                                avatar: item.causerAvatar || 'images/member-placeholder.svg',
-                                action: item.action,
-                                subjectType: item.subjectType || 'Article',
-                                target: item.subjectName,
-                                time: item.timestampText
-                            }));
-                        }
+            let logsToDisplay = ACTIVITY_LOG_DATA;
+            try {
+                const storedLogs = localStorage.getItem('executiveActivityLogs_v1');
+                if (storedLogs) {
+                    const parsed = JSON.parse(storedLogs);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        logsToDisplay = parsed.slice(0, 5).map(item => ({
+                            user: item.causer,
+                            avatar: item.causerAvatar || 'images/member-placeholder.svg',
+                            action: item.action,
+                            subjectType: item.subjectType || 'Article',
+                            target: item.subjectName,
+                            time: item.timestampText
+                        }));
                     }
-                } catch (e) {
-                    // Fallback to default
                 }
+            } catch (e) {
+                // Fallback to default
             }
 
             if (logsToDisplay.length === 0) {
-                activityContainer.innerHTML = '<p style="font-size: 0.95rem; color: var(--text-muted, #667085); padding: 28px 16px; text-align: center; margin: 0;">No recent activities.</p>';
+                activityContainer.innerHTML = '<p class="text-sm text-gray-500 py-6 text-center">No recent activities.</p>';
             } else {
-                const activityLogsUrl = window.__ACTIVITY_LOGS_URL__ || '/eic/activity-logs';
                 activityContainer.innerHTML = logsToDisplay.map(item => `
-                    <div class="activity-item" onclick="window.location.href='${activityLogsUrl}'" style="cursor: pointer;" title="Open Activity Log">
+                    <div class="activity-item" onclick="window.location.href='eic-activity-logs.html'" style="cursor: pointer;" title="Open Activity Log">
                         <div class="activity-avatar">
                             <img src="${item.avatar}" alt="${escapeHTML(item.user)}">
                         </div>
@@ -311,10 +303,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (tableBody) {
             const topPending = pendingList.slice(0, 5);
-            const reviewArticlesUrl = window.__REVIEW_ARTICLES_URL__ || '/eic/review-articles';
 
             if (topPending.length === 0) {
-                tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 28px 16px; font-size: 0.95rem; color: var(--text-muted, #667085);">No pending submissions awaiting review.</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 24px; color: var(--text-muted, #667085);">No pending submissions awaiting review.</td></tr>`;
             } else {
                 tableBody.innerHTML = topPending.map(art => `
                     <tr>
@@ -333,7 +324,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <td><span class="status-badge status-review">Pending</span></td>
                         <td class="hide-on-mobile"><span class="table-date">${escapeHTML(art.date)}</span></td>
                         <td class="text-right">
-                            <a href="${reviewArticlesUrl}" class="table-manage-btn" title="Review Article">
+                            <a href="${window.__REVIEW_ARTICLES_URL__ || '/eic/review-articles'}" class="table-manage-btn" title="Review Article">
                                 Manage
                             </a>
                         </td>
@@ -350,7 +341,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 .slice(0, 3);
 
             if (mostViewed.length === 0) {
-                mostViewedContainer.innerHTML = '<p style="font-size: 0.95rem; color: var(--text-muted, #667085); padding: 28px 16px; text-align: center; margin: 0;">No published articles yet.</p>';
+                mostViewedContainer.innerHTML = '<p class="text-sm text-gray-500 py-6 text-center">No published articles yet.</p>';
             } else {
                 mostViewedContainer.innerHTML = mostViewed.map((art, idx) => `
                     <div class="ranked-item" data-article-id="${art.id}">
@@ -395,9 +386,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (topJournalists.length === 0) {
             if (topJournalistsTableBody) {
-                topJournalistsTableBody.innerHTML = '<tr><td colspan="2" style="text-align: center; padding: 28px 16px; font-size: 0.95rem; color: var(--text-muted, #667085);">No journalist data available yet.</td></tr>';
+                topJournalistsTableBody.innerHTML = '<tr><td colspan="2" class="text-center py-4 text-gray-500 text-sm">No journalist data available yet.</td></tr>';
             } else if (topJournalistsContainer) {
-                topJournalistsContainer.innerHTML = '<p style="font-size: 0.95rem; color: var(--text-muted, #667085); padding: 28px 16px; text-align: center; margin: 0;">No journalist data available yet.</p>';
+                topJournalistsContainer.innerHTML = '<p class="text-sm text-gray-500 py-4 text-center">No journalist data available yet.</p>';
             }
         } else if (topJournalistsTableBody) {
             topJournalistsTableBody.innerHTML = topJournalists.map(j => `

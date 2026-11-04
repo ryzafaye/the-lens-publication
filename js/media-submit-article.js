@@ -61,7 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 2. AUTHOR BYLINE & ROLE INITIALIZATION
     // =========================================================================
     const currentUserRole = localStorage.getItem('mediaRole') || localStorage.getItem('userRole') || 'Media & Communication';
-    const currentUserName = localStorage.getItem('mediaName') || localStorage.getItem('userName') || 'Alyssa Marie Dizon';
+    const currentUserName = localStorage.getItem('mediaName') || localStorage.getItem('userName') || '';
 
     if (authorNameDisplay) {
         authorNameDisplay.textContent = currentUserName;

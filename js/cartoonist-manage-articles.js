@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 0. Active Cartoonist Details & DOM References
     const activeRole = localStorage.getItem('cartoonistRole') || localStorage.getItem('userRole') || 'Cartoonist';
-    const cartoonistName = localStorage.getItem('cartoonistName') || localStorage.getItem('userName') || 'Raphael Luna';
+    const cartoonistName = localStorage.getItem('cartoonistName') || localStorage.getItem('userName') || '';
 
     // DOM Elements - Personal Analytics Header Pill
     const statTotalViews = document.getElementById('stat-total-views');

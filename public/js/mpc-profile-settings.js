@@ -1,6 +1,6 @@
-﻿/**
+/**
  * ============================================================================
- * THE LENS ΓÇö PROFILE SETTINGS LOGIC (MEDIA & PUBLIC COMMUNICATIONS / M&PC PORTAL)
+ * THE LENS — PROFILE SETTINGS LOGIC (MEDIA & PUBLIC COMMUNICATIONS / M&PC PORTAL)
  * Manages Officer Profile Details, Avatar Upload, and Password Security
  * Exact Parity with Executive Profile Settings Format, Design & Logic
  * ============================================================================
@@ -12,24 +12,33 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================================================================
     // 1. AUTHENTICATION & ROLE VERIFICATION (M&PC PORTAL)
     // =========================================================================
-    const activeRole = localStorage.getItem('mpcRole') || localStorage.getItem('userRole') || 'M&PC Head';
-    let userRole = activeRole.toLowerCase().includes('assoc') ? 'Assoc M&PC Head' : 'M&PC Head';
+    const initialInputName = document.getElementById('input-full-name')?.value?.trim();
+    const initialInputNum = document.getElementById('input-student-number')?.value?.trim();
+
+    const activeRole = localStorage.getItem('userRole') || localStorage.getItem('mpcRole') || 'Media and Public Communications Head';
+    let userRole = activeRole;
     
-    let rawStoredName = localStorage.getItem('mpcName') || localStorage.getItem('userName');
-    let userName = rawStoredName || (userRole.includes('Assoc') ? 'Samantha Cruz' : 'Julian Del Rosario');
+    let userName = (initialInputName && initialInputName !== 'undefined')
+        ? initialInputName
+        : (localStorage.getItem('userName') || localStorage.getItem('mpcName') || '');
     
-    let rawStoredNum = localStorage.getItem('mpcStudentNumber') || localStorage.getItem('studentNumber');
-    let studentNumber = rawStoredNum || (userRole.includes('Assoc') ? '2024-00021-BN-0' : '2024-00020-BN-0');
+    let studentNumber = (initialInputNum && initialInputNum !== 'undefined')
+        ? initialInputNum
+        : (localStorage.getItem('studentNumber') || localStorage.getItem('mpcStudentNumber') || '');
     
-    let userAvatar = localStorage.getItem('mpcAvatar') || localStorage.getItem('userAvatar') || 'images/member-placeholder.svg';
+    let userAvatar = localStorage.getItem('userAvatar') || localStorage.getItem('mpcAvatar') || 'images/member-placeholder.svg';
 
     // Cache clean M&PC credentials
     localStorage.setItem('userRole', userRole);
-    localStorage.setItem('userName', userName);
-    localStorage.setItem('studentNumber', studentNumber);
+    if (userName) {
+        localStorage.setItem('userName', userName);
+        localStorage.setItem('mpcName', userName);
+    }
+    if (studentNumber) {
+        localStorage.setItem('studentNumber', studentNumber);
+        localStorage.setItem('mpcStudentNumber', studentNumber);
+    }
     localStorage.setItem('mpcRole', userRole);
-    localStorage.setItem('mpcName', userName);
-    localStorage.setItem('mpcStudentNumber', studentNumber);
 
     // Sync roles across DOM
     const topbarRoleBadge = document.getElementById('topbar-user-role');
@@ -107,8 +116,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnResetAvatar = document.getElementById('btn-reset-avatar');
     const profileInfoForm = document.getElementById('profile-info-form');
 
-    if (inputStudentNumber) inputStudentNumber.value = studentNumber;
-    if (inputFullName) inputFullName.value = userName;
+    if (inputStudentNumber) {
+        if (!inputStudentNumber.value || inputStudentNumber.value.trim() === '' || inputStudentNumber.value === 'undefined') {
+            inputStudentNumber.value = studentNumber;
+        } else {
+            studentNumber = inputStudentNumber.value.trim();
+            localStorage.setItem('studentNumber', studentNumber);
+            localStorage.setItem('mpcStudentNumber', studentNumber);
+        }
+    }
+    if (inputFullName) {
+        if (!inputFullName.value || inputFullName.value.trim() === '' || inputFullName.value === 'undefined') {
+            inputFullName.value = userName;
+        } else {
+            userName = inputFullName.value.trim();
+            localStorage.setItem('userName', userName);
+            localStorage.setItem('mpcName', userName);
+        }
+    }
     if (inputOfficerRole) inputOfficerRole.value = userRole;
 
     // Trigger file dialog

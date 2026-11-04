@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 0. ROLE GUARD & ACTIVE EIC DETAILS
     // =========================================================================
     const activeRole = localStorage.getItem('eicRole') || localStorage.getItem('userRole') || 'Editor-in-Chief';
-    const eicName = localStorage.getItem('eicName') || localStorage.getItem('userName') || 'Victoria Reyes';
+    const eicName = localStorage.getItem('eicName') || localStorage.getItem('userName') || '';
 
     // DOM Elements - Personal Analytics Pill in Header
     const statTotalViews = document.getElementById('stat-total-views');

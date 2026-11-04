@@ -1,6 +1,6 @@
 /**
  * ============================================================================
- * THE LENS ΓÇö ACTIVITY LOGS LOGIC (EXECUTIVE PORTAL)
+ * THE LENS — ACTIVITY LOGS LOGIC (EXECUTIVE PORTAL)
  * Clean, Minimalist, Distraction-Free Implementation
  * 
  * Sentence Format:
@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 1. AUTHENTICATION & ROLE VERIFICATION
     // =========================================================================
     const userRole = localStorage.getItem('userRole') || 'President';
-    const userName = localStorage.getItem('userName') || 'Juan Dela Cruz';
+    const userName = localStorage.getItem('userName') || '';
 
     if (!localStorage.getItem('userRole')) {
         localStorage.setItem('userRole', 'President');
@@ -167,7 +167,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <!-- Under it: Role and time only, no IDs -->
                                 <div class="activity-subrow">
                                     <span class="activity-role-text">${escapeHTML(item.causerRole)}</span>
-                                    <span class="activity-subrow-dot">ΓÇó</span>
+                                    <span class="activity-subrow-dot">•</span>
                                     <span class="activity-exact-time">${escapeHTML(item.formattedDate)}</span>
                                 </div>
                             </div>

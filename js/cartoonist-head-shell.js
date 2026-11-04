@@ -65,30 +65,17 @@ try {
         // =====================================================================
         function hydrateCartoonistHeadProfile() {
             let role = 'Cartoonist Head';
-            let name = 'Danilo Reyes';
-            let studentNum = '2024-00030-BN-0';
+            let name = localStorage.getItem('cartoonistHeadName') || localStorage.getItem('userName') || 'Cartoonist Head';
+            let studentNum = localStorage.getItem('cartoonistHeadStudentNumber') || localStorage.getItem('studentNumber') || '';
 
             try {
-                const storedRole = localStorage.getItem('cartoonistHeadRole') || (localStorage.getItem('userRole') && (localStorage.getItem('userRole').toLowerCase().includes('cartoon') && localStorage.getItem('userRole').toLowerCase().includes('head')) ? localStorage.getItem('userRole') : null);
-                const storedName = localStorage.getItem('cartoonistHeadName') || (storedRole ? localStorage.getItem('userName') : null);
-                const storedNum = localStorage.getItem('cartoonistHeadStudentNumber') || (storedRole ? localStorage.getItem('studentNumber') : null);
+                const storedRole = localStorage.getItem('cartoonistHeadRole') || localStorage.getItem('userRole');
+                const storedName = localStorage.getItem('cartoonistHeadName') || localStorage.getItem('userName');
+                const storedNum = localStorage.getItem('cartoonistHeadStudentNumber') || localStorage.getItem('studentNumber');
 
-                if (storedRole && storedRole.toLowerCase().includes('cartoon') && storedRole.toLowerCase().includes('head')) {
-                    role = 'Cartoonist Head';
-                    if (storedName) name = storedName;
-                    if (storedNum) studentNum = storedNum;
-                } else {
-                    // Initialize default Cartoonist Head session
-                    role = 'Cartoonist Head';
-                    name = 'Danilo Reyes';
-                    studentNum = '2024-00030-BN-0';
-                    localStorage.setItem('userRole', 'Cartoonist Head');
-                    localStorage.setItem('userName', 'Danilo Reyes');
-                    localStorage.setItem('studentNumber', '2024-00030-BN-0');
-                    localStorage.setItem('cartoonistHeadRole', 'Cartoonist Head');
-                    localStorage.setItem('cartoonistHeadName', 'Danilo Reyes');
-                    localStorage.setItem('cartoonistHeadStudentNumber', '2024-00030-BN-0');
-                }
+                if (storedRole) role = storedRole;
+                if (storedName && storedName !== 'Danilo Reyes') name = storedName;
+                if (storedNum) studentNum = storedNum;
             } catch (e) {
                 // Storage unavailable
             }
@@ -266,15 +253,10 @@ try {
         function triggerLogout() {
             showLogoutModal(() => {
                 try {
-                    localStorage.removeItem('userRole');
-                    localStorage.removeItem('userName');
-                    localStorage.removeItem('studentNumber');
-                    localStorage.removeItem('cartoonistHeadRole');
-                    localStorage.removeItem('cartoonistHeadName');
-                    localStorage.removeItem('cartoonistHeadStudentNumber');
+                    localStorage.clear();
                     sessionStorage.clear();
                 } catch (err) {}
-                window.location.href = 'login.html';
+                window.location.href = '/logout';
             });
         }
 

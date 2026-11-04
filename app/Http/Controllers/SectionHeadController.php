@@ -51,7 +51,9 @@ class SectionHeadController extends Controller
 
         $totalViews = (int) (clone $query)->sum('views');
         $sectionArticles = (clone $query)->where('status', 'Published')->count();
-        $pendingReviews = (clone $query)->where('status', 'Pending Review')->count();
+        $pendingReviews = (clone $query)->where('status', 'Pending Review')
+            ->when($user, fn($q) => $q->where('user_id', '!=', $user->id))
+            ->count();
 
         $stats = [
             'total_views' => $totalViews,
@@ -88,7 +90,9 @@ class SectionHeadController extends Controller
 
         $topJournalists = $topJournalistsQuery->orderBy('articles_count', 'desc')->take(5)->get();
 
-        return view('section-head.dashboard', compact('category', 'stats', 'recentSubmissions', 'mostViewed', 'topJournalists'));
+        $recentActivities = ActivityLog::latest()->take(6)->get();
+
+        return view('section-head.dashboard', compact('category', 'stats', 'recentSubmissions', 'mostViewed', 'topJournalists', 'recentActivities'));
     }
 
     /**
@@ -102,6 +106,9 @@ class SectionHeadController extends Controller
         $query = Article::with(['user', 'category'])->where('status', 'Pending Review');
         if ($category) {
             $query->where('category_id', $category->id);
+        }
+        if ($user) {
+            $query->where('user_id', '!=', $user->id);
         }
 
         $sort = $request->query('sort', 'newest');
@@ -283,7 +290,7 @@ class SectionHeadController extends Controller
             'article_id' => 'nullable|integer',
         ];
 
-        if ($request->status === 'Pending Review' || $request->status === 'Approved') {
+        if ($request->status === 'Pending Review' || $request->status === 'Approved' || $request->status === 'Pending EIC Review') {
             $rules['excerpt'] = 'required|string|max:255';
             $rules['content'] = 'required|string';
         } else {
@@ -294,6 +301,19 @@ class SectionHeadController extends Controller
         $request->validate($rules);
 
         $content = $request->input('content');
+        $status = $request->input('status');
+
+        // Category Heads submitting their own article bypass category approval and go directly to EIC review
+        if ($status !== 'Draft') {
+            $status = 'Pending EIC Review';
+        }
+
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        $user?->loadMissing('role');
+        $remarks = ($status === 'Pending EIC Review')
+            ? 'Submitted by ' . ($user->full_name ?? 'Category Head') . ' (' . ($user->role->role_name ?? 'Section Head') . ') on ' . now()->format('M d, Y h:i A')
+            : null;
 
         if ($request->filled('article_id')) {
             $article = Article::where('user_id', Auth::id())->find($request->input('article_id'));
@@ -303,32 +323,52 @@ class SectionHeadController extends Controller
                     'title' => $request->input('title'),
                     'excerpt' => $request->input('excerpt'),
                     'content' => $content,
-                    'status' => $request->input('status'),
+                    'status' => $status,
+                    'remarks' => $remarks ?? $article->remarks,
                 ]);
 
-                if ($request->input('status') === 'Draft') {
+                if ($status === 'Pending EIC Review') {
+                    ActivityLog::record($user, 'submitted and forwarded to EIC', $article);
+                }
+
+                Cache::forget('eic_dashboard_stats');
+                Cache::forget('eic_review_articles_newest');
+                Cache::forget('eic_review_articles_oldest');
+                Cache::forget('writer_dashboard_stats_' . $user->id);
+
+                if ($status === 'Draft') {
                     return redirect()->route('section-head.submit-article', ['tab' => 'drafts'])->with('success', 'Draft updated successfully.');
                 }
-                return redirect()->route('section-head.dashboard')->with('success', 'Article submitted successfully.');
+                return redirect()->route('section-head.dashboard')->with('success', 'Article submitted directly to Editor-in-Chief for review.');
             }
         }
 
-        Article::create([
+        $article = Article::create([
             'user_id' => Auth::id(),
             'category_id' => $request->input('category_id'),
             'title' => $request->input('title'),
             'excerpt' => $request->input('excerpt'),
             'content' => $content,
-            'status' => $request->input('status'),
+            'status' => $status,
+            'remarks' => $remarks,
             'views' => 0,
             'shares' => 0,
         ]);
 
-        if ($request->status === 'Draft') {
+        if ($status === 'Pending EIC Review') {
+            ActivityLog::record($user, 'submitted and forwarded to EIC', $article);
+        }
+
+        Cache::forget('eic_dashboard_stats');
+        Cache::forget('eic_review_articles_newest');
+        Cache::forget('eic_review_articles_oldest');
+        Cache::forget('writer_dashboard_stats_' . $user->id);
+
+        if ($status === 'Draft') {
             return redirect()->route('section-head.submit-article', ['tab' => 'drafts'])->with('success', 'Draft saved successfully.');
         }
 
-        return redirect()->route('section-head.dashboard')->with('success', 'Article submitted successfully.');
+        return redirect()->route('section-head.dashboard')->with('success', 'Article submitted directly to Editor-in-Chief for review.');
     }
 
     /**

@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ? getActiveWriterId() 
         : (localStorage.getItem('writerId') || 'sofia-alcaraz');
 
-    const storedName = localStorage.getItem('userName') || (activeWriterId === 'marco-valderrama' ? 'Marco L. Valderrama' : 'Sofia M. Alcaraz');
+    const storedName = localStorage.getItem('userName') || (activeWriterId === 'marco-valderrama' ? '' : '');
     const firstName = storedName.split(' ')[0] || 'Writer';
 
     // DOM Elements - Header & Analytics

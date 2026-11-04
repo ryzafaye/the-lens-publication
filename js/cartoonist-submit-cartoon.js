@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
     'use strict';
 
     // 1. User & Persona Details
-    const cartoonistName = localStorage.getItem('cartoonistName') || localStorage.getItem('userName') || 'Raphael Luna';
+    const cartoonistName = localStorage.getItem('cartoonistName') || localStorage.getItem('userName') || '';
     const cartoonistRole = localStorage.getItem('cartoonistRole') || 'Cartoonist';
 
     // 2. DOM Elements

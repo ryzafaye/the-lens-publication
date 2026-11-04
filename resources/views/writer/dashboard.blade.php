@@ -120,21 +120,36 @@
             </section>
         </div>
 
-        <aside class="writer-top-performing-column">
+        <aside class="writer-top-performing-column" aria-label="Top performing articles">
             <section class="card-panel">
                 <div class="panel-header">
                     <h2 class="panel-title">Top Performing Articles</h2>
                     <span class="panel-badge">By Views</span>
                 </div>
-                <div class="ranked-list">
-                    <!-- Iteration for top performing articles here -->
+                <div id="writer-top-performing-list" class="ranked-list">
+                    @forelse($topArticles as $idx => $art)
+                        <div class="ranked-item" style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid #f2f4f7;">
+                            <div style="display:flex;align-items:center;gap:12px;overflow:hidden;">
+                                <span style="font-weight:700;color:#7a1526;width:20px;">#{{ $idx + 1 }}</span>
+                                <div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                                    <div style="font-weight:500;font-size:0.9rem;color:#1d2939;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ $art->title }}</div>
+                                    <div style="font-size:0.8rem;color:#667085;">{{ ($art->published_at ?? $art->created_at)->format('M d, Y') }}</div>
+                                </div>
+                            </div>
+                            <span style="font-weight:600;color:#344054;font-size:0.85rem;padding-left:12px;white-space:nowrap;">{{ number_format($art->views) }} views</span>
+                        </div>
+                    @empty
+                        <div style="padding:24px 0;color:#667085;font-size:0.88rem;text-align:center;">
+                            No published articles yet.
+                        </div>
+                    @endforelse
                 </div>
             </section>
         </aside>
     </div>
 </main>
 
-<!-- Article Viewer Modal (Reusable) -->
+<!-- Article Viewer Modal (Exact Writer/Executive Parity Design) -->
 <div id="article-viewer-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="viewer-title">
     <div class="modal-card viewer-modal-card">
         <div class="viewer-modal-header">
@@ -145,22 +160,95 @@
             </div>
             <div class="viewer-header-right">
                 <span class="viewer-reading-time"><i class="fa-regular fa-clock"></i> <span id="viewer-read-time">2 min read</span></span>
-                <button type="button" id="close-viewer-btn" class="viewer-close-btn"><i class="fa-solid fa-xmark"></i></button>
+                <button type="button" id="close-viewer-btn" class="viewer-close-btn" aria-label="Close article preview"><i class="fa-solid fa-xmark"></i></button>
             </div>
         </div>
         <div class="viewer-modal-body">
             <h1 id="viewer-title" class="viewer-title">Title</h1>
             <div class="viewer-byline-row">
-                <div class="viewer-author-avatar"><img src="{{ asset('images/member-placeholder.svg') }}"></div>
+                <div class="viewer-author-avatar"><img id="viewer-author-avatar-img" src="{{ asset('images/member-placeholder.svg') }}" alt="Author avatar"></div>
                 <div class="viewer-byline-text"><span class="viewer-by">By <strong id="viewer-author">Author</strong></span></div>
             </div>
+            <p id="viewer-excerpt" class="viewer-excerpt" style="display:none;"></p>
+            <div id="viewer-banner-wrap" class="viewer-banner" style="display:none;">
+                <img id="viewer-banner-img" src="{{ asset('images/maroon.jpg') }}" alt="Article banner">
+            </div>
             <div id="viewer-content" class="viewer-content-text"></div>
+            <div id="viewer-remarks-wrap" class="remarks-alert-box" style="display:none;margin-top:20px;padding:14px;background:#fef3f2;border:1px solid #fee4e2;border-radius:8px;">
+                <div class="remarks-alert-title" style="display:flex;align-items:center;gap:6px;font-weight:600;color:#b42318;margin-bottom:6px;">
+                    <i class="fa-solid fa-comment-dots"></i>
+                    <span>Editorial Feedback:</span>
+                </div>
+                <p id="viewer-remarks-text" class="remarks-alert-text" style="color:#b42318;font-size:0.88rem;margin:0;"></p>
+            </div>
+            <div id="viewer-stats-bar" class="viewer-stats-bar" style="display:none;margin-top:16px;">
+                <span class="stat-pill"><i class="fa-regular fa-eye"></i> <span id="viewer-views">0</span> views</span>
+            </div>
         </div>
     </div>
 </div>
 @endsection
 
 @section('extra-js')
-    <!-- Reusable Modal Controller Script -->
-    <script type="module" src="{{ asset('js/executive-dashboard.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const modal = document.getElementById('article-viewer-modal');
+        const closeBtn = document.getElementById('close-viewer-btn');
+
+        document.querySelectorAll('[data-action="view"]').forEach(card => {
+            card.addEventListener('click', () => {
+                const raw = card.getAttribute('data-article');
+                if (!raw) return;
+                try {
+                    const data = JSON.parse(raw);
+                    document.getElementById('viewer-title').textContent = data.title || 'Untitled';
+                    document.getElementById('viewer-category').textContent = data.category || 'General';
+                    document.getElementById('viewer-date').textContent = data.date || '';
+                    document.getElementById('viewer-author').textContent = data.author || 'Writer';
+
+                    const words = (data.content || '').replace(/<[^>]+>/g, ' ').split(/\s+/).filter(Boolean).length;
+                    const mins = Math.max(1, Math.ceil(words / 200));
+                    document.getElementById('viewer-read-time').textContent = mins + ' min read';
+
+                    const excerptEl = document.getElementById('viewer-excerpt');
+                    if (data.excerpt) {
+                        excerptEl.textContent = data.excerpt;
+                        excerptEl.style.display = 'block';
+                    } else {
+                        excerptEl.style.display = 'none';
+                    }
+
+                    document.getElementById('viewer-content').innerHTML = data.content || '<p>No content.</p>';
+
+                    const remarksWrap = document.getElementById('viewer-remarks-wrap');
+                    if (data.remarks) {
+                        document.getElementById('viewer-remarks-text').textContent = data.remarks;
+                        remarksWrap.style.display = 'block';
+                    } else {
+                        remarksWrap.style.display = 'none';
+                    }
+
+                    const statsBar = document.getElementById('viewer-stats-bar');
+                    if (data.status === 'Published') {
+                        document.getElementById('viewer-views').textContent = Number(data.views || 0).toLocaleString();
+                        statsBar.style.display = 'flex';
+                    } else {
+                        statsBar.style.display = 'none';
+                    }
+
+                    modal.classList.remove('hidden');
+                } catch (e) {
+                    console.error('Error opening viewer modal:', e);
+                }
+            });
+        });
+
+        if (closeBtn && modal) {
+            closeBtn.addEventListener('click', () => modal.classList.add('hidden'));
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) modal.classList.add('hidden');
+            });
+        }
+    });
+</script>
 @endsection

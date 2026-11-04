@@ -35,7 +35,7 @@ class AuthController extends Controller
             $rawRoleName = $user->role->role_name ?? '';
             $roleName = strtolower(trim($rawRoleName));
 
-            // Broad check for Editor-in-Chief and Associate Editor-in-Chief roles (e.g., "Associate Editor-in-Chief", "Assoc EIC")
+            // Broad check for Editor-in-Chief and Associate Editor-in-Chief roles
             if (str_contains($roleName, 'editor-in-chief') || str_contains($roleName, 'chief') || str_contains($roleName, 'eic')) {
                 return redirect()->route('eic.dashboard');
             } elseif (
@@ -43,11 +43,15 @@ class AuthController extends Controller
                 || str_contains($roleName, 'm&pc') || str_contains($roleName, 'mpc')
             ) {
                 return redirect()->route('mpc-head.dashboard');
+            } elseif (str_contains($roleName, 'cartoonist') && str_contains($roleName, 'head')) {
+                return redirect()->route('cartoonist-head.dashboard');
+            } elseif ($roleName === 'cartoonist') {
+                return redirect()->route('cartoonist.dashboard');
+            } elseif (str_contains($roleName, 'media') && (str_contains($roleName, 'team') || str_contains($roleName, 'communication'))) {
+                return redirect()->route('media.dashboard');
             } elseif (str_ends_with($roleName, 'head') || in_array($rawRoleName, [
                 'News Head', 'Literary Head', 'Feature Head', 'Science and Technology Head',
-                'Documentary and Podcast Head', 'Media and Public Communications Head',
-                'Associate Media and Public Communications Head',
-                'Photojournalist Head', 'Cartoonist Head'
+                'Documentary and Podcast Head', 'Photojournalist Head', 'Cartoonist Head'
             ])) {
                 return redirect()->route('section-head.dashboard');
             } elseif ($roleName === 'writer') {

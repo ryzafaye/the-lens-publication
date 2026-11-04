@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 0. ACTIVE M&PC OFFICER DETAILS
     // =========================================================================
     const activeRole = localStorage.getItem('mpcRole') || localStorage.getItem('userRole') || 'M&PC Head';
-    const mpcName = localStorage.getItem('mpcName') || localStorage.getItem('userName') || (activeRole.includes('Assoc') ? 'Samantha Cruz' : 'Julian Del Rosario');
+    const mpcName = localStorage.getItem('mpcName') || localStorage.getItem('userName') || (activeRole.includes('Assoc') ? '' : '');
 
     // DOM Elements - Personal Analytics Header Pill
     const statTotalViews = document.getElementById('stat-total-views');

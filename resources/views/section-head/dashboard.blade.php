@@ -110,8 +110,28 @@
                     <h2 id="activity-log-heading" class="panel-title">Activity Log</h2>
                     <a href="{{ route('section-head.activity-logs') }}" class="panel-action-link">View all &rarr;</a>
                 </div>
-                <div id="recent-activity-list" class="activity-timeline" style="padding: 16px; color: #667085; font-size: 0.9rem;">
-                    No recent activities recorded.
+                <div id="recent-activity-list" class="activity-timeline">
+                    @forelse($recentActivities as $act)
+                        <div class="activity-item" style="display: flex; align-items: flex-start; gap: 12px; padding: 12px 0; border-bottom: 1px solid #f2f4f7;">
+                            <div class="activity-avatar" style="width: 34px; height: 34px; border-radius: 50%; overflow: hidden; background: #f2f4f7; flex-shrink: 0;">
+                                <img src="{{ asset('images/member-placeholder.svg') }}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;">
+                            </div>
+                            <div class="activity-content" style="flex: 1; font-size: 0.86rem; color: #344054;">
+                                <p style="margin: 0; line-height: 1.4;">
+                                    <strong>{{ $act->causer_name }}</strong> ({{ $act->causer_role ?? 'Editorial' }})
+                                    <span style="color: #667085;">{{ $act->action }}</span>
+                                    <strong style="color: #101828;">"{{ $act->subject_name }}"</strong>
+                                </p>
+                                <span class="activity-time" style="font-size: 0.78rem; color: #98a2b3; display: inline-block; margin-top: 3px;">
+                                    <i class="fa-regular fa-clock"></i> {{ $act->created_at->diffForHumans() }}
+                                </span>
+                            </div>
+                        </div>
+                    @empty
+                        <div style="padding: 16px; color: #667085; font-size: 0.9rem; text-align: center;">
+                            No recent activities recorded.
+                        </div>
+                    @endforelse
                 </div>
             </section>
 
@@ -124,7 +144,7 @@
             <section class="card-panel animate-fade-in delay-2" aria-labelledby="most-viewed-heading">
                 <div class="panel-header">
                     <h2 id="most-viewed-heading" class="panel-title">Most Viewed Articles</h2>
-                    <span id="most-viewed-month-badge" class="panel-badge">October</span>
+                    <span id="most-viewed-month-badge" class="panel-badge">This Month</span>
                 </div>
                 <div id="most-viewed-list" class="ranked-list">
                     @forelse($mostViewed as $index => $item)
@@ -136,10 +156,10 @@
                                     <div style="font-size: 0.8rem; color: #667085;">{{ $item->created_at->format('M d, Y') }}</div>
                                 </div>
                             </div>
-                            <span style="font-weight: 600; color: #344054; font-size: 0.85rem; padding-left: 12px;">{{ number_format($item->views) }} views</span>
+                            <span style="font-weight: 600; color: #344054; font-size: 0.85rem; padding-left: 12px; white-space: nowrap;">{{ number_format($item->views) }} views</span>
                         </div>
                     @empty
-                        <div style="padding: 20px 0; text-align: left; color: #667085; font-size: 0.88rem;">
+                        <div style="padding: 20px 0; text-align: center; color: #667085; font-size: 0.88rem;">
                             No articles recorded.
                         </div>
                     @endforelse
@@ -161,33 +181,20 @@
                             </tr>
                         </thead>
                         <tbody id="top-journalists-table-body">
-                            @if(count($topJournalists) > 0 && $topJournalists->sum('articles_count') > 0)
-                                @foreach($topJournalists as $writer)
-                                    <tr>
-                                        <td class="col-author">
-                                            <span style="font-weight: 500; color: #1d2939;">{{ $writer->full_name }}</span>
-                                        </td>
-                                        <td class="col-article-count" style="text-align: right; font-weight: 700; color: #b42318;">{{ $writer->articles_count ?? 0 }}</td>
-                                    </tr>
-                                @endforeach
-                            @else
+                            @forelse($topJournalists as $writer)
                                 <tr>
-                                    <td class="col-author"><span style="font-weight: 500; color: #1d2939;">Sofia M. Alcaraz</span></td>
-                                    <td class="col-article-count" style="text-align: right; font-weight: 700; color: #b42318;">6</td>
+                                    <td class="col-author">
+                                        <span style="font-weight: 500; color: #1d2939;">{{ $writer->full_name }}</span>
+                                    </td>
+                                    <td class="col-article-count" style="text-align: right; font-weight: 700; color: #b42318;">{{ $writer->articles_count ?? 0 }}</td>
                                 </tr>
+                            @empty
                                 <tr>
-                                    <td class="col-author"><span style="font-weight: 500; color: #1d2939;">Marco L. Valderrama</span></td>
-                                    <td class="col-article-count" style="text-align: right; font-weight: 700; color: #b42318;">4</td>
+                                    <td colspan="2" style="text-align: center; padding: 16px; color: #667085; font-size: 0.88rem;">
+                                        No journalists registered yet.
+                                    </td>
                                 </tr>
-                                <tr>
-                                    <td class="col-author"><span style="font-weight: 500; color: #1d2939;">Camille Joy Perez</span></td>
-                                    <td class="col-article-count" style="text-align: right; font-weight: 700; color: #b42318;">3</td>
-                                </tr>
-                                <tr>
-                                    <td class="col-author"><span style="font-weight: 500; color: #1d2939;">Lia Mendoza</span></td>
-                                    <td class="col-article-count" style="text-align: right; font-weight: 700; color: #b42318;">2</td>
-                                </tr>
-                            @endif
+                            @endforelse
                         </tbody>
                     </table>
                 </div>

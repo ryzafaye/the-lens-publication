@@ -1,4 +1,4 @@
-﻿/* Article reading dialog. Scrolling remains enabled; the visual scrollbar is hidden for a cleaner reading experience. */
+/* Article reading dialog. Scrolling remains enabled; the visual scrollbar is hidden for a cleaner reading experience. */
 .article-modal {
     position: fixed;
     inset: 0;

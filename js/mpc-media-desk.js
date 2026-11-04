@@ -457,7 +457,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
                     logs.unshift({
                         id: 'mpc-act-' + Date.now(),
-                        causer: cleanArtistName(localStorage.getItem('mpcName') || ((localStorage.getItem('mpcRole') || '').includes('Assoc') ? 'Samantha Cruz' : 'Julian Del Rosario')),
+                        causer: cleanArtistName(localStorage.getItem('mpcName') || ((localStorage.getItem('mpcRole') || '').includes('Assoc') ? '' : '')),
                         causerRole: localStorage.getItem('mpcRole') || ((localStorage.getItem('userRole') || '').includes('Assoc') ? 'Assoc M&PC Head' : 'M&PC Head'),
                         causerAvatar: 'images/member-placeholder.svg',
                         action: 'returned for revision',
@@ -539,7 +539,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
             logs.unshift({
                 id: 'mpc-act-' + Date.now(),
-                causer: cleanArtistName(localStorage.getItem('mpcName') || ((localStorage.getItem('mpcRole') || '').includes('Assoc') ? 'Samantha Cruz' : 'Julian Del Rosario')),
+                causer: cleanArtistName(localStorage.getItem('mpcName') || ((localStorage.getItem('mpcRole') || '').includes('Assoc') ? '' : '')),
                 causerRole: localStorage.getItem('mpcRole') || ((localStorage.getItem('userRole') || '').includes('Assoc') ? 'Assoc M&PC Head' : 'M&PC Head'),
                 causerAvatar: 'images/member-placeholder.svg',
                 action: 'approved',

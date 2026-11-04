@@ -64,10 +64,12 @@ try {
         // 1. DYNAMIC PROFILE & ROLE HYDRATION
         // =====================================================================
         function hydrateMediaProfile() {
-            let mediaName = localStorage.getItem('mediaName') || localStorage.getItem('userName') || 'Alyssa Marie Dizon';
-            let mediaRole = localStorage.getItem('mediaRole') || 'Media & Communication';
-            let studentNumber = localStorage.getItem('mediaStudentNumber') || localStorage.getItem('studentNumber') || '2024-00080-BN-0';
-            let avatar = localStorage.getItem('mediaAvatar') || localStorage.getItem('userAvatar') || 'images/member-placeholder.svg';
+            let mediaName = (localStorage.getItem('mediaName') && localStorage.getItem('mediaName') !== 'Alyssa Marie Dizon') 
+                ? localStorage.getItem('mediaName') 
+                : (localStorage.getItem('userName') && localStorage.getItem('userName') !== 'Alyssa Marie Dizon' ? localStorage.getItem('userName') : 'Media Team');
+            let mediaRole = localStorage.getItem('mediaRole') || 'Media Team';
+            let studentNumber = localStorage.getItem('mediaStudentNumber') || localStorage.getItem('studentNumber') || '';
+            let avatar = localStorage.getItem('mediaAvatar') || localStorage.getItem('userAvatar') || '/site-assets/images/member-placeholder.svg';
 
             // Ensure cached
             localStorage.setItem('mediaName', mediaName);
@@ -247,15 +249,10 @@ try {
         function triggerLogout() {
             showLogoutModal(() => {
                 try {
+                    localStorage.clear();
                     sessionStorage.clear();
-                    localStorage.removeItem('userRole');
-                    localStorage.removeItem('userName');
-                    localStorage.removeItem('studentNumber');
-                    localStorage.removeItem('mediaRole');
-                    localStorage.removeItem('mediaName');
-                    localStorage.removeItem('mediaStudentNumber');
                 } catch (err) {}
-                window.location.href = 'login.html';
+                window.location.href = '/logout';
             });
         }
 

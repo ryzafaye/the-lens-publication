@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 2. AUTHOR BYLINE & ROLE INITIALIZATION
     // =========================================================================
     const userRole = localStorage.getItem('eicRole') || localStorage.getItem('userRole') || 'Editor-in-Chief';
-    const authorName = localStorage.getItem('eicName') || localStorage.getItem('userName') || 'Victoria Reyes';
+    const authorName = localStorage.getItem('eicName') || localStorage.getItem('userName') || '';
 
     if (authorNameDisplay) {
         authorNameDisplay.textContent = authorName;

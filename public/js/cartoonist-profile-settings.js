@@ -1,6 +1,6 @@
-﻿/**
+/**
  * ============================================================================
- * THE LENS ΓÇö CARTOONIST PROFILE SETTINGS CONTROLLER
+ * THE LENS — CARTOONIST PROFILE SETTINGS CONTROLLER
  * Full Executive & Media Parity: Member Info, Avatar Photo & Security Password
  * Persona: Raphael Luna (Cartoonist Desk)
  * ============================================================================
@@ -12,18 +12,29 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================================================================
     // 1. AUTHENTICATION & ROLE VERIFICATION
     // =========================================================================
-    const userRole = localStorage.getItem('cartoonistRole') || localStorage.getItem('userRole') || 'Cartoonist';
-    let userName = localStorage.getItem('cartoonistName') || localStorage.getItem('userName') || 'Raphael Luna';
-    let studentNumber = localStorage.getItem('cartoonistStudentNumber') || localStorage.getItem('studentNumber') || '2024-00090-BN-0';
-    let userAvatar = localStorage.getItem('cartoonistAvatar') || localStorage.getItem('userAvatar') || 'images/member-placeholder.svg';
+    const initialInputName = document.getElementById('input-full-name')?.value?.trim();
+    const initialInputNum = document.getElementById('input-student-number')?.value?.trim();
+
+    const userRole = localStorage.getItem('userRole') || localStorage.getItem('cartoonistRole') || 'Cartoonist';
+    let userName = (initialInputName && initialInputName !== 'undefined')
+        ? initialInputName
+        : (localStorage.getItem('userName') || localStorage.getItem('cartoonistName') || '');
+    let studentNumber = (initialInputNum && initialInputNum !== 'undefined')
+        ? initialInputNum
+        : (localStorage.getItem('studentNumber') || localStorage.getItem('cartoonistStudentNumber') || '');
+    let userAvatar = localStorage.getItem('userAvatar') || localStorage.getItem('cartoonistAvatar') || 'images/member-placeholder.svg';
 
     // Cache clean credentials
     localStorage.setItem('userRole', userRole);
-    localStorage.setItem('userName', userName);
-    localStorage.setItem('studentNumber', studentNumber);
+    if (userName) {
+        localStorage.setItem('userName', userName);
+        localStorage.setItem('cartoonistName', userName);
+    }
+    if (studentNumber) {
+        localStorage.setItem('studentNumber', studentNumber);
+        localStorage.setItem('cartoonistStudentNumber', studentNumber);
+    }
     localStorage.setItem('cartoonistRole', userRole);
-    localStorage.setItem('cartoonistName', userName);
-    localStorage.setItem('cartoonistStudentNumber', studentNumber);
 
     // Sync roles across DOM
     const topbarRoleBadge = document.getElementById('topbar-user-role');
@@ -102,8 +113,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnResetAvatar = document.getElementById('btn-reset-avatar');
     const profileInfoForm = document.getElementById('profile-info-form');
 
-    if (inputStudentNumber) inputStudentNumber.value = studentNumber;
-    if (inputFullName) inputFullName.value = userName;
+    if (inputStudentNumber) {
+        if (!inputStudentNumber.value || inputStudentNumber.value.trim() === '' || inputStudentNumber.value === 'undefined') {
+            inputStudentNumber.value = studentNumber;
+        } else {
+            studentNumber = inputStudentNumber.value.trim();
+            localStorage.setItem('studentNumber', studentNumber);
+            localStorage.setItem('cartoonistStudentNumber', studentNumber);
+        }
+    }
+    if (inputFullName) {
+        if (!inputFullName.value || inputFullName.value.trim() === '' || inputFullName.value === 'undefined') {
+            inputFullName.value = userName;
+        } else {
+            userName = inputFullName.value.trim();
+            localStorage.setItem('userName', userName);
+            localStorage.setItem('cartoonistName', userName);
+        }
+    }
     if (inputOfficerRole) inputOfficerRole.value = userRole;
 
     // Trigger file dialog

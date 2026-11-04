@@ -1,5 +1,5 @@
 /**
- * THE LENS ΓÇö REVIEW ARTICLES (EDITOR-IN-CHIEF / EIC QUEUE)
+ * THE LENS — REVIEW ARTICLES (EDITOR-IN-CHIEF / EIC QUEUE)
  * Responsive Horizontal List Card (Box) Layout with Category Tabs
  * Features:
  * 1. Category Tabs: All, News, Opinions, Features, SciTech, Literature with dynamic badges
@@ -9,6 +9,7 @@
  * 5. Author Byline with Pen-Nib Icon ("By Author Name")
  * 6. Silky Smooth Toast Notifications (Zero Flash)
  * 7. Responsive Desktop Horizontal / Mobile Vertical Stacking
+ * 8. Real-time Full Backend Synchronization with CSRF & Laravel API
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -16,67 +17,27 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================================================================
     // 1. DATASET (Articles Awaiting EIC / Editorial Decision)
     // =========================================================================
-    const defaultPendingArticles = [];
-
-    // Helper to resolve the correct Section Head who approved the story based on category of submitted article
-    function resolveEndorser(item) {
-        if (!item) return 'Section Head';
-        const cat = (item.category || '').trim();
-        const catLower = cat.toLowerCase();
-
-        // 1. Strictly resolve Section Head based on the submitted article's category
-        const heads = window.__CATEGORY_HEADS__ || {};
-        for (const [key, val] of Object.entries(heads)) {
-            if (catLower.includes(key.toLowerCase()) || key.toLowerCase().includes(catLower)) {
-                return val;
-            }
-        }
-        const fallbackMap = {
-            'news': 'Arquero (News Head)',
-            'opinions': 'Briones (Opinion Head)',
-            'opinion': 'Briones (Opinion Head)',
-            'features': 'Dela Cruz (Feature Head)',
-            'feature': 'Dela Cruz (Feature Head)',
-            'science and technology': 'Apilado (SciTech Head)',
-            'scitech': 'Apilado (SciTech Head)',
-            'science & technology': 'Apilado (SciTech Head)',
-            'literature': 'Llandelar (Literary Head)',
-            'literary': 'Llandelar (Literary Head)'
-        };
-        if (fallbackMap[catLower]) {
-            return fallbackMap[catLower];
-        }
-        for (const [fKey, fVal] of Object.entries(fallbackMap)) {
-            if (catLower.includes(fKey) || fKey.includes(catLower)) {
-                return fVal;
-            }
-        }
-
-        // 2. Fallback to item.endorsedBy if category could not be resolved and not a mock name
-        const isMockName = /(?:Aris Thorne|Elena Ramos|Sofia Alcantara|Fax\s*Opinion|Fax\s*\(Opinion)/i.test(item.endorsedBy || '');
-        if (item.endorsedBy && item.endorsedBy !== 'Section Head' && !isMockName) {
-            return item.endorsedBy;
-        }
-
-        return 'Section Head';
+    function getCsrfToken() {
+        return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
     }
 
-    // LocalStorage Queue Management
-    function getStoredPendingQueue() {
-        if (window.__PENDING_ARTICLES__ && Array.isArray(window.__PENDING_ARTICLES__)) {
-            return window.__PENDING_ARTICLES__.map(item => ({
-                id: item.id,
-                title: item.title,
-                author: item.author || 'Writer',
-                category: item.category || 'News',
-                content: item.content,
-                excerpt: item.excerpt,
-                image: item.featured_image,
-                date: item.date || 'Just now',
-                ...item,
-                endorsedBy: resolveEndorser(item)
-            }));
+    // Helper to determine Section Head who endorsed/approved the article
+    function getEndorserForCategory(cat) {
+        if (window.__CATEGORY_HEADS__ && cat && window.__CATEGORY_HEADS__[cat]) {
+            return window.__CATEGORY_HEADS__[cat];
         }
+        if (!cat) return 'Section Editorial Head';
+        const c = cat.toLowerCase();
+        if (c.includes('news')) return 'Arquero (News Head)';
+        if (c.includes('sci') || c.includes('tech')) return 'Apilado (SciTech Head)';
+        if (c.includes('feat')) return 'Dela Cruz (Feature Head)';
+        if (c.includes('op')) return 'Briones (Opinion Head)';
+        if (c.includes('lit')) return 'Llandelar (Literary Head)';
+        return 'Section Editorial Head';
+    }
+
+    // LocalStorage Queue Management (Fallback for static dev)
+    function getStoredPendingQueue() {
         try {
             const raw = localStorage.getItem('eicPendingReviewQueue') || localStorage.getItem('executivePendingReviewQueue');
             if (raw) {
@@ -84,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (Array.isArray(parsed)) {
                     return parsed.map(item => ({
                         ...item,
-                        endorsedBy: resolveEndorser(item)
+                        endorsedBy: item.endorsedBy || getEndorserForCategory(item.category)
                     }));
                 }
             }
@@ -97,14 +58,16 @@ document.addEventListener('DOMContentLoaded', () => {
     function savePendingQueue(list) {
         try {
             localStorage.setItem('eicPendingReviewQueue', JSON.stringify(list));
-            // Keep executive queue in sync
             localStorage.setItem('executivePendingReviewQueue', JSON.stringify(list));
         } catch (e) {
             console.warn('Could not save eicPendingReviewQueue', e);
         }
     }
 
-    let reviewList = getStoredPendingQueue();
+    // Initialize dataset: Prefer real backend data passed by Laravel Blade
+    const isBackend = typeof window.__PENDING_ARTICLES__ !== 'undefined' && Array.isArray(window.__PENDING_ARTICLES__);
+    let reviewList = isBackend ? [...window.__PENDING_ARTICLES__] : getStoredPendingQueue();
+
     let currentActiveId = null;
     let currentSort = 'newest'; // 'newest' | 'oldest'
     let currentCategory = 'all'; // 'all' | 'News' | 'Opinions' | 'Features' | 'Science and Technology' | 'Literature'
@@ -142,28 +105,6 @@ document.addEventListener('DOMContentLoaded', () => {
             .replace(/>/g, '&gt;')
             .replace(/"/g, '&quot;')
             .replace(/'/g, '&#39;');
-    }
-
-    function formatCleanArticleContent(rawContent) {
-        if (!rawContent || !rawContent.trim()) {
-            return '<p style="color: #667085; font-style: italic;">No manuscript text provided.</p>';
-        }
-
-        // If it contains HTML markup, clean and preserve formatted paragraphs
-        if (/<[a-z][\s\S]*>/i.test(rawContent)) {
-            let cleaned = rawContent
-                .replace(/<\/?span[^>]*>/gi, '')
-                .replace(/\s*style="[^"]*"/gi, '')
-                .replace(/\s*style='[^']*'/gi, '')
-                .replace(/\s*class="[^"]*"/gi, '');
-            return cleaned;
-        }
-
-        const paragraphs = rawContent.split(/\n\n+/).filter(p => p.trim().length > 0);
-        if (paragraphs.length === 0) {
-            return '<p style="color: #667085; font-style: italic;">No manuscript text provided.</p>';
-        }
-        return paragraphs.map(p => `<p>${escapeHTML(p.trim())}</p>`).join('');
     }
 
     function showToast(message, type = 'success') {
@@ -238,7 +179,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // =========================================================================
-    // 4. SORTING LOGIC (Newest First vs Oldest First - Silent, No Toast)
+    // 4. SORTING LOGIC (Newest First vs Oldest First)
     // =========================================================================
     function getSortedList() {
         return [...reviewList]
@@ -293,13 +234,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="review-box-meta">
                         <span class="review-box-category">${escapeHTML(item.category)}</span>
                         <span class="review-box-date"><i class="fa-regular fa-calendar" aria-hidden="true"></i> ${escapeHTML(item.date)}</span>
-                        <span class="review-box-endorsed"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Approved by <strong>${escapeHTML(resolveEndorser(item))}</strong></span>
+                        <span class="review-box-endorsed"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> ${escapeHTML(item.endorsedBy || getEndorserForCategory(item.category))}</span>
                     </div>
 
                     <button type="button" class="review-box-title" data-action="read" data-id="${item.id}" title="${escapeHTML(item.title)}">
                         ${escapeHTML(item.title)}
                     </button>
-                    ${item.excerpt ? `<p class="review-box-excerpt" style="font-size: 0.85rem; color: #475467; margin: 4px 0 6px 0; line-height: 1.4;">${escapeHTML(item.excerpt)}</p>` : ''}
 
                     <p class="review-box-author">
                         <i class="fa-solid fa-pen-nib" aria-hidden="true"></i>
@@ -307,23 +247,19 @@ document.addEventListener('DOMContentLoaded', () => {
                     </p>
                 </div>
 
-                <!-- Right Actions: 4 small buttons in a row -->
+                <!-- Right Actions: Read, For Revision, Approve for M&PC -->
                 <div class="review-box-actions">
                     <button type="button" class="btn-box-read" data-action="read" data-id="${item.id}" title="Read full manuscript">
                         <i class="fa-regular fa-eye"></i>
                         <span>Read</span>
                     </button>
-                    <button type="button" class="btn-box-decline" data-action="decline" data-id="${item.id}" title="Decline manuscript">
-                        <i class="fa-solid fa-xmark"></i>
-                        <span>Decline</span>
-                    </button>
                     <button type="button" class="btn-box-revision" data-action="revision" data-id="${item.id}" title="Direct to revision remarks">
                         <i class="fa-solid fa-rotate-left"></i>
                         <span>For Revision</span>
                     </button>
-                    <button type="button" class="btn-box-approve" data-action="approve-mpc" data-id="${item.id}" title="Approve">
+                    <button type="button" class="btn-box-approve" data-action="approve-mpc" data-id="${item.id}" title="Approve for Media & Publication Committee">
                         <i class="fa-solid fa-check"></i>
-                        <span>Approve</span>
+                        <span>Approve for M&amp;PC</span>
                     </button>
                 </div>
             </div>
@@ -331,11 +267,33 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // =========================================================================
-    // 6. ACTION HANDLERS (Without Page Refresh & No Browser Alert/Prompt)
+    // 6. ACTION HANDLERS (Asynchronous Backend Sync with Toast Feedback)
     // =========================================================================
-    function approveStoryForMPC(id) {
+    async function approveStoryForMPC(id) {
         const item = reviewList.find(a => String(a.id) === String(id));
         if (!item) return;
+
+        if (window.__APPROVE_URL__) {
+            try {
+                const res = await fetch(`${window.__APPROVE_URL__}/${id}/approve`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': getCsrfToken(),
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok || data.success === false) {
+                    showToast(data.message || 'Failed to approve story.', 'error');
+                    return;
+                }
+            } catch (err) {
+                console.error('Failed to submit approval to backend:', err);
+                showToast('Network error while approving story.', 'error');
+                return;
+            }
+        }
 
         const box = document.getElementById(`box-${id}`);
         if (box) {
@@ -345,85 +303,37 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => {
             reviewList = reviewList.filter(a => String(a.id) !== String(id));
             savePendingQueue(reviewList);
-
-            // Backend sync if running on Laravel
-            try {
-                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-                if (window.__APPROVE_URL__ && csrfToken) {
-                    fetch(`${window.__APPROVE_URL__}/${id}/approve`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': csrfToken,
-                            'Accept': 'application/json'
-                        }
-                    }).catch(err => console.error('Error approving article on backend:', err));
-                }
-            } catch (err) {}
-
-            // Forward to M&PC publishing queue
-            try {
-                let mpcList = [];
-                const rawMpc = localStorage.getItem('mpc_publish_articles_v2');
-                if (rawMpc) {
-                    try {
-                        const parsed = JSON.parse(rawMpc);
-                        if (Array.isArray(parsed)) mpcList = parsed;
-                    } catch (e) {}
-                }
-                const approverName = window.LARAVEL_USER_NAME || localStorage.getItem('userName') || localStorage.getItem('eicName') || 'Victoria Reyes';
-                const approverRole = window.LARAVEL_USER_ROLE || localStorage.getItem('userRole') || localStorage.getItem('eicRole') || 'Editor-in-Chief';
-
-                mpcList = mpcList.filter(a => a.id !== item.id);
-                mpcList.unshift({
-                    id: item.id,
-                    title: item.title,
-                    category: item.category,
-                    categorySlug: (item.category || 'news').toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-                    author: item.author,
-                    sectionHead: resolveEndorser(item),
-                    eicApprover: `${approverName} (${approverRole})`,
-                    readTime: item.readTime || '3 min read',
-                    dateApproved: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-                    rawDate: item.rawDate || new Date().toISOString().split('T')[0],
-                    status: 'ready',
-                    assignedCoverId: '',
-                    excerpt: item.excerpt || '',
-                    body: item.content ? item.content.split(/\n\n+/).map(p => `<p>${escapeHTML(p.trim())}</p>`).join('') : '<p>Manuscript content approved.</p>'
-                });
-                localStorage.setItem('mpc_publish_articles_v2', JSON.stringify(mpcList));
-            } catch (e) {
-                console.error('Failed to forward to MPC publishing queue:', e);
-            }
-
-            // Also update writer's article in writer storage
-            try {
-                const approverRole = window.LARAVEL_USER_ROLE || localStorage.getItem('userRole') || localStorage.getItem('eicRole') || 'Editor-in-Chief';
-                const rawWriter = localStorage.getItem('theLensWriterArticles_v3');
-                if (rawWriter) {
-                    let writerList = JSON.parse(rawWriter);
-                    if (Array.isArray(writerList)) {
-                        let updated = false;
-                        writerList = writerList.map(w => {
-                            if (w.id === item.id || w.title === item.title) {
-                                updated = true;
-                                return { ...w, status: 'Ready for Publishing', remarks: `Approved by ${approverRole}; awaiting cover & publication by M&PC.` };
-                            }
-                            return w;
-                        });
-                        if (updated) localStorage.setItem('theLensWriterArticles_v3', JSON.stringify(writerList));
-                    }
-                }
-            } catch (e) {}
-
             renderReviewBoxes();
-            showToast('Article approved and forwarded to the Media & Public Communications Head.', 'success');
+            showToast('Article approved and forwarded to the Media & Publication Committee (M&PC).', 'success');
         }, 220);
     }
 
-    function returnStoryForRevision(id, remarks) {
+    async function returnStoryForRevision(id, remarks) {
         const item = reviewList.find(a => String(a.id) === String(id));
         if (!item) return;
+
+        if (window.__REVISION_URL__) {
+            try {
+                const res = await fetch(`${window.__REVISION_URL__}/${id}/revision`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': getCsrfToken(),
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ remarks: remarks })
+                });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok || data.success === false) {
+                    showToast(data.message || 'Failed to return story for revision.', 'error');
+                    return;
+                }
+            } catch (err) {
+                console.error('Failed to submit revision to backend:', err);
+                showToast('Network error while returning story for revision.', 'error');
+                return;
+            }
+        }
 
         const box = document.getElementById(`box-${id}`);
         if (box) {
@@ -433,50 +343,37 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => {
             reviewList = reviewList.filter(a => String(a.id) !== String(id));
             savePendingQueue(reviewList);
-
-            // Backend sync if running on Laravel
-            try {
-                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-                if (window.__REVISION_URL__ && csrfToken) {
-                    fetch(`${window.__REVISION_URL__}/${id}/revision`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': csrfToken,
-                            'Accept': 'application/json'
-                        },
-                        body: JSON.stringify({ remarks: remarks })
-                    }).catch(err => console.error('Error returning for revision on backend:', err));
-                }
-            } catch (err) {}
-
-            // Update writer's article with status: 'For Revision' and remarks
-            try {
-                const rawWriter = localStorage.getItem('theLensWriterArticles_v3');
-                if (rawWriter) {
-                    let writerList = JSON.parse(rawWriter);
-                    if (Array.isArray(writerList)) {
-                        let updated = false;
-                        writerList = writerList.map(w => {
-                            if (w.id === item.id || w.title === item.title) {
-                                updated = true;
-                                return { ...w, status: 'For Revision', remarks: remarks || 'Please revise according to EIC feedback.' };
-                            }
-                            return w;
-                        });
-                        if (updated) localStorage.setItem('theLensWriterArticles_v3', JSON.stringify(writerList));
-                    }
-                }
-            } catch (e) {}
-
             renderReviewBoxes();
             showToast('Article returned to writer for revision.', 'warning');
         }, 220);
     }
 
-    function declineStory(id, remarks) {
+    async function declineStory(id, remarks) {
         const item = reviewList.find(a => String(a.id) === String(id));
         if (!item) return;
+
+        if (window.__DECLINE_URL__) {
+            try {
+                const res = await fetch(`${window.__DECLINE_URL__}/${id}/decline`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': getCsrfToken(),
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ remarks: remarks })
+                });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok || data.success === false) {
+                    showToast(data.message || 'Failed to decline story.', 'error');
+                    return;
+                }
+            } catch (err) {
+                console.error('Failed to submit decline to backend:', err);
+                showToast('Network error while declining story.', 'error');
+                return;
+            }
+        }
 
         const box = document.getElementById(`box-${id}`);
         if (box) {
@@ -486,26 +383,8 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => {
             reviewList = reviewList.filter(a => String(a.id) !== String(id));
             savePendingQueue(reviewList);
-
-            // Backend sync if running on Laravel
-            try {
-                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-                const declineUrl = window.__DECLINE_URL__ || '/eic/review-articles';
-                if (declineUrl && csrfToken) {
-                    fetch(`${declineUrl}/${id}/decline`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': csrfToken,
-                            'Accept': 'application/json'
-                        },
-                        body: JSON.stringify({ remarks: remarks || 'Declined by Editor-in-Chief.' })
-                    }).catch(err => console.error('Error declining article on backend:', err));
-                }
-            } catch (err) {}
-
             renderReviewBoxes();
-            showToast('Article declined and returned to writer.', 'warning');
+            showToast('Article declined and returned to writer.', 'error');
         }, 220);
     }
 
@@ -522,15 +401,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (modalDate) modalDate.textContent = item.date;
         if (modalWriter) modalWriter.textContent = item.author;
         const modalEndorser = document.getElementById('modal-endorser');
-        if (modalEndorser) modalEndorser.textContent = resolveEndorser(item);
+        if (modalEndorser) modalEndorser.textContent = item.endorsedBy || getEndorserForCategory(item.category);
 
         if (modalRemarks) {
-            let cleanRemarks = (item.remarks || '').trim();
-            // Do not pre-populate system endorsement/approval logs; remarks must be written by the account owner
-            if (/^(?:Endorsed to|Approved by)/i.test(cleanRemarks)) {
-                cleanRemarks = '';
-            }
-            modalRemarks.value = cleanRemarks;
+            modalRemarks.value = item.remarks || '';
             modalRemarks.classList.remove('input-invalid');
             modalRemarks.classList.remove('pulse-focus');
         }
@@ -539,6 +413,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (modalBody) {
+            const rawContent = item.content || '';
             const modalExcerpt = document.getElementById('modal-excerpt');
             if (modalExcerpt) {
                 if (item.excerpt && item.excerpt.trim()) {
@@ -549,7 +424,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            modalBody.innerHTML = formatCleanArticleContent(item.content);
+            if (/<[a-z][\s\S]*>/i.test(rawContent)) {
+                modalBody.innerHTML = rawContent;
+            } else {
+                const paragraphs = rawContent.split(/\n\n+/);
+                modalBody.innerHTML = paragraphs.map(p => `<p>${escapeHTML(p.trim())}</p>`).join('');
+            }
         }
 
         if (manuscriptModal) {
@@ -557,11 +437,10 @@ document.addEventListener('DOMContentLoaded', () => {
             document.body.style.overflow = 'hidden';
         }
 
-        const bodyEl = document.querySelector('.manuscript-body');
         if (options.focusRemarks) {
             setTimeout(() => {
-                if (bodyEl && remarksSection) {
-                    bodyEl.scrollTo({ top: remarksSection.offsetTop - 30, behavior: 'smooth' });
+                if (remarksSection) {
+                    remarksSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }
                 if (modalRemarks) {
                     modalRemarks.focus();
@@ -570,6 +449,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }, 180);
         } else {
+            const bodyEl = document.querySelector('.manuscript-body');
             if (bodyEl) bodyEl.scrollTop = 0;
         }
     }
@@ -651,11 +531,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!currentActiveId) return;
 
             const remarks = modalRemarks ? modalRemarks.value.trim() : '';
+
             if (!remarks) {
-                if (remarksErrorMsg) {
-                    remarksErrorMsg.textContent = 'Please enter decline feedback for the writer.';
-                    remarksErrorMsg.classList.remove('hidden');
-                }
+                if (remarksErrorMsg) remarksErrorMsg.classList.remove('hidden');
                 if (modalRemarks) {
                     modalRemarks.classList.add('input-invalid');
                     modalRemarks.focus();
@@ -686,8 +564,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (action === 'read') {
                 openManuscript(id, { focusRemarks: false });
-            } else if (action === 'decline') {
-                openManuscript(id, { focusRemarks: true });
             } else if (action === 'revision') {
                 openManuscript(id, { focusRemarks: true });
             } else if (action === 'approve-mpc') {
@@ -699,4 +575,3 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initial render
     renderReviewBoxes();
 });
-

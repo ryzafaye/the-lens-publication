@@ -15,6 +15,20 @@
     <link rel="stylesheet" href="{{ asset('css/executive-dashboard.css') }}">
     <link rel="stylesheet" href="{{ asset('css/executive-modals.css') }}">
     <link rel="stylesheet" href="{{ asset('css/writer-dashboard.css') }}">
+    <script>
+        if (typeof localStorage !== 'undefined') {
+            const role = @json(Auth::user()->role->role_name ?? 'Writer');
+            const name = @json(Auth::user()->full_name ?? 'Writer');
+            const studentNo = @json(Auth::user()->student_number ?? '');
+            localStorage.setItem('userRole', role);
+            localStorage.setItem('userName', name);
+            localStorage.setItem('studentNumber', studentNo);
+            localStorage.setItem('writerRole', 'Writer');
+            localStorage.setItem('writerName', name);
+            localStorage.setItem('writerStudentNumber', studentNo);
+            localStorage.setItem('writerId', name.toLowerCase().replace(/[^a-z0-9]+/g, '-'));
+        }
+    </script>
     @yield('extra-css')
     @stack('styles')
 </head>

@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 0. AUTHENTICATION & ROLE DETECTION
     // =========================================================================
     const activeRole = localStorage.getItem('userRole') || 'News Head';
-    const authorName = localStorage.getItem('userName') || localStorage.getItem('sectionHeadName') || 'Danilo C. Ramos';
+    const authorName = localStorage.getItem('userName') || localStorage.getItem('sectionHeadName') || '';
     const currentSection = localStorage.getItem('sectionHeadSection') || 'News';
 
     // DOM Elements - Header Total Views Metric Pill

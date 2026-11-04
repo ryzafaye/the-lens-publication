@@ -77,7 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 2. AUTHOR BYLINE & ROLE INITIALIZATION
     // =========================================================================
     const currentUserRole = localStorage.getItem('userRole') || 'President';
-    const currentUserName = localStorage.getItem('userName') || 'Juan Dela Cruz';
+    const currentUserName = localStorage.getItem('userName') || '';
     
     if (authorNameDisplay) {
         authorNameDisplay.textContent = currentUserName;

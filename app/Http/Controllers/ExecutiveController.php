@@ -109,39 +109,35 @@ class ExecutiveController extends Controller
         $category = $this->getCategoryForUser($user);
 
         $sort = $request->query('sort', 'newest');
-        $catKey = $category->id ?? 'all';
-        $cacheKey = "exec_review_articles_{$catKey}_{$sort}";
 
-        $pendingArticles = Cache::remember($cacheKey, 30, function () use ($category, $sort) {
-            $query = Article::with(['user.role', 'category'])
-                ->where('status', 'Pending Review');
+        $query = Article::with(['user.role', 'category'])
+            ->where('status', 'Pending Review');
 
-            if ($category) {
-                $query->where('category_id', $category->id);
-            }
+        if ($category) {
+            $query->where('category_id', $category->id);
+        }
 
-            if ($sort === 'oldest') {
-                $query->oldest();
-            } else {
-                $query->latest();
-            }
+        if ($sort === 'oldest') {
+            $query->oldest();
+        } else {
+            $query->latest();
+        }
 
-            return $query->get()->map(function ($article) {
-                return [
-                    'id' => $article->id,
-                    'title' => $article->title,
-                    'category' => $article->category->name ?? 'General',
-                    'category_id' => $article->category_id,
-                    'excerpt' => $article->excerpt,
-                    'content' => $article->content,
-                    'status' => $article->status,
-                    'date' => $article->created_at->format('M d, Y'),
-                    'rawDate' => $article->created_at->toIso8601String(),
-                    'author' => $article->user->full_name ?? 'Staff Writer',
-                    'author_avatar' => $article->user->avatar ?? asset('images/member-placeholder.svg'),
-                    'remarks' => $article->remarks,
-                ];
-            });
+        $pendingArticles = $query->get()->map(function ($article) {
+            return [
+                'id' => $article->id,
+                'title' => $article->title,
+                'category' => $article->category->name ?? 'General',
+                'category_id' => $article->category_id,
+                'excerpt' => $article->excerpt,
+                'content' => $article->content,
+                'status' => $article->status,
+                'date' => $article->created_at->format('M d, Y'),
+                'rawDate' => $article->created_at->toIso8601String(),
+                'author' => $article->user->full_name ?? 'Staff Writer',
+                'author_avatar' => $article->user->avatar ?? asset('images/member-placeholder.svg'),
+                'remarks' => $article->remarks,
+            ];
         });
 
         return view('executive.review-articles', compact('pendingArticles', 'category', 'sort'));
@@ -211,6 +207,35 @@ class ExecutiveController extends Controller
     public function activityLogs()
     {
         return view('executive.activity-logs');
+    }
+
+    public function manageArticles()
+    {
+        return view('executive.manage-articles');
+    }
+
+    public function transparency()
+    {
+        return view('executive.transparency');
+    }
+
+    public function feedback()
+    {
+        $feedbacks = \App\Models\Feedback::latest()->get()->map(function ($fb) {
+            return [
+                'id' => (string) $fb->id,
+                'name' => $fb->name ?? '',
+                'email' => $fb->email ?? '',
+                'subject' => $fb->subject,
+                'message' => $fb->message,
+                'date' => $fb->created_at->diffForHumans(),
+                'fullDate' => $fb->created_at->format('M d, Y • h:i A'),
+                'timestamp' => $fb->created_at->getTimestamp() * 1000,
+                'isRead' => (bool) $fb->is_read,
+            ];
+        });
+
+        return view('executive.feedback-inbox', compact('feedbacks'));
     }
 
     public function profileSettings()
@@ -414,6 +439,10 @@ class ExecutiveController extends Controller
             $roleObj = Role::where('role_name', $request->input('role'))->first();
             $roleId = $roleObj?->id;
         }
+        if ($roleId && !is_numeric($roleId)) {
+            $roleObj = Role::where('role_name', $roleId)->first();
+            $roleId = $roleObj?->id;
+        }
         $request->merge(['role_id' => $roleId]);
 
         $validated = $request->validate([
@@ -450,6 +479,10 @@ class ExecutiveController extends Controller
         $roleId = $request->input('role_id');
         if (!$roleId && $request->filled('role')) {
             $roleObj = Role::where('role_name', $request->input('role'))->first();
+            $roleId = $roleObj?->id;
+        }
+        if ($roleId && !is_numeric($roleId)) {
+            $roleObj = Role::where('role_name', $roleId)->first();
             $roleId = $roleObj?->id;
         }
         $request->merge(['role_id' => $roleId]);

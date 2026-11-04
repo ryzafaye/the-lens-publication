@@ -40,11 +40,18 @@
             window.LARAVEL_USER_ROLE = rawRole;
             window.LARAVEL_USER_SECTION = derivedSection;
 
+            const studentNum = "{!! Auth::user()->student_number ?? '' !!}";
+
             // Sync for fallback logic in existing JS files
             localStorage.setItem('userRole', rawRole);
             localStorage.setItem('userName', userName);
+            localStorage.setItem('studentNumber', studentNum);
+            localStorage.setItem('executiveRole', rawRole);
+            localStorage.setItem('executiveName', userName);
+            localStorage.setItem('executiveStudentNumber', studentNum);
             localStorage.setItem('sectionHeadRole', rawRole);
             localStorage.setItem('sectionHeadName', userName);
+            localStorage.setItem('sectionHeadStudentNumber', studentNum);
             localStorage.setItem('sectionHeadSection', derivedSection);
         @endauth
     </script>

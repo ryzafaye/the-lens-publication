@@ -1,4 +1,4 @@
-﻿/* About Us, Members directory, and document library styles. */
+/* About Us, Members directory, and document library styles. */
 .page-shell { width: min(1180px, calc(100% - 48px)); margin: 0 auto; padding: 22px 0 76px; }
 .about-hero { position: relative; display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(250px, .72fr); gap: clamp(25px, 5vw, 70px); align-items: center; min-height: 340px; padding: clamp(28px, 5vw, 62px); overflow: hidden; border-radius: 16px; background: radial-gradient(circle at 90% 12%, rgba(255,255,255,.13), transparent 26%), linear-gradient(125deg, #420817 0%, #64132a 58%, #7a2038 100%); color: #fff; box-shadow: 0 18px 45px rgba(61,8,25,.16); }
 .about-hero::after { content: ""; position: absolute; right: 31%; bottom: -150px; width: 390px; height: 390px; border: 1px solid rgba(255,255,255,.09); border-radius: 50%; box-shadow: 0 0 0 32px rgba(255,255,255,.025), 0 0 0 70px rgba(255,255,255,.02); pointer-events: none; }

@@ -81,8 +81,8 @@ class MpcHeadController extends Controller
             });
 
         // Top Performing Journalists Leaderboard
-        $topJournalists = User::whereHas('articles', function ($q) {
-                $q->where('status', 'Published');
+        $topJournalists = User::whereHas('role', function ($q) {
+                $q->where('role_name', 'Writer');
             })
             ->withCount(['articles as article_count' => function ($q) {
                 $q->where('status', 'Published');
@@ -114,16 +114,22 @@ class MpcHeadController extends Controller
 
     public function approveArticle(Request $request, $id)
     {
-        $article = Article::with(['user', 'category'])->where('status', 'Pending M&PC Review')->findOrFail($id);
+        $article = Article::with(['user', 'category'])->whereIn('status', ['Pending M&PC Review', 'Unpublished'])->findOrFail($id);
         $approver = Auth::user();
         $approver?->loadMissing('role');
 
-        $article->update([
+        $updateData = [
             'status' => 'Published',
             'published_at' => now(),
             'remarks' => trim(($article->remarks ? $article->remarks . "\n" : '')
                 . 'Published by M&PC: ' . ($approver->full_name ?? 'Media and Public Communications Head') . ' on ' . now()->format('M d, Y h:i A')),
-        ]);
+        ];
+
+        if ($request->filled('cover_image')) {
+            $updateData['cover_image'] = $request->input('cover_image');
+        }
+
+        $article->update($updateData);
 
         ActivityLog::record($approver, 'approved and published to the public site', $article);
 
@@ -274,21 +280,174 @@ class MpcHeadController extends Controller
 
     public function activityLogs()
     {
-        $activities = ActivityLog::latest()->take(100)->get()->map(function ($log) {
-            return [
-                'id' => $log->id,
-                'causer' => $log->causer_name,
-                'causerRole' => $log->causer_role,
-                'action' => $log->action,
-                'subjectType' => $log->subject_type,
-                'subjectName' => $log->subject_name,
-                'remarks' => $log->remarks,
-                'timestampText' => $log->created_at->diffForHumans(),
-                'isoDate' => $log->created_at->toIso8601String(),
-                'formattedDate' => $log->created_at->format('M d, Y • h:i A'),
-            ];
-        });
+        return app(PublicSiteController::class)->renderPortalPage('mpc-activity-logs.html');
+    }
 
-        return view('eic.activity-logs', compact('activities'));
+    public function publishArticle()
+    {
+        $response = app(PublicSiteController::class)->renderPortalPage('mpc-publish-article.html');
+        $html = $response->getContent();
+
+        $availableCovers = [
+            [
+                'id' => 'cov-01',
+                'type' => 'pubmat',
+                'artist' => 'Media & Publication Desk',
+                'approvedBy' => 'Editorial Board',
+                'image' => 'images/covers/portal-pubmat.svg',
+                'date' => 'Recent',
+            ],
+            [
+                'id' => 'cov-02',
+                'type' => 'pubmat',
+                'artist' => 'Media & Publication Desk',
+                'approvedBy' => 'Editorial Board',
+                'image' => 'images/covers/sc-audit-pubmat.svg',
+                'date' => 'Recent',
+            ],
+            [
+                'id' => 'cov-03',
+                'type' => 'pubmat',
+                'artist' => 'Media & Publication Desk',
+                'approvedBy' => 'Editorial Board',
+                'image' => 'images/covers/sanitation-pubmat.svg',
+                'date' => 'Recent',
+            ],
+            [
+                'id' => 'cov-04',
+                'type' => 'cartoon',
+                'artist' => 'Cartoonist Desk',
+                'approvedBy' => 'Editorial Board',
+                'image' => 'images/covers/press-freedom-cartoon.svg',
+                'date' => 'Recent',
+            ],
+            [
+                'id' => 'cov-05',
+                'type' => 'cartoon',
+                'artist' => 'Cartoonist Desk',
+                'approvedBy' => 'Editorial Board',
+                'image' => 'images/covers/faculty-overload-cartoon.svg',
+                'date' => 'Recent',
+            ],
+            [
+                'id' => 'cov-06',
+                'type' => 'cartoon',
+                'artist' => 'Cartoonist Desk',
+                'approvedBy' => 'Editorial Board',
+                'image' => 'images/covers/midnight-study-cartoon.svg',
+                'date' => 'Recent',
+            ],
+            [
+                'id' => 'cov-07',
+                'type' => 'photo',
+                'artist' => 'Photojournalism Desk',
+                'approvedBy' => 'Editorial Board',
+                'image' => 'images/covers/photo-laboratory-research.svg',
+                'date' => 'Recent',
+            ],
+            [
+                'id' => 'cov-08',
+                'type' => 'photo',
+                'artist' => 'Photojournalism Desk',
+                'approvedBy' => 'Editorial Board',
+                'image' => 'images/covers/photo-cheering-varsity.svg',
+                'date' => 'Recent',
+            ],
+        ];
+
+        $articles = Article::with(['user.role', 'category'])
+            ->whereIn('status', ['Pending M&PC Review', 'Published', 'Unpublished'])
+            ->latest()
+            ->get()
+            ->map(function ($art) use ($availableCovers) {
+                $statusMap = [
+                    'Pending M&PC Review' => 'ready',
+                    'Published' => 'published',
+                    'Unpublished' => 'unpublished',
+                ];
+                $categoryName = $art->category->name ?? 'News';
+                $categorySlug = strtolower(trim($art->category->slug ?? $categoryName));
+                if (str_contains($categorySlug, 'tech') || str_contains($categorySlug, 'science')) {
+                    $categorySlug = 'scitech';
+                }
+
+                $remarks = $art->remarks ?? '';
+                $sectionHeadNote = 'Section Head Endorsed';
+                $eicNote = 'EIC Approved';
+                if (preg_match('/(?:Endorsed|Approved) by ([^\n\r:]+)/i', $remarks, $m)) {
+                    $sectionHeadNote = trim($m[1]);
+                }
+                if (preg_match('/Approved by EIC:? ([^\n\r]+)/i', $remarks, $m)) {
+                    $eicNote = trim($m[1]);
+                }
+
+                $coverPath = $art->cover_image ? ltrim($art->cover_image, '/') : 'images/covers/portal-pubmat.svg';
+                $assignedCoverId = 'cov-01';
+                foreach ($availableCovers as $c) {
+                    if ($c['image'] === $coverPath) {
+                        $assignedCoverId = $c['id'];
+                        break;
+                    }
+                }
+
+                return [
+                    'id' => (string) $art->id,
+                    'title' => $art->title,
+                    'author' => $art->user->full_name ?? 'Staff Writer',
+                    'category' => $categoryName,
+                    'categorySlug' => $categorySlug,
+                    'status' => $statusMap[$art->status] ?? 'ready',
+                    'dateApproved' => ($art->updated_at ?? $art->created_at)->format('M d, Y'),
+                    'rawDate' => ($art->updated_at ?? $art->created_at)->toIso8601String(),
+                    'publishedAt' => $art->published_at ? $art->published_at->format('M d, Y') : null,
+                    'excerpt' => $art->excerpt ?? '',
+                    'body' => $art->content ?? '',
+                    'content' => $art->content ?? '',
+                    'sectionHead' => $sectionHeadNote,
+                    'eicApprover' => $eicNote,
+                    'assignedCoverId' => $assignedCoverId,
+                    'coverImage' => $coverPath,
+                    'image' => $coverPath,
+                ];
+            })->values()->all();
+
+        $bootstrapScript = '<script>'
+            . 'window.LARAVEL_MPC_ARTICLES = ' . json_encode($articles, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) . ';'
+            . 'window.LARAVEL_APPROVED_COVERS = ' . json_encode($availableCovers, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) . ';'
+            . '</script>';
+
+        $html = str_ireplace('</head>', $bootstrapScript . '</head>', $html);
+
+        return response($html)->header('Content-Type', 'text/html; charset=UTF-8');
+    }
+
+    public function mediaDesk()
+    {
+        return app(PublicSiteController::class)->renderPortalPage('mpc-media-desk.html');
+    }
+
+    public function submitMedia()
+    {
+        return app(PublicSiteController::class)->renderPortalPage('mpc-submit-media.html');
+    }
+
+    public function manageMyArticles()
+    {
+        return app(PublicSiteController::class)->renderPortalPage('mpc-manage-my-articles.html');
+    }
+
+    public function submitArticle()
+    {
+        return app(PublicSiteController::class)->renderPortalPage('mpc-submit-article.html');
+    }
+
+    public function transparency()
+    {
+        return app(PublicSiteController::class)->renderPortalPage('mpc-transparency.html');
+    }
+
+    public function profileSettings()
+    {
+        return app(PublicSiteController::class)->renderPortalPage('mpc-profile-settings.html');
     }
 }

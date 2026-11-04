@@ -305,7 +305,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="media-card-meta">
                             <span><i class="fa-regular fa-calendar"></i> ${escapeHTML(item.date)}</span>
                             <span>&bull;</span>
-                            <span><i class="fa-solid fa-palette"></i> ${escapeHTML(item.artist || 'Alyssa Marie Dizon')}</span>
+                            <span><i class="fa-solid fa-palette"></i> ${escapeHTML(item.artist || '')}</span>
                             <span>&bull;</span>
                             <span>${escapeHTML(item.fileSize || 'Standard')}</span>
                         </div>

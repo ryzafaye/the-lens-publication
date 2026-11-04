@@ -1,13 +1,11 @@
 /**
- * ============================================================================
- * THE LENS PUBLICATION ΓÇö ARTICLES DATASET & TAXONOMY
- * Clean Workflow State: Hardcoded mock articles removed for end-to-end testing.
- * Published stories are dynamically populated from editorial workflow.
- * ============================================================================
+ * The Lens — Public Articles Store
+ * Dummy articles removed. Live articles are loaded dynamically from the publication workflow.
  */
 
 export const articles = [];
 
+// Page headings for the category pages. `name` must match article.category.
 export const categories = [
     {
         "slug": "latest",

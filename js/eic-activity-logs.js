@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 1. AUTHENTICATION & ROLE VERIFICATION
     // =========================================================================
     const userRole = localStorage.getItem('eicRole') || localStorage.getItem('userRole') || 'Editor-in-Chief';
-    const userName = localStorage.getItem('eicName') || localStorage.getItem('userName') || 'Victoria Reyes';
+    const userName = localStorage.getItem('eicName') || localStorage.getItem('userName') || '';
 
     // =========================================================================
     // 2. ESCAPE HTML HELPER

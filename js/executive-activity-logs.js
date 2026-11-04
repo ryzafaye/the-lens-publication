@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 1. AUTHENTICATION & ROLE VERIFICATION
     // =========================================================================
     const userRole = localStorage.getItem('userRole') || 'President';
-    const userName = localStorage.getItem('userName') || 'Juan Dela Cruz';
+    const userName = localStorage.getItem('userName') || '';
 
     if (!localStorage.getItem('userRole')) {
         localStorage.setItem('userRole', 'President');

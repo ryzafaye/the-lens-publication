@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 2. AUTHOR BYLINE & ROLE INITIALIZATION
     // =========================================================================
     const currentUserRole = localStorage.getItem('mpcRole') || localStorage.getItem('userRole') || 'M&PC Head';
-    const currentUserName = localStorage.getItem('mpcName') || localStorage.getItem('userName') || (currentUserRole.includes('Assoc') ? 'Samantha Cruz' : 'Julian Del Rosario');
+    const currentUserName = localStorage.getItem('mpcName') || localStorage.getItem('userName') || (currentUserRole.includes('Assoc') ? '' : '');
 
     if (authorNameDisplay) {
         authorNameDisplay.textContent = currentUserName;

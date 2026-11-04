@@ -64,31 +64,18 @@ try {
         // 1. DYNAMIC EIC PROFILE & ROLE HYDRATION
         // =====================================================================
         function hydrateEICProfile() {
-            let role = 'Editorial-In-Chief';
-            let name = 'Victoria Reyes';
-            let studentNum = '2024-00010-BN-0';
+            let role = 'Editor-in-Chief';
+            let name = localStorage.getItem('eicName') || localStorage.getItem('userName') || 'Editor-in-Chief';
+            let studentNum = localStorage.getItem('eicStudentNumber') || localStorage.getItem('studentNumber') || '';
 
             try {
-                const storedRole = localStorage.getItem('eicRole') || (localStorage.getItem('userRole') && (localStorage.getItem('userRole').toLowerCase().includes('chief') || localStorage.getItem('userRole').toLowerCase().includes('eic')) ? localStorage.getItem('userRole') : null);
-                const storedName = localStorage.getItem('eicName') || (storedRole ? localStorage.getItem('userName') : null);
-                const storedNum = localStorage.getItem('eicStudentNumber') || (storedRole ? localStorage.getItem('studentNumber') : null);
+                const storedRole = localStorage.getItem('eicRole') || localStorage.getItem('userRole');
+                const storedName = localStorage.getItem('eicName') || localStorage.getItem('userName');
+                const storedNum = localStorage.getItem('eicStudentNumber') || localStorage.getItem('studentNumber');
 
-                if (storedRole && (storedRole.toLowerCase().includes('chief') || storedRole.toLowerCase().includes('eic'))) {
-                    role = storedRole;
-                    if (storedName) name = storedName;
-                    if (storedNum) studentNum = storedNum;
-                } else {
-                    // Initialize default EIC session
-                    role = 'Editorial-In-Chief';
-                    name = 'Victoria Reyes';
-                    studentNum = '2024-00010-BN-0';
-                    localStorage.setItem('userRole', 'Editorial-In-Chief');
-                    localStorage.setItem('userName', 'Victoria Reyes');
-                    localStorage.setItem('studentNumber', '2024-00010-BN-0');
-                    localStorage.setItem('eicRole', 'Editorial-In-Chief');
-                    localStorage.setItem('eicName', 'Victoria Reyes');
-                    localStorage.setItem('eicStudentNumber', '2024-00010-BN-0');
-                }
+                if (storedRole) role = storedRole;
+                if (storedName && storedName !== 'Victoria Reyes') name = storedName;
+                if (storedNum) studentNum = storedNum;
             } catch (e) {
                 // Storage unavailable
             }
@@ -266,15 +253,10 @@ try {
         function triggerLogout() {
             showLogoutModal(() => {
                 try {
-                    localStorage.removeItem('userRole');
-                    localStorage.removeItem('userName');
-                    localStorage.removeItem('studentNumber');
-                    localStorage.removeItem('eicRole');
-                    localStorage.removeItem('eicName');
-                    localStorage.removeItem('eicStudentNumber');
+                    localStorage.clear();
                     sessionStorage.clear();
                 } catch (err) {}
-                window.location.href = 'login.html';
+                window.location.href = '/logout';
             });
         }
 

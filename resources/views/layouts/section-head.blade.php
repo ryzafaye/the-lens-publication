@@ -14,6 +14,19 @@
     <!-- Stylesheets -->
     <link rel="stylesheet" href="{{ asset('css/section-head-dashboard.css') }}">
     <link rel="stylesheet" href="{{ asset('css/executive-modals.css') }}">
+    <script>
+        if (typeof localStorage !== 'undefined') {
+            const role = @json(Auth::user()->role->role_name ?? 'Section Head');
+            const name = @json(Auth::user()->full_name ?? 'Section Head');
+            const studentNo = @json(Auth::user()->student_number ?? '');
+            localStorage.setItem('userRole', role);
+            localStorage.setItem('userName', name);
+            localStorage.setItem('studentNumber', studentNo);
+            localStorage.setItem('sectionHeadRole', role);
+            localStorage.setItem('sectionHeadName', name);
+            localStorage.setItem('sectionHeadStudentNumber', studentNo);
+        }
+    </script>
     @yield('extra-css')
     @stack('styles')
 </head>

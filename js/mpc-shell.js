@@ -1,4 +1,4 @@
-﻿// One-time automatic workflow purge to guarantee zero-mock state for testing
+// One-time automatic workflow purge to guarantee zero-mock state for testing
 try {
     const CLEAR_FLAG = 'theLens_workflow_v4_purged';
     if (localStorage.getItem(CLEAR_FLAG) !== 'true') {
@@ -80,8 +80,8 @@ try {
 
                 if (isAssoc) {
                     role = 'Assoc M&PC Head';
-                    name = storedName || 'Samantha Cruz';
-                    studentNum = storedNum || '2024-00021-BN-0';
+                    name = (storedName && storedName !== 'Samantha Cruz' && storedName !== 'Julian Del Rosario') ? storedName : (storedName || 'Assoc M&PC Head');
+                    studentNum = storedNum || '';
                 } else if (storedRole && (
                     storedRole.toLowerCase().includes('media') || 
                     storedRole.toLowerCase().includes('communications') || 
@@ -89,12 +89,12 @@ try {
                     storedRole.toLowerCase().includes('mpc')
                 )) {
                     role = 'M&PC Head';
-                    name = storedName || 'Julian Del Rosario';
-                    studentNum = storedNum || '2024-00020-BN-0';
+                    name = (storedName && storedName !== 'Samantha Cruz' && storedName !== 'Julian Del Rosario') ? storedName : (storedName || 'M&PC Head');
+                    studentNum = storedNum || '';
                 } else {
                     role = 'M&PC Head';
-                    name = 'Julian Del Rosario';
-                    studentNum = '2024-00020-BN-0';
+                    name = (storedName && storedName !== 'Samantha Cruz' && storedName !== 'Julian Del Rosario') ? storedName : (storedName || 'M&PC Head');
+                    studentNum = storedNum || '';
                 }
 
                 // Synchronize all keys cleanly for complete parity
@@ -282,15 +282,10 @@ try {
         function triggerLogout() {
             showLogoutModal(() => {
                 try {
-                    localStorage.removeItem('userRole');
-                    localStorage.removeItem('userName');
-                    localStorage.removeItem('studentNumber');
-                    localStorage.removeItem('mpcRole');
-                    localStorage.removeItem('mpcName');
-                    localStorage.removeItem('mpcStudentNumber');
+                    localStorage.clear();
                     sessionStorage.clear();
                 } catch (err) {}
-                window.location.href = 'login.html';
+                window.location.href = '/logout';
             });
         }
 

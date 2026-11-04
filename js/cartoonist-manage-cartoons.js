@@ -225,7 +225,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const articleHeadline = item.connectedArticleTitle || item.title;
                 const articleExcerpt = item.connectedArticleExcerpt || item.title;
                 const articleCategory = item.connectedArticleCategory || item.category || 'Opinion';
-                const articleAuthor = item.connectedArticleAuthor || 'Raphael Luna';
+                const articleAuthor = item.connectedArticleAuthor || '';
                 const articleDate = item.connectedArticleDate || item.date || 'Oct 12, 2026';
                 const articleViews = item.views !== undefined ? item.views : 2150;
                 const articleReadTime = item.readTime || '2 min read';
@@ -313,7 +313,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="media-card-meta">
                             <span><i class="fa-regular fa-calendar"></i> ${escapeHTML(item.date)}</span>
                             <span>&bull;</span>
-                            <span><i class="fa-solid fa-palette"></i> ${escapeHTML(item.artist || 'Raphael Luna')}</span>
+                            <span><i class="fa-solid fa-palette"></i> ${escapeHTML(item.artist || '')}</span>
                             <span>&bull;</span>
                             <span>${escapeHTML(item.fileSize || 'Standard')}</span>
                         </div>

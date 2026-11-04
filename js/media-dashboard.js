@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     'use strict';
 
     // 1. User Resolution
-    const storedName = localStorage.getItem('mediaName') || localStorage.getItem('userName') || 'Alyssa Marie Dizon';
+    const storedName = localStorage.getItem('mediaName') || localStorage.getItem('userName') || '';
     const firstName = storedName.split(' ')[0] || 'Alyssa';
     const mediaNameEl = document.getElementById('media-name-display');
     if (mediaNameEl) mediaNameEl.textContent = firstName;

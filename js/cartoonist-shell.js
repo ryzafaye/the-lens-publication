@@ -64,10 +64,12 @@ try {
         // 1. DYNAMIC PROFILE & ROLE HYDRATION
         // =====================================================================
         function hydrateCartoonistProfile() {
-            let cartoonistName = localStorage.getItem('cartoonistName') || localStorage.getItem('userName') || 'Raphael Luna';
+            let cartoonistName = (localStorage.getItem('cartoonistName') && localStorage.getItem('cartoonistName') !== 'Raphael Luna') 
+                ? localStorage.getItem('cartoonistName') 
+                : (localStorage.getItem('userName') && localStorage.getItem('userName') !== 'Raphael Luna' ? localStorage.getItem('userName') : 'Cartoonist');
             let cartoonistRole = localStorage.getItem('cartoonistRole') || 'Cartoonist';
-            let studentNumber = localStorage.getItem('cartoonistStudentNumber') || localStorage.getItem('studentNumber') || '2024-00090-BN-0';
-            let avatar = localStorage.getItem('cartoonistAvatar') || localStorage.getItem('userAvatar') || 'images/member-placeholder.svg';
+            let studentNumber = localStorage.getItem('cartoonistStudentNumber') || localStorage.getItem('studentNumber') || '';
+            let avatar = localStorage.getItem('cartoonistAvatar') || localStorage.getItem('userAvatar') || '/site-assets/images/member-placeholder.svg';
 
             // Ensure cached
             localStorage.setItem('cartoonistName', cartoonistName);
@@ -247,15 +249,10 @@ try {
         function triggerLogout() {
             showLogoutModal(() => {
                 try {
+                    localStorage.clear();
                     sessionStorage.clear();
-                    localStorage.removeItem('userRole');
-                    localStorage.removeItem('userName');
-                    localStorage.removeItem('studentNumber');
-                    localStorage.removeItem('cartoonistRole');
-                    localStorage.removeItem('cartoonistName');
-                    localStorage.removeItem('cartoonistStudentNumber');
                 } catch (err) {}
-                window.location.href = 'login.html';
+                window.location.href = '/logout';
             });
         }
 

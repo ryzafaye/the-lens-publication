@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
-    const currentHeadName = localStorage.getItem('cartoonistHeadName') || 'Danilo Reyes';
+    const currentHeadName = localStorage.getItem('cartoonistHeadName') || '';
 
     function escapeHTML(str) {
         if (!str) return '';

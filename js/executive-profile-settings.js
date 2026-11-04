@@ -19,24 +19,32 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================================================================
     // 1. AUTHENTICATION & ROLE VERIFICATION (EXECUTIVE PORTAL)
     // =========================================================================
-    let userRole = localStorage.getItem('executiveRole') || (activeRole !== 'Writer' ? activeRole : null) || 'President';
+    const initialInputName = document.getElementById('input-full-name')?.value?.trim();
+    const initialInputNum = document.getElementById('input-student-number')?.value?.trim();
+
+    let userRole = localStorage.getItem('userRole') || localStorage.getItem('executiveRole') || (activeRole !== 'Writer' ? activeRole : null) || 'President';
     
-    // Guard against writer name pollution in executive session
-    let rawStoredName = localStorage.getItem('userName');
-    let userName = localStorage.getItem('executiveName') || (rawStoredName && !['Sofia M. Alcaraz', 'Marco L. Valderrama', 'Camille Joy Perez'].includes(rawStoredName) ? rawStoredName : 'Juan Dela Cruz');
+    let userName = (initialInputName && initialInputName !== 'undefined')
+        ? initialInputName
+        : (localStorage.getItem('userName') || localStorage.getItem('executiveName') || '');
     
-    let rawStoredNum = localStorage.getItem('studentNumber');
-    let studentNumber = localStorage.getItem('executiveStudentNumber') || (rawStoredNum && !['2024-00101-BN-0', '2024-00102-BN-0', '2024-00103-BN-0'].includes(rawStoredNum) ? rawStoredNum : '2024-00001-BN-0');
+    let studentNumber = (initialInputNum && initialInputNum !== 'undefined')
+        ? initialInputNum
+        : (localStorage.getItem('studentNumber') || localStorage.getItem('executiveStudentNumber') || '');
     
-    let userAvatar = localStorage.getItem('executiveAvatar') || 'images/member-placeholder.svg';
+    let userAvatar = localStorage.getItem('userAvatar') || localStorage.getItem('executiveAvatar') || 'images/member-placeholder.svg';
 
     // Cache clean executive credentials
     localStorage.setItem('userRole', userRole);
-    localStorage.setItem('userName', userName);
-    localStorage.setItem('studentNumber', studentNumber);
+    if (userName) {
+        localStorage.setItem('userName', userName);
+        localStorage.setItem('executiveName', userName);
+    }
+    if (studentNumber) {
+        localStorage.setItem('studentNumber', studentNumber);
+        localStorage.setItem('executiveStudentNumber', studentNumber);
+    }
     localStorage.setItem('executiveRole', userRole);
-    localStorage.setItem('executiveName', userName);
-    localStorage.setItem('executiveStudentNumber', studentNumber);
 
     // Sync roles across DOM
     const topbarRoleBadge = document.getElementById('topbar-user-role');
@@ -114,8 +122,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnResetAvatar = document.getElementById('btn-reset-avatar');
     const profileInfoForm = document.getElementById('profile-info-form');
 
-    if (inputStudentNumber) inputStudentNumber.value = studentNumber;
-    if (inputFullName) inputFullName.value = userName;
+    if (inputStudentNumber) {
+        if (!inputStudentNumber.value || inputStudentNumber.value.trim() === '' || inputStudentNumber.value === 'undefined') {
+            inputStudentNumber.value = studentNumber;
+        } else {
+            studentNumber = inputStudentNumber.value.trim();
+            localStorage.setItem('studentNumber', studentNumber);
+            localStorage.setItem('executiveStudentNumber', studentNumber);
+        }
+    }
+    if (inputFullName) {
+        if (!inputFullName.value || inputFullName.value.trim() === '' || inputFullName.value === 'undefined') {
+            inputFullName.value = userName;
+        } else {
+            userName = inputFullName.value.trim();
+            localStorage.setItem('userName', userName);
+            localStorage.setItem('executiveName', userName);
+        }
+    }
     if (inputOfficerRole) inputOfficerRole.value = userRole;
 
     // Trigger file dialog

@@ -16,10 +16,28 @@ document.addEventListener('DOMContentLoaded', () => {
     // -------------------------------------------------------------------------
     // 1. DATA INITIALIZATION & HYDRATION
     // -------------------------------------------------------------------------
-    let role = localStorage.getItem('sectionHeadRole') || userRole || `${currentSection} Head`;
-    let name = localStorage.getItem('sectionHeadName') || localStorage.getItem('userName') || 'Danilo C. Ramos';
-    let studentNumber = localStorage.getItem('sectionHeadStudentNumber') || localStorage.getItem('studentNumber') || '2024-00051-BN-0';
-    let avatar = localStorage.getItem('sectionHeadAvatar') || localStorage.getItem('userAvatar') || 'images/member-placeholder.svg';
+    const initialInputName = document.getElementById('input-full-name')?.value?.trim();
+    const initialInputNum = document.getElementById('input-student-number')?.value?.trim();
+
+    let role = localStorage.getItem('userRole') || localStorage.getItem('sectionHeadRole') || userRole || `${currentSection} Head`;
+    let name = (initialInputName && initialInputName !== 'undefined')
+        ? initialInputName
+        : (localStorage.getItem('userName') || localStorage.getItem('sectionHeadName') || '');
+    let studentNumber = (initialInputNum && initialInputNum !== 'undefined')
+        ? initialInputNum
+        : (localStorage.getItem('studentNumber') || localStorage.getItem('sectionHeadStudentNumber') || '');
+    let avatar = localStorage.getItem('userAvatar') || localStorage.getItem('sectionHeadAvatar') || 'images/member-placeholder.svg';
+
+    if (name) {
+        localStorage.setItem('userName', name);
+        localStorage.setItem('sectionHeadName', name);
+    }
+    if (studentNumber) {
+        localStorage.setItem('studentNumber', studentNumber);
+        localStorage.setItem('sectionHeadStudentNumber', studentNumber);
+    }
+    localStorage.setItem('userRole', role);
+    localStorage.setItem('sectionHeadRole', role);
 
     // DOM Elements
     const inputStudentNumber = document.getElementById('input-student-number');
@@ -34,8 +52,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const toastContainer = document.getElementById('toast-container');
 
     // Populate Fields
-    if (inputStudentNumber) inputStudentNumber.value = studentNumber;
-    if (inputFullName) inputFullName.value = name;
+    if (inputStudentNumber) {
+        if (!inputStudentNumber.value || inputStudentNumber.value.trim() === '' || inputStudentNumber.value === 'undefined') {
+            inputStudentNumber.value = studentNumber;
+        } else {
+            studentNumber = inputStudentNumber.value.trim();
+            localStorage.setItem('studentNumber', studentNumber);
+            localStorage.setItem('sectionHeadStudentNumber', studentNumber);
+        }
+    }
+    if (inputFullName) {
+        if (!inputFullName.value || inputFullName.value.trim() === '' || inputFullName.value === 'undefined') {
+            inputFullName.value = name;
+        } else {
+            name = inputFullName.value.trim();
+            localStorage.setItem('userName', name);
+            localStorage.setItem('sectionHeadName', name);
+        }
+    }
     if (inputOfficerRole) inputOfficerRole.value = role;
     if (avatarPreviewImg) avatarPreviewImg.src = avatar;
 

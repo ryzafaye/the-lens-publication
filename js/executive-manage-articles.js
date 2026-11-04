@@ -1,4 +1,4 @@
-﻿/**
+/**
  * The Lens — Manage Articles & Archives Script
  * Clean, Reusable & Modular Implementation
  * 
@@ -34,6 +34,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // 2. DATA STORE: SHARED ARTICLES DATASET (Connected with public/executive)
     // =========================================================================
     function getStoredArticles() {
+        if (Array.isArray(window.LARAVEL_EXECUTIVE_ARTICLES) && window.LARAVEL_EXECUTIVE_ARTICLES.length > 0) {
+            return window.LARAVEL_EXECUTIVE_ARTICLES;
+        }
+        if (Array.isArray(window.LARAVEL_PUBLISHED_ARTICLES) && window.LARAVEL_PUBLISHED_ARTICLES.length > 0) {
+            return window.LARAVEL_PUBLISHED_ARTICLES;
+        }
         try {
             const raw = localStorage.getItem('executiveArticles');
             if (raw) {
@@ -637,7 +643,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 e.preventDefault();
                 e.stopPropagation();
                 const action = actionMenuItem.dataset.action;
-                const id = parseInt(actionMenuItem.dataset.id, 10);
+                const id = actionMenuItem.dataset.id;
                 closeAllActionMenus();
                 handleCardAction(action, id);
                 return;
@@ -648,8 +654,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (shareBtn) {
                 e.preventDefault();
                 e.stopPropagation();
-                const id = parseInt(shareBtn.dataset.shareId, 10);
-                const art = articles.find(a => a.id === id);
+                const id = shareBtn.dataset.shareId;
+                const art = articles.find(a => String(a.id) === String(id));
                 if (art) {
                     art.shares = (art.shares || 0) + 1;
                     saveArticles(articles);
@@ -664,7 +670,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (viewTrigger) {
                 e.preventDefault();
                 e.stopPropagation();
-                const id = parseInt(viewTrigger.dataset.id, 10);
+                const id = viewTrigger.dataset.id;
                 openArticleViewer(id);
                 return;
             }
@@ -672,7 +678,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Clicking card background outside the 3-dots anchor views article
             const card = e.target.closest('.article-box');
             if (card && !e.target.closest('.card-menu-anchor')) {
-                const id = parseInt(card.dataset.articleId, 10);
+                const id = card.dataset.articleId;
                 openArticleViewer(id);
             }
         });
@@ -682,7 +688,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 13. CARD ACTIONS DISPATCHER
     // =========================================================================
     function handleCardAction(action, id) {
-        const article = articles.find(a => a.id === id);
+        const article = articles.find(a => String(a.id) === String(id));
         if (!article) return;
 
         if (action === 'view') {
@@ -695,8 +701,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 'Move Article to Archive',
                 `Are you sure you want to move "${article.title}" to the archived editions? It will no longer appear on the active desk.`,
                 'Move to Archive',
-                () => {
+                async () => {
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                    try {
+                        await fetch(`/mpc-head/articles/${article.id}/takedown`, {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': csrfToken || '',
+                                'Accept': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        });
+                    } catch (e) {}
+
                     article.isArchived = true;
+                    article.archived = true;
+                    article.status = 'Unpublished';
                     saveArticles(articles);
                     renderArticlesGrid();
                     showToast('Article moved to Archive.', 'info');
@@ -708,8 +728,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 'Restore Article',
                 `Restore "${article.title}" back to active editorial circulation?`,
                 'Restore Article',
-                () => {
+                async () => {
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                    try {
+                        const formData = new FormData();
+                        formData.append('cover_image', article.image || 'images/covers/portal-pubmat.svg');
+                        await fetch(`/mpc-head/articles/${article.id}/approve`, {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': csrfToken || '',
+                                'Accept': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest'
+                            },
+                            body: formData
+                        });
+                    } catch (e) {}
+
                     article.isArchived = false;
+                    article.archived = false;
+                    article.status = 'Published';
                     saveArticles(articles);
                     renderArticlesGrid();
                     showToast('Article restored to Active Articles.', 'success');
@@ -722,7 +759,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 `PERMANENT ACTION: Are you sure you want to permanently delete "${article.title}" by ${article.author}? This operation cannot be reversed.`,
                 'Emergency Delete',
                 () => {
-                    articles = articles.filter(a => a.id !== id);
+                    articles = articles.filter(a => String(a.id) !== String(id));
                     saveArticles(articles);
                     renderArticlesGrid();
                     showToast(`Article permanently deleted.`, 'danger');
@@ -735,7 +772,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 14. ARTICLE VIEWER MODAL (Executive Can Read Full Story)
     // =========================================================================
     function openArticleViewer(id) {
-        const article = articles.find(a => a.id === id);
+        const article = articles.find(a => String(a.id) === String(id));
         if (!article || !viewerModal) return;
 
         currentViewingArticleId = id;
@@ -813,7 +850,7 @@ document.addEventListener('DOMContentLoaded', () => {
         viewerActionArchive.addEventListener('click', () => {
             if (currentViewingArticleId) {
                 const id = currentViewingArticleId;
-                const art = articles.find(a => a.id === id);
+                const art = articles.find(a => String(a.id) === String(id));
                 closeViewerModal();
                 if (art) {
                     handleCardAction(art.isArchived ? 'restore' : 'archive', id);
@@ -836,7 +873,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 15. EDIT ARTICLE MODAL
     // =========================================================================
     function openEditModal(id) {
-        const article = articles.find(a => a.id === id);
+        const article = articles.find(a => String(a.id) === String(id));
         if (!article || !editModal) return;
 
         if (editArticleIdInput) editArticleIdInput.value = article.id;
@@ -865,8 +902,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (editArticleForm) {
         editArticleForm.addEventListener('submit', (e) => {
             e.preventDefault();
-            const id = parseInt(editArticleIdInput.value, 10);
-            const article = articles.find(a => a.id === id);
+            const id = editArticleIdInput.value;
+            const article = articles.find(a => String(a.id) === String(id));
             if (!article) return;
 
             article.title = editTitleInput.value.trim();

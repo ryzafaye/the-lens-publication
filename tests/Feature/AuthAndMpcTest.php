@@ -229,4 +229,75 @@ class AuthAndMpcTest extends TestCase
         $article->refresh();
         $this->assertEquals('Published', $article->status);
     }
+
+    public function test_executives_and_eic_can_view_publish_article_and_manage_articles(): void
+    {
+        $this->artisan('migrate');
+
+        $presRole = \App\Models\Role::firstOrCreate(['role_name' => 'President']);
+        $president = \App\Models\User::create([
+            'student_number' => '2024-00050-BN-0',
+            'full_name' => 'Maria Clara Santos',
+            'email' => 'clara.pres@pup.edu.ph',
+            'password' => bcrypt('password123'),
+            'role_id' => $presRole->id,
+        ]);
+
+        $eicRole = \App\Models\Role::firstOrCreate(['role_name' => 'Editor-in-Chief']);
+        $eic = \App\Models\User::create([
+            'student_number' => '2024-00051-BN-0',
+            'full_name' => 'Tyron Genesis Magbanua',
+            'email' => 'tyron.eic2@pup.edu.ph',
+            'password' => bcrypt('password123'),
+            'role_id' => $eicRole->id,
+        ]);
+
+        $category = \App\Models\Category::firstOrCreate([
+            'name' => 'News',
+            'slug' => 'news',
+        ]);
+
+        $publishedArt = \App\Models\Article::create([
+            'title' => 'Campus Governance Report',
+            'category_id' => $category->id,
+            'user_id' => $president->id,
+            'status' => 'Published',
+            'published_at' => now(),
+            'cover_image' => 'images/covers/portal-pubmat.svg',
+            'content' => '<p>Campus governance text</p>',
+        ]);
+
+        $pendingArt = \App\Models\Article::create([
+            'title' => 'Pending Editorial Release',
+            'category_id' => $category->id,
+            'user_id' => $president->id,
+            'status' => 'Pending M&PC Review',
+            'content' => '<p>Pending release text</p>',
+        ]);
+
+        // President accessing Publish Article
+        $presPublishResp = $this->actingAs($president)->get('/executive/publish-article');
+        $presPublishResp->assertStatus(200);
+        $presPublishResp->assertSee('window.LARAVEL_MPC_ARTICLES =', false);
+        $presPublishResp->assertSee('Campus Governance Report');
+        $presPublishResp->assertSee('Pending Editorial Release');
+
+        // EIC accessing Publish Article
+        $eicPublishResp = $this->actingAs($eic)->get('/eic/publish-article');
+        $eicPublishResp->assertStatus(200);
+        $eicPublishResp->assertSee('window.LARAVEL_MPC_ARTICLES =', false);
+        $eicPublishResp->assertSee('Campus Governance Report');
+
+        // President accessing Manage Articles
+        $presManageResp = $this->actingAs($president)->get('/executive/manage-articles');
+        $presManageResp->assertStatus(200);
+        $presManageResp->assertSee('window.LARAVEL_EXECUTIVE_ARTICLES =', false);
+        $presManageResp->assertSee('Campus Governance Report');
+
+        // EIC accessing Manage Articles
+        $eicManageResp = $this->actingAs($eic)->get('/eic/manage-articles');
+        $eicManageResp->assertStatus(200);
+        $eicManageResp->assertSee('window.LARAVEL_EXECUTIVE_ARTICLES =', false);
+        $eicManageResp->assertSee('Campus Governance Report');
+    }
 }

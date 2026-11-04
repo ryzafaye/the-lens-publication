@@ -310,6 +310,9 @@
 @endsection
 
 @push('scripts')
+<script>
+    window.LARAVEL_EXECUTIVE_ARTICLES = {!! json_encode($articles ?? [], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) !!};
+</script>
 <script type="module" src="{{ asset('js/executive-manage-articles.js') }}"></script>
 @endpush
 

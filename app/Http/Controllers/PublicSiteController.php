@@ -24,6 +24,10 @@ class PublicSiteController extends Controller
             return $this->renderPage('author.html');
         }
 
+        if (str_contains($normalized, 'publish-article')) {
+            return app(MpcHeadController::class)->publishArticle();
+        }
+
         if (str_contains($normalized, 'review-articles') || str_contains($normalized, 'review-article')) {
             if (str_contains($normalized, 'section-head')) {
                 return redirect()->route('section-head.review-articles');
@@ -100,6 +104,9 @@ class PublicSiteController extends Controller
         );
         $html = preg_replace('/\bhref=("|\')mpc-dashboard\.html\1/i', 'href=$1/mpc-head/dashboard$1', $html);
         $html = preg_replace('/\bhref=("|\')mpc-publish-article\.html\1/i', 'href=$1/mpc-head/publish-article$1', $html);
+        $html = preg_replace('/\bhref=("|\')executive-publish-article\.html\1/i', 'href=$1/executive/publish-article$1', $html);
+        $html = preg_replace('/\bhref=("|\')eic-publish-article\.html\1/i', 'href=$1/eic/publish-article$1', $html);
+        $html = preg_replace('/\bhref=("|\')publish-article\.html\1/i', 'href=$1/mpc-head/publish-article$1', $html);
         $html = preg_replace('/\bhref=("|\')mpc-media-desk\.html\1/i', 'href=$1/mpc-head/media-desk$1', $html);
         $html = preg_replace('/\bhref=("|\')mpc-submit-media\.html\1/i', 'href=$1/mpc-head/submit-media$1', $html);
         $html = preg_replace('/\bhref=("|\')mpc-manage-my-articles\.html\1/i', 'href=$1/mpc-head/manage-my-articles$1', $html);
@@ -238,6 +245,45 @@ class PublicSiteController extends Controller
             $html = str_ireplace('</head>', $csrfMeta . "\n" . $authBootstrap . '</head>', $html);
         }
 
+        if (str_contains(strtolower($path), 'manage-articles')) {
+            try {
+                $articles = Article::with(['user.role', 'category'])
+                    ->whereIn('status', ['Published', 'Unpublished', 'Pending M&PC Review', 'Pending EIC Review', 'Pending Review', 'Draft', 'Archived'])
+                    ->latest()
+                    ->get()
+                    ->map(function ($article) {
+                        $isArchived = in_array($article->status, ['Unpublished', 'Archived', 'Declined']);
+                        $content = $article->content ?? '';
+                        $wordCount = max(1, (int) ceil(str_word_count(strip_tags($content)) / 220));
+
+                        return [
+                            'id' => (string) $article->id,
+                            'title' => $article->title,
+                            'category' => $article->category->name ?? 'General',
+                            'status' => $article->status,
+                            'date' => ($article->published_at ?? $article->created_at)->format('M d, Y'),
+                            'rawDate' => ($article->published_at ?? $article->created_at)->toIso8601String(),
+                            'views' => (int) ($article->views ?? 0),
+                            'shares' => (int) ($article->shares ?? 0),
+                            'readTime' => $wordCount . ' min read',
+                            'isArchived' => $isArchived,
+                            'archived' => $isArchived,
+                            'author' => $article->user->full_name ?? 'Staff Writer',
+                            'excerpt' => $article->excerpt ?? '',
+                            'content' => $content,
+                            'image' => $article->cover_image ? ltrim($article->cover_image, '/') : 'images/covers/portal-pubmat.svg',
+                            'color' => '#571525',
+                            'tags' => [$article->category->slug ?? 'campus'],
+                        ];
+                    })->values()->all();
+
+                $manageBootstrap = '<script>window.LARAVEL_EXECUTIVE_ARTICLES = '
+                    . json_encode($articles, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT)
+                    . ';</script>';
+                $html = str_ireplace('</head>', $manageBootstrap . '</head>', $html);
+            } catch (\Throwable $e) {}
+        }
+
         return response($html)->header('Content-Type', 'text/html; charset=UTF-8');
     }
 
@@ -257,6 +303,9 @@ class PublicSiteController extends Controller
         );
         $html = preg_replace('/\bhref=("|\')mpc-dashboard\.html\1/i', 'href=$1/mpc-head/dashboard$1', $html);
         $html = preg_replace('/\bhref=("|\')mpc-publish-article\.html\1/i', 'href=$1/mpc-head/publish-article$1', $html);
+        $html = preg_replace('/\bhref=("|\')executive-publish-article\.html\1/i', 'href=$1/executive/publish-article$1', $html);
+        $html = preg_replace('/\bhref=("|\')eic-publish-article\.html\1/i', 'href=$1/eic/publish-article$1', $html);
+        $html = preg_replace('/\bhref=("|\')publish-article\.html\1/i', 'href=$1/mpc-head/publish-article$1', $html);
         $html = preg_replace('/\bhref=("|\')mpc-media-desk\.html\1/i', 'href=$1/mpc-head/media-desk$1', $html);
         $html = preg_replace('/\bhref=("|\')mpc-submit-media\.html\1/i', 'href=$1/mpc-head/submit-media$1', $html);
         $html = preg_replace('/\bhref=("|\')mpc-manage-my-articles\.html\1/i', 'href=$1/mpc-head/manage-my-articles$1', $html);

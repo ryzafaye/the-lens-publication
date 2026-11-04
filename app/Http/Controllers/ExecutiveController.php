@@ -211,7 +211,42 @@ class ExecutiveController extends Controller
 
     public function manageArticles()
     {
-        return view('executive.manage-articles');
+        $articles = Article::with(['user.role', 'category'])
+            ->whereIn('status', ['Published', 'Unpublished', 'Pending M&PC Review', 'Pending EIC Review', 'Pending Review', 'Draft', 'Archived'])
+            ->latest()
+            ->get()
+            ->map(function ($article) {
+                $isArchived = in_array($article->status, ['Unpublished', 'Archived', 'Declined']);
+                $content = $article->content ?? '';
+                $wordCount = max(1, (int) ceil(str_word_count(strip_tags($content)) / 220));
+
+                return [
+                    'id' => (string) $article->id,
+                    'title' => $article->title,
+                    'category' => $article->category->name ?? 'General',
+                    'status' => $article->status,
+                    'date' => ($article->published_at ?? $article->created_at)->format('M d, Y'),
+                    'rawDate' => ($article->published_at ?? $article->created_at)->toIso8601String(),
+                    'views' => (int) ($article->views ?? 0),
+                    'shares' => (int) ($article->shares ?? 0),
+                    'readTime' => $wordCount . ' min read',
+                    'isArchived' => $isArchived,
+                    'archived' => $isArchived,
+                    'author' => $article->user->full_name ?? 'Staff Writer',
+                    'excerpt' => $article->excerpt ?? '',
+                    'content' => $content,
+                    'image' => $article->cover_image ? ltrim($article->cover_image, '/') : 'images/covers/portal-pubmat.svg',
+                    'color' => '#571525',
+                    'tags' => [$article->category->slug ?? 'campus'],
+                ];
+            })->values()->all();
+
+        return view('executive.manage-articles', compact('articles'));
+    }
+
+    public function publishArticle()
+    {
+        return app(MpcHeadController::class)->publishArticle();
     }
 
     public function transparency()

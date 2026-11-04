@@ -32,6 +32,7 @@ Route::middleware(['auth', 'role:President,Executive Vice President,Secretary,As
     ->group(function () {
         Route::get('/dashboard', [ExecutiveController::class, 'dashboard'])->name('dashboard');
         Route::get('/manage-articles', [ExecutiveController::class, 'manageArticles'])->name('manage-articles');
+        Route::get('/publish-article', [ExecutiveController::class, 'publishArticle'])->name('publish-article');
         Route::get('/manage-my-articles', [ExecutiveController::class, 'manageMyArticles'])->name('manage-my-articles');
         Route::get('/my-articles', fn () => redirect()->route('executive.manage-my-articles'));
         Route::get('/review-articles', [ExecutiveController::class, 'reviewArticles'])->name('review-articles');
@@ -57,6 +58,9 @@ Route::middleware(['auth', 'role:President,Executive Vice President,Secretary,As
         Route::get('/dashboard.html', fn () => redirect()->route('executive.dashboard'));
         Route::get('/executive-manage-articles.html', fn () => redirect()->route('executive.manage-articles'));
         Route::get('/manage-articles.html', fn () => redirect()->route('executive.manage-articles'));
+        Route::get('/executive-publish-article.html', fn () => redirect()->route('executive.publish-article'));
+        Route::get('/mpc-publish-article.html', fn () => redirect()->route('executive.publish-article'));
+        Route::get('/publish-article.html', fn () => redirect()->route('executive.publish-article'));
         Route::get('/executive-manage-my-articles.html', fn () => redirect()->route('executive.manage-my-articles'));
         Route::get('/manage-my-articles.html', fn () => redirect()->route('executive.manage-my-articles'));
         Route::get('/executive-review-articles.html', fn () => redirect()->route('executive.review-articles'));
@@ -164,6 +168,7 @@ Route::middleware(['auth', 'role:Editor-in-Chief,Associate Editor-in-Chief'])
     ->group(function () {
         Route::get('/dashboard', [EicController::class, 'dashboard'])->name('dashboard');
         Route::get('/manage-articles', [EicController::class, 'manageArticles'])->name('manage-articles');
+        Route::get('/publish-article', [EicController::class, 'publishArticle'])->name('publish-article');
         Route::get('/manage-my-articles', [EicController::class, 'manageMyArticles'])->name('manage-my-articles');
         Route::get('/my-articles', fn () => redirect()->route('eic.manage-my-articles'));
         Route::get('/review-articles', [EicController::class, 'reviewArticles'])->name('review-articles');
@@ -189,6 +194,9 @@ Route::middleware(['auth', 'role:Editor-in-Chief,Associate Editor-in-Chief'])
         Route::get('/dashboard.html', fn () => redirect()->route('eic.dashboard'));
         Route::get('/eic-manage-articles.html', fn () => redirect()->route('eic.manage-articles'));
         Route::get('/manage-articles.html', fn () => redirect()->route('eic.manage-articles'));
+        Route::get('/eic-publish-article.html', fn () => redirect()->route('eic.publish-article'));
+        Route::get('/mpc-publish-article.html', fn () => redirect()->route('eic.publish-article'));
+        Route::get('/publish-article.html', fn () => redirect()->route('eic.publish-article'));
         Route::get('/eic-manage-my-articles.html', fn () => redirect()->route('eic.manage-my-articles'));
         Route::get('/manage-my-articles.html', fn () => redirect()->route('eic.manage-my-articles'));
         Route::get('/eic-review-articles.html', fn () => redirect()->route('eic.review-articles'));
@@ -214,7 +222,7 @@ Route::middleware(['auth', 'role:Editor-in-Chief,Associate Editor-in-Chief'])
     });
 
 // Media & Public Communications Head Portal
-Route::middleware(['auth', 'role:Media and Public Communications Head,Associate Media and Public Communications Head,Media & Public Communications Head,Assoc M&PC Head'])
+Route::middleware(['auth', 'role:Media and Public Communications Head,Associate Media and Public Communications Head,Media & Public Communications Head,Assoc M&PC Head,Editor-in-Chief,Associate Editor-in-Chief,President,Executive Vice President,Vice President,Secretary,Associate Secretary,Treasurer,Auditor,Public Relations Officer'])
     ->prefix('mpc-head')
     ->name('mpc-head.')
     ->group(function () {

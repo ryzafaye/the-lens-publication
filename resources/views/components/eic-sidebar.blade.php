@@ -36,6 +36,11 @@
                 <span>Manage Articles</span>
             </a>
 
+            <a href="{{ route('eic.publish-article') }}" class="sidebar-nav-item {{ request()->routeIs('eic.publish-article*') ? 'active active-manual' : '' }}" data-page="eic-publish-article.html">
+                <i class="fa-solid fa-globe"></i>
+                <span>Publish Article</span>
+            </a>
+
             <a href="{{ route('eic.manage-my-articles') }}" class="sidebar-nav-item {{ request()->routeIs('eic.manage-my-articles*') ? 'active active-manual' : '' }}" data-page="eic-manage-my-articles.html">
                 <i class="fa-solid fa-file-pen"></i>
                 <span>Manage My Articles</span>

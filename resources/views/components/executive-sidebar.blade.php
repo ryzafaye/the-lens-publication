@@ -31,6 +31,11 @@
                 <i class="fa-regular fa-newspaper"></i>
                 <span>Manage Articles</span>
             </a>
+
+            <a href="/executive/publish-article" class="sidebar-nav-item {{ request()->is('executive/publish-article*') ? 'active' : '' }}">
+                <i class="fa-solid fa-globe"></i>
+                <span>Publish Article</span>
+            </a>
             @endif
 
             <a href="{{ url($portalPrefix . '/manage-my-articles') }}" class="sidebar-nav-item {{ request()->is('*/my-articles*') || request()->is('*/manage-my-articles*') ? 'active' : '' }}">

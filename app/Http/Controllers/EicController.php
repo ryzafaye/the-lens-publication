@@ -40,23 +40,25 @@ class EicController extends Controller
             'active_members' => $activeMembers,
         ];
 
-        $pendingArticles = Article::with(['user.role', 'category'])
-            ->where('status', 'Pending EIC Review')
-            ->latest()
-            ->take(5)
-            ->get()
-            ->map(function ($art) {
-                return [
-                    'id' => $art->id,
-                    'title' => $art->title,
-                    'author' => $art->user->full_name ?? 'Staff Writer',
-                    'category' => $art->category->name ?? 'General',
-                    'status' => $art->status,
-                    'date' => $art->created_at->format('M d, Y'),
-                    'content' => $art->content,
-                    'excerpt' => $art->excerpt,
-                ];
-            });
+        $pendingArticles = Cache::remember('eic_dashboard_pending_articles', 30, function () {
+            return Article::with(['user.role', 'category'])
+                ->where('status', 'Pending EIC Review')
+                ->latest()
+                ->take(5)
+                ->get()
+                ->map(function ($art) {
+                    return [
+                        'id' => $art->id,
+                        'title' => $art->title,
+                        'author' => $art->user->full_name ?? 'Staff Writer',
+                        'category' => $art->category->name ?? 'General',
+                        'status' => $art->status,
+                        'date' => $art->created_at->format('M d, Y'),
+                        'content' => $art->content,
+                        'excerpt' => $art->excerpt,
+                    ];
+                });
+        });
 
         return view('eic.dashboard', compact('metrics', 'pendingArticles'));
     }
@@ -103,7 +105,7 @@ class EicController extends Controller
      */
     protected function getCategoryHeadsMap(): array
     {
-        return Cache::remember('category_section_heads_map_v3', 300, function () {
+        return Cache::remember('category_section_heads_map_v3', 3600, function () {
             // Canonical default mapping matching the official board members: (Last name) (position)
             $map = [
                 'News' => 'Arquero (News Head)',
@@ -269,6 +271,7 @@ class EicController extends Controller
         ]);
 
         Cache::forget('eic_dashboard_stats');
+        Cache::forget('eic_dashboard_pending_articles');
         Cache::forget('eic_review_articles_newest');
         Cache::forget('eic_review_articles_oldest');
 
@@ -292,6 +295,7 @@ class EicController extends Controller
         ]);
 
         Cache::forget('eic_dashboard_stats');
+        Cache::forget('eic_dashboard_pending_articles');
         Cache::forget('eic_review_articles_newest');
         Cache::forget('eic_review_articles_oldest');
 
@@ -304,7 +308,7 @@ class EicController extends Controller
 
     public function submitArticle(Request $request)
     {
-        $categories = Category::all();
+        $categories = Cache::remember('all_categories', 86400, fn() => Category::all());
 
         $drafts = Article::with(['category', 'user.role'])
             ->where('user_id', Auth::id())
@@ -357,6 +361,7 @@ class EicController extends Controller
                     ]);
 
                     Cache::forget('eic_dashboard_stats');
+                    Cache::forget('eic_dashboard_pending_articles');
                     Cache::forget('eic_review_articles_newest');
                     Cache::forget('eic_review_articles_oldest');
 
@@ -381,6 +386,7 @@ class EicController extends Controller
             ]);
 
             Cache::forget('eic_dashboard_stats');
+            Cache::forget('eic_dashboard_pending_articles');
             Cache::forget('eic_review_articles_newest');
             Cache::forget('eic_review_articles_oldest');
 
@@ -415,12 +421,16 @@ class EicController extends Controller
     public function manageAccounts(Request $request)
     {
         // Fetch all accounts including Writers, Cartoonists, Media Team, and Executive/Editorial board
-        $officers = User::with('role')
-            ->orderBy('full_name', 'asc')
-            ->get();
+        $officers = Cache::remember('all_officers_list', 60, function () {
+            return User::with('role')
+                ->orderBy('full_name', 'asc')
+                ->get();
+        });
 
-        $roles = Role::orderBy('role_name', 'asc')
-            ->get();
+        $roles = Cache::remember('all_roles_list', 3600, function () {
+            return Role::orderBy('role_name', 'asc')
+                ->get();
+        });
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
@@ -456,6 +466,10 @@ class EicController extends Controller
             'account_status' => 'active',
         ]);
 
+        Cache::forget('all_officers_list');
+        Cache::forget('eic_active_members');
+        Cache::forget('active_writers_count');
+
         $officer->load('role');
 
         if ($request->wantsJson() || $request->ajax()) {
@@ -487,6 +501,9 @@ class EicController extends Controller
         $officer->update([
             'role_id' => $validated['role_id'],
         ]);
+
+        \App\Auth\CachedEloquentUserProvider::clearCache($officer->id);
+        Cache::forget('all_officers_list');
 
         $officer->load('role');
 
@@ -528,6 +545,9 @@ class EicController extends Controller
             'account_status' => $status,
         ]);
 
+        \App\Auth\CachedEloquentUserProvider::clearCache($officer->id);
+        Cache::forget('all_officers_list');
+
         $officer->load('role');
 
         $statusLabel = ($status === 'active') ? 'reactivated' : 'deactivated';
@@ -556,18 +576,20 @@ class EicController extends Controller
 
     public function feedbackInbox()
     {
-        $feedbacks = Feedback::latest()->get()->map(function ($fb) {
-            return [
-                'id' => (string) $fb->id,
-                'name' => $fb->name ?? '',
-                'email' => $fb->email ?? '',
-                'subject' => $fb->subject,
-                'message' => $fb->message,
-                'date' => $fb->created_at->diffForHumans(),
-                'fullDate' => $fb->created_at->format('M d, Y • h:i A'),
-                'timestamp' => $fb->created_at->getTimestamp() * 1000,
-                'isRead' => (bool) $fb->is_read,
-            ];
+        $feedbacks = Cache::remember('eic_feedbacks_list', 30, function () {
+            return Feedback::latest()->get()->map(function ($fb) {
+                return [
+                    'id' => (string) $fb->id,
+                    'name' => $fb->name ?? '',
+                    'email' => $fb->email ?? '',
+                    'subject' => $fb->subject,
+                    'message' => $fb->message,
+                    'date' => $fb->created_at->diffForHumans(),
+                    'fullDate' => $fb->created_at->format('M d, Y • h:i A'),
+                    'timestamp' => $fb->created_at->getTimestamp() * 1000,
+                    'isRead' => (bool) $fb->is_read,
+                ];
+            });
         });
 
         return view('eic.feedback-inbox', compact('feedbacks'));

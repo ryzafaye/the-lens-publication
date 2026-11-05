@@ -36,4 +36,16 @@ document.addEventListener('DOMContentLoaded', () => {
             e.target.value = formatted;
         });
     }
+
+    // --- 3. Instant Visual Feedback on Submit ---
+    const loginForm = document.getElementById('login-form');
+    const loginButton = document.getElementById('login-button');
+    if (loginForm && loginButton) {
+        loginForm.addEventListener('submit', () => {
+            loginButton.disabled = true;
+            loginButton.style.opacity = '0.85';
+            loginButton.style.cursor = 'wait';
+            loginButton.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin text-sm"></i> <span>Signing In…</span>';
+        });
+    }
 });

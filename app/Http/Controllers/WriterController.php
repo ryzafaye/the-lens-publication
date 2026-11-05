@@ -31,11 +31,13 @@ class WriterController extends Controller
             'drafts' => (int) ($stats->drafts ?? 0),
         ];
 
-        $recentArticles = Article::with(['category', 'user.role'])
-            ->where('user_id', $userId)
-            ->latest()
-            ->take(5)
-            ->get();
+        $recentArticles = Cache::remember('writer_recent_articles_' . $userId, 30, function () use ($userId) {
+            return Article::with(['category', 'user.role'])
+                ->where('user_id', $userId)
+                ->latest()
+                ->take(5)
+                ->get();
+        });
 
         return view('writer.dashboard', compact('writerStats', 'recentArticles'));
     }
@@ -43,7 +45,7 @@ class WriterController extends Controller
     public function submitArticle(Request $request)
     {
         // Fetch categories from the database for the dropdown
-        $categories = Category::all();
+        $categories = Cache::remember('all_categories', 86400, fn() => Category::all());
         $drafts = Article::with(['category', 'user.role'])
             ->where('user_id', Auth::id())
             ->where('status', 'Draft')
@@ -133,6 +135,8 @@ class WriterController extends Controller
                     ]);
 
                     Cache::forget('writer_dashboard_stats_' . Auth::id());
+            Cache::forget('writer_recent_articles_' . Auth::id());
+                    Cache::forget('writer_recent_articles_' . Auth::id());
                     Cache::forget('eic_dashboard_stats');
                     Cache::forget('eic_review_articles_newest');
                     Cache::forget('eic_review_articles_oldest');
@@ -163,6 +167,7 @@ class WriterController extends Controller
             ]);
 
             Cache::forget('writer_dashboard_stats_' . Auth::id());
+            Cache::forget('writer_recent_articles_' . Auth::id());
             Cache::forget('eic_dashboard_stats');
             Cache::forget('eic_review_articles_newest');
             Cache::forget('eic_review_articles_oldest');

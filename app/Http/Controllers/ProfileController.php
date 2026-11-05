@@ -57,6 +57,7 @@ class ProfileController extends Controller
         }
 
         $user->save();
+        \App\Auth\CachedEloquentUserProvider::clearCache($user->id);
 
         return response()->json([
             'message' => 'Profile updated successfully',
@@ -95,6 +96,7 @@ class ProfileController extends Controller
 
         $user->password = Hash::make($request->new_password);
         $user->save();
+        \App\Auth\CachedEloquentUserProvider::clearCache($user->id);
 
         return response()->json([
             'message' => 'Password updated successfully'

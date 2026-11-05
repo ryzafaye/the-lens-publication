@@ -22,10 +22,7 @@ class ExecutiveController extends Controller
         $user->loadMissing('role');
         $roleName = $user->role->role_name ?? '';
         
-        static $cachedCategories = null;
-        if ($cachedCategories === null) {
-            $cachedCategories = Category::all();
-        }
+        $cachedCategories = Cache::remember('all_categories', 86400, fn() => Category::all());
 
         if (str_contains($roleName, 'News')) {
             return $cachedCategories->first(fn($c) => stripos($c->name, 'News') !== false);
@@ -80,22 +77,25 @@ class ExecutiveController extends Controller
             'active_members' => $activeMembers,
         ];
 
-        $submissionsQuery = Article::with(['user.role', 'category'])
-            ->where('status', 'Pending Review');
-        if ($category) {
-            $submissionsQuery->where('category_id', $category->id);
-        }
-        $pendingArticles = $submissionsQuery->latest()->take(6)->get()->map(function ($art) {
-            return [
-                'id' => $art->id,
-                'title' => $art->title,
-                'author' => $art->user->full_name ?? 'Staff Writer',
-                'category' => $art->category->name ?? 'General',
-                'status' => $art->status,
-                'date' => $art->created_at->format('M d, Y'),
-                'content' => $art->content,
-                'excerpt' => $art->excerpt,
-            ];
+        $submissionsCacheKey = 'exec_dashboard_pending_' . ($category->id ?? 'all');
+        $pendingArticles = Cache::remember($submissionsCacheKey, 30, function () use ($category) {
+            $submissionsQuery = Article::with(['user.role', 'category'])
+                ->where('status', 'Pending Review');
+            if ($category) {
+                $submissionsQuery->where('category_id', $category->id);
+            }
+            return $submissionsQuery->latest()->take(6)->get()->map(function ($art) {
+                return [
+                    'id' => $art->id,
+                    'title' => $art->title,
+                    'author' => $art->user->full_name ?? 'Staff Writer',
+                    'category' => $art->category->name ?? 'General',
+                    'status' => $art->status,
+                    'date' => $art->created_at->format('M d, Y'),
+                    'content' => $art->content,
+                    'excerpt' => $art->excerpt,
+                ];
+            });
         });
 
         return view('executive.dashboard', compact('metrics', 'pendingArticles', 'category'));
@@ -220,7 +220,7 @@ class ExecutiveController extends Controller
 
     public function submitArticle(Request $request)
     {
-        $categories = Category::all();
+        $categories = Cache::remember('all_categories', 86400, fn() => Category::all());
 
         $drafts = Article::with(['category', 'user.role'])
             ->where('user_id', Auth::id())
@@ -389,12 +389,16 @@ class ExecutiveController extends Controller
     public function manageAccounts(Request $request)
     {
         // Fetch all accounts including Writers, Cartoonists, Media Team, and Executive/Editorial board
-        $officers = User::with('role')
-            ->orderBy('full_name', 'asc')
-            ->get();
+        $officers = Cache::remember('all_officers_list', 60, function () {
+            return User::with('role')
+                ->orderBy('full_name', 'asc')
+                ->get();
+        });
 
-        $roles = Role::orderBy('role_name', 'asc')
-            ->get();
+        $roles = Cache::remember('all_roles_list', 3600, function () {
+            return Role::orderBy('role_name', 'asc')
+                ->get();
+        });
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
@@ -430,6 +434,10 @@ class ExecutiveController extends Controller
             'account_status' => 'active',
         ]);
 
+        Cache::forget('all_officers_list');
+        Cache::forget('eic_active_members');
+        Cache::forget('active_writers_count');
+
         $officer->load('role');
 
         if ($request->wantsJson() || $request->ajax()) {
@@ -461,6 +469,9 @@ class ExecutiveController extends Controller
         $officer->update([
             'role_id' => $validated['role_id'],
         ]);
+
+        \App\Auth\CachedEloquentUserProvider::clearCache($officer->id);
+        Cache::forget('all_officers_list');
 
         $officer->load('role');
 
@@ -501,6 +512,9 @@ class ExecutiveController extends Controller
         $officer->update([
             'account_status' => $status,
         ]);
+
+        \App\Auth\CachedEloquentUserProvider::clearCache($officer->id);
+        Cache::forget('all_officers_list');
 
         $officer->load('role');
 

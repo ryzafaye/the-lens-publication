@@ -24,8 +24,8 @@ class AuthController extends Controller
 
             /** @var \App\Models\User $user */
             $user = Auth::user();
-            // Eager load role relationship immediately for redirection and session state
-            $user?->load('role');
+            // Eager load role relationship if needed
+            $user?->loadMissing('role');
 
             // Fetch relational role name and normalize
             $rawRoleName = $user->role->role_name ?? '';
@@ -53,7 +53,9 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
+        $userId = Auth::id();
         Auth::logout();
+        \App\Auth\CachedEloquentUserProvider::clearCache($userId);
         $request->session()->invalidate();
         $request->session()->regenerateToken();
         return redirect('/login');

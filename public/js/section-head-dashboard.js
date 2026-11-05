@@ -241,7 +241,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const reviewArticlesUrl = window.__REVIEW_ARTICLES_URL__ || (window.location.pathname.startsWith('/section-head') ? '/section-head/review-articles' : '/executive/review-articles');
     if (submissionsTableBody) {
         if (sectionPending.length === 0) {
-            submissionsTableBody.innerHTML = `<tr><td colspan="5" class="text-center py-6 text-gray-500 text-sm">No pending submissions for this section.</td></tr>`;
+            submissionsTableBody.innerHTML = `<tr><td colspan="5" style="font-size: 0.85rem; color: #667085; text-align: center; padding: 24px 0; border-bottom: none; pointer-events: none; background: transparent;">No pending submissions for this section.</td></tr>`;
         } else {
             submissionsTableBody.innerHTML = sectionPending.map(item => `
                 <tr>
@@ -365,7 +365,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .map(([name, count]) => ({ name, count }));
 
         if (topJournalists.length === 0) {
-            topJournalistsTableBody.innerHTML = `<tr><td colspan="2" class="text-center py-6 text-gray-500 text-sm">No data available yet</td></tr>`;
+            topJournalistsTableBody.innerHTML = `<tr><td colspan="2" style="font-size: 0.85rem; color: #667085; text-align: center; padding: 24px 0; border-bottom: none; pointer-events: none; background: transparent;">No data available yet</td></tr>`;
         } else {
             topJournalistsTableBody.innerHTML = topJournalists.map(j => `
                 <tr>

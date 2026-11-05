@@ -90,3 +90,17 @@
     text-decoration: none !important;
 }
 
+/* Empty Table Cell Formatting (matching Most Viewed Articles format) */
+.journalists-table td[colspan],
+.data-table td[colspan].text-center,
+.data-table td.table-empty-state {
+    font-size: 0.85rem !important;
+    color: #667085 !important;
+    text-align: center !important;
+    padding: 24px 0 !important;
+    border-bottom: none !important;
+    background: transparent !important;
+    pointer-events: none !important;
+}
+
+

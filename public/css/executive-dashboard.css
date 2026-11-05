@@ -1279,6 +1279,16 @@ body.dashboard-body {
     background-color: #f9fafb;
 }
 
+.journalists-table td[colspan] {
+    font-size: 0.85rem !important;
+    color: #667085 !important;
+    text-align: center !important;
+    padding: 24px 0 !important;
+    border-bottom: none !important;
+    background: transparent !important;
+    pointer-events: none !important;
+}
+
 .journalists-table td.col-author-name {
     font-weight: 600;
     color: var(--text-primary);

@@ -380,9 +380,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (topJournalists.length === 0) {
             if (topJournalistsTableBody) {
-                topJournalistsTableBody.innerHTML = '<tr><td colspan="2" style="text-align: center; padding: 28px 16px; font-size: 0.95rem; color: var(--text-muted, #667085);">No journalist data available yet.</td></tr>';
+                topJournalistsTableBody.innerHTML = '<tr><td colspan="2" style="font-size: 0.85rem; color: #667085; text-align: center; padding: 24px 0; border-bottom: none; pointer-events: none; background: transparent;">No data available yet</td></tr>';
             } else if (topJournalistsContainer) {
-                topJournalistsContainer.innerHTML = '<p style="font-size: 0.95rem; color: var(--text-muted, #667085); padding: 28px 16px; text-align: center; margin: 0;">No journalist data available yet.</p>';
+                topJournalistsContainer.innerHTML = '<div style="font-size: 0.85rem; color: #667085; text-align: center; padding: 24px 0;">No data available yet</div>';
             }
         } else if (topJournalistsTableBody) {
             topJournalistsTableBody.innerHTML = topJournalists.map(j => `

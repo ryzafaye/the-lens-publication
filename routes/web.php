@@ -7,6 +7,7 @@ use App\Http\Controllers\WriterController;
 use App\Http\Controllers\SectionHeadController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\EicController;
+use App\Http\Controllers\MpcController;
 
 Route::get('/', function () {
     return redirect('/login');
@@ -122,4 +123,29 @@ Route::middleware(['auth', 'role:Editor-in-Chief,Associate Editor-in-Chief'])
             return redirect()->route('eic.profile-settings');
         });
         Route::delete('/drafts/{id}', [EicController::class, 'destroyDraft'])->name('destroyDraft');
+    });
+
+// Media and Public Communications (M&PC) Routes
+Route::middleware(['auth', 'role:Media and Public Communications Head,Associate Media and Public Communications Head,M&PC Head,Associate M&PC Head'])
+    ->prefix('mpc')
+    ->name('mpc.')
+    ->group(function () {
+        Route::get('/dashboard', [MpcController::class, 'dashboard'])->name('dashboard');
+        Route::get('/publish-article', [MpcController::class, 'publishArticle'])->name('publish-article');
+        Route::get('/media-desk', [MpcController::class, 'mediaDesk'])->name('media-desk');
+        Route::get('/submit-media', [MpcController::class, 'submitMedia'])->name('submit-media');
+        Route::post('/submit-media', [MpcController::class, 'storeMedia'])->name('store-media');
+        Route::get('/manage-my-articles', [MpcController::class, 'manageMyArticles'])->name('manage-my-articles');
+        Route::get('/my-articles', function () {
+            return redirect()->route('mpc.manage-my-articles');
+        });
+        Route::get('/submit-article', [MpcController::class, 'submitArticle'])->name('submit-article');
+        Route::post('/submit-article', [MpcController::class, 'storeArticle'])->name('store-article');
+        Route::get('/activity-logs', [MpcController::class, 'activityLogs'])->name('activity-logs');
+        Route::get('/transparency', [MpcController::class, 'transparency'])->name('transparency');
+        Route::get('/profile-settings', [MpcController::class, 'profileSettings'])->name('profile-settings');
+        Route::get('/settings', function () {
+            return redirect()->route('mpc.profile-settings');
+        });
+        Route::delete('/drafts/{id}', [MpcController::class, 'destroyDraft'])->name('destroyDraft');
     });

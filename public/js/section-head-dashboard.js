@@ -250,7 +250,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             ${escapeHTML(item.title)}
                         </button>
                     </td>
-                    <td><span class="table-author">${escapeHTML(item.author)}</span></td>
+                    <td><span class="table-author"><i class="fa-solid fa-pen-nib" aria-hidden="true" style="color: var(--sidebar-maroon, #5c0a18); font-size: 0.72rem; margin-right: 4px;"></i>${escapeHTML(item.author || 'Author')}</span></td>
                     <td>${getStatusBadgeHtml('In Review')}</td>
                     <td class="hide-on-mobile"><span class="table-date">${escapeHTML(item.date)}</span></td>
                     <td class="text-right">
@@ -330,7 +330,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             ${escapeHTML(art.title)}
                         </button>
                         <div class="ranked-meta-row">
-                            <span class="ranked-author"><i class="fa-solid fa-pen-nib" aria-hidden="true" style="font-size: 0.70rem; margin-right: 4px; color: var(--text-muted, #667085);"></i>${escapeHTML(art.author || 'Staff Writer')}</span>
+                            <span class="ranked-author"><i class="fa-solid fa-pen-nib" aria-hidden="true" style="font-size: 0.70rem; margin-right: 4px; color: var(--sidebar-maroon, #5c0a18);"></i>${escapeHTML(art.author || 'Author')}</span>
                             <span class="ranked-stats">
                                 <span class="stat-metric" title="Views"><i class="fa-regular fa-eye"></i> ${Number(art.views || 3420 + idx * 800).toLocaleString()}</span>
                                 <span class="stat-sep">&bull;</span>
@@ -445,7 +445,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 ${escapeHTML(item.title)}
                             </button>
                         </td>
-                        <td><span class="table-author">${escapeHTML(item.author || 'Author')}</span></td>
+                        <td><span class="table-author"><i class="fa-solid fa-pen-nib" aria-hidden="true" style="color: var(--sidebar-maroon, #5c0a18); font-size: 0.72rem; margin-right: 4px;"></i>${escapeHTML(item.author || 'Author')}</span></td>
                         <td>${getStatusBadgeHtml('In Review')}</td>
                         <td class="hide-on-mobile"><span class="table-date">${escapeHTML(item.date)}</span></td>
                         <td class="text-right">

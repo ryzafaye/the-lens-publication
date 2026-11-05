@@ -73,4 +73,19 @@ class User extends Authenticatable
     {
         $this->attributes['profile_picture_url'] = $value;
     }
+
+    public function getAvatarUrlAttribute()
+    {
+        $url = $this->profile_picture_url;
+        if (!$url) {
+            return asset('images/member-placeholder.svg');
+        }
+        if (str_starts_with($url, 'http://') || str_starts_with($url, 'https://')) {
+            return $url;
+        }
+        if (str_starts_with($url, 'storage/')) {
+            return asset($url);
+        }
+        return asset('storage/' . $url);
+    }
 }

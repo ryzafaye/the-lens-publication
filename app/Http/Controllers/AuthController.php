@@ -34,6 +34,8 @@ class AuthController extends Controller
             // Broad check for Editor-in-Chief and Associate Editor-in-Chief roles (e.g., "Associate Editor-in-Chief", "Assoc EIC")
             if (str_contains($roleName, 'editor-in-chief') || str_contains($roleName, 'chief') || str_contains($roleName, 'eic')) {
                 return redirect()->route('eic.dashboard');
+            } elseif (str_contains($roleName, 'm&pc') || str_contains($roleName, 'media and public')) {
+                return redirect()->route('mpc.dashboard');
             } elseif (str_ends_with($roleName, 'head')) {
                 return redirect()->route('section-head.dashboard');
             } elseif ($roleName === 'writer') {

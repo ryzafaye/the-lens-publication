@@ -158,6 +158,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const DEFAULT_PENDING_ARTICLES = [];
 
     function getPendingQueue() {
+        if (window.__DASHBOARD_PENDING__ && Array.isArray(window.__DASHBOARD_PENDING__)) {
+            return window.__DASHBOARD_PENDING__;
+        }
         try {
             const raw = localStorage.getItem('eicPendingReviewQueue') || localStorage.getItem('executivePendingReviewQueue');
             if (raw) {
@@ -189,37 +192,41 @@ document.addEventListener('DOMContentLoaded', () => {
         const totalViews = activeArticles.reduce((sum, a) => sum + (Number(a.views) || 0), 0);
         const pendingList = getPendingQueue();
 
-        // A. Metrics Cards (4 Cards)
+        // A. Metrics Cards (3 Cards in One Line: Active Members removed)
         const metricsContainer = document.getElementById('metrics-grid');
         if (metricsContainer) {
+            const serverMetrics = window.__DASHBOARD_METRICS__;
+            const pendingVal = (serverMetrics && serverMetrics.pending !== undefined)
+                ? String(serverMetrics.pending)
+                : String(pendingList.length);
+            const viewsVal = (serverMetrics && serverMetrics.total_views !== undefined)
+                ? Number(serverMetrics.total_views).toLocaleString()
+                : totalViews.toLocaleString();
+            const publishedVal = (serverMetrics && serverMetrics.published_stories !== undefined)
+                ? String(serverMetrics.published_stories)
+                : String(activeArticles.length);
+
             const metrics = [
                 {
                     label: "Pending Approvals",
-                    value: String(pendingList.length),
+                    value: pendingVal,
                     subtitle: "Awaiting editorial review",
                     icon: "fa-regular fa-clock",
                     delayClass: "delay-1"
                 },
                 {
                     label: "Monthly Readership",
-                    value: totalViews.toLocaleString(),
+                    value: viewsVal,
                     subtitle: "Views across all desks",
                     icon: "fa-regular fa-eye",
                     delayClass: "delay-2"
                 },
                 {
-                    label: "Active Members",
-                    value: "28",
-                    subtitle: "Staff & editorial roster",
-                    icon: "fa-solid fa-users",
-                    delayClass: "delay-3"
-                },
-                {
                     label: "Published Stories",
-                    value: String(activeArticles.length),
+                    value: publishedVal,
                     subtitle: "Total overall published",
                     icon: "fa-regular fa-newspaper",
-                    delayClass: "delay-4"
+                    delayClass: "delay-3"
                 }
             ];
 
@@ -295,6 +302,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return `<span class="table-section-tag">${escapeHTML(catStr)}</span>`;
         }
 
+        const reviewArticlesUrl = window.__REVIEW_ARTICLES_URL__ || '/eic/review-articles';
         if (tableBody) {
             const topPending = pendingList.slice(0, 5);
 
@@ -305,20 +313,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     <tr>
                         <td>
                             <div class="table-article-info">
-                                <button type="button" class="table-article-btn" data-action="view" data-id="${escapeHTML(art.id)}" title="${escapeHTML(art.title)}">
+                                <button type="button" class="table-article-btn" data-action="view-modal" data-id="${escapeHTML(art.id)}" title="${escapeHTML(art.title)}">
                                     ${escapeHTML(art.title)}
                                 </button>
-                                <div class="table-author-subline">
-                                    <i class="fa-solid fa-pen-nib"></i>
-                                    <span>${escapeHTML(art.author)}</span>
-                                </div>
                             </div>
                         </td>
-                        <td class="hide-on-mobile">${formatSectionBadgeHtml(art.category)}</td>
+                        <td><span class="table-author"><i class="fa-solid fa-pen-nib" aria-hidden="true" style="color: var(--sidebar-maroon, #5c0a18); font-size: 0.72rem; margin-right: 4px;"></i>${escapeHTML(art.author || 'Author')}</span></td>
                         <td><span class="status-badge status-review">Pending</span></td>
                         <td class="hide-on-mobile"><span class="table-date">${escapeHTML(art.date)}</span></td>
                         <td class="text-right">
-                            <a href="eic-review-articles.html" class="table-manage-btn" title="Review Article">
+                            <a href="${reviewArticlesUrl}" class="table-manage-btn" title="Review Article">
                                 Manage
                             </a>
                         </td>
@@ -335,7 +339,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 .slice(0, 3);
 
             if (mostViewed.length === 0) {
-                mostViewedContainer.innerHTML = '<p style="font-size: 0.95rem; color: var(--text-muted, #667085); padding: 28px 16px; text-align: center; margin: 0;">No published articles yet.</p>';
+                mostViewedContainer.innerHTML = '<p style="font-size: 0.85rem; color: var(--text-muted, #667085); padding: 28px 16px; text-align: center; margin: 0;">No published articles yet.</p>';
             } else {
                 mostViewedContainer.innerHTML = mostViewed.map((art, idx) => `
                     <div class="ranked-item" data-article-id="${art.id}">
@@ -462,12 +466,41 @@ document.addEventListener('DOMContentLoaded', () => {
         if (viewerTitle) viewerTitle.textContent = article.title;
         if (viewerCategory) viewerCategory.textContent = article.category;
         if (viewerDate) viewerDate.textContent = article.date;
-        if (viewerAuthor) viewerAuthor.textContent = article.author;
+        if (viewerAuthor) viewerAuthor.textContent = article.author || 'Author';
         if (viewerReadTime) viewerReadTime.textContent = article.readTime || '3 min read';
         if (viewerViews) viewerViews.textContent = article.views !== undefined ? Number(article.views).toLocaleString() : '—';
         if (viewerShares) viewerShares.textContent = article.shares !== undefined ? Number(article.shares).toLocaleString() : '—';
 
         const isPublishedStory = articles.some(a => String(a.id) === String(article.id));
+        const statusLower = (article.status || 'pending').toLowerCase();
+        const isPending = !isPublishedStory || statusLower.includes('pending') || statusLower.includes('review');
+
+        const reviewActions = document.getElementById('viewer-review-actions');
+        const publishedActions = document.getElementById('viewer-published-actions');
+        const remarksSection = document.getElementById('viewer-remarks-section');
+        const statsBar = document.getElementById('viewer-stats-bar');
+
+        if (isPending) {
+            if (reviewActions) reviewActions.style.display = 'flex';
+            if (publishedActions) publishedActions.style.display = 'none';
+            if (remarksSection) remarksSection.style.display = 'block';
+            if (statsBar) statsBar.style.display = 'none';
+        } else {
+            if (reviewActions) reviewActions.style.display = 'none';
+            if (publishedActions) publishedActions.style.display = 'flex';
+            if (remarksSection) remarksSection.style.display = 'none';
+            if (statsBar) statsBar.style.display = 'flex';
+        }
+
+        const viewerRemarks = document.getElementById('viewer-remarks');
+        const viewerRemarksError = document.getElementById('viewer-remarks-error');
+        if (viewerRemarks) {
+            viewerRemarks.value = '';
+            viewerRemarks.classList.remove('input-invalid');
+        }
+        if (viewerRemarksError) {
+            viewerRemarksError.classList.add('hidden');
+        }
 
         if (viewerArchiveLabel) {
             if (isPublishedStory) {
@@ -518,6 +551,130 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!viewerModal) return;
         viewerModal.classList.add('hidden');
         currentViewingArticleId = null;
+    }
+
+    function removePendingArticleFromDashboard(id) {
+        if (window.__DASHBOARD_PENDING__) {
+            window.__DASHBOARD_PENDING__ = window.__DASHBOARD_PENDING__.filter(a => String(a.id) !== String(id));
+        }
+        let queue = getPendingQueue().filter(a => String(a.id) !== String(id));
+        try {
+            localStorage.setItem('eicPendingReviewQueue', JSON.stringify(queue));
+            localStorage.setItem('executivePendingReviewQueue', JSON.stringify(queue));
+        } catch (e) {}
+
+        renderDashboard();
+    }
+
+    const viewerApproveBtn = document.getElementById('viewer-approve-btn');
+    const viewerRevisionBtn = document.getElementById('viewer-revision-btn');
+    const viewerRemarks = document.getElementById('viewer-remarks');
+    const viewerRemarksError = document.getElementById('viewer-remarks-error');
+
+    if (viewerApproveBtn) {
+        viewerApproveBtn.addEventListener('click', async () => {
+            if (!currentViewingArticleId) return;
+            const targetId = currentViewingArticleId;
+
+            viewerApproveBtn.disabled = true;
+            if (viewerRevisionBtn) viewerRevisionBtn.disabled = true;
+            const originalHtml = viewerApproveBtn.innerHTML;
+            viewerApproveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>Approving...</span>';
+
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+            try {
+                const response = await fetch(`/eic/review-articles/${targetId}/approve`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json',
+                    }
+                });
+
+                const data = await response.json().catch(() => ({}));
+
+                if (response.ok && data.success !== false) {
+                    closeViewerModal();
+                    showToast(data.message || 'Article approved and forwarded to Media & Publication Committee.', 'success');
+                    removePendingArticleFromDashboard(targetId);
+                } else {
+                    showToast(data.message || 'Failed to approve manuscript.', 'danger');
+                }
+            } catch (err) {
+                console.error('EIC approval error:', err);
+                showToast('A network error occurred while approving the manuscript.', 'danger');
+            } finally {
+                viewerApproveBtn.disabled = false;
+                if (viewerRevisionBtn) viewerRevisionBtn.disabled = false;
+                viewerApproveBtn.innerHTML = originalHtml;
+            }
+        });
+    }
+
+    if (viewerRevisionBtn) {
+        viewerRevisionBtn.addEventListener('click', async () => {
+            if (!currentViewingArticleId) return;
+            const targetId = currentViewingArticleId;
+
+            const remarks = viewerRemarks ? viewerRemarks.value.trim() : '';
+            if (!remarks) {
+                if (viewerRemarks) {
+                    viewerRemarks.classList.add('input-invalid');
+                    viewerRemarks.focus();
+                }
+                if (viewerRemarksError) {
+                    viewerRemarksError.classList.remove('hidden');
+                }
+                return;
+            }
+
+            viewerRevisionBtn.disabled = true;
+            if (viewerApproveBtn) viewerApproveBtn.disabled = true;
+            const originalHtml = viewerRevisionBtn.innerHTML;
+            viewerRevisionBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>Returning...</span>';
+
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+            try {
+                const response = await fetch(`/eic/review-articles/${targetId}/revision`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({ remarks: remarks })
+                });
+
+                const data = await response.json().catch(() => ({}));
+
+                if (response.ok && data.success !== false) {
+                    closeViewerModal();
+                    showToast(data.message || 'Article returned to writer with revision remarks.', 'warning');
+                    removePendingArticleFromDashboard(targetId);
+                } else {
+                    showToast(data.message || 'Failed to return manuscript for revision.', 'danger');
+                }
+            } catch (err) {
+                console.error('EIC revision error:', err);
+                showToast('A network error occurred while returning the manuscript.', 'danger');
+            } finally {
+                viewerRevisionBtn.disabled = false;
+                if (viewerApproveBtn) viewerApproveBtn.disabled = false;
+                viewerRevisionBtn.innerHTML = originalHtml;
+            }
+        });
+    }
+
+    if (viewerRemarks) {
+        viewerRemarks.addEventListener('input', () => {
+            if (viewerRemarks.value.trim().length > 0) {
+                viewerRemarks.classList.remove('input-invalid');
+                if (viewerRemarksError) viewerRemarksError.classList.add('hidden');
+            }
+        });
     }
 
     if (closeViewerBtn) closeViewerBtn.addEventListener('click', closeViewerModal);
@@ -712,13 +869,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // Event Delegation: Click on Article to View Full Story
     // -------------------------------------------------------------------------
     document.addEventListener('click', (e) => {
-        // 1. Direct [data-action="view"] button or link
-        const viewTrigger = e.target.closest('[data-action="view"]');
-        if (viewTrigger && viewTrigger.dataset.id) {
-            e.preventDefault();
-            e.stopPropagation();
-            openArticleViewer(viewTrigger.dataset.id);
-            return;
+        // 1. Direct [data-action="view"] or [data-action="view-modal"] button or link
+        const viewTrigger = e.target.closest('[data-action="view"], [data-action="view-modal"]');
+        if (viewTrigger) {
+            const targetId = viewTrigger.dataset.id || viewTrigger.getAttribute('data-id');
+            if (targetId) {
+                e.preventDefault();
+                e.stopPropagation();
+                openArticleViewer(targetId);
+                return;
+            }
         }
 
         // 2. Click anywhere inside a ranked item in Most Viewed Articles

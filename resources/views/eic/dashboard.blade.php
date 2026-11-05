@@ -2,6 +2,10 @@
 
 @section('title', 'Dashboard')
 
+@push('styles')
+    <link rel="stylesheet" href="{{ asset('css/section-head-dashboard.css') }}">
+@endpush
+
 @section('content')
 <main class="content-container">
 
@@ -10,8 +14,41 @@
         <h1 class="page-title">Dashboard</h1>
     </div>
 
-    <!-- Metrics Row (2 per row on mobile: 1fr 1fr) -->
-    <section id="metrics-grid" class="metrics-grid" aria-label="Operational metrics"></section>
+    <!-- Metrics Row (3-Column Layout in One Line) -->
+    <section id="metrics-grid" class="metrics-grid metrics-grid-3" aria-label="Operational metrics">
+        <div class="metric-card animate-fade-in delay-1">
+            <div class="metric-header">
+                <span class="metric-label">Pending Approvals</span>
+                <div class="metric-icon-box">
+                    <i class="fa-regular fa-clock"></i>
+                </div>
+            </div>
+            <div class="metric-value">{{ $metrics['pending'] ?? 0 }}</div>
+            <div class="metric-subtitle">Awaiting editorial review</div>
+        </div>
+
+        <div class="metric-card animate-fade-in delay-2">
+            <div class="metric-header">
+                <span class="metric-label">Monthly Readership</span>
+                <div class="metric-icon-box">
+                    <i class="fa-regular fa-eye"></i>
+                </div>
+            </div>
+            <div class="metric-value">{{ number_format($metrics['total_views'] ?? 0) }}</div>
+            <div class="metric-subtitle">Views across all desks for {{ date('F') }}</div>
+        </div>
+
+        <div class="metric-card animate-fade-in delay-3">
+            <div class="metric-header">
+                <span class="metric-label">Published Stories</span>
+                <div class="metric-icon-box">
+                    <i class="fa-regular fa-newspaper"></i>
+                </div>
+            </div>
+            <div class="metric-value">{{ $metrics['published_stories'] ?? 0 }}</div>
+            <div class="metric-subtitle">Total overall published</div>
+        </div>
+    </section>
 
     <!-- Main Grid (Single Column on mobile) -->
     <div class="main-grid">
@@ -31,13 +68,37 @@
                         <thead>
                             <tr>
                                 <th>Article Title</th>
-                                <th class="hide-on-mobile">Section</th>
+                                <th>Author</th>
                                 <th>Status</th>
                                 <th class="hide-on-mobile">Date</th>
                                 <th class="text-right">Action</th>
                             </tr>
                         </thead>
-                        <tbody id="submissions-table-body"></tbody>
+                        <tbody id="submissions-table-body">
+                            @forelse($pendingArticles ?? [] as $art)
+                                <tr>
+                                    <td>
+                                        <div class="table-article-info">
+                                            <button type="button" class="table-article-btn" data-action="view-modal" data-id="{{ $art['id'] }}" data-article="{{ json_encode($art) }}" title="{{ $art['title'] }}">
+                                                {{ $art['title'] }}
+                                            </button>
+                                        </div>
+                                    </td>
+                                    <td><span class="table-author"><i class="fa-solid fa-pen-nib" aria-hidden="true" style="color: var(--sidebar-maroon, #5c0a18); font-size: 0.72rem; margin-right: 4px;"></i>{{ $art['author'] ?? 'Author' }}</span></td>
+                                    <td><span class="status-badge status-review">Pending</span></td>
+                                    <td class="hide-on-mobile"><span class="table-date">{{ $art['date'] ?? '' }}</span></td>
+                                    <td class="text-right">
+                                        <a href="{{ route('eic.review-articles') }}" class="table-manage-btn" title="Review Article">
+                                            Manage
+                                        </a>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="5" style="text-align: center; padding: 28px 16px; font-size: 0.95rem; color: var(--text-muted, #667085);">No pending submissions awaiting review.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
                     </table>
                 </div>
             </section>
@@ -114,40 +175,62 @@
             <h1 id="viewer-title" class="viewer-title">Article Title</h1>
             
             <div class="viewer-byline-row">
-                <div class="viewer-author-avatar">
-                    <img src="{{ asset('images/member-placeholder.svg') }}" alt="Author avatar">
-                </div>
-                <div class="viewer-byline-text">
-                    <span class="viewer-by">By <strong id="viewer-author">Author Name</strong></span>
+                <div class="viewer-byline-author">
+                    <i class="fa-solid fa-pen-nib" aria-hidden="true" style="color: var(--sidebar-maroon, #5c0a18); font-size: 0.85rem; margin-right: 4px;"></i>
+                    <span class="viewer-by">By <strong id="viewer-author" class="viewer-author-name">Author Name</strong></span>
                 </div>
             </div>
 
             <p id="viewer-excerpt" class="viewer-excerpt" style="display: none;"></p>
 
-            <div id="viewer-banner-wrap" class="viewer-banner">
-                <img id="viewer-banner-img" src="{{ asset('images/maroon.jpg') }}" alt="Article banner">
-            </div>
-
             <div id="viewer-content" class="viewer-content-text">
                 <!-- Paragraphs populated dynamically -->
             </div>
 
-            <div class="viewer-stats-bar">
+            <!-- Editorial Revision Remarks Box -->
+            <div class="manuscript-remarks-section" id="viewer-remarks-section" style="display: none;">
+                <label for="viewer-remarks" class="remarks-label">
+                    <span class="remarks-label-text">
+                        <i class="fa-solid fa-comment-dots"></i>
+                        <span>Editorial Revision Remarks:</span>
+                    </span>
+                    <span class="required-badge">Required</span>
+                </label>
+                <textarea id="viewer-remarks" class="remarks-textarea" placeholder="Enter mandatory revision feedback for the writer before returning this story..."></textarea>
+                <div id="viewer-remarks-error" class="remarks-error-msg hidden">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                    <span>Revision remarks are required. You cannot return for revision without remarks.</span>
+                </div>
+            </div>
+
+            <div class="viewer-stats-bar" id="viewer-stats-bar" style="display: none;">
                 <span class="stat-pill"><i class="fa-regular fa-eye"></i> <span id="viewer-views">0</span></span>
                 <span class="stat-pill"><i class="fa-solid fa-share-nodes"></i> <span id="viewer-shares">0</span></span>
             </div>
         </div>
 
-        <div class="viewer-modal-footer">
-            <button type="button" id="viewer-action-edit" class="modal-btn modal-btn-secondary">
-                <i class="fa-regular fa-pen-to-square"></i> Edit Article
-            </button>
-            <button type="button" id="viewer-action-archive" class="modal-btn modal-btn-warning">
-                <i class="fa-solid fa-box-archive"></i> <span id="viewer-archive-label">Move to Archive</span>
-            </button>
-            <button type="button" id="viewer-action-delete" class="modal-btn modal-btn-danger">
-                <i class="fa-regular fa-trash-can"></i> Emergency Delete
-            </button>
+        <div class="viewer-modal-footer" id="viewer-modal-footer">
+            <div class="modal-footer-right" id="viewer-review-actions">
+                <button type="button" id="viewer-revision-btn" class="btn-box-revision">
+                    <i class="fa-solid fa-rotate-left"></i>
+                    <span>For Revision</span>
+                </button>
+                <button type="button" id="viewer-approve-btn" class="btn-box-approve">
+                    <i class="fa-solid fa-check"></i>
+                    <span>Approve</span>
+                </button>
+            </div>
+            <div id="viewer-published-actions" style="display: none; width: 100%; justify-content: flex-end; gap: 10px;">
+                <button type="button" id="viewer-action-edit" class="modal-btn modal-btn-secondary">
+                    <i class="fa-regular fa-pen-to-square"></i> Edit Article
+                </button>
+                <button type="button" id="viewer-action-archive" class="modal-btn modal-btn-warning">
+                    <i class="fa-solid fa-box-archive"></i> <span id="viewer-archive-label">Move to Archive</span>
+                </button>
+                <button type="button" id="viewer-action-delete" class="modal-btn modal-btn-danger">
+                    <i class="fa-regular fa-trash-can"></i> Emergency Delete
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -231,9 +314,17 @@
         </div>
     </div>
 </div>
+
+<!-- Toast Notification Container -->
+<div id="toast-container" class="toast-container" aria-live="polite"></div>
 @endsection
 
 @push('scripts')
+<script>
+    window.__DASHBOARD_PENDING__ = @json($pendingArticles ?? []);
+    window.__DASHBOARD_METRICS__ = @json($metrics ?? []);
+    window.__REVIEW_ARTICLES_URL__ = "{{ route('eic.review-articles') }}";
+</script>
 <script type="module" src="{{ asset('js/eic-dashboard.js') }}"></script>
 @endpush
 

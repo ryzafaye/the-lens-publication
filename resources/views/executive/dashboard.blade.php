@@ -87,7 +87,7 @@
                                             </button>
                                         </div>
                                     </td>
-                                    <td><span class="table-author">{{ $art['author'] ?? 'Author' }}</span></td>
+                                    <td><span class="table-author"><i class="fa-solid fa-pen-nib" aria-hidden="true" style="color: var(--sidebar-maroon, #5c0a18); font-size: 0.72rem; margin-right: 4px;"></i>{{ $art['author'] ?? 'Author' }}</span></td>
                                     <td><span class="status-badge status-review">Pending</span></td>
                                     <td class="hide-on-mobile"><span class="table-date">{{ $art['date'] ?? '' }}</span></td>
                                     <td class="text-right">
@@ -176,7 +176,7 @@
             
             <div class="viewer-byline-row">
                 <div class="viewer-byline-author">
-                    <i class="fa-solid fa-pen-nib" aria-hidden="true" style="color: var(--text-muted, #667085); font-size: 0.85rem; margin-right: 4px;"></i>
+                    <i class="fa-solid fa-pen-nib" aria-hidden="true" style="color: var(--sidebar-maroon, #5c0a18); font-size: 0.85rem; margin-right: 4px;"></i>
                     <span class="viewer-by">By <strong id="viewer-author" class="viewer-author-name">Author Name</strong></span>
                 </div>
             </div>

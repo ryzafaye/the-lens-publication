@@ -42,6 +42,22 @@ class CheckRole
             }
         }
 
+        // Broad check for Media and Public Communications (M&PC) Head and Associate roles
+        if (
+            in_array('Media and Public Communications Head', $roles) ||
+            in_array('Associate Media and Public Communications Head', $roles) ||
+            in_array('M&PC Head', $roles) ||
+            in_array('Associate M&PC Head', $roles) ||
+            in_array('media and public communications head', $rolesLower) ||
+            in_array('associate media and public communications head', $rolesLower) ||
+            in_array('m&pc head', $rolesLower) ||
+            in_array('associate m&pc head', $rolesLower)
+        ) {
+            if (str_contains($userRoleLower, 'm&pc') || str_contains($userRoleLower, 'media and public')) {
+                return $next($request);
+            }
+        }
+
         // If unauthorized, log out and redirect to login with an error message
         Auth::logout();
         $request->session()->invalidate();

@@ -663,6 +663,14 @@ body.dashboard-body {
     gap: 20px;
 }
 
+.metrics-grid-3,
+.metrics-grid.metrics-grid-3 {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 20px !important;
+    width: 100% !important;
+}
+
 .metric-card {
     background-color: var(--bg-card);
     border: 1px solid var(--sidebar-maroon, #5c0a18);

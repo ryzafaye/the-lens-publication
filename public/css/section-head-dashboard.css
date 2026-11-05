@@ -114,9 +114,20 @@
     color: var(--text-secondary, #475467);
 }
 
+.viewer-byline-author i {
+    color: var(--sidebar-maroon, #5c0a18) !important;
+    font-size: 0.85rem;
+}
+
 .viewer-byline-author strong {
     color: var(--text-primary, #101828);
     font-weight: 600;
+}
+
+.table-author i {
+    color: var(--sidebar-maroon, #5c0a18) !important;
+    font-size: 0.72rem;
+    margin-right: 4px;
 }
 
 .manuscript-remarks-section {

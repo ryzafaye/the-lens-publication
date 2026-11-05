@@ -32,16 +32,16 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
         const fallbackMap = {
-            'news': 'Arquero (News Head)',
-            'opinions': 'Briones (Opinion Head)',
-            'opinion': 'Briones (Opinion Head)',
-            'features': 'Dela Cruz (Feature Head)',
-            'feature': 'Dela Cruz (Feature Head)',
-            'science and technology': 'Apilado (SciTech Head)',
-            'scitech': 'Apilado (SciTech Head)',
-            'science & technology': 'Apilado (SciTech Head)',
-            'literature': 'Llandelar (Literary Head)',
-            'literary': 'Llandelar (Literary Head)'
+            'news': 'News Head',
+            'opinions': 'Opinion Head',
+            'opinion': 'Opinion Head',
+            'features': 'Feature Head',
+            'feature': 'Feature Head',
+            'science and technology': 'SciTech Head',
+            'scitech': 'SciTech Head',
+            'science & technology': 'SciTech Head',
+            'literature': 'Literary Head',
+            'literary': 'Literary Head'
         };
         if (fallbackMap[catLower]) {
             return fallbackMap[catLower];
@@ -52,9 +52,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // 2. Fallback to item.endorsedBy if category could not be resolved and not a mock name
-        const isMockName = /(?:Aris Thorne|Elena Ramos|Sofia Alcantara|Fax\s*Opinion|Fax\s*\(Opinion)/i.test(item.endorsedBy || '');
-        if (item.endorsedBy && item.endorsedBy !== 'Section Head' && !isMockName) {
+        // 2. Fallback to item.endorsedBy if category could not be resolved
+        if (item.endorsedBy && item.endorsedBy !== 'Section Head') {
             return item.endorsedBy;
         }
 
@@ -366,7 +365,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (Array.isArray(parsed)) mpcList = parsed;
                     } catch (e) {}
                 }
-                const approverName = window.LARAVEL_USER_NAME || localStorage.getItem('userName') || localStorage.getItem('eicName') || 'Victoria Reyes';
+                const approverName = window.LARAVEL_USER_NAME || localStorage.getItem('userName') || localStorage.getItem('eicName') || 'Editor-in-Chief';
                 const approverRole = window.LARAVEL_USER_ROLE || localStorage.getItem('userRole') || localStorage.getItem('eicRole') || 'Editor-in-Chief';
 
                 mpcList = mpcList.filter(a => a.id !== item.id);

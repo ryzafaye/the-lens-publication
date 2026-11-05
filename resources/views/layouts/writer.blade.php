@@ -53,12 +53,58 @@
                 <div class="topbar-divider"></div>
                 <div class="topbar-user-profile">
                     <div class="topbar-avatar-circle">
-                        <img src="{{ asset('images/member-placeholder.svg') }}" alt="User">
+                        <img src="{{ Auth::user()?->avatar_url ?? (Auth::user()?->avatar ? asset(Auth::user()->avatar) : asset('images/member-placeholder.svg')) }}" alt="User">
                     </div>
                     <span id="topbar-user-role" class="topbar-role-badge">Writer</span>
                 </div>
             </div>
         </header>
+
+        <!-- Mobile Navigation Menu Dropdown -->
+        <nav id="mobile-nav-dropdown" class="mobile-nav-dropdown" aria-label="Mobile Navigation Menu">
+            <div class="mobile-nav-profile">
+                <div class="mobile-nav-avatar">
+                    <img id="mobile-user-avatar" src="{{ Auth::user()?->avatar_url ?? (Auth::user()?->avatar ? asset(Auth::user()->avatar) : asset('images/member-placeholder.svg')) }}" alt="{{ Auth::user()?->full_name ?? 'User' }} Avatar">
+                </div>
+                <div class="mobile-nav-user-info">
+                    <div id="mobile-user-name" class="mobile-nav-name">{{ Auth::user()?->full_name ?? 'Writer' }}</div>
+                    <div id="mobile-user-role" class="mobile-nav-role">{{ Auth::user()?->role?->role_name ?? 'Writer' }}</div>
+                </div>
+            </div>
+
+            <div class="mobile-nav-links">
+                <a href="{{ route('writer.dashboard') }}" class="mobile-nav-link {{ request()->routeIs('writer.dashboard') ? 'active' : '' }}">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="/writer/submit-article" class="mobile-nav-link {{ request()->is('writer/submit-article*') ? 'active' : '' }}">
+                    <i class="fa-solid fa-feather-pointed"></i>
+                    <span>Submit Article</span>
+                </a>
+                <a href="{{ route('writer.manage-my-articles') }}" class="mobile-nav-link {{ request()->routeIs('writer.manage-my-articles') || request()->is('writer/manage*') ? 'active' : '' }}">
+                    <i class="fa-regular fa-newspaper"></i>
+                    <span>Manage My Articles</span>
+                </a>
+            </div>
+
+            <div class="mobile-nav-footer">
+                <a href="{{ route('writer.profile-settings') }}" class="mobile-nav-footer-link {{ request()->routeIs('writer.profile-settings') ? 'active' : '' }}">
+                    <i class="fa-solid fa-sliders"></i>
+                    <span>Profile Settings</span>
+                </a>
+                <a href="{{ url('/') }}" target="_blank" rel="noopener noreferrer" class="mobile-nav-footer-link">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    <span>View public site</span>
+                </a>
+                <form action="{{ route('logout') }}" method="POST" style="margin: 0; padding: 0;">
+                    @csrf
+                    <button type="submit" id="mobile-logout-btn" class="mobile-nav-footer-link logout-btn" style="width: 100%; border: none; background: transparent; cursor: pointer; text-align: left;">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                        <span>Logout</span>
+                    </button>
+                </form>
+            </div>
+        </nav>
 
         <!-- Dynamic Content Section -->
         @yield('content')

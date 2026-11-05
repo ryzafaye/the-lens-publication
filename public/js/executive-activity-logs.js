@@ -1,6 +1,6 @@
 /**
  * ============================================================================
- * THE LENS ΓÇö ACTIVITY LOGS LOGIC (EXECUTIVE PORTAL)
+ * THE LENS — ACTIVITY LOGS LOGIC (EXECUTIVE PORTAL)
  * Clean, Minimalist, Distraction-Free Implementation
  * 
  * Sentence Format:
@@ -42,6 +42,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const defaultActivities = [];
 
     function loadActivities() {
+        if (window.INITIAL_ACTIVITIES && Array.isArray(window.INITIAL_ACTIVITIES) && window.INITIAL_ACTIVITIES.length > 0) {
+            return window.INITIAL_ACTIVITIES;
+        }
+        if (window.INITIAL_DATA && Array.isArray(window.INITIAL_DATA) && window.INITIAL_DATA.length > 0) {
+            return window.INITIAL_DATA;
+        }
         try {
             const raw = localStorage.getItem(ACTIVITY_STORAGE_KEY);
             if (raw) {
@@ -120,11 +126,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (filtered.length === 0) {
+            const isSearching = !!(searchInput && searchInput.value.trim()) || (dateFilterSelect && dateFilterSelect.value !== 'all');
             timelineStreamContainer.innerHTML = `
                 <div class="activity-empty-state">
                     <i class="fa-solid fa-clock-rotate-left"></i>
-                    <h4 class="empty-state-title">No Activity Logs Found</h4>
-                    <p class="empty-state-desc">No events match your current search and date criteria.</p>
+                    <h4 class="empty-state-title">${isSearching ? 'No activity logs found' : 'No activity logs yet'}</h4>
                 </div>
             `;
             return;
@@ -167,7 +173,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <!-- Under it: Role and time only, no IDs -->
                                 <div class="activity-subrow">
                                     <span class="activity-role-text">${escapeHTML(item.causerRole)}</span>
-                                    <span class="activity-subrow-dot">ΓÇó</span>
+                                    <span class="activity-subrow-dot">•</span>
                                     <span class="activity-exact-time">${escapeHTML(item.formattedDate)}</span>
                                 </div>
                             </div>

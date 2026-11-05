@@ -727,7 +727,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (deleteDraftForm) {
                         const isSectionHead = window.location.pathname.startsWith('/section-head');
                         const isExecutive = window.location.pathname.startsWith('/executive');
-                        const defaultDeleteBase = isSectionHead ? '/section-head/drafts' : (isExecutive ? '/executive/drafts' : '/writer/drafts');
+                        const isCartoonist = window.location.pathname.startsWith('/cartoonist');
+                        const defaultDeleteBase = isCartoonist ? '/cartoonist/drafts' : (isSectionHead ? '/section-head/drafts' : (isExecutive ? '/executive/drafts' : '/writer/drafts'));
                         const deleteBase = deleteDraftForm.dataset.baseAction 
                             || window.__DELETE_DRAFT_BASE_URL__ 
                             || defaultDeleteBase;

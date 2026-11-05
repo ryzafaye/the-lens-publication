@@ -1,6 +1,6 @@
 // One-time automatic workflow purge to guarantee zero-mock state for testing
 try {
-    const CLEAR_FLAG = 'theLens_workflow_v4_purged';
+    const CLEAR_FLAG = 'theLens_zero_mock_purged_v10';
     if (localStorage.getItem(CLEAR_FLAG) !== 'true') {
         const keysToRemove = [
             'theLensWriterArticles_v3',

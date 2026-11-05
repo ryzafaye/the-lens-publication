@@ -212,11 +212,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (filtered.length === 0) {
+            const isSearching = (searchInput && searchInput.value.trim().length > 0) || (dateFilterSelect && dateFilterSelect.value !== 'all');
+            const emptyMessage = isSearching ? 'No activity logs found.' : 'No activity logs recorded yet.';
             timelineStreamContainer.innerHTML = `
-                <div class="activity-empty-state">
-                    <i class="fa-solid fa-clock-rotate-left"></i>
-                    <h4 class="empty-state-title">No Activity Logs Found</h4>
-                    <p class="empty-state-desc">No events match your current search and date criteria.</p>
+                <div class="empty-state-cell" style="text-align: center; color: #667085; padding: 48px 16px; font-size: 0.95rem;">
+                    ${emptyMessage}
                 </div>
             `;
             return;

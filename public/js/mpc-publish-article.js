@@ -11,36 +11,151 @@ document.addEventListener('DOMContentLoaded', () => {
     const STORAGE_KEY_COVERS = 'mpc_approved_covers_v1';
 
     // -------------------------------------------------------------------------
-    // 1. DATASETS (Approved Manuscripts & Approved Visual Covers)
-    // -------------------------------------------------------------------------
-    // 1. DATASETS (Approved Manuscripts & Approved Visual Covers)
+    // 1. DATASETS (Clean Workflow: Zero Hardcoded Manuscripts & Covers)
     // -------------------------------------------------------------------------
     const defaultCovers = [];
     const defaultArticles = [];
 
     // -------------------------------------------------------------------------
-    // 2. STORAGE READ / WRITE (Prep for Controllers: Accepts window.INITIAL_DATA)
+    // 2. ARTICLE NORMALIZATION & STORAGE (Supports DB EIC Approvals & LocalStorage)
     // -------------------------------------------------------------------------
+    function normalizeArticle(item) {
+        if (!item || typeof item !== 'object') return null;
+
+        // Raw status detection
+        let rawStatus = String(item.status || item.db_status || '').toLowerCase().trim();
+        let normalizedStatus = 'ready';
+        if (rawStatus === 'published') {
+            normalizedStatus = 'published';
+        } else if (rawStatus === 'unpublished') {
+            normalizedStatus = 'unpublished';
+        } else {
+            // 'approved', 'ready', 'ready to publish', 'pending approval', etc.
+            normalizedStatus = 'ready';
+        }
+
+        // Category
+        let cat = 'General';
+        if (typeof item.category === 'object' && item.category !== null) {
+            cat = item.category.name || 'General';
+        } else if (typeof item.category === 'string' && item.category.trim()) {
+            cat = item.category.trim();
+        }
+
+        // Category slug
+        let catSlug = item.categorySlug;
+        if (!catSlug) {
+            const lowerCat = cat.toLowerCase();
+            if (lowerCat.includes('news')) catSlug = 'news';
+            else if (lowerCat.includes('opinion')) catSlug = 'opinion';
+            else if (lowerCat.includes('feature')) catSlug = 'features';
+            else if (lowerCat.includes('sci') || lowerCat.includes('tech')) catSlug = 'scitech';
+            else if (lowerCat.includes('liter')) catSlug = 'literature';
+            else catSlug = 'news';
+        }
+
+        // Author
+        let author = item.author;
+        if (!author && item.user) {
+            author = typeof item.user === 'object' ? (item.user.full_name || 'Staff Writer') : String(item.user);
+        }
+        if (!author) author = 'Staff Writer';
+
+        // Endorser / Section Head
+        let sectionHead = item.sectionHead;
+        if (!sectionHead) {
+            if (item.endorser) {
+                sectionHead = `Approved by ${item.endorser}`;
+            } else if (item.endorsedBy) {
+                sectionHead = `Approved by ${item.endorsedBy}`;
+            } else {
+                sectionHead = 'Endorsed by Section Head';
+            }
+        }
+
+        // Date Approved
+        let dateApproved = item.dateApproved || item.date || item.updated_at || item.created_at;
+        if (dateApproved && typeof dateApproved === 'string' && dateApproved.includes('T')) {
+            try {
+                dateApproved = new Date(dateApproved).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            } catch (e) {}
+        }
+        if (!dateApproved) {
+            dateApproved = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        }
+
+        let rawDate = item.rawDate || item.updated_at || item.created_at || new Date().toISOString();
+
+        // Body / Content
+        let body = item.body || item.content || '<p>Manuscript content approved.</p>';
+        if (typeof body === 'string' && !body.includes('<p>')) {
+            body = body.split(/\n\n+/).map(p => `<p>${escapeHTML(p.trim())}</p>`).join('');
+        }
+
+        return {
+            id: item.id,
+            title: item.title || 'Untitled Manuscript',
+            category: cat,
+            categorySlug: catSlug,
+            author: author,
+            sectionHead: sectionHead,
+            eicApprover: item.eicApprover || 'Approved by Editor-in-Chief',
+            readTime: item.readTime || '3 min read',
+            dateApproved: dateApproved,
+            rawDate: rawDate,
+            status: normalizedStatus,
+            assignedCoverId: item.assignedCoverId || '',
+            excerpt: item.excerpt || '',
+            body: body,
+            publishedAt: item.publishedAt || null
+        };
+    }
+
     function loadArticles() {
+        let list = [];
+        let sourceList = null;
+
         if (window.INITIAL_DATA && Array.isArray(window.INITIAL_DATA)) {
-            return window.INITIAL_DATA;
+            sourceList = window.INITIAL_DATA;
+        } else if (window.INITIAL_ARTICLES && Array.isArray(window.INITIAL_ARTICLES)) {
+            sourceList = window.INITIAL_ARTICLES;
+        } else if (window.LARAVEL_ARTICLES && Array.isArray(window.LARAVEL_ARTICLES)) {
+            sourceList = window.LARAVEL_ARTICLES;
         }
-        if (window.INITIAL_ARTICLES && Array.isArray(window.INITIAL_ARTICLES)) {
-            return window.INITIAL_ARTICLES;
+
+        if (sourceList && sourceList.length > 0) {
+            list = sourceList.map(normalizeArticle).filter(Boolean);
         }
-        if (window.LARAVEL_ARTICLES && Array.isArray(window.LARAVEL_ARTICLES)) {
-            return window.LARAVEL_ARTICLES;
-        }
+
+        // Merge with localStorage articles (from EIC review or prior local actions)
         try {
             const raw = localStorage.getItem(STORAGE_KEY_ARTICLES);
             if (raw) {
                 const parsed = JSON.parse(raw);
-                if (Array.isArray(parsed)) return parsed;
+                if (Array.isArray(parsed)) {
+                    parsed.forEach(stored => {
+                        const normalizedStored = normalizeArticle(stored);
+                        if (!normalizedStored) return;
+                        const existingIdx = list.findIndex(a => String(a.id) === String(normalizedStored.id));
+                        if (existingIdx >= 0) {
+                            if (stored.assignedCoverId && !list[existingIdx].assignedCoverId) {
+                                list[existingIdx].assignedCoverId = stored.assignedCoverId;
+                            }
+                            if (stored.status === 'published' && list[existingIdx].status !== 'published') {
+                                list[existingIdx].status = stored.status;
+                                list[existingIdx].publishedAt = stored.publishedAt;
+                            }
+                        } else {
+                            list.push(normalizedStored);
+                        }
+                    });
+                }
             }
         } catch (e) {
             console.warn('Storage read failed', e);
         }
-        return [];
+
+        return list;
     }
 
     function saveArticles(list) {
@@ -52,10 +167,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function loadCovers() {
-        if (window.INITIAL_COVERS && Array.isArray(window.INITIAL_COVERS)) {
+        if (window.INITIAL_COVERS && Array.isArray(window.INITIAL_COVERS) && window.INITIAL_COVERS.length > 0) {
             return window.INITIAL_COVERS;
         }
-        if (window.INITIAL_DATA && Array.isArray(window.INITIAL_DATA.covers)) {
+        if (window.INITIAL_DATA && Array.isArray(window.INITIAL_DATA.covers) && window.INITIAL_DATA.covers.length > 0) {
             return window.INITIAL_DATA.covers;
         }
         let list = [];
@@ -81,7 +196,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                     type: r.type || 'cartoon',
                                     artist: r.artist || 'Staff Artist',
                                     approvedBy: r.approvedBy || r.endorsedBy || 'Editorial Head',
-                                    image: r.image || 'images/covers/press-freedom-cartoon.svg',
+                                    image: r.image || '',
                                     date: r.date || 'Recent'
                                 });
                             }
@@ -97,7 +212,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let articlesList = loadArticles();
     let coversList = loadCovers();
 
-    let activeView = 'ready'; // 'ready' | 'published' | 'covers'
+    let activeView = 'ready'; // 'ready' | 'published' | 'unpublished' | 'covers'
     let activeCategory = 'all'; // 'all' | 'news' | 'opinion' | 'features' | 'scitech' | 'literature'
     let currentSort = 'newest';
     let targetAssignArticleId = null;
@@ -106,7 +221,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // DOM References
     const statsReady = document.getElementById('stat-ready-count');
-    const statsCovers = document.getElementById('stat-covers-count');
     const statsPublished = document.getElementById('stat-published-count');
 
     const badgeTabReady = document.getElementById('badge-tab-ready');
@@ -115,7 +229,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const badgeTabCovers = document.getElementById('badge-tab-covers');
 
     const articlesGrid = document.getElementById('mpc-articles-grid');
-    const emptyState = document.getElementById('mpc-empty-state');
     const coversLibraryView = document.getElementById('mpc-covers-library-view');
     const coversLibraryGrid = document.getElementById('mpc-covers-library-grid');
 
@@ -170,11 +283,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const readyCount = articlesList.filter(a => a.status === 'ready').length;
         const publishedCount = articlesList.filter(a => a.status === 'published').length;
         const unpublishedCount = articlesList.filter(a => a.status === 'unpublished').length;
-        const coversCount = coversList.length;
+        const coversCount = coversList ? coversList.length : 0;
 
         if (statsReady) statsReady.textContent = readyCount;
         if (statsPublished) statsPublished.textContent = publishedCount;
-        if (statsCovers) statsCovers.textContent = coversCount;
 
         if (badgeTabReady) badgeTabReady.textContent = readyCount;
         if (badgeTabPublished) badgeTabPublished.textContent = publishedCount;
@@ -188,8 +300,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const viewTabBtns = document.querySelectorAll('.mpc-view-tab-btn[data-view]');
     viewTabBtns.forEach(btn => {
         btn.addEventListener('click', () => {
-            viewTabBtns.forEach(b => b.classList.remove('active'));
+            viewTabBtns.forEach(b => {
+                b.classList.remove('active');
+                b.setAttribute('aria-selected', 'false');
+            });
             btn.classList.add('active');
+            btn.setAttribute('aria-selected', 'true');
             activeView = btn.dataset.view;
             render();
         });
@@ -231,13 +347,12 @@ document.addEventListener('DOMContentLoaded', () => {
         // 1. If viewing the Covers Library
         if (activeView === 'covers') {
             if (articlesGrid) articlesGrid.style.display = 'none';
-            if (emptyState) emptyState.style.display = 'none';
             if (coversLibraryView) coversLibraryView.style.display = 'block';
             renderCoversLibrary();
             return;
         }
 
-        // 2. Otherwise viewing Ready to Publish or Published Articles
+        // 2. Otherwise viewing Ready to Publish, Published, or Unpublished Articles
         if (coversLibraryView) coversLibraryView.style.display = 'none';
         if (articlesGrid) articlesGrid.style.display = 'flex';
 
@@ -266,34 +381,32 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         if (list.length === 0) {
-            if (articlesGrid) articlesGrid.innerHTML = '';
-            if (emptyState) {
-                emptyState.style.display = 'block';
-                const emptyTitle = emptyState.querySelector('h3');
-                const emptyDesc = emptyState.querySelector('p');
-                if (emptyTitle) {
-                    if (activeView === 'ready') {
-                        emptyTitle.textContent = 'No Articles Awaiting Publication';
-                    } else if (activeView === 'published') {
-                        emptyTitle.textContent = 'No Published Articles Found';
-                    } else if (activeView === 'unpublished') {
-                        emptyTitle.textContent = 'No Unpublished Articles';
-                    }
-                }
-                if (emptyDesc) {
-                    if (activeView === 'ready') {
-                        emptyDesc.textContent = 'All approved manuscripts have been published with their covers.';
-                    } else if (activeView === 'published') {
-                        emptyDesc.textContent = 'Published articles will appear here after release to the public website.';
-                    } else if (activeView === 'unpublished') {
-                        emptyDesc.textContent = 'Articles taken down from live publication for editing or cover changes will appear here.';
-                    }
-                }
+            let iconClass = 'fa-solid fa-feather-pointed';
+            let emptyTitleText = 'No Articles Awaiting Publication';
+
+            if (searchQuery || activeCategory !== 'all') {
+                iconClass = 'fa-solid fa-magnifying-glass';
+                emptyTitleText = 'No Matching Articles Found';
+            } else if (activeView === 'published') {
+                iconClass = 'fa-solid fa-globe';
+                emptyTitleText = 'No Published Articles';
+            } else if (activeView === 'unpublished') {
+                iconClass = 'fa-solid fa-box-archive';
+                emptyTitleText = 'No Unpublished Articles';
+            }
+
+            if (articlesGrid) {
+                articlesGrid.innerHTML = `
+                    <div class="mpc-tab-empty-state" style="width: 100%; text-align: center; padding: 56px 20px; background: #ffffff; border: 1px dashed var(--border-subtle, #eaecf0); border-radius: 12px; margin-top: 10px;">
+                        <div style="width: 48px; height: 48px; border-radius: 50%; background: #fdf2f4; color: var(--sidebar-maroon, #5c0a18); display: inline-flex; align-items: center; justify-content: center; font-size: 1.25rem; margin-bottom: 14px;">
+                            <i class="${iconClass}"></i>
+                        </div>
+                        <h3 style="font-family: var(--font-heading, 'Newsreader', serif); font-size: 1.15rem; font-weight: 700; color: #101828; margin: 0;">${emptyTitleText}</h3>
+                    </div>
+                `;
             }
             return;
         }
-
-        if (emptyState) emptyState.style.display = 'none';
 
         articlesGrid.innerHTML = list.map(item => {
             const assignedCover = coversList.find(c => c.id === item.assignedCoverId);
@@ -413,6 +526,18 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderCoversLibrary() {
         if (!coversLibraryGrid) return;
 
+        if (!coversList || coversList.length === 0) {
+            coversLibraryGrid.innerHTML = `
+                <div class="mpc-tab-empty-state" style="grid-column: 1 / -1; width: 100%; text-align: center; padding: 56px 20px; background: #ffffff; border: 1px dashed var(--border-subtle, #eaecf0); border-radius: 12px; margin-top: 10px;">
+                    <div style="width: 48px; height: 48px; border-radius: 50%; background: #fdf2f4; color: var(--sidebar-maroon, #5c0a18); display: inline-flex; align-items: center; justify-content: center; font-size: 1.25rem; margin-bottom: 14px;">
+                        <i class="fa-regular fa-image"></i>
+                    </div>
+                    <h3 style="font-family: var(--font-heading, 'Newsreader', serif); font-size: 1.15rem; font-weight: 700; color: #101828; margin: 0;">No Approved Artwork Available</h3>
+                </div>
+            `;
+            return;
+        }
+
         coversLibraryGrid.innerHTML = coversList.map(cover => `
             <div class="mpc-gallery-item" style="cursor: default;">
                 <div class="mpc-gallery-thumb-wrap">
@@ -473,6 +598,16 @@ document.addEventListener('DOMContentLoaded', () => {
         let filtered = coversList;
         if (activeCoverFilterInModal !== 'all') {
             filtered = filtered.filter(c => c.type === activeCoverFilterInModal);
+        }
+
+        if (!filtered || filtered.length === 0) {
+            modalCoverGallery.innerHTML = `
+                <div class="empty-state-cell" style="grid-column: 1 / -1; text-align: center; color: #667085; padding: 36px 16px;">
+                    <i class="fa-regular fa-image" style="font-size: 1.8rem; color: #98a2b3; margin-bottom: 8px; display: block;"></i>
+                    <p style="font-size: 0.85rem; color: #667085; margin: 0;">No approved visual covers available in this format yet.</p>
+                </div>
+            `;
+            return;
         }
 
         modalCoverGallery.innerHTML = filtered.map(cover => {
@@ -581,8 +716,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const article = articlesList.find(a => a.id === articleId);
         if (!article) return;
 
-        // Validation: Must have a cover assigned before publishing
-        if (!article.assignedCoverId) {
+        // Validation: If covers exist in the library, require one to be assigned before publishing
+        if (!article.assignedCoverId && coversList.length > 0) {
             showToast('Cannot publish: Please assign an approved cover photo or artwork first.', 'warning');
             openCoverModal(articleId);
             return;
@@ -625,7 +760,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     status: 'published',
                     isArchived: false,
                     archived: false,
-                    image: article.image || 'images/maroon.jpg',
+                    image: article.image || '',
                     content: article.body || article.content || ''
                 });
                 localStorage.setItem('theLensPublishedArticles', JSON.stringify(pubList));
@@ -674,6 +809,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
                 localStorage.setItem('mpcActivityLogs_v1', JSON.stringify(logs.slice(0, 40)));
             } catch (e) {}
+
+            // Backend sync if running on Laravel
+            try {
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                if (csrfToken && article.id) {
+                    fetch(`/mpc/articles/${article.id}/publish`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            cover_id: article.assignedCoverId || null
+                        })
+                    }).catch(err => console.warn('Backend publish sync failed:', err));
+                }
+            } catch (err) {}
 
             saveArticles(articlesList);
             render();
@@ -748,6 +901,21 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             localStorage.setItem('mpcActivityLogs_v1', JSON.stringify(logs.slice(0, 40)));
         } catch (e) {}
+
+        // Backend sync if running on Laravel
+        try {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            if (csrfToken && article.id) {
+                fetch(`/mpc/articles/${article.id}/unpublish`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json'
+                    }
+                }).catch(err => console.warn('Backend unpublish sync failed:', err));
+            }
+        } catch (err) {}
 
         saveArticles(articlesList);
         render();

@@ -86,7 +86,7 @@
                 <div class="topbar-divider"></div>
                 <div class="topbar-user-profile">
                     <div class="topbar-avatar-circle" title="User Profile">
-                        <img src="{{ asset('images/member-placeholder.svg') }}" alt="User Profile Picture">
+                        <img src="{{ Auth::user()?->avatar_url ?? (Auth::user()?->avatar ? asset(Auth::user()->avatar) : asset('images/member-placeholder.svg')) }}" alt="User Profile Picture">
                     </div>
                     <span id="topbar-user-role" class="topbar-role-badge">{{ Auth::user()?->role?->role_name ?? 'Executive' }}</span>
                 </div>
@@ -97,7 +97,7 @@
         <nav id="mobile-nav-dropdown" class="mobile-nav-dropdown" aria-label="Mobile Navigation Menu">
             <div class="mobile-nav-profile">
                 <div class="mobile-nav-avatar">
-                    <img src="{{ asset('images/member-placeholder.svg') }}" alt="Avatar">
+                    <img src="{{ Auth::user()?->avatar_url ?? (Auth::user()?->avatar ? asset(Auth::user()->avatar) : asset('images/member-placeholder.svg')) }}" alt="Avatar">
                 </div>
                 <div class="mobile-nav-user-info">
                     <div id="mobile-user-name" class="mobile-nav-name">{{ Auth::user()?->full_name ?? 'Executive' }}</div>
@@ -107,28 +107,64 @@
 
             @php
                 $portalPrefix = request()->is('section-head*') ? 'section-head' : 'executive';
+                $userRole = Auth::user()?->role?->role_name ?? '';
+                $isPresOrVp = in_array($userRole, ['President', 'Vice President', 'Executive Vice President']);
             @endphp
             <div class="mobile-nav-links">
-                <a href="{{ url($portalPrefix . '/dashboard') }}" class="mobile-nav-link {{ request()->is('*/dashboard') ? 'active' : '' }}">
+                <a href="{{ url($portalPrefix . '/dashboard') }}" class="mobile-nav-link {{ request()->is('*/dashboard') || request()->routeIs('*.dashboard') ? 'active' : '' }}">
                     <i class="fa-solid fa-chart-pie"></i>
                     <span>Dashboard</span>
                 </a>
-                <a href="{{ url($portalPrefix . '/manage-my-articles') }}" class="mobile-nav-link {{ request()->is('*/manage-my-articles*') || request()->is('*/my-articles*') ? 'active' : '' }}">
+
+                @if($isPresOrVp)
+                <a href="{{ route('executive.manage-articles') }}" class="mobile-nav-link {{ request()->is('executive/manage-articles*') || request()->routeIs('executive.manage-articles*') ? 'active' : '' }}">
+                    <i class="fa-regular fa-newspaper"></i>
+                    <span>Manage Articles</span>
+                </a>
+                @endif
+
+                <a href="{{ url($portalPrefix . '/manage-my-articles') }}" class="mobile-nav-link {{ request()->is('*/manage-my-articles*') || request()->is('*/my-articles*') || request()->routeIs('*.manage-my-articles*') ? 'active' : '' }}">
                     <i class="fa-solid fa-file-pen"></i>
                     <span>Manage My Articles</span>
                 </a>
-                <a href="{{ url($portalPrefix . '/review-articles') }}" class="mobile-nav-link {{ request()->is('*/review-articles*') ? 'active' : '' }}">
+
+                @if($isPresOrVp || request()->is('section-head*'))
+                <a href="{{ url($portalPrefix . '/review-articles') }}" class="mobile-nav-link {{ request()->is('*/review-articles*') || request()->routeIs('*.review-articles*') || request()->routeIs('*.review-article*') ? 'active' : '' }}">
                     <i class="fa-solid fa-clipboard-check"></i>
                     <span>Review Article</span>
                 </a>
-                <a href="{{ url($portalPrefix . '/submit-article') }}" class="mobile-nav-link {{ request()->is('*/submit-article*') ? 'active' : '' }}">
+                @endif
+
+                <a href="{{ url($portalPrefix . '/submit-article') }}" class="mobile-nav-link {{ request()->is('*/submit-article*') || request()->routeIs('*.submit-article*') ? 'active' : '' }}">
                     <i class="fa-solid fa-feather-pointed"></i>
                     <span>Submit article</span>
                 </a>
-                <a href="{{ url($portalPrefix . '/activity-logs') }}" class="mobile-nav-link {{ request()->is('*/activity-logs*') ? 'active' : '' }}">
+
+                @if($isPresOrVp)
+                <a href="{{ route('executive.manage-accounts') }}" class="mobile-nav-link {{ request()->is('executive/manage-accounts*') || request()->routeIs('executive.manage-accounts*') ? 'active' : '' }}">
+                    <i class="fa-solid fa-user-group"></i>
+                    <span>Manage Accounts</span>
+                </a>
+                @endif
+
+                <a href="{{ url($portalPrefix . '/activity-logs') }}" class="mobile-nav-link {{ request()->is('*/activity-logs*') || request()->routeIs('*.activity-logs*') ? 'active' : '' }}">
                     <i class="fa-solid fa-clock-rotate-left"></i>
                     <span>Activity log</span>
                 </a>
+
+                @if(!request()->is('section-head*'))
+                <a href="{{ route('executive.transparency') }}" class="mobile-nav-link {{ request()->is('executive/transparency*') || request()->routeIs('executive.transparency*') ? 'active' : '' }}">
+                    <i class="fa-solid fa-file-invoice-dollar"></i>
+                    <span>Transparency</span>
+                </a>
+                @endif
+
+                @if($isPresOrVp)
+                <a href="{{ route('executive.feedback') }}" class="mobile-nav-link {{ request()->is('executive/feedback*') || request()->routeIs('executive.feedback*') ? 'active' : '' }}">
+                    <i class="fa-regular fa-comments"></i>
+                    <span>Feedback</span>
+                </a>
+                @endif
             </div>
 
             <div class="mobile-nav-footer">

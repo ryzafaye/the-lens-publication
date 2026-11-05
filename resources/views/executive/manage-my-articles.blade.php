@@ -3,19 +3,30 @@
 @section('title', 'Manage My Articles')
 
 @push('styles')
-    <link rel="stylesheet" href="{{ asset('css/shared-manage-my-articles.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/executive-manage-my-articles.css') }}">
 @endpush
 
 @section('content')
 <main class="content-container">
 
-    <!-- Page Title Section -->
+    <!-- Page Title Section with Total Views Counter & Action Button -->
     <div class="writer-header-row animate-fade-in delay-1">
         <div class="writer-header-left">
             <h1 class="page-title">Manage My Articles</h1>
         </div>
 
         <div class="writer-header-right">
+            <!-- Total Views Header Metric Pill -->
+            <div class="header-views-badge" title="Total Views Across Published Articles">
+                <span class="views-badge-icon">
+                    <i class="fa-regular fa-eye"></i>
+                </span>
+                <span class="views-badge-content">
+                    <span class="views-badge-label">Total Views</span>
+                    <span id="stat-total-views" class="views-badge-val">0</span>
+                </span>
+            </div>
+
             <a href="{{ route(request()->is('section-head*') ? 'section-head.submit-article' : 'executive.submit-article') }}" class="btn-primary-action">
                 <i class="fa-solid fa-feather-pointed"></i>
                 <span>New Article</span>
@@ -23,26 +34,26 @@
         </div>
     </div>
 
-    <!-- Tabs Navigation (All, Published, Pending, Revision, Drafts) -->
+    <!-- Tabs Navigation Adjusted Directly Under Page Title (All, Published, Pending, Revision, Drafts) -->
     <div class="manage-tabs-container animate-fade-in delay-2" role="tablist" aria-label="Filter my articles">
         <button type="button" class="manage-tab-btn active" data-tab="all" role="tab" aria-selected="true">
-            <i class="fa-solid fa-layer-group"></i><span>All Articles</span>
+            <span>All Articles</span>
             <span id="badge-count-all" class="tab-count-badge">0</span>
         </button>
         <button type="button" class="manage-tab-btn" data-tab="published" role="tab" aria-selected="false">
-            <i class="fa-solid fa-circle-check"></i><span>Published</span>
+            <span>Published</span>
             <span id="badge-count-published" class="tab-count-badge">0</span>
         </button>
         <button type="button" class="manage-tab-btn" data-tab="pending" role="tab" aria-selected="false">
-            <i class="fa-regular fa-clock"></i><span>Pending Review</span>
+            <span>Pending Review</span>
             <span id="badge-count-pending" class="tab-count-badge">0</span>
         </button>
         <button type="button" class="manage-tab-btn" data-tab="revision" role="tab" aria-selected="false">
-            <i class="fa-solid fa-rotate-left"></i><span>For Revision</span>
+            <span>For Revision</span>
             <span id="badge-count-revision" class="tab-count-badge">0</span>
         </button>
         <button type="button" class="manage-tab-btn" data-tab="drafts" role="tab" aria-selected="false">
-            <i class="fa-regular fa-folder-open"></i><span>Drafts</span>
+            <span>Drafts</span>
             <span id="badge-count-drafts" class="tab-count-badge">0</span>
         </button>
     </div>
@@ -54,7 +65,7 @@
         <div class="manage-search-shell">
             <i class="fa-solid fa-magnifying-glass search-leading-icon" aria-hidden="true"></i>
             <input 
-                type="text" 
+                type="search" 
                 id="executive-search-input" 
                 class="manage-search-input" 
                 placeholder="Search my articles by title, section, or keyword..." 
@@ -87,44 +98,30 @@
 
     <!-- Articles List Container -->
     <section class="writer-articles-list animate-fade-in delay-3" id="executive-manage-list" aria-label="My articles list">
-        <!-- Populated dynamically by js/shared-manage-my-articles.js -->
+        <!-- Dynamically populated by js/executive-manage-my-articles.js -->
     </section>
 
-    <!-- Empty State (Only Shown When Searching or Filtering) -->
-    <div id="manage-empty-state" class="manage-empty-state hidden" role="status" aria-live="polite">
+    <!-- Empty State -->
+    <div id="manage-empty-state" class="manage-empty-state hidden animate-fade-in delay-3" aria-live="polite">
         <div class="manage-empty-icon">
-            <i class="fa-regular fa-folder-open" id="manage-empty-icon-i" aria-hidden="true"></i>
+            <i class="fa-regular fa-newspaper"></i>
         </div>
-        <h3 class="manage-empty-title" id="manage-empty-title">No articles found</h3>
-        <p class="manage-empty-desc" id="manage-empty-desc">We couldn't find any articles matching your search query or active filter settings.</p>
-        <button type="button" id="reset-filters-btn" class="modal-btn modal-btn-cancel" style="margin-top: 8px;">
-            <i class="fa-solid fa-rotate-left"></i> Reset Search &amp; Filters
-        </button>
-    </div>
-
-    <!-- Default Empty State (Shown When Category/Tab Has No Articles) -->
-    <div id="manage-no-articles-state" class="manage-empty-state hidden" role="status" aria-live="polite">
-        <div class="manage-empty-icon">
-            <i class="fa-regular fa-newspaper" id="no-articles-icon-i" aria-hidden="true"></i>
-        </div>
-        <h3 class="manage-empty-title" id="no-articles-title">No articles yet</h3>
-        <p class="manage-empty-desc" id="no-articles-desc">You haven't submitted or drafted any articles yet.</p>
+        <h3 class="manage-empty-title">No articles found</h3>
     </div>
 
 </main>
 
 <!-- ====================================================================== -->
-<!-- MODAL 1: Full Article Viewer Modal (Executive Parity Design)             -->
+<!-- MODAL 1: Full Article Viewer Modal (Executive Parity Design)           -->
 <!-- ====================================================================== -->
 <div id="article-viewer-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="viewer-title">
     <div class="modal-card viewer-modal-card">
         
-        <!-- Header matching Executive Viewer -->
         <div class="viewer-modal-header">
             <div class="viewer-meta-row">
                 <span id="viewer-category" class="viewer-category-tag">News</span>
                 <span class="viewer-dot">·</span>
-                <span id="viewer-date" class="viewer-date">Oct 12, 2026</span>
+                <span id="viewer-date" class="viewer-date">Oct 19, 2026</span>
             </div>
             <div class="viewer-header-right">
                 <span class="viewer-reading-time"><i class="fa-regular fa-clock"></i> <span id="viewer-read-time">2 min read</span></span>
@@ -134,13 +131,12 @@
             </div>
         </div>
 
-        <!-- Body matching Executive Viewer -->
         <div class="viewer-modal-body">
             <h1 id="viewer-title" class="viewer-title">Article Title</h1>
             
             <div class="viewer-byline-row">
                 <div class="viewer-author-avatar">
-                    <img id="viewer-author-avatar-img" src="{{ asset('images/member-placeholder.svg') }}" alt="Author avatar">
+                    <img id="viewer-author-avatar-img" src="{{ Auth::user()?->avatar_url ?? (Auth::user()?->avatar ? asset(Auth::user()->avatar) : asset('images/member-placeholder.svg')) }}" alt="Author avatar">
                 </div>
                 <div class="viewer-byline-text">
                     <span class="viewer-by">By <strong id="viewer-author">{{ Auth::user()->full_name }}</strong></span>
@@ -153,15 +149,14 @@
                 <img id="viewer-banner-img" src="{{ asset('images/maroon.jpg') }}" alt="Article banner">
             </div>
 
-            <div id="viewer-content" class="viewer-content-text">
-                <!-- Paragraphs populated dynamically -->
-            </div>
+            <!-- Clean Story Content Paragraphs -->
+            <div id="viewer-content" class="viewer-content-text"></div>
 
-            <!-- Section Head Remarks Box (for articles with revision feedback) -->
+            <!-- Editorial Remarks Alert Box -->
             <div id="viewer-remarks-wrap" class="remarks-alert-box" style="display: none; margin-top: 20px;">
                 <div class="remarks-alert-title">
                     <i class="fa-solid fa-comment-dots"></i>
-                    <span>Editorial Feedback:</span>
+                    <span>Section Head Feedback:</span>
                 </div>
                 <p id="viewer-remarks-text" class="remarks-alert-text"></p>
             </div>
@@ -177,31 +172,40 @@
 </div>
 
 <!-- ====================================================================== -->
-<!-- MODAL 2: Revision Remarks Dedicated Modal                              -->
+<!-- MODAL 2: Revision Feedback Modal                                       -->
 <!-- ====================================================================== -->
 <div id="remarks-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="remarks-modal-title">
-    <div class="modal-card" style="max-width: 560px;">
-        <div class="manuscript-header">
-            <span class="status-badge status-revision">Revision Feedback</span>
-            <button type="button" id="close-remarks-modal-btn" class="viewer-close-btn" aria-label="Close revision modal">
+    <div class="modal-card viewer-modal-card" style="max-width: 540px;">
+        <div class="viewer-modal-header">
+            <div class="viewer-meta-row">
+                <span class="viewer-category-tag" style="background-color: #fef3f2; color: #b42318; border: 1px solid #fecdca;">
+                    <i class="fa-solid fa-rotate-right"></i> Revision Requested
+                </span>
+            </div>
+            <button type="button" id="close-remarks-modal-btn" class="viewer-close-btn" aria-label="Close remarks">
                 <i class="fa-solid fa-xmark"></i>
             </button>
         </div>
-        <div class="manuscript-body" style="padding: 24px;">
-            <h3 id="remarks-modal-title" style="font-size: 1.15rem; font-weight: 700; color: #101828; margin: 0 0 12px 0;">Article Title</h3>
-            <div class="remarks-alert-box" style="margin-top: 0;">
-                <div class="remarks-alert-title">
-                    <i class="fa-solid fa-circle-exclamation"></i>
-                    <span>Editorial Feedback:</span>
+        <div class="viewer-modal-body" style="padding-top: 10px;">
+            <h2 id="remarks-modal-title" style="font-size: 1.15rem; font-weight: 700; color: #101828; margin: 0 0 16px 0; font-family: var(--font-heading, 'Playfair Display', Georgia, serif);">
+                Article Title
+            </h2>
+            <div style="background-color: #fef3f2; border: 1px solid #fecdca; border-radius: 8px; padding: 16px; margin-bottom: 20px;">
+                <div style="font-size: 0.76rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: #b42318; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+                    <i class="fa-solid fa-comment-dots"></i>
+                    <span>Editor-in-Chief / Section Head Note</span>
                 </div>
-                <p id="remarks-modal-content" class="remarks-alert-text"></p>
+                <p id="remarks-modal-content" style="font-size: 0.88rem; color: #344054; line-height: 1.5; margin: 0;"></p>
             </div>
-            <div style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
-                <button type="button" id="btn-edit-from-remarks" class="btn-primary-action" style="height: 36px; padding: 0 14px;">
-                    <i class="fa-solid fa-pen-to-square"></i>
-                    <span>Edit Manuscript</span>
-                </button>
-            </div>
+        </div>
+        <div class="viewer-modal-footer" style="display: flex; justify-content: flex-end; gap: 10px;">
+            <button type="button" class="btn-viewer-secondary" onclick="document.getElementById('remarks-modal').classList.add('hidden')">
+                <span>Close</span>
+            </button>
+            <a href="#" id="btn-edit-from-remarks" class="btn-primary-action" style="height: 36px; padding: 0 14px; text-decoration: none;">
+                <i class="fa-solid fa-pen-to-square"></i>
+                <span>Open Editor</span>
+            </a>
         </div>
     </div>
 </div>
@@ -230,16 +234,18 @@
 </div>
 
 <!-- Toast Notification Container -->
-<div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+<div id="toast-container" class="toast-container" aria-live="polite"></div>
 @endsection
 
 @push('scripts')
     <script>
-        window.__SHARED_ARTICLES__ = @json($articles ?? []);
-        window.__WRITER_ARTICLES__ = window.__SHARED_ARTICLES__;
-        window.__SUBMIT_ARTICLE_URL__ = @json(url(request()->is('section-head*') ? '/section-head/submit-article' : '/executive/submit-article'));
-        window.__DELETE_DRAFT_URL__ = @json(url(request()->is('section-head*') ? '/section-head/drafts' : '/executive/drafts'));
+        window.INITIAL_DATA = @json($articles ?? []);
+        window.INITIAL_ARTICLES = @json($articles ?? []);
+        window.__SHARED_ARTICLES__ = window.INITIAL_ARTICLES;
+        window.SUBMIT_ARTICLE_URL = @json(route(request()->is('section-head*') ? 'section-head.submit-article' : 'executive.submit-article'));
+        window.__SUBMIT_ARTICLE_URL__ = window.SUBMIT_ARTICLE_URL;
+        window.DELETE_DRAFT_URL = @json(url(request()->is('section-head*') ? '/section-head/drafts' : '/executive/drafts'));
+        window.__DELETE_DRAFT_URL__ = window.DELETE_DRAFT_URL;
     </script>
-    <script src="{{ asset('js/shared-manage-my-articles.js') }}"></script>
+    <script src="{{ asset('js/executive-manage-my-articles.js') }}"></script>
 @endpush
-

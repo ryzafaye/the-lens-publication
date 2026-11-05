@@ -7,9 +7,12 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use App\Models\Category;
 use App\Models\Article;
+use App\Models\ActivityLog;
+use App\Traits\LogsActivity;
 
 class WriterController extends Controller
 {
+    use LogsActivity;
     public function dashboard()
     {
         $userId = Auth::id();
@@ -134,6 +137,10 @@ class WriterController extends Controller
                         'status' => $request->status,
                     ]);
 
+                    if ($request->status === 'Pending Review') {
+                        ActivityLog::logAction(Auth::id(), 'submitted', $article);
+                    }
+
                     Cache::forget('writer_dashboard_stats_' . Auth::id());
             Cache::forget('writer_recent_articles_' . Auth::id());
                     Cache::forget('writer_recent_articles_' . Auth::id());
@@ -155,7 +162,7 @@ class WriterController extends Controller
             }
 
             // If new, create and save the article in the database
-            Article::create([
+            $article = Article::create([
                 'user_id' => Auth::id(),
                 'category_id' => $request->category_id,
                 'title' => $request->title,
@@ -165,6 +172,10 @@ class WriterController extends Controller
                 'views' => 0,
                 'shares' => 0,
             ]);
+
+            if ($request->status === 'Pending Review') {
+                ActivityLog::logAction(Auth::id(), 'submitted', $article);
+            }
 
             Cache::forget('writer_dashboard_stats_' . Auth::id());
             Cache::forget('writer_recent_articles_' . Auth::id());

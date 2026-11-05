@@ -84,7 +84,7 @@
                 <!-- User Profile Lockup -->
                 <div class="topbar-user-profile">
                     <div class="topbar-avatar-circle" title="User Profile">
-                        <img src="{{ asset('images/member-placeholder.svg') }}" alt="User Profile Picture">
+                        <img src="{{ Auth::user()?->avatar_url ?? (Auth::user()?->avatar ? asset(Auth::user()->avatar) : asset('images/member-placeholder.svg')) }}" alt="User Profile Picture">
                     </div>
                     <span id="topbar-user-role" class="topbar-role-badge">{{ Auth::user()?->role?->role_name ?? 'Editor-in-Chief' }}</span>
                 </div>
@@ -96,7 +96,7 @@
         <nav id="mobile-nav-dropdown" class="mobile-nav-dropdown" aria-label="Mobile Navigation Menu">
             <div class="mobile-nav-profile">
                 <div class="mobile-nav-avatar">
-                    <img src="{{ asset('images/member-placeholder.svg') }}" alt="Avatar">
+                    <img src="{{ Auth::user()?->avatar_url ?? (Auth::user()?->avatar ? asset(Auth::user()->avatar) : asset('images/member-placeholder.svg')) }}" alt="Avatar">
                 </div>
                 <div class="mobile-nav-user-info">
                     <div id="mobile-user-name" class="mobile-nav-name">{{ Auth::user()?->full_name ?? 'Editor-in-Chief' }}</div>
@@ -152,10 +152,13 @@
                     <i class="fa-solid fa-arrow-up-right-from-square"></i>
                     <span>View public site</span>
                 </a>
-                <button type="button" id="mobile-logout-btn" class="mobile-nav-footer-link mobile-logout-btn">
-                    <i class="fa-solid fa-right-from-bracket"></i>
-                    <span>Logout</span>
-                </button>
+                <form action="{{ route('logout') }}" method="POST" style="margin: 0; padding: 0;">
+                    @csrf
+                    <button type="submit" id="mobile-logout-btn" class="mobile-nav-footer-link mobile-logout-btn" style="width: 100%; border: none; background: transparent; cursor: pointer; text-align: left;">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                        <span>Logout</span>
+                    </button>
+                </form>
             </div>
         </nav>
 

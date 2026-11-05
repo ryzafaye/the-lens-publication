@@ -15,7 +15,10 @@ class ProfileController extends Controller
         $user = Auth::user();
 
         if (!$user) {
-            return response()->json(['message' => 'Unauthenticated.'], 401);
+            if ($request->wantsJson()) {
+                return response()->json(['message' => 'Unauthenticated.'], 401);
+            }
+            return redirect()->route('login');
         }
         $user->loadMissing('role');
 
@@ -25,14 +28,19 @@ class ProfileController extends Controller
             'avatar' => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp', 'max:3072'],
         ]);
 
-        $user->full_name = $validated['full_name'];
-        $user->student_number = $validated['student_number'];
+        $user->full_name = trim($validated['full_name']);
+        $user->student_number = trim($validated['student_number']);
 
         $avatarUrl = null;
         if ($request->hasFile('avatar')) {
             // Delete old avatar if stored on public disk
-            if ($user->profile_picture_url && str_starts_with($user->profile_picture_url, 'avatars/')) {
-                Storage::disk('public')->delete($user->profile_picture_url);
+            $oldPath = ltrim((string) $user->profile_picture_url, '/');
+            if (str_starts_with($oldPath, 'storage/')) {
+                $oldPath = substr($oldPath, 8);
+            }
+            if ($oldPath && str_starts_with($oldPath, 'avatars/')) {
+                Storage::disk('public')->delete($oldPath);
+                @unlink(public_path('storage/' . $oldPath));
             }
 
             $path = $request->file('avatar')->store('avatars', 'public');
@@ -49,24 +57,35 @@ class ProfileController extends Controller
 
             $avatarUrl = asset('storage/' . $path);
         } elseif ($request->boolean('remove_avatar') || $request->input('remove_avatar') === '1') {
-            if ($user->profile_picture_url && str_starts_with($user->profile_picture_url, 'avatars/')) {
-                Storage::disk('public')->delete($user->profile_picture_url);
+            $oldPath = ltrim((string) $user->profile_picture_url, '/');
+            if (str_starts_with($oldPath, 'storage/')) {
+                $oldPath = substr($oldPath, 8);
+            }
+            if ($oldPath && str_starts_with($oldPath, 'avatars/')) {
+                Storage::disk('public')->delete($oldPath);
+                @unlink(public_path('storage/' . $oldPath));
             }
             $user->profile_picture_url = null;
             $avatarUrl = asset('images/member-placeholder.svg');
         }
 
         $user->save();
+        Auth::setUser($user);
         \App\Auth\CachedEloquentUserProvider::clearCache($user->id);
 
-        return response()->json([
-            'message' => 'Profile updated successfully',
-            'user' => [
-                'full_name' => $user->full_name,
-                'student_number' => $user->student_number,
-                'avatar_url' => $avatarUrl ?? ($user->profile_picture_url ? asset('storage/' . $user->profile_picture_url) : asset('images/member-placeholder.svg')),
-            ]
-        ]);
+        if ($request->wantsJson()) {
+            return response()->json([
+                'message' => 'Profile updated successfully',
+                'user' => [
+                    'full_name' => $user->full_name,
+                    'student_number' => $user->student_number,
+                    'role' => $user->role ? $user->role->role_name : null,
+                    'avatar_url' => $avatarUrl ?? $user->avatar_url,
+                ]
+            ]);
+        }
+
+        return back()->with('success', 'Profile updated successfully');
     }
 
     public function updatePassword(Request $request)
@@ -75,7 +94,10 @@ class ProfileController extends Controller
         $user = Auth::user();
 
         if (!$user) {
-            return response()->json(['message' => 'Unauthenticated.'], 401);
+            if ($request->wantsJson()) {
+                return response()->json(['message' => 'Unauthenticated.'], 401);
+            }
+            return redirect()->route('login');
         }
         $user->loadMissing('role');
 
@@ -89,18 +111,26 @@ class ProfileController extends Controller
         ]);
 
         if (!Hash::check($request->current_password, $user->password)) {
-            return response()->json([
-                'message' => 'The provided current password does not match our records.'
-            ], 422);
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'message' => 'The provided current password does not match our records.'
+                ], 422);
+            }
+            return back()->withErrors(['current_password' => 'The provided current password does not match our records.']);
         }
 
         $user->password = Hash::make($request->new_password);
         $user->save();
+        Auth::setUser($user);
         \App\Auth\CachedEloquentUserProvider::clearCache($user->id);
 
-        return response()->json([
-            'message' => 'Password updated successfully'
-        ]);
+        if ($request->wantsJson()) {
+            return response()->json([
+                'message' => 'Password updated successfully'
+            ]);
+        }
+
+        return back()->with('success', 'Password updated successfully');
     }
 }
 

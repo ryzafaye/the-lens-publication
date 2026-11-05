@@ -31,7 +31,7 @@
                         <i class="fa-regular fa-id-badge"></i>
                     </div>
                     <div class="settings-card-titles">
-                        <h2 id="exec-info-heading">Executive Profile</h2>
+                        <h2 id="exec-info-heading">{{ Auth::user()?->role?->role_name ?? 'Executive' }} Profile</h2>
                         <p>Update your personal details and author profile photo.</p>
                     </div>
                 </div>
@@ -42,7 +42,7 @@
                     <!-- Profile Picture Upload Row -->
                     <div class="profile-avatar-row">
                         <div class="avatar-preview-wrapper">
-                            <img id="avatar-preview-img" class="avatar-preview-img" src="{{ Auth::user()->avatar ? asset('storage/' . Auth::user()->avatar) : (Auth::user()->profile_picture_url ? asset(Auth::user()->profile_picture_url) : asset('images/member-placeholder.svg')) }}" alt="Executive Avatar">
+                            <img id="avatar-preview-img" class="avatar-preview-img" src="{{ Auth::user()?->avatar_url ?? (Auth::user()?->avatar ? asset(Auth::user()->avatar) : asset('images/member-placeholder.svg')) }}" alt="Avatar">
                         </div>
                         <div class="avatar-upload-info">
                             <span class="settings-label">Profile Picture</span>

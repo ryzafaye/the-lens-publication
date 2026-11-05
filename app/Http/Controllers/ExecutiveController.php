@@ -9,10 +9,13 @@ use App\Models\Article;
 use App\Models\Category;
 use App\Models\User;
 use App\Models\Role;
+use App\Models\ActivityLog;
+use App\Traits\LogsActivity;
 use Illuminate\Support\Facades\Hash;
 
 class ExecutiveController extends Controller
 {
+    use LogsActivity;
     /**
      * Determine category associated with the Section Head based on their role name.
      */
@@ -42,6 +45,21 @@ class ExecutiveController extends Controller
         return null;
     }
 
+    /**
+     * RBAC Enforcement: Block non-Pres/VP roles from restricted executive actions
+     */
+    protected function authorizePresidentOrVp(Request $request)
+    {
+        if ($request->is('executive*')) {
+            $user = Auth::user();
+            $user?->loadMissing('role');
+            $roleName = $user->role->role_name ?? '';
+            if (!in_array($roleName, ['President', 'Vice President', 'Executive Vice President'])) {
+                abort(403, 'Access Denied: Your account role does not have permission to access this page.');
+            }
+        }
+    }
+
     public function dashboard()
     {
         /** @var \App\Models\User $user */
@@ -64,14 +82,17 @@ class ExecutiveController extends Controller
             ")->first();
         });
 
-        $activeMembers = Cache::remember('active_writers_count', 60, function () {
-            return \App\Models\User::whereHas('role', function ($q) {
-                $q->where('role_name', 'Writer');
+        $activeMembers = Cache::remember('exec_active_members_count', 30, function () {
+            return \App\Models\User::where(function ($q) {
+                $q->where('account_status', 'active')
+                  ->orWhere('account_status', '!=', 'deactivated')
+                  ->orWhereNull('account_status');
             })->count();
         });
 
         $metrics = [
             'total_views' => (int) ($stats->total_views ?? 0),
+            'monthly_views' => (int) ($stats->total_views ?? 0),
             'published_stories' => (int) ($stats->published_stories ?? 0),
             'pending' => (int) ($stats->pending ?? 0),
             'active_members' => $activeMembers,
@@ -86,7 +107,7 @@ class ExecutiveController extends Controller
             }
             return $submissionsQuery->latest()->take(6)->get()->map(function ($art) {
                 return [
-                    'id' => $art->id,
+                    'id' => (string) $art->id,
                     'title' => $art->title,
                     'author' => $art->user->full_name ?? 'Author',
                     'category' => $art->category->name ?? 'General',
@@ -98,11 +119,63 @@ class ExecutiveController extends Controller
             });
         });
 
-        return view('executive.dashboard', compact('metrics', 'pendingArticles', 'category'));
+        $recentActivities = ActivityLog::with(['user.role', 'entity'])
+            ->latest()
+            ->take(5)
+            ->get()
+            ->map(fn($log) => $log->formatForTimeline())
+            ->values();
+
+        $dashboardData = [
+            'metrics' => $metrics,
+            'pendingArticles' => $pendingArticles,
+            'category' => $category?->name,
+            'recentActivities' => $recentActivities,
+        ];
+
+        return view('executive.dashboard', compact('metrics', 'pendingArticles', 'category', 'dashboardData', 'recentActivities'));
+    }
+
+    public function manageArticles(Request $request)
+    {
+        $this->authorizePresidentOrVp($request);
+
+        $articles = Cache::remember('all_articles_for_management', 30, function () {
+            return Article::with(['user.role', 'category'])
+                ->latest()
+                ->get()
+                ->map(function ($article) {
+                    $authorAvatar = $article->user?->avatar_url ?? ($article->user?->avatar ? asset($article->user->avatar) : asset('images/member-placeholder.svg'));
+                    return [
+                        'id' => (string) $article->id,
+                        'title' => $article->title,
+                        'category' => $article->category->name ?? 'General',
+                        'excerpt' => $article->excerpt ?? '',
+                        'content' => $article->content ?? '',
+                        'status' => $article->status,
+                        'date' => $article->created_at->format('M d, Y'),
+                        'rawDate' => $article->created_at->toIso8601String(),
+                        'views' => (int) ($article->views ?? 0),
+                        'shares' => (int) ($article->shares ?? 0),
+                        'readTime' => max(1, ceil(str_word_count(strip_tags($article->content ?? '')) / 200)) . ' min read',
+                        'author' => $article->user->full_name ?? 'Staff Writer',
+                        'authorAvatar' => $authorAvatar,
+                        'isArchived' => ($article->status === 'Archived'),
+                        'image' => asset('images/maroon.jpg'),
+                    ];
+                });
+        });
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json($articles);
+        }
+
+        return view('executive.manage-articles', compact('articles'));
     }
 
     public function reviewArticles(Request $request)
     {
+        $this->authorizePresidentOrVp($request);
         /** @var \App\Models\User $user */
         $user = Auth::user();
         $user?->loadMissing('role');
@@ -149,6 +222,8 @@ class ExecutiveController extends Controller
 
     public function approveArticle(Request $request, $id)
     {
+        $this->authorizePresidentOrVp($request);
+
         /** @var \App\Models\User $user */
         $user = Auth::user();
         $user?->loadMissing('role');
@@ -157,6 +232,8 @@ class ExecutiveController extends Controller
         $article->update([
             'status' => 'Pending EIC Review',
         ]);
+
+        ActivityLog::logAction(Auth::id(), 'approved', $article);
 
         Cache::forget('executive_dashboard_stats_' . $article->category_id);
         Cache::forget('executive_dashboard_stats_all');
@@ -177,6 +254,8 @@ class ExecutiveController extends Controller
 
     public function returnForRevision(Request $request, $id)
     {
+        $this->authorizePresidentOrVp($request);
+
         $request->validate([
             'remarks' => 'required|string',
         ]);
@@ -186,6 +265,8 @@ class ExecutiveController extends Controller
             'status' => 'For Revision',
             'remarks' => $request->remarks,
         ]);
+
+        ActivityLog::logAction(Auth::id(), 'returned for revision', $article);
 
         Cache::forget('executive_dashboard_stats_' . $article->category_id);
         Cache::forget('executive_dashboard_stats_all');
@@ -210,7 +291,26 @@ class ExecutiveController extends Controller
 
     public function activityLogs()
     {
-        return view('executive.activity-logs');
+        $activities = ActivityLog::with(['user.role', 'entity'])
+            ->latest()
+            ->take(100)
+            ->get()
+            ->map(fn($log) => $log->formatForTimeline())
+            ->values();
+
+        return view('executive.activity-logs', compact('activities'));
+    }
+
+    public function transparency()
+    {
+        return view('executive.transparency');
+    }
+
+    public function feedbackInbox(Request $request)
+    {
+        $this->authorizePresidentOrVp($request);
+        $feedbacks = [];
+        return view('executive.feedback-inbox', compact('feedbacks'));
     }
 
     public function profileSettings()
@@ -312,6 +412,10 @@ class ExecutiveController extends Controller
                     Cache::forget('exec_review_articles_all_newest');
                     Cache::forget('exec_review_articles_all_oldest');
 
+                    if ($request->status === 'Pending Review') {
+                        ActivityLog::logAction(Auth::id(), 'submitted', $article);
+                    }
+
                     if ($request->status === 'Draft') {
                         return redirect()->route('executive.submit-article', ['tab' => 'drafts'])
                             ->with('success', 'Draft saved successfully.');
@@ -321,7 +425,7 @@ class ExecutiveController extends Controller
                 }
             }
 
-            Article::create([
+            $createdArticle = Article::create([
                 'user_id' => Auth::id(),
                 'category_id' => $request->category_id,
                 'title' => $request->title,
@@ -331,6 +435,10 @@ class ExecutiveController extends Controller
                 'views' => 0,
                 'shares' => 0,
             ]);
+
+            if ($request->status === 'Pending Review') {
+                ActivityLog::logAction(Auth::id(), 'submitted', $createdArticle);
+            }
 
             Cache::forget('executive_dashboard_stats_' . $request->category_id);
             Cache::forget('executive_dashboard_stats_all');
@@ -388,6 +496,8 @@ class ExecutiveController extends Controller
 
     public function manageAccounts(Request $request)
     {
+        $this->authorizePresidentOrVp($request);
+
         // Fetch all accounts including Writers, Cartoonists, Media Team, and Executive/Editorial board
         $officers = Cache::remember('all_officers_list', 60, function () {
             return User::with('role')
@@ -400,19 +510,32 @@ class ExecutiveController extends Controller
                 ->get();
         });
 
+        $formattedOfficers = $officers->map(function ($officer) {
+            return [
+                'id' => (string) $officer->id,
+                'name' => $officer->full_name,
+                'studentNumber' => $officer->student_number ?? '2024-00000-BN-0',
+                'role' => $officer->role->role_name ?? 'Staff',
+                'avatar' => $officer->avatar_url ?? ($officer->avatar ? asset($officer->avatar) : asset('images/member-placeholder.svg')),
+                'status' => $officer->account_status ?? 'active',
+            ];
+        });
+
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,
-                'officers' => $officers,
+                'officers' => $formattedOfficers,
                 'roles' => $roles,
             ]);
         }
 
-        return view('eic.manage-accounts', compact('officers', 'roles'));
+        return view('executive.manage-accounts', compact('officers', 'roles', 'formattedOfficers'));
     }
 
     public function storeAccount(Request $request)
     {
+        $this->authorizePresidentOrVp($request);
+
         $roleId = $request->input('role_id');
         if (!$roleId && $request->filled('role')) {
             $roleObj = Role::where('role_name', $request->input('role'))->first();
@@ -434,9 +557,13 @@ class ExecutiveController extends Controller
             'account_status' => 'active',
         ]);
 
+        ActivityLog::logAction(Auth::id(), 'created account for', $officer);
+
         Cache::forget('all_officers_list');
         Cache::forget('eic_active_members');
         Cache::forget('active_writers_count');
+        Cache::forget('exec_active_members_count');
+        Cache::forget('mpc_active_members');
 
         $officer->load('role');
 
@@ -453,6 +580,8 @@ class ExecutiveController extends Controller
 
     public function updateRole(Request $request, $id)
     {
+        $this->authorizePresidentOrVp($request);
+
         $officer = User::findOrFail($id);
 
         $roleId = $request->input('role_id');
@@ -470,8 +599,14 @@ class ExecutiveController extends Controller
             'role_id' => $validated['role_id'],
         ]);
 
+        ActivityLog::logAction(Auth::id(), 'updated role for', $officer);
+
         \App\Auth\CachedEloquentUserProvider::clearCache($officer->id);
         Cache::forget('all_officers_list');
+        Cache::forget('eic_active_members');
+        Cache::forget('active_writers_count');
+        Cache::forget('exec_active_members_count');
+        Cache::forget('mpc_active_members');
 
         $officer->load('role');
 
@@ -488,6 +623,8 @@ class ExecutiveController extends Controller
 
     public function toggleStatus(Request $request, $id)
     {
+        $this->authorizePresidentOrVp($request);
+
         $officer = User::findOrFail($id);
 
         $status = $request->input('status');
@@ -513,12 +650,17 @@ class ExecutiveController extends Controller
             'account_status' => $status,
         ]);
 
+        $statusLabel = ($status === 'active') ? 'reactivated' : 'deactivated';
+        ActivityLog::logAction(Auth::id(), $statusLabel, $officer);
+
         \App\Auth\CachedEloquentUserProvider::clearCache($officer->id);
         Cache::forget('all_officers_list');
+        Cache::forget('eic_active_members');
+        Cache::forget('active_writers_count');
+        Cache::forget('exec_active_members_count');
+        Cache::forget('mpc_active_members');
 
         $officer->load('role');
-
-        $statusLabel = ($status === 'active') ? 'reactivated' : 'deactivated';
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([

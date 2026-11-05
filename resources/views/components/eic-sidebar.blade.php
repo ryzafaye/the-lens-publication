@@ -18,7 +18,7 @@
         <!-- Profile Section -->
         <div class="sidebar-profile">
             <div class="profile-avatar">
-                <img id="sidebar-user-avatar" src="{{ asset('images/member-placeholder.svg') }}" alt="Avatar">
+                <img id="sidebar-user-avatar" src="{{ Auth::user()?->avatar_url ?? (Auth::user()?->avatar ? asset(Auth::user()->avatar) : asset('images/member-placeholder.svg')) }}" alt="{{ Auth::user()?->full_name ?? 'User' }} Avatar">
             </div>
             <div id="sidebar-user-name" class="profile-name">{{ Auth::user()?->full_name ?? 'Editor-in-Chief' }}</div>
             <div id="sidebar-user-role" class="profile-role-text">{{ Auth::user()?->role?->role_name ?? 'Editor-in-Chief' }}</div>
@@ -85,10 +85,13 @@
             <span>View public site</span>
         </a>
 
-        <button type="button" id="logout-btn" class="sidebar-footer-link logout-btn">
-            <i class="fa-solid fa-right-from-bracket"></i>
-            <span>Logout</span>
-        </button>
+        <form action="{{ route('logout') }}" method="POST" style="margin: 0; padding: 0; width: 100%;">
+            @csrf
+            <button type="submit" id="logout-btn" class="sidebar-footer-link logout-btn" style="width: 100%; border: none; background: transparent; cursor: pointer; text-align: left;">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span>Logout</span>
+            </button>
+        </form>
     </div>
 
 </aside>

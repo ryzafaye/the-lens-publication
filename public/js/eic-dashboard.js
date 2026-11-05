@@ -247,10 +247,16 @@ document.addEventListener('DOMContentLoaded', () => {
         // B. Activity Log (Top 5 Recent with Causer Action Subject Format)
         const activityContainer = document.getElementById('recent-activity-list');
         if (activityContainer) {
-            let logsToDisplay = ACTIVITY_LOG_DATA;
+            let logsToDisplay = (window.INITIAL_ACTIVITIES && Array.isArray(window.INITIAL_ACTIVITIES))
+                ? window.INITIAL_ACTIVITIES
+                : (window.INITIAL_DATA && Array.isArray(window.INITIAL_DATA.recentActivities))
+                    ? window.INITIAL_DATA.recentActivities
+                    : (window.INITIAL_DATA && Array.isArray(window.INITIAL_DATA.activities))
+                        ? window.INITIAL_DATA.activities
+                        : ACTIVITY_LOG_DATA;
             try {
                 const storedLogs = localStorage.getItem('executiveActivityLogs_v1');
-                if (storedLogs) {
+                if (storedLogs && logsToDisplay === ACTIVITY_LOG_DATA) {
                     const parsed = JSON.parse(storedLogs);
                     if (Array.isArray(parsed) && parsed.length > 0) {
                         logsToDisplay = parsed.slice(0, 5).map(item => ({
@@ -270,8 +276,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (logsToDisplay.length === 0) {
                 activityContainer.innerHTML = '<p style="font-size: 0.95rem; color: var(--text-muted, #667085); padding: 28px 16px; text-align: center; margin: 0;">No recent activities.</p>';
             } else {
+                const actLogsUrl = window.__ACTIVITY_LOGS_URL__ || '/eic/activity-logs';
                 activityContainer.innerHTML = logsToDisplay.map(item => `
-                    <div class="activity-item" onclick="window.location.href='eic-activity-logs.html'" style="cursor: pointer;" title="Open Activity Log">
+                    <div class="activity-item" onclick="window.location.href='${actLogsUrl}'" style="cursor: pointer;" title="Open Activity Log">
                         <div class="activity-avatar">
                             <img src="${item.avatar}" alt="${escapeHTML(item.user)}">
                         </div>
@@ -596,6 +603,46 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = await response.json().catch(() => ({}));
 
                 if (response.ok && data.success !== false) {
+                    // Forward approved article to M&PC publishing queue in localStorage for instant parity
+                    try {
+                        const pendingList = getPendingQueue();
+                        const art = articles.find(a => String(a.id) === String(targetId)) ||
+                                    pendingList.find(a => String(a.id) === String(targetId));
+                        if (art) {
+                            let mpcList = [];
+                            const rawMpc = localStorage.getItem('mpc_publish_articles_v2');
+                            if (rawMpc) {
+                                try {
+                                    const parsed = JSON.parse(rawMpc);
+                                    if (Array.isArray(parsed)) mpcList = parsed;
+                                } catch (e) {}
+                            }
+                            const approverName = window.LARAVEL_USER_NAME || localStorage.getItem('userName') || localStorage.getItem('eicName') || 'Editor-in-Chief';
+                            const approverRole = window.LARAVEL_USER_ROLE || localStorage.getItem('userRole') || localStorage.getItem('eicRole') || 'Editor-in-Chief';
+
+                            mpcList = mpcList.filter(a => String(a.id) !== String(art.id));
+                            mpcList.unshift({
+                                id: art.id,
+                                title: art.title,
+                                category: art.category,
+                                categorySlug: (art.category || 'news').toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+                                author: art.author,
+                                sectionHead: art.endorsedBy || art.sectionHead || 'Section Head Endorsement',
+                                eicApprover: `${approverName} (${approverRole})`,
+                                readTime: art.readTime || '3 min read',
+                                dateApproved: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+                                rawDate: art.rawDate || new Date().toISOString().split('T')[0],
+                                status: 'ready',
+                                assignedCoverId: '',
+                                excerpt: art.excerpt || '',
+                                body: art.content || art.body || '<p>Manuscript content approved.</p>'
+                            });
+                            localStorage.setItem('mpc_publish_articles_v2', JSON.stringify(mpcList));
+                        }
+                    } catch (e) {
+                        console.error('Failed to sync to MPC publishing queue:', e);
+                    }
+
                     closeViewerModal();
                     showToast(data.message || 'Article approved and forwarded to Media & Publication Committee.', 'success');
                     removePendingArticleFromDashboard(targetId);

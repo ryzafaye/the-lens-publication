@@ -663,14 +663,6 @@ body.dashboard-body {
     gap: 20px;
 }
 
-.metrics-grid-3,
-.metrics-grid.metrics-grid-3 {
-    display: grid !important;
-    grid-template-columns: repeat(3, 1fr) !important;
-    gap: 20px !important;
-    width: 100% !important;
-}
-
 .metric-card {
     background-color: var(--bg-card);
     border: 1px solid var(--sidebar-maroon, #5c0a18);
@@ -1285,16 +1277,6 @@ body.dashboard-body {
 
 .journalists-table tbody tr:hover td {
     background-color: #f9fafb;
-}
-
-.journalists-table td[colspan] {
-    font-size: 0.85rem !important;
-    color: #667085 !important;
-    text-align: center !important;
-    padding: 24px 0 !important;
-    border-bottom: none !important;
-    background: transparent !important;
-    pointer-events: none !important;
 }
 
 .journalists-table td.col-author-name {
@@ -2273,4 +2255,26 @@ button.sidebar-footer-link.logout-btn:hover,
 #logout-btn:hover {
     background-color: rgba(239, 68, 68, 0.15) !important;
     color: #fca5a5 !important;
+}
+
+/* ----------------------------------------------------------------------------
+   DASHBOARD CLEAN EMPTY STATES (Gray, centered, small size, no icons)
+   ---------------------------------------------------------------------------- */
+.empty-state-cell,
+.data-table td.empty-state-cell,
+.journalists-table td.empty-state-cell {
+    font-size: 0.85rem !important;
+    color: var(--text-muted, #667085) !important;
+    text-align: center !important;
+    padding: 24px 0 !important;
+    border-bottom: none !important;
+    background: transparent !important;
+    pointer-events: none !important;
+}
+
+.dashboard-empty-msg {
+    font-size: 0.85rem;
+    color: var(--text-muted, #667085);
+    text-align: center;
+    padding: 24px 0;
 }

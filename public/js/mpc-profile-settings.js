@@ -1,8 +1,8 @@
 /**
  * ============================================================================
- * THE LENS ΓÇö PROFILE SETTINGS LOGIC (MEDIA & PUBLIC COMMUNICATIONS / M&PC PORTAL)
- * Manages Officer Profile Details, Avatar Upload, and Password Security
- * Exact Parity with Executive Profile Settings Format, Design & Logic
+ * THE LENS — M&PC PROFILE SETTINGS CONTROLLER
+ * Full Executive & Media Parity: Member Info, Avatar Photo & Security Password
+ * Dynamic AJAX Submissions, Real-time Validation & Toast Feedback
  * ============================================================================
  */
 
@@ -10,59 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
     'use strict';
 
     // =========================================================================
-    // 1. AUTHENTICATION & ROLE VERIFICATION (M&PC PORTAL)
-    // =========================================================================
-    const activeRole = window.LARAVEL_USER_ROLE || localStorage.getItem('mpcRole') || localStorage.getItem('userRole') || 'M&PC Head';
-    let userRole = activeRole;
-    
-    let rawStoredName = window.LARAVEL_USER_NAME || localStorage.getItem('mpcName') || localStorage.getItem('userName');
-    let userName = rawStoredName || 'M&PC Officer';
-    
-    let rawStoredNum = window.LARAVEL_STUDENT_NUMBER || localStorage.getItem('mpcStudentNumber') || localStorage.getItem('studentNumber') || '';
-    let studentNumber = rawStoredNum;
-    
-    let userAvatar = window.LARAVEL_USER_AVATAR || localStorage.getItem('mpcAvatar') || localStorage.getItem('userAvatar') || 'images/member-placeholder.svg';
-
-    // Cache clean M&PC credentials
-    localStorage.setItem('userRole', userRole);
-    localStorage.setItem('userName', userName);
-    localStorage.setItem('studentNumber', studentNumber);
-    localStorage.setItem('mpcRole', userRole);
-    localStorage.setItem('mpcName', userName);
-    localStorage.setItem('mpcStudentNumber', studentNumber);
-
-    // Sync roles across DOM
-    const topbarRoleBadge = document.getElementById('topbar-user-role');
-    const sidebarRoleText = document.getElementById('sidebar-user-role');
-    const mobileRoleText = document.getElementById('mobile-user-role');
-
-    if (topbarRoleBadge) topbarRoleBadge.textContent = userRole;
-    if (sidebarRoleText) sidebarRoleText.textContent = userRole;
-    if (mobileRoleText) mobileRoleText.textContent = userRole;
-
-    // Sync names across DOM
-    const sidebarUserName = document.getElementById('sidebar-user-name');
-    const mobileUserName = document.getElementById('mobile-user-name');
-
-    if (sidebarUserName) sidebarUserName.textContent = userName;
-    if (mobileUserName) mobileUserName.textContent = userName;
-
-    // Sync avatar across DOM
-    function updateAllAvatars(src) {
-        const previewImg = document.getElementById('avatar-preview-img');
-        const sidebarImg = document.getElementById('sidebar-avatar-img') || document.getElementById('sidebar-user-avatar');
-        const topbarImg = document.getElementById('topbar-avatar-img');
-        const mobileImg = document.getElementById('mobile-avatar-img');
-
-        if (previewImg) previewImg.src = src;
-        if (sidebarImg) sidebarImg.src = src;
-        if (topbarImg) topbarImg.src = src;
-        if (mobileImg) mobileImg.src = src;
-    }
-    updateAllAvatars(userAvatar);
-
-    // =========================================================================
-    // 2. TOAST NOTIFICATIONS
+    // 1. TOAST NOTIFICATION UTILITY
     // =========================================================================
     function escapeHTML(str) {
         if (!str) return '';
@@ -86,39 +34,61 @@ document.addEventListener('DOMContentLoaded', () => {
         existingToasts.forEach(t => t.remove());
 
         const toast = document.createElement('div');
-        toast.className = `toast-message ${type}`;
+        const resolvedType = type === 'error' ? 'danger' : type;
+        toast.className = `toast-message ${resolvedType}`;
         toast.innerHTML = `<span class="toast-bullet-dot"></span><span>${escapeHTML(message)}</span>`;
         container.appendChild(toast);
 
         setTimeout(() => {
             toast.classList.add('toast-dismissing');
             setTimeout(() => toast.remove(), 260);
-        }, 3200);
+        }, 3400);
+    }
+
+    // CSRF Token helper
+    function getCsrfToken() {
+        return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') 
+            || document.querySelector('input[name="_token"]')?.value 
+            || '';
+    }
+
+    // Helper to extract first error from Laravel validation JSON
+    function getErrorMessage(data, fallback = 'An error occurred. Please try again.') {
+        if (!data) return fallback;
+        if (data.errors && typeof data.errors === 'object') {
+            const firstKey = Object.keys(data.errors)[0];
+            if (firstKey && Array.isArray(data.errors[firstKey]) && data.errors[firstKey].length > 0) {
+                return data.errors[firstKey][0];
+            }
+        }
+        return data.message || fallback;
     }
 
     // =========================================================================
-    // 3. PROFILE HYDRATION & PHOTO UPLOAD
+    // 2. AVATAR UPLOAD, PREVIEW & REMOVAL
     // =========================================================================
-    const inputStudentNumber = document.getElementById('input-student-number');
-    const inputFullName = document.getElementById('input-full-name');
-    const inputOfficerRole = document.getElementById('input-officer-role');
     const avatarFileInput = document.getElementById('avatar-file-input');
     const btnChangeAvatar = document.getElementById('btn-change-avatar');
     const btnResetAvatar = document.getElementById('btn-reset-avatar');
-    const profileInfoForm = document.getElementById('profile-info-form');
+    const inputRemoveAvatar = document.getElementById('input-remove-avatar');
 
-    if (inputStudentNumber) inputStudentNumber.value = studentNumber;
-    if (inputFullName) inputFullName.value = userName;
-    if (inputOfficerRole) inputOfficerRole.value = userRole;
+    function updateAllAvatars(src) {
+        const avatars = document.querySelectorAll(
+            '#avatar-preview-img, .avatar-preview-img, .profile-avatar img, .topbar-avatar-circle img, .mobile-nav-avatar img, #sidebar-avatar-img, #sidebar-user-avatar, #topbar-user-avatar, #mobile-user-avatar'
+        );
+        avatars.forEach(img => {
+            if (img) img.src = src;
+        });
+    }
 
-    // Trigger file dialog
+    // Trigger native file picker
     if (btnChangeAvatar && avatarFileInput) {
         btnChangeAvatar.addEventListener('click', () => {
             avatarFileInput.click();
         });
     }
 
-    // Handle chosen file
+    // Handle selected image file
     if (avatarFileInput) {
         avatarFileInput.addEventListener('change', (e) => {
             const file = e.target.files && e.target.files[0];
@@ -133,86 +103,165 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Validate file type
             if (!file.type.startsWith('image/')) {
-                showToast('Invalid file type. Please select an image (JPG, PNG, or WEBP).', 'danger');
+                showToast('Invalid file format. Please select a JPG, PNG, or WEBP image.', 'danger');
                 avatarFileInput.value = '';
                 return;
             }
 
+            // Flag that avatar is not to be removed
+            if (inputRemoveAvatar) {
+                inputRemoveAvatar.value = '0';
+            }
+
+            // Preview instantly
             const reader = new FileReader();
             reader.onload = (loadEvt) => {
                 const dataUrl = loadEvt.target.result;
-                try {
-                    localStorage.setItem('userAvatar', dataUrl);
-                    localStorage.setItem('mpcAvatar', dataUrl);
-                    userAvatar = dataUrl;
-                    updateAllAvatars(dataUrl);
-                    showToast('Profile photo updated.');
-                } catch (err) {
-                    console.warn('Could not store full avatar dataUrl in localStorage:', err);
-                    updateAllAvatars(dataUrl);
-                    showToast('Profile photo preview updated.');
-                }
+                updateAllAvatars(dataUrl);
             };
             reader.readAsDataURL(file);
         });
     }
 
-    // Reset avatar to placeholder
+    // Reset avatar to default placeholder
     if (btnResetAvatar) {
         btnResetAvatar.addEventListener('click', () => {
-            const defaultPlaceholder = 'images/member-placeholder.svg';
-            localStorage.setItem('userAvatar', defaultPlaceholder);
-            localStorage.setItem('mpcAvatar', defaultPlaceholder);
-            userAvatar = defaultPlaceholder;
+            const defaultPlaceholder = '/images/member-placeholder.svg';
             updateAllAvatars(defaultPlaceholder);
             if (avatarFileInput) avatarFileInput.value = '';
-            showToast('Profile photo reset to default placeholder.');
-        });
-    }
-
-    // Profile Information Form Submit
-    if (profileInfoForm) {
-        profileInfoForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-
-            const newName = inputFullName ? inputFullName.value.trim() : '';
-            const newStudentNum = inputStudentNumber ? inputStudentNumber.value.trim() : '';
-
-            if (!newName) {
-                showToast('Please enter your full name.', 'danger');
-                if (inputFullName) inputFullName.focus();
-                return;
-            }
-
-            if (!newStudentNum) {
-                showToast('Please enter your student number.', 'danger');
-                if (inputStudentNumber) inputStudentNumber.focus();
-                return;
-            }
-
-            // Save to localStorage
-            localStorage.setItem('userName', newName);
-            localStorage.setItem('studentNumber', newStudentNum);
-            localStorage.setItem('mpcName', newName);
-            localStorage.setItem('mpcStudentNumber', newStudentNum);
-            userName = newName;
-            studentNumber = newStudentNum;
-
-            // Sync with sidebar and mobile drawer
-            if (sidebarUserName) sidebarUserName.textContent = newName;
-            if (mobileUserName) mobileUserName.textContent = newName;
-
-            showToast('Profile details updated successfully.');
+            if (inputRemoveAvatar) inputRemoveAvatar.value = '1';
+            showToast('Profile photo reset to default placeholder. Click Save Profile to apply.');
         });
     }
 
     // =========================================================================
-    // 4. PASSWORD & SECURITY FORM
+    // 3. PROFILE INFORMATION FORM SUBMISSION (AJAX FETCH)
+    // =========================================================================
+    const profileInfoForm = document.getElementById('profile-info-form');
+    const inputStudentNumber = document.getElementById('input-student-number');
+    const inputFullName = document.getElementById('input-full-name');
+    const btnSaveProfile = document.getElementById('btn-save-profile');
+
+    if (profileInfoForm) {
+        profileInfoForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const studentNumber = inputStudentNumber ? inputStudentNumber.value.trim() : '';
+            const fullName = inputFullName ? inputFullName.value.trim() : '';
+
+            if (!studentNumber) {
+                showToast('Student number is required.', 'danger');
+                if (inputStudentNumber) inputStudentNumber.focus();
+                return;
+            }
+
+            if (!fullName) {
+                showToast('Full name is required.', 'danger');
+                if (inputFullName) inputFullName.focus();
+                return;
+            }
+
+            // UI loading state
+            const originalBtnHtml = btnSaveProfile ? btnSaveProfile.innerHTML : '';
+            if (btnSaveProfile) {
+                btnSaveProfile.disabled = true;
+                btnSaveProfile.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>Saving...</span>';
+            }
+
+            try {
+                const formData = new FormData(profileInfoForm);
+                const targetUrl = profileInfoForm.action || '/profile/update-info';
+
+                const response = await fetch(targetUrl, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': getCsrfToken(),
+                        'Accept': 'application/json'
+                    },
+                    body: formData
+                });
+
+                if (response.status === 419) {
+                    showToast('Session expired. Please refresh the page and try again.', 'danger');
+                    return;
+                }
+                if (response.status === 401) {
+                    showToast('Unauthenticated. Redirecting to login...', 'danger');
+                    setTimeout(() => { window.location.href = '/login'; }, 1200);
+                    return;
+                }
+
+                let data = null;
+                try {
+                    data = await response.json();
+                } catch (jsonErr) {
+                    data = null;
+                }
+
+                if (!response.ok) {
+                    throw new Error(getErrorMessage(data, 'Failed to update profile information.'));
+                }
+
+                // Sync updated full name with DOM headers, sidebars, and topbars
+                if (data.user && data.user.full_name) {
+                    const nameElements = document.querySelectorAll(
+                        '.profile-name, #sidebar-user-name, #mobile-user-name, #sidebar-writer-name, #mobile-writer-name, .topbar-user-name'
+                    );
+                    nameElements.forEach(el => {
+                        el.textContent = data.user.full_name;
+                    });
+
+                    // Sync localStorage so other views reflect the update immediately
+                    try {
+                        localStorage.setItem('userName', data.user.full_name);
+                        localStorage.setItem('cartoonistName', data.user.full_name);
+                        localStorage.setItem('mpcName', data.user.full_name);
+                        if (data.user.student_number) {
+                            localStorage.setItem('studentNumber', data.user.student_number);
+                            localStorage.setItem('cartoonistStudentNumber', data.user.student_number);
+                            localStorage.setItem('mpcStudentNumber', data.user.student_number);
+                        }
+                    } catch (storageErr) {}
+                }
+
+                if (data.user && data.user.student_number && inputStudentNumber) {
+                    inputStudentNumber.value = data.user.student_number;
+                }
+
+                // Sync new avatar URL if returned
+                if (data.user && data.user.avatar_url) {
+                    updateAllAvatars(data.user.avatar_url);
+                    try {
+                        localStorage.setItem('userAvatar', data.user.avatar_url);
+                        localStorage.setItem('cartoonistAvatar', data.user.avatar_url);
+                        localStorage.setItem('mpcAvatar', data.user.avatar_url);
+                    } catch (storageErr) {}
+                }
+
+                // Reset file input and removal state
+                if (avatarFileInput) avatarFileInput.value = '';
+                if (inputRemoveAvatar) inputRemoveAvatar.value = '0';
+
+                showToast(data.message || 'Profile updated successfully.', 'success');
+            } catch (err) {
+                showToast(err.message || 'Network error while updating profile.', 'danger');
+            } finally {
+                if (btnSaveProfile) {
+                    btnSaveProfile.disabled = false;
+                    btnSaveProfile.innerHTML = originalBtnHtml;
+                }
+            }
+        });
+    }
+
+    // =========================================================================
+    // 4. PASSWORD & SECURITY FORM SUBMISSION (AJAX FETCH)
     // =========================================================================
     const passwordForm = document.getElementById('password-change-form');
     const inputCurrentPass = document.getElementById('input-current-password');
     const inputNewPass = document.getElementById('input-new-password');
     const inputConfirmPass = document.getElementById('input-confirm-password');
+    const btnUpdatePassword = document.getElementById('btn-update-password');
 
     // Eye toggle buttons
     document.querySelectorAll('.password-toggle-btn').forEach(btn => {
@@ -233,7 +282,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Password criteria real-time feedback
+    // Password criteria indicators
     function updatePasswordCriteria() {
         const newPass = inputNewPass ? inputNewPass.value : '';
         const confirmPass = inputConfirmPass ? inputConfirmPass.value : '';
@@ -261,7 +310,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Password Form Submit
     if (passwordForm) {
-        passwordForm.addEventListener('submit', (e) => {
+        passwordForm.addEventListener('submit', async (e) => {
             e.preventDefault();
 
             const currentVal = inputCurrentPass ? inputCurrentPass.value.trim() : '';
@@ -287,27 +336,73 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (newVal !== confirmVal) {
-                showToast('New passwords do not match. Please re-enter.', 'danger');
+                showToast('New passwords do not match. Please verify your confirmation.', 'danger');
                 if (inputConfirmPass) inputConfirmPass.focus();
                 return;
             }
 
             if (newVal === currentVal) {
-                showToast('New password must be different from current password.', 'danger');
+                showToast('New password must be different from your current password.', 'danger');
                 if (inputNewPass) inputNewPass.focus();
                 return;
             }
 
-            // Save new password in localStorage
-            localStorage.setItem('mpcAccountPassword', newVal);
+            // UI loading state
+            const originalBtnHtml = btnUpdatePassword ? btnUpdatePassword.innerHTML : '';
+            if (btnUpdatePassword) {
+                btnUpdatePassword.disabled = true;
+                btnUpdatePassword.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>Updating...</span>';
+            }
 
-            // Reset inputs
-            if (inputCurrentPass) inputCurrentPass.value = '';
-            if (inputNewPass) inputNewPass.value = '';
-            if (inputConfirmPass) inputConfirmPass.value = '';
-            updatePasswordCriteria();
+            try {
+                const formData = new FormData(passwordForm);
+                const targetUrl = passwordForm.action || '/profile/update-password';
 
-            showToast('Password updated successfully.');
+                const response = await fetch(targetUrl, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': getCsrfToken(),
+                        'Accept': 'application/json'
+                    },
+                    body: formData
+                });
+
+                if (response.status === 419) {
+                    showToast('Session expired. Please refresh the page and try again.', 'danger');
+                    return;
+                }
+                if (response.status === 401) {
+                    showToast('Unauthenticated. Redirecting to login...', 'danger');
+                    setTimeout(() => { window.location.href = '/login'; }, 1200);
+                    return;
+                }
+
+                let data = null;
+                try {
+                    data = await response.json();
+                } catch (jsonErr) {
+                    data = null;
+                }
+
+                if (!response.ok) {
+                    throw new Error(getErrorMessage(data, 'Failed to update password.'));
+                }
+
+                // Reset password input fields on success
+                if (inputCurrentPass) inputCurrentPass.value = '';
+                if (inputNewPass) inputNewPass.value = '';
+                if (inputConfirmPass) inputConfirmPass.value = '';
+                updatePasswordCriteria();
+
+                showToast(data.message || 'Password updated successfully.', 'success');
+            } catch (err) {
+                showToast(err.message || 'Network error while updating password.', 'danger');
+            } finally {
+                if (btnUpdatePassword) {
+                    btnUpdatePassword.disabled = false;
+                    btnUpdatePassword.innerHTML = originalBtnHtml;
+                }
+            }
         });
     }
 

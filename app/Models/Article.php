@@ -75,16 +75,17 @@ class Article extends Model
             // DB fallback
         }
 
+        // Category Head Title Fallback
         $fallbackMap = [
-            'news' => 'Arquero (News Head)',
-            'literature' => 'Llandelar (Literary Head)',
-            'literary' => 'Llandelar (Literary Head)',
-            'feature' => 'Dela Cruz (Feature Head)',
-            'features' => 'Dela Cruz (Feature Head)',
-            'science' => 'Apilado (SciTech Head)',
-            'scitech' => 'Apilado (SciTech Head)',
-            'opinion' => 'Briones (Opinion Head)',
-            'opinions' => 'Briones (Opinion Head)',
+            'news' => 'News Head',
+            'literature' => 'Literary Head',
+            'literary' => 'Literary Head',
+            'feature' => 'Feature Head',
+            'features' => 'Feature Head',
+            'science' => 'SciTech Head',
+            'scitech' => 'SciTech Head',
+            'opinion' => 'Opinion Head',
+            'opinions' => 'Opinion Head',
         ];
 
         $lowerCat = strtolower($categoryName);
@@ -98,8 +99,7 @@ class Article extends Model
         if (!empty($this->remarks)) {
             if (preg_match('/(?:Endorsed to EIC by|Approved by(?: Section Head)?:?)\s*([^\r\n]+)/i', $this->remarks, $matches)) {
                 $matched = trim($matches[1]);
-                $isMock = preg_match('/(?:Aris Thorne|Elena Ramos|Sofia Alcantara)/i', $matched);
-                if (!empty($matched) && !$isMock) {
+                if (!empty($matched)) {
                     return $matched;
                 }
             }

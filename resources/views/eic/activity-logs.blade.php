@@ -69,6 +69,10 @@
 @endsection
 
 @push('scripts')
+    <script>
+        window.INITIAL_DATA = @json($activities ?? []);
+        window.INITIAL_ACTIVITIES = window.INITIAL_DATA;
+    </script>
     <script src="{{ asset('js/shared-activity-logs.js') }}"></script>
 @endpush
 

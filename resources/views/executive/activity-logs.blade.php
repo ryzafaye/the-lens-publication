@@ -3,11 +3,12 @@
 @section('title', 'Activity Log')
 
 @push('styles')
-    <link rel="stylesheet" href="{{ asset('css/shared-activity-logs.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/executive-activity-logs.css') }}">
 @endpush
 
 @section('content')
 <main class="content-container">
+
     <div class="activity-logs-container">
 
         <!-- 1. Clean Title of the Page -->
@@ -59,16 +60,21 @@
             id="activity-stream-timeline" 
             class="activity-stream-timeline" 
             aria-label="Activity events timeline">
+            <!-- Populated dynamically via js/executive-activity-logs.js -->
         </section>
 
     </div>
+
 </main>
 
-<!-- Toast Notification Container -->
-<div id="toast-container" class="toast-container" aria-live="polite"></div>
+<!-- Notification Toast Container -->
+<div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('js/shared-activity-logs.js') }}"></script>
+    <script>
+        window.INITIAL_DATA = @json($activities ?? []);
+        window.INITIAL_ACTIVITIES = window.INITIAL_DATA;
+    </script>
+    <script src="{{ asset('js/executive-activity-logs.js') }}"></script>
 @endpush
-

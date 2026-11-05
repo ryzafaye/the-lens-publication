@@ -8,6 +8,8 @@ use App\Http\Controllers\SectionHeadController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\EicController;
 use App\Http\Controllers\MpcController;
+use App\Http\Controllers\CartoonistController;
+use App\Http\Controllers\MediaController;
 
 Route::get('/', function () {
     return redirect('/login');
@@ -36,20 +38,32 @@ Route::middleware(['auth', 'role:President,Executive Vice President,Secretary,As
     Route::get('/my-articles', function () {
         return redirect()->route('executive.manage-my-articles');
     });
-    Route::get('/review-articles', [ExecutiveController::class, 'reviewArticles'])->name('review-articles');
-    Route::post('/review-articles/{id}/approve', [ExecutiveController::class, 'approveArticle'])->name('approve-article');
-    Route::post('/review-articles/{id}/revision', [ExecutiveController::class, 'returnForRevision'])->name('return-for-revision');
     Route::get('/activity-logs', [ExecutiveController::class, 'activityLogs'])->name('activity-logs');
-    Route::get('/manage-accounts', [ExecutiveController::class, 'manageAccounts'])->name('manage-accounts');
-    Route::post('/manage-accounts', [ExecutiveController::class, 'storeAccount'])->name('manage-accounts.store');
-    Route::put('/manage-accounts/{id}/role', [ExecutiveController::class, 'updateRole'])->name('manage-accounts.update-role');
-    Route::patch('/manage-accounts/{id}/status', [ExecutiveController::class, 'toggleStatus'])->name('manage-accounts.toggle-status');
+    Route::get('/transparency', [ExecutiveController::class, 'transparency'])->name('transparency');
     Route::get('/profile-settings', [ExecutiveController::class, 'profileSettings'])->name('profile-settings');
     Route::get('/settings', function () {
         return redirect()->route('executive.profile-settings');
     });
     Route::delete('/drafts/{id}', [ExecutiveController::class, 'destroyDraft'])->name('destroyDraft');
-    
+
+    // Strict Role-Based Access Control (RBAC): Restricted to President and Vice President
+    Route::middleware(['role:President,Vice President,Executive Vice President'])->group(function () {
+        Route::get('/manage-articles', [ExecutiveController::class, 'manageArticles'])->name('manage-articles');
+        Route::get('/review-articles', [ExecutiveController::class, 'reviewArticles'])->name('review-articles');
+        Route::get('/review-article', function () {
+            return redirect()->route('executive.review-articles');
+        })->name('review-article');
+        Route::post('/review-articles/{id}/approve', [ExecutiveController::class, 'approveArticle'])->name('approve-article');
+        Route::post('/review-articles/{id}/revision', [ExecutiveController::class, 'returnForRevision'])->name('return-for-revision');
+        Route::get('/manage-accounts', [ExecutiveController::class, 'manageAccounts'])->name('manage-accounts');
+        Route::post('/manage-accounts', [ExecutiveController::class, 'storeAccount'])->name('manage-accounts.store');
+        Route::put('/manage-accounts/{id}/role', [ExecutiveController::class, 'updateRole'])->name('manage-accounts.update-role');
+        Route::patch('/manage-accounts/{id}/status', [ExecutiveController::class, 'toggleStatus'])->name('manage-accounts.toggle-status');
+        Route::get('/feedback', [ExecutiveController::class, 'feedbackInbox'])->name('feedback');
+        Route::get('/feedback-inbox', function () {
+            return redirect()->route('executive.feedback');
+        })->name('feedback-inbox');
+    });
 });
 
 Route::middleware(['auth', 'role:Writer'])
@@ -132,6 +146,8 @@ Route::middleware(['auth', 'role:Media and Public Communications Head,Associate 
     ->group(function () {
         Route::get('/dashboard', [MpcController::class, 'dashboard'])->name('dashboard');
         Route::get('/publish-article', [MpcController::class, 'publishArticle'])->name('publish-article');
+        Route::post('/articles/{id}/publish', [MpcController::class, 'publishArticleRelease'])->name('publishArticleRelease');
+        Route::post('/articles/{id}/unpublish', [MpcController::class, 'unpublishArticleRelease'])->name('unpublishArticleRelease');
         Route::get('/media-desk', [MpcController::class, 'mediaDesk'])->name('media-desk');
         Route::get('/submit-media', [MpcController::class, 'submitMedia'])->name('submit-media');
         Route::post('/submit-media', [MpcController::class, 'storeMedia'])->name('store-media');
@@ -148,4 +164,50 @@ Route::middleware(['auth', 'role:Media and Public Communications Head,Associate 
             return redirect()->route('mpc.profile-settings');
         });
         Route::delete('/drafts/{id}', [MpcController::class, 'destroyDraft'])->name('destroyDraft');
+    });
+
+// Cartoonist Portal Routes
+Route::middleware(['auth', 'role:Cartoonist,Cartoonist Head,Associate Cartoonist Head,Chief Cartoonist'])
+    ->prefix('cartoonist')
+    ->name('cartoonist.')
+    ->group(function () {
+        Route::get('/dashboard', [CartoonistController::class, 'dashboard'])->name('dashboard');
+        Route::get('/submit-article', [CartoonistController::class, 'submitArticle'])->name('submit-article');
+        Route::post('/submit-article', [CartoonistController::class, 'storeArticle'])->name('store-article');
+        Route::get('/manage-my-articles', [CartoonistController::class, 'manageArticles'])->name('manage-my-articles');
+        Route::get('/manage-articles', [CartoonistController::class, 'manageArticles'])->name('manage-articles');
+        Route::get('/my-articles', function () {
+            return redirect()->route('cartoonist.manage-articles');
+        });
+        Route::get('/submit-cartoon', [CartoonistController::class, 'submitCartoon'])->name('submit-cartoon');
+        Route::post('/submit-cartoon', [CartoonistController::class, 'storeCartoon'])->name('store-cartoon');
+        Route::get('/manage-cartoons', [CartoonistController::class, 'manageCartoons'])->name('manage-cartoons');
+        Route::get('/profile-settings', [CartoonistController::class, 'profileSettings'])->name('profile-settings');
+        Route::get('/settings', function () {
+            return redirect()->route('cartoonist.profile-settings');
+        });
+        Route::delete('/drafts/{id}', [CartoonistController::class, 'destroyDraft'])->name('destroyDraft');
+    });
+
+// Media & Communication Portal Routes
+Route::middleware(['auth', 'role:Media Team,Media and Public Communications Head,Associate Media and Public Communications Head,Media & Communication'])
+    ->prefix('media')
+    ->name('media.')
+    ->group(function () {
+        Route::get('/dashboard', [MediaController::class, 'dashboard'])->name('dashboard');
+        Route::get('/submit-article', [MediaController::class, 'submitArticle'])->name('submit-article');
+        Route::post('/submit-article', [MediaController::class, 'storeArticle'])->name('store-article');
+        Route::get('/manage-my-articles', [MediaController::class, 'manageArticles'])->name('manage-my-articles');
+        Route::get('/manage-articles', [MediaController::class, 'manageArticles'])->name('manage-articles');
+        Route::get('/my-articles', function () {
+            return redirect()->route('media.manage-articles');
+        });
+        Route::get('/submit-media', [MediaController::class, 'submitMedia'])->name('submit-media');
+        Route::post('/submit-media', [MediaController::class, 'storeMedia'])->name('store-media');
+        Route::get('/manage-media', [MediaController::class, 'manageMedia'])->name('manage-media');
+        Route::get('/profile-settings', [MediaController::class, 'profileSettings'])->name('profile-settings');
+        Route::get('/settings', function () {
+            return redirect()->route('media.profile-settings');
+        });
+        Route::delete('/drafts/{id}', [MediaController::class, 'destroyDraft'])->name('destroyDraft');
     });

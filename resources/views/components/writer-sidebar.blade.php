@@ -11,7 +11,7 @@
 
         <div class="sidebar-profile">
             <div class="profile-avatar">
-                <img id="sidebar-avatar-img" src="{{ asset('images/member-placeholder.svg') }}" alt="Writer Avatar">
+                <img id="sidebar-avatar-img" src="{{ Auth::user()?->avatar_url ?? (Auth::user()?->avatar ? asset(Auth::user()->avatar) : asset('images/member-placeholder.svg')) }}" alt="{{ Auth::user()?->full_name ?? 'User' }} Avatar">
             </div>
             <div id="sidebar-writer-name" class="profile-name">{{ Auth::user()->full_name ?? 'Writer' }}</div>
             <div id="sidebar-user-role" class="profile-role-text">Writer</div>

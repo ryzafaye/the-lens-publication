@@ -106,14 +106,12 @@
 
     <!-- Empty State -->
     <div id="manage-empty-state" class="manage-empty-state hidden animate-fade-in delay-3" aria-live="polite">
-        <div class="manage-empty-icon">
-            <i class="fa-regular fa-newspaper"></i>
+        <div class="manage-empty-icon" id="manage-empty-icon-wrap">
+            <i class="fa-regular fa-newspaper" id="manage-empty-icon"></i>
         </div>
-        <h3 class="manage-empty-title">No articles found</h3>
-        <p class="manage-empty-desc">There are no articles matching your active tab or search criteria. Try modifying your search or reset the filters.</p>
-        <button type="button" id="reset-filters-btn" class="btn-reset-filters">
+        <h3 class="manage-empty-title" id="manage-empty-title">No articles yet</h3>
+        <button type="button" id="reset-filters-btn" class="btn-reset-filters" style="display: none;">
             <i class="fa-solid fa-rotate-left"></i>
-            <span>Reset Filters</span>
         </button>
     </div>
 
@@ -240,6 +238,9 @@
         </div>
     </div>
 </div>
+
+<!-- Toast Feedback Container -->
+<div id="toast-container" class="toast-container"></div>
 @endsection
 
 @push('scripts')

@@ -145,14 +145,14 @@ document.addEventListener('DOMContentLoaded', () => {
             return window.INITIAL_DATA.pending;
         }
         if (window.INITIAL_DATA && Array.isArray(window.INITIAL_DATA)) {
-            return window.INITIAL_DATA.filter(a => a.status === 'ready' || a.status === 'Ready' || a.status === 'Pending Review' || a.status === 'Approved');
+            return window.INITIAL_DATA.filter(a => a.status === 'ready' || a.status === 'Ready' || a.status === 'Ready to Publish' || a.status === 'Approved');
         }
         try {
             const raw = localStorage.getItem('mpc_publish_articles_v2');
             if (raw) {
                 const parsed = JSON.parse(raw);
                 if (Array.isArray(parsed)) {
-                    return parsed.filter(a => a.status === 'ready' || a.status === 'Ready');
+                    return parsed.filter(a => a.status === 'ready' || a.status === 'Ready' || a.status === 'Approved' || a.status === 'Ready to Publish');
                 }
             }
         } catch (e) {}
@@ -229,9 +229,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (activityContainer) {
             let logsToDisplay = (window.INITIAL_ACTIVITY_LOGS && Array.isArray(window.INITIAL_ACTIVITY_LOGS))
                 ? window.INITIAL_ACTIVITY_LOGS
-                : (window.INITIAL_DATA && Array.isArray(window.INITIAL_DATA.activities))
-                    ? window.INITIAL_DATA.activities
-                    : ACTIVITY_LOG_DATA;
+                : (window.INITIAL_ACTIVITIES && Array.isArray(window.INITIAL_ACTIVITIES))
+                    ? window.INITIAL_ACTIVITIES
+                    : (window.INITIAL_DATA && Array.isArray(window.INITIAL_DATA.recentActivities))
+                        ? window.INITIAL_DATA.recentActivities
+                        : (window.INITIAL_DATA && Array.isArray(window.INITIAL_DATA.activities))
+                            ? window.INITIAL_DATA.activities
+                            : ACTIVITY_LOG_DATA;
             try {
                 const storedLogs = localStorage.getItem('mpcActivityLogs_v1') || localStorage.getItem('executiveActivityLogs_v1');
                 if (storedLogs && logsToDisplay === ACTIVITY_LOG_DATA) {

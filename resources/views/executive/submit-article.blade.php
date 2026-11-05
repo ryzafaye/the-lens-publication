@@ -164,8 +164,7 @@
                 @empty
                     <div id="empty-drafts-state" class="empty-drafts-box">
                         <i class="fa-regular fa-folder-open"></i>
-                        <h3 class="empty-drafts-title">No Drafts Saved</h3>
-                        <p class="empty-drafts-subtitle">Any articles you save as drafts will appear here for easy editing.</p>
+                        <h3 class="empty-drafts-title">No drafts yet</h3>
                     </div>
                 @endforelse
             </div>

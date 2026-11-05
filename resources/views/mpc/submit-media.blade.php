@@ -13,8 +13,10 @@
 <main class="content-container">
 
     <!-- Title Section -->
-    <div class="cover-page-header-section animate-fade-in delay-1" style="margin-bottom: 24px;">
-        <h1 class="cover-page-title">Submit Media</h1>
+    <div class="page-title-section animate-fade-in delay-1" style="margin-bottom: 24px;">
+        <div class="page-header-row">
+            <h1 class="page-title">Submit Media</h1>
+        </div>
     </div>
 
     <div class="submit-media-container">

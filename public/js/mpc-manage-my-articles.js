@@ -308,7 +308,45 @@ document.addEventListener('DOMContentLoaded', () => {
         // Empty State handling
         if (filtered.length === 0) {
             articlesListContainer.innerHTML = '';
-            if (emptyStateEl) emptyStateEl.classList.remove('hidden');
+            if (emptyStateEl) {
+                const emptyTitle = document.getElementById('manage-empty-title') || emptyStateEl.querySelector('.manage-empty-title') || emptyStateEl.querySelector('h3');
+                const emptyIcon = document.getElementById('manage-empty-icon') || emptyStateEl.querySelector('.manage-empty-icon i');
+                const emptyDesc = emptyStateEl.querySelector('.manage-empty-desc') || emptyStateEl.querySelector('p');
+                if (emptyDesc) emptyDesc.remove();
+
+                const isSearching = searchQuery.trim().length > 0;
+
+                if (isSearching) {
+                    // When searching: "No articles found" with reset button
+                    if (emptyIcon) emptyIcon.className = 'fa-solid fa-magnifying-glass';
+                    if (emptyTitle) emptyTitle.textContent = 'No articles found';
+                    if (resetFiltersBtn) resetFiltersBtn.style.display = 'inline-flex';
+                } else {
+                    // When tab is empty: contextual empty message per tab without reset button
+                    let iconClass = 'fa-regular fa-newspaper';
+                    let titleText = 'No articles yet';
+
+                    if (currentTab === 'published') {
+                        iconClass = 'fa-solid fa-circle-check';
+                        titleText = 'No published articles yet';
+                    } else if (currentTab === 'pending') {
+                        iconClass = 'fa-regular fa-clock';
+                        titleText = 'No pending articles';
+                    } else if (currentTab === 'revision') {
+                        iconClass = 'fa-solid fa-rotate-left';
+                        titleText = 'No articles for revision';
+                    } else if (currentTab === 'drafts') {
+                        iconClass = 'fa-regular fa-folder-open';
+                        titleText = 'No drafts yet';
+                    }
+
+                    if (emptyIcon) emptyIcon.className = iconClass;
+                    if (emptyTitle) emptyTitle.textContent = titleText;
+                    if (resetFiltersBtn) resetFiltersBtn.style.display = 'none';
+                }
+
+                emptyStateEl.classList.remove('hidden');
+            }
             return;
         }
 

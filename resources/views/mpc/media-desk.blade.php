@@ -6,6 +6,7 @@
     <link rel="stylesheet" href="{{ asset('css/executive-dashboard.css') }}">
     <link rel="stylesheet" href="{{ asset('css/executive-modals.css') }}">
     <link rel="stylesheet" href="{{ asset('css/executive-manage-articles.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/mpc-media-desk.css') }}">
 @endpush
 
 @section('content')
@@ -13,43 +14,46 @@
 
     <!-- Top Header & Tabs Section -->
     <div class="cover-page-header-section animate-fade-in delay-1">
-        <div class="cover-header-row">
-            <h1 class="cover-page-title">Media Desk</h1>
+        <div class="cover-header-row page-header-row">
+            <h1 class="cover-page-title page-title">Media Desk</h1>
 
             <!-- Sort Dropdown -->
-            <div class="cover-sort-container">
-                <label for="cover-sort-select" class="cover-sort-label">
+            <div class="review-sort-container cover-sort-container">
+                <label for="cover-sort-select" class="review-sort-label cover-sort-label">
                     <i class="fa-solid fa-arrow-down-wide-short"></i>
                     <span>Sort:</span>
                 </label>
-                <select id="cover-sort-select" class="cover-sort-select" aria-label="Sort pending artwork by date">
-                    <option value="newest" selected>Newest First</option>
-                    <option value="oldest">Oldest First</option>
-                </select>
+                <div class="sort-select-wrapper">
+                    <select id="cover-sort-select" class="review-sort-select cover-sort-select" aria-label="Sort pending artwork by date">
+                        <option value="newest" selected>Newest First</option>
+                        <option value="oldest">Oldest First</option>
+                    </select>
+                    <i class="fa-solid fa-chevron-down sort-chevron" aria-hidden="true"></i>
+                </div>
             </div>
         </div>
 
         <!-- Media Desk Tabs: PUBMAT, PHOTOS, CARTOON, and LIBRARY -->
-        <div class="cover-tabs-container" role="tablist" aria-label="Media Desk Tabs">
-            <button type="button" class="review-tab-btn active" data-tab="pubmat" id="tab-cover-pubmat" role="tab" aria-selected="true">
+        <div class="cover-tabs-container manage-tabs-container" role="tablist" aria-label="Media Desk Tabs">
+            <button type="button" class="review-tab-btn manage-tab-btn active" data-tab="pubmat" id="tab-cover-pubmat" role="tab" aria-selected="true">
                 <i class="fa-solid fa-palette"></i>
                 <span>PUBMAT</span>
-                <span id="badge-cover-pubmat" class="review-tab-badge">0</span>
+                <span id="badge-cover-pubmat" class="review-tab-badge tab-count-badge">0</span>
             </button>
-            <button type="button" class="review-tab-btn" data-tab="photo" id="tab-cover-photo" role="tab" aria-selected="false">
+            <button type="button" class="review-tab-btn manage-tab-btn" data-tab="photo" id="tab-cover-photo" role="tab" aria-selected="false">
                 <i class="fa-solid fa-camera"></i>
                 <span>PHOTOS</span>
-                <span id="badge-cover-photo" class="review-tab-badge">0</span>
+                <span id="badge-cover-photo" class="review-tab-badge tab-count-badge">0</span>
             </button>
-            <button type="button" class="review-tab-btn" data-tab="cartoon" id="tab-cover-cartoon" role="tab" aria-selected="false">
+            <button type="button" class="review-tab-btn manage-tab-btn" data-tab="cartoon" id="tab-cover-cartoon" role="tab" aria-selected="false">
                 <i class="fa-solid fa-pen-nib"></i>
                 <span>CARTOON</span>
-                <span id="badge-cover-cartoon" class="review-tab-badge">0</span>
+                <span id="badge-cover-cartoon" class="review-tab-badge tab-count-badge">0</span>
             </button>
-            <button type="button" class="review-tab-btn" data-tab="library" id="tab-cover-library" role="tab" aria-selected="false">
+            <button type="button" class="review-tab-btn manage-tab-btn" data-tab="library" id="tab-cover-library" role="tab" aria-selected="false">
                 <i class="fa-solid fa-photo-film"></i>
                 <span>LIBRARY</span>
-                <span id="badge-cover-library" class="review-tab-badge">0</span>
+                <span id="badge-cover-library" class="review-tab-badge tab-count-badge">0</span>
             </button>
         </div>
     </div>
@@ -58,10 +62,11 @@
     <div id="cover-cards-grid" class="cover-cards-grid"></div>
 
     <!-- Empty Queue State -->
-    <div id="cover-empty-state" class="cover-empty-state" style="display: none;">
-        <i class="fa-regular fa-circle-check"></i>
-        <h3>All Caught Up</h3>
-        <p>No publication artwork currently pending Media Desk review.</p>
+    <div id="cover-empty-state" class="cover-empty-state mpc-tab-empty-state" style="display: none;">
+        <div class="empty-state-icon-circle">
+            <i class="fa-solid fa-palette" id="cover-empty-icon"></i>
+        </div>
+        <h3 id="cover-empty-title">All Caught Up on PUBMAT Reviews</h3>
     </div>
 
 </main>
@@ -128,6 +133,7 @@
                     Instructions / Notes for Revision:
                 </label>
                 <textarea id="return-remarks-input" class="form-textarea" rows="4" placeholder="Detail any requested adjustments (e.g., color corrections, typography adjustments, resolution issues)..." style="width: 100%; border: 1px solid #d0d5dd; border-radius: 8px; padding: 10px 12px; font-family: inherit; font-size: 0.85rem;"></textarea>
+                <div id="return-remarks-error" class="form-error-msg hidden" style="color: #d92d20; font-size: 0.78rem; margin-top: 6px;">Please provide instructions for the artist/head before returning.</div>
             </div>
         </div>
 
@@ -142,6 +148,9 @@
         </div>
     </div>
 </div>
+
+<!-- Toast Container -->
+<div id="toast-container" class="toast-container"></div>
 @endsection
 
 @push('scripts')

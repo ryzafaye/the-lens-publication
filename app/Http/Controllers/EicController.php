@@ -10,10 +10,13 @@ use App\Models\Category;
 use App\Models\User;
 use App\Models\Role;
 use App\Models\Feedback;
+use App\Models\ActivityLog;
+use App\Traits\LogsActivity;
 use Illuminate\Support\Facades\Hash;
 
 class EicController extends Controller
 {
+    use LogsActivity;
     public function dashboard()
     {
         /** @var \App\Models\User $user */
@@ -30,7 +33,11 @@ class EicController extends Controller
         });
 
         $activeMembers = Cache::remember('eic_active_members', 60, function () {
-            return User::count();
+            return User::where(function ($q) {
+                $q->where('account_status', 'active')
+                  ->orWhere('account_status', '!=', 'deactivated')
+                  ->orWhereNull('account_status');
+            })->count();
         });
 
         $metrics = [
@@ -60,7 +67,13 @@ class EicController extends Controller
                 });
         });
 
-        return view('eic.dashboard', compact('metrics', 'pendingArticles'));
+        $recentActivities = ActivityLog::with(['user.role', 'entity'])
+            ->latest()
+            ->take(5)
+            ->get()
+            ->map->formatForTimeline();
+
+        return view('eic.dashboard', compact('metrics', 'pendingArticles', 'recentActivities'));
     }
 
     public function manageArticles()
@@ -105,19 +118,19 @@ class EicController extends Controller
      */
     protected function getCategoryHeadsMap(): array
     {
-        return Cache::remember('category_section_heads_map_v3', 3600, function () {
-            // Canonical default mapping matching the official board members: (Last name) (position)
+        return Cache::remember('category_section_heads_map_v4', 3600, function () {
+            // Default mapping using generic titles, dynamically filled by actual users below
             $map = [
-                'News' => 'Arquero (News Head)',
-                'Literature' => 'Llandelar (Literary Head)',
-                'Literary' => 'Llandelar (Literary Head)',
-                'Feature' => 'Dela Cruz (Feature Head)',
-                'Features' => 'Dela Cruz (Feature Head)',
-                'Science & Technology' => 'Apilado (SciTech Head)',
-                'Science and Technology' => 'Apilado (SciTech Head)',
-                'SciTech' => 'Apilado (SciTech Head)',
-                'Opinion' => 'Briones (Opinion Head)',
-                'Opinions' => 'Briones (Opinion Head)',
+                'News' => 'News Head',
+                'Literature' => 'Literary Head',
+                'Literary' => 'Literary Head',
+                'Feature' => 'Feature Head',
+                'Features' => 'Feature Head',
+                'Science & Technology' => 'SciTech Head',
+                'Science and Technology' => 'SciTech Head',
+                'SciTech' => 'SciTech Head',
+                'Opinion' => 'Opinion Head',
+                'Opinions' => 'Opinion Head',
             ];
 
             try {
@@ -209,8 +222,7 @@ class EicController extends Controller
         if (!empty($article->remarks)) {
             if (preg_match('/(?:Endorsed to EIC by|Approved by(?: Section Head)?:?)\s*([^\r\n]+)/i', $article->remarks, $matches)) {
                 $matched = trim($matches[1]);
-                $isMock = preg_match('/(?:Aris Thorne|Elena Ramos|Sofia Alcantara)/i', $matched);
-                if (!empty($matched) && !$isMock) {
+                if (!empty($matched)) {
                     return $matched;
                 }
             }
@@ -270,10 +282,15 @@ class EicController extends Controller
             'status' => 'Approved',
         ]);
 
+        ActivityLog::logAction(Auth::id(), 'approved', $article);
+
         Cache::forget('eic_dashboard_stats');
         Cache::forget('eic_dashboard_pending_articles');
         Cache::forget('eic_review_articles_newest');
         Cache::forget('eic_review_articles_oldest');
+        Cache::forget('mpc_dashboard_stats');
+        Cache::forget('mpc_dashboard_pending_articles');
+        Cache::forget('mpc_dashboard_published_articles');
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json(['success' => true, 'message' => 'Article approved and forwarded to Media & Publication Committee.']);
@@ -294,10 +311,15 @@ class EicController extends Controller
             'remarks' => $request->remarks,
         ]);
 
+        ActivityLog::logAction(Auth::id(), 'returned for revision', $article);
+
         Cache::forget('eic_dashboard_stats');
         Cache::forget('eic_dashboard_pending_articles');
         Cache::forget('eic_review_articles_newest');
         Cache::forget('eic_review_articles_oldest');
+        Cache::forget('mpc_dashboard_stats');
+        Cache::forget('mpc_dashboard_pending_articles');
+        Cache::forget('mpc_dashboard_published_articles');
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json(['success' => true, 'message' => 'Article returned to writer with revision remarks.']);
@@ -360,6 +382,10 @@ class EicController extends Controller
                         'status' => $request->status,
                     ]);
 
+                    if ($request->status === 'Pending Review') {
+                        ActivityLog::logAction(Auth::id(), 'submitted', $article);
+                    }
+
                     Cache::forget('eic_dashboard_stats');
                     Cache::forget('eic_dashboard_pending_articles');
                     Cache::forget('eic_review_articles_newest');
@@ -374,7 +400,7 @@ class EicController extends Controller
                 }
             }
 
-            Article::create([
+            $article = Article::create([
                 'user_id' => Auth::id(),
                 'category_id' => $request->category_id,
                 'title' => $request->title,
@@ -384,6 +410,10 @@ class EicController extends Controller
                 'views' => 0,
                 'shares' => 0,
             ]);
+
+            if ($request->status === 'Pending Review') {
+                ActivityLog::logAction(Auth::id(), 'submitted', $article);
+            }
 
             Cache::forget('eic_dashboard_stats');
             Cache::forget('eic_dashboard_pending_articles');
@@ -466,6 +496,8 @@ class EicController extends Controller
             'account_status' => 'active',
         ]);
 
+        ActivityLog::logAction(Auth::id(), 'created account for', $officer);
+
         Cache::forget('all_officers_list');
         Cache::forget('eic_active_members');
         Cache::forget('active_writers_count');
@@ -506,6 +538,8 @@ class EicController extends Controller
         Cache::forget('all_officers_list');
 
         $officer->load('role');
+
+        ActivityLog::logAction(Auth::id(), 'updated role for', $officer);
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
@@ -552,6 +586,8 @@ class EicController extends Controller
 
         $statusLabel = ($status === 'active') ? 'reactivated' : 'deactivated';
 
+        ActivityLog::logAction(Auth::id(), $statusLabel, $officer);
+
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,
@@ -566,7 +602,13 @@ class EicController extends Controller
 
     public function activityLogs()
     {
-        return view('eic.activity-logs');
+        $activities = ActivityLog::with(['user.role', 'entity'])
+            ->latest()
+            ->take(100)
+            ->get()
+            ->map->formatForTimeline();
+
+        return view('eic.activity-logs', compact('activities'));
     }
 
     public function transparency()

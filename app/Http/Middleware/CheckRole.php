@@ -58,7 +58,11 @@ class CheckRole
             }
         }
 
-        // If unauthorized, log out and redirect to login with an error message
+        // If unauthorized, abort 403 if authenticated, or redirect to login
+        if (Auth::check()) {
+            abort(403, 'Access Denied: Your account role does not have permission to access this page.');
+        }
+
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();

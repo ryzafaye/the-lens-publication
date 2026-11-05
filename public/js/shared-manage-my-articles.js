@@ -285,12 +285,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     const emptyDesc = document.getElementById('manage-empty-desc') || emptyStateEl.querySelector('.manage-empty-desc');
                     const emptyIcon = document.getElementById('manage-empty-icon-i') || emptyStateEl.querySelector('.manage-empty-icon i');
 
-                    if (emptyIcon) emptyIcon.className = 'fa-regular fa-folder-open';
+                    if (emptyIcon) emptyIcon.className = 'fa-solid fa-magnifying-glass';
                     if (emptyTitle) emptyTitle.textContent = 'No articles found';
-                    if (emptyDesc) {
-                        emptyDesc.textContent = "We couldn't find any articles matching your search query or active filter settings.";
-                        emptyDesc.classList.remove('hidden');
-                    }
+                    if (emptyDesc) emptyDesc.classList.add('hidden');
                     if (resetFiltersBtn) resetFiltersBtn.style.display = 'inline-flex';
                     emptyStateEl.classList.remove('hidden');
                 }
@@ -304,32 +301,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     let iconClass = 'fa-regular fa-newspaper';
                     let titleText = 'No articles yet';
-                    let descText = 'You haven\'t submitted or drafted any articles yet.';
 
                     if (currentTab === 'published') {
                         iconClass = 'fa-solid fa-circle-check';
                         titleText = 'No published articles yet';
-                        descText = 'You don\'t have any published articles in this section yet.';
                     } else if (currentTab === 'pending') {
                         iconClass = 'fa-regular fa-clock';
                         titleText = 'No pending articles';
-                        descText = 'No articles are currently awaiting editorial review.';
                     } else if (currentTab === 'revision') {
                         iconClass = 'fa-solid fa-rotate-left';
                         titleText = 'No articles for revision';
-                        descText = 'No articles are currently returned for revision.';
                     } else if (currentTab === 'drafts') {
                         iconClass = 'fa-regular fa-folder-open';
                         titleText = 'No drafts yet';
-                        descText = 'You don\'t have any saved drafts.';
                     }
 
                     if (noIcon) noIcon.className = iconClass;
                     if (noTitle) noTitle.textContent = titleText;
-                    if (noDesc) {
-                        noDesc.textContent = descText;
-                        noDesc.classList.remove('hidden');
-                    }
+                    if (noDesc) noDesc.classList.add('hidden');
                     manageNoArticlesState.classList.remove('hidden');
                 } else if (emptyStateEl) {
                     // Fallback if manage-no-articles-state element is not present
@@ -338,6 +327,28 @@ document.addEventListener('DOMContentLoaded', () => {
                     const emptyIcon = document.getElementById('manage-empty-icon-i') || emptyStateEl.querySelector('.manage-empty-icon i');
 
                     let iconClass = 'fa-regular fa-newspaper';
+                    let titleText = 'No articles yet';
+
+                    if (currentTab === 'published') {
+                        iconClass = 'fa-solid fa-circle-check';
+                        titleText = 'No published articles yet';
+                    } else if (currentTab === 'pending') {
+                        iconClass = 'fa-regular fa-clock';
+                        titleText = 'No pending articles';
+                    } else if (currentTab === 'revision') {
+                        iconClass = 'fa-solid fa-rotate-left';
+                        titleText = 'No articles for revision';
+                    } else if (currentTab === 'drafts') {
+                        iconClass = 'fa-regular fa-folder-open';
+                        titleText = 'No drafts yet';
+                    }
+
+                    if (emptyIcon) emptyIcon.className = iconClass;
+                    if (emptyTitle) emptyTitle.textContent = titleText;
+                    if (emptyDesc) emptyDesc.classList.add('hidden');
+                    if (resetFiltersBtn) resetFiltersBtn.style.display = 'none';
+                    emptyStateEl.classList.remove('hidden');
+                }
                     let titleText = 'No articles yet';
                     let descText = 'You haven\'t submitted or drafted any articles yet.';
 

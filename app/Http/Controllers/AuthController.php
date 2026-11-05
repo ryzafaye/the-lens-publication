@@ -40,6 +40,10 @@ class AuthController extends Controller
                 return redirect()->route('section-head.dashboard');
             } elseif ($roleName === 'writer') {
                 return redirect()->route('writer.dashboard');
+            } elseif ($roleName === 'cartoonist') {
+                return redirect()->route('cartoonist.dashboard');
+            } elseif ($roleName === 'media team' || str_contains($roleName, 'media team') || $roleName === 'media & communication') {
+                return redirect()->route('media.dashboard');
             } elseif (in_array($rawRoleName, ['President', 'Executive Vice President', 'Secretary', 'Associate Secretary', 'Treasurer', 'Auditor', 'Public Relations Officer'])) {
                 return redirect()->route('executive.dashboard');
             }

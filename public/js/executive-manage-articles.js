@@ -34,6 +34,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // 2. DATA STORE: SHARED ARTICLES DATASET (Connected with public/executive)
     // =========================================================================
     function getStoredArticles() {
+        if (window.INITIAL_ARTICLES && Array.isArray(window.INITIAL_ARTICLES) && window.INITIAL_ARTICLES.length > 0) {
+            return window.INITIAL_ARTICLES;
+        }
+        if (window.INITIAL_DATA && Array.isArray(window.INITIAL_DATA) && window.INITIAL_DATA.length > 0) {
+            return window.INITIAL_DATA;
+        }
         try {
             const raw = localStorage.getItem('executiveArticles');
             if (raw) {
@@ -102,10 +108,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const articlesResultsCounter = document.getElementById('articles-results-counter');
     const manageEmptyState = document.getElementById('manage-empty-state');
     const resetEmptyFiltersBtn = document.getElementById('reset-empty-filters-btn');
-    const manageNoArticlesState = document.getElementById('manage-no-articles-state');
-    const noArticlesTitle = document.getElementById('no-articles-title');
-    const noArticlesDesc = document.getElementById('no-articles-desc');
-    const noArticlesIcon = document.getElementById('no-articles-icon');
 
     // Modals
     const actionModal = document.getElementById('action-modal');
@@ -474,9 +476,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Results counter
         if (articlesResultsCounter) {
-            if (totalInTab === 0) {
-                articlesResultsCounter.innerHTML = `No ${currentTab === 'archived' ? 'archived' : 'active'} articles`;
-            } else if (list.length === totalInTab) {
+            if (list.length === totalInTab) {
                 articlesResultsCounter.innerHTML = `Showing all <em>${list.length}</em> ${currentTab === 'archived' ? 'archived' : 'active'} articles`;
             } else {
                 articlesResultsCounter.innerHTML = `Showing <em>${list.length}</em> of ${totalInTab} ${currentTab === 'archived' ? 'archived' : 'active'} articles`;
@@ -486,61 +486,20 @@ document.addEventListener('DOMContentLoaded', () => {
         updateTabCounts();
         updateActiveChips();
 
-        // Check if user is searching or has active filters applied
-        const isSearching = searchQuery.trim().length > 0;
-        const hasFilters = selectedCategory !== 'All' || selectedDateMode !== 'any';
-        const isSearchingOrFiltered = isSearching || hasFilters;
-
         if (list.length === 0) {
             if (articlesGrid) articlesGrid.innerHTML = '';
-
-            if (isSearchingOrFiltered) {
-                // User searched or filtered with no matches: Show search-specific empty state with reset button
-                if (manageNoArticlesState) manageNoArticlesState.classList.add('hidden');
-                if (manageEmptyState) {
-                    const titleEl = manageEmptyState.querySelector('.empty-state-title');
-                    const descEl = manageEmptyState.querySelector('.empty-state-desc');
-                    const iconEl = manageEmptyState.querySelector('.empty-state-icon i');
-                    if (titleEl) titleEl.textContent = 'No articles found';
-                    if (descEl) descEl.textContent = "We couldn't find any articles matching your search query or active filter settings.";
-                    if (iconEl) iconEl.className = 'fa-regular fa-folder-open';
-                    if (resetEmptyFiltersBtn) resetEmptyFiltersBtn.style.display = 'inline-flex';
-                    manageEmptyState.classList.remove('hidden');
-                }
-            } else {
-                // Empty articles in category/tab: Show clean "No articles yet" empty state
-                if (manageEmptyState) manageEmptyState.classList.add('hidden');
-                if (manageNoArticlesState) {
-                    if (noArticlesTitle) {
-                        noArticlesTitle.textContent = currentTab === 'archived' ? 'No archived articles yet' : 'No articles yet';
-                    }
-                    if (noArticlesDesc) {
-                        noArticlesDesc.textContent = currentTab === 'archived'
-                            ? 'No articles have been moved to the archive yet.'
-                            : 'There are currently no active articles published in the publication.';
-                    }
-                    if (noArticlesIcon) {
-                        noArticlesIcon.className = currentTab === 'archived' ? 'fa-solid fa-box-archive' : 'fa-regular fa-newspaper';
-                    }
-                    manageNoArticlesState.classList.remove('hidden');
-                } else if (manageEmptyState) {
-                    const titleEl = manageEmptyState.querySelector('.empty-state-title');
-                    const descEl = manageEmptyState.querySelector('.empty-state-desc');
-                    const iconEl = manageEmptyState.querySelector('.empty-state-icon i');
-                    if (titleEl) titleEl.textContent = currentTab === 'archived' ? 'No archived articles yet' : 'No articles yet';
-                    if (descEl) descEl.textContent = currentTab === 'archived'
-                        ? 'No articles have been moved to the archive yet.'
-                        : 'There are currently no active articles published in the publication.';
-                    if (iconEl) iconEl.className = currentTab === 'archived' ? 'fa-solid fa-box-archive' : 'fa-regular fa-newspaper';
-                    if (resetEmptyFiltersBtn) resetEmptyFiltersBtn.style.display = 'none';
-                    manageEmptyState.classList.remove('hidden');
+            if (manageEmptyState) {
+                manageEmptyState.classList.remove('hidden');
+                const titleEl = manageEmptyState.querySelector('.empty-state-title');
+                const isFiltered = !!searchQuery || selectedCategory !== 'All' || selectedDateMode !== 'any';
+                if (titleEl) {
+                    titleEl.textContent = isFiltered ? 'No articles found' : 'No articles yet';
                 }
             }
             return;
         }
 
         if (manageEmptyState) manageEmptyState.classList.add('hidden');
-        if (manageNoArticlesState) manageNoArticlesState.classList.add('hidden');
         if (!articlesGrid) return;
 
         articlesGrid.innerHTML = list.map(article => {

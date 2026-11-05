@@ -1,63 +1,50 @@
 /**
  * ============================================================================
- * THE LENS — MANAGE OFFICER ACCOUNTS LOGIC (EXECUTIVE & EIC PORTALS)
- * Live Database Integration via Laravel Backend
+ * THE LENS — MANAGE OFFICER ACCOUNTS LOGIC (EXECUTIVE PORTAL)
+ * Clean, Reusable & Modular Implementation
  * 
  * Features:
- * 1. Live Database Hydration (window.OFFICER_DATA & window.AVAILABLE_ROLES)
- *    - Includes ALL staff and officers: Writers, Cartoonists, Media Team, and Board
- * 2. Real-time Search (Name, Student Number, and Role)
- * 3. Status Filter (All, Active, Deactivated)
- * 4. Add Officer Account Modal (POST to Laravel store endpoint with CSRF)
- * 5. Edit Officer Role Modal (PUT to Laravel update-role endpoint with CSRF)
- * 6. Deactivate & Activate Actions with Confirmation Modal (PATCH status)
- * 7. Custom Compact Scrollable Role Dropdown (max-height: 195px, smooth scrolling)
- * 8. Executive Toast Notification System (Dark Pill with Bullet Dot)
+ * 1. Authentication & Role Verification (Route guard & header/sidebar hydration)
+ * 2. Mobile Accordion Navigation Toggle
+ * 3. Desktop Real-time Clock (Asia/Manila format)
+ * 4. Officer Dataset Management (localStorage: 'executiveOfficerAccounts_v3')
+ *    - Format: BN-0 (e.g. 2022-01452-BN-0)
+ *    - Profile photos used across all officer cards
+ * 5. Real-time Search (Name, Student Number, and Role)
+ * 6. Status Filter (All, Active, Deactivated)
+ * 7. Add Officer Account Modal:
+ *    - 3 fields: Student Number, Full Name, Role
+ *    - Cancel button removed per executive UX requirements
+ *    - Prominent maroon "Create Account" button
+ * 8. Deactivate & Activate Officer Account Actions with Confirmation Modal
+ * 9. Default Executive Toast Notification System (Dark Pill with Green Bullet Dot)
  * ============================================================================
  */
 
 document.addEventListener('DOMContentLoaded', () => {
 
     // =========================================================================
-    // 1. BACKEND ROUTE & DATA INITIALIZATION
+    // 1. AUTHENTICATION & ROLE VERIFICATION
     // =========================================================================
-    const routes = window.__ACCOUNT_ROUTES__ || {
-        base: '/eic/manage-accounts',
-        store: '/eic/manage-accounts',
-        updateRole: '/eic/manage-accounts',
-        toggleStatus: '/eic/manage-accounts'
-    };
+    const userRole = localStorage.getItem('userRole') || 'President';
+    const userName = localStorage.getItem('userName') || 'Juan Dela Cruz';
 
-    function getCsrfToken() {
-        const meta = document.querySelector('meta[name="csrf-token"]');
-        if (meta) return meta.getAttribute('content');
-        const input = document.querySelector('input[name="_token"]');
-        return input ? input.value : '';
+    if (!localStorage.getItem('userRole')) {
+        localStorage.setItem('userRole', 'President');
     }
 
-    function normalizeOfficer(officer) {
-        if (!officer) return null;
-        const roleName = officer.role ? (officer.role.role_name || officer.role) : (officer.role_name || officer.role || 'Officer');
-        const roleId = officer.role_id || (officer.role ? officer.role.id : null);
-        const avatarUrl = officer.profile_picture_url || officer.avatar || '/images/member-placeholder.svg';
-        return {
-            id: officer.id,
-            name: officer.full_name || officer.name || '',
-            studentNumber: officer.student_number || officer.studentNumber || '',
-            role: roleName,
-            roleId: roleId,
-            avatar: avatarUrl,
-            status: officer.account_status || officer.status || 'active',
-            raw: officer
-        };
-    }
 
-    let rawOfficers = Array.isArray(window.OFFICER_DATA) ? window.OFFICER_DATA : [];
-    let officersList = rawOfficers.map(normalizeOfficer).filter(Boolean);
+
+
+
+
+
 
     // =========================================================================
-    // 2. TOAST NOTIFICATION HELPER
+    // 4. TOAST NOTIFICATION HELPER (Default Executive Bullet Dot Style)
     // =========================================================================
+    const toastContainer = document.getElementById('toast-container');
+
     function escapeHTML(str) {
         if (!str) return '';
         return String(str)
@@ -69,22 +56,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function showToast(message, type = 'success') {
-        let container = document.getElementById('toast-container');
-        if (!container) {
-            container = document.createElement('div');
-            container.id = 'toast-container';
-            container.className = 'toast-container';
-            container.setAttribute('aria-live', 'polite');
-            document.body.appendChild(container);
-        }
+        if (!toastContainer) return;
 
-        const existingToasts = container.querySelectorAll('.toast-message');
+        const existingToasts = toastContainer.querySelectorAll('.toast-message');
         existingToasts.forEach(t => t.remove());
 
         const toast = document.createElement('div');
         toast.className = `toast-message ${type}`;
+
         toast.innerHTML = `<span class="toast-bullet-dot"></span><span>${escapeHTML(message)}</span>`;
-        container.appendChild(toast);
+        toastContainer.appendChild(toast);
 
         setTimeout(() => {
             toast.classList.add('toast-dismissing');
@@ -93,7 +74,127 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // =========================================================================
-    // 3. DOM REFERENCES
+    // 5. OFFICER ACCOUNTS DATASET (BN-0 Format)
+    // =========================================================================
+    const ACCOUNTS_STORAGE_KEY = 'executiveOfficerAccounts_v3';
+
+    const defaultOfficers = [
+        {
+            id: 'off-01',
+            name: "Juan Dela Cruz",
+            studentNumber: "2022-01452-BN-0",
+            role: "President",
+            avatar: "images/member-placeholder.svg",
+            status: "active"
+        },
+        {
+            id: 'off-02',
+            name: "Maria Clara Santos",
+            studentNumber: "2022-01893-BN-0",
+            role: "Vice President",
+            avatar: "images/member-placeholder.svg",
+            status: "active"
+        },
+        {
+            id: 'off-03',
+            name: "Christian Alcantara",
+            studentNumber: "2023-00561-BN-0",
+            role: "Editor-in-Chief",
+            avatar: "images/member-placeholder.svg",
+            status: "active"
+        },
+        {
+            id: 'off-04',
+            name: "Althea Grace Mendoza",
+            studentNumber: "2023-01124-BN-0",
+            role: "Managing Editor",
+            avatar: "images/member-placeholder.svg",
+            status: "active"
+        },
+        {
+            id: 'off-05',
+            name: "Rafael Ramos",
+            studentNumber: "2023-02450-BN-0",
+            role: "Section Head - News",
+            avatar: "images/member-placeholder.svg",
+            status: "active"
+        },
+        {
+            id: 'off-06',
+            name: "Mara Villanueva",
+            studentNumber: "2023-03189-BN-0",
+            role: "Section Head - Features",
+            avatar: "images/member-placeholder.svg",
+            status: "active"
+        },
+        {
+            id: 'off-07',
+            name: "Noah Reyes",
+            studentNumber: "2024-00215-BN-0",
+            role: "Section Head - SciTech",
+            avatar: "images/member-placeholder.svg",
+            status: "active"
+        },
+        {
+            id: 'off-08',
+            name: "Patricia Gomez",
+            studentNumber: "2024-00890-BN-0",
+            role: "Section Head - Opinions",
+            avatar: "images/member-placeholder.svg",
+            status: "active"
+        },
+        {
+            id: 'off-09',
+            name: "Karlo Bautista",
+            studentNumber: "2024-01344-BN-0",
+            role: "Media & Publication Head",
+            avatar: "images/member-placeholder.svg",
+            status: "active"
+        },
+        {
+            id: 'off-10',
+            name: "Dominic Cruz",
+            studentNumber: "2023-04021-BN-0",
+            role: "Associate Editor",
+            avatar: "images/member-placeholder.svg",
+            status: "deactivated"
+        }
+    ];
+
+    function loadOfficers() {
+        if (window.INITIAL_OFFICERS && Array.isArray(window.INITIAL_OFFICERS) && window.INITIAL_OFFICERS.length > 0) {
+            return window.INITIAL_OFFICERS;
+        }
+        if (window.INITIAL_DATA && Array.isArray(window.INITIAL_DATA) && window.INITIAL_DATA.length > 0) {
+            return window.INITIAL_DATA;
+        }
+        try {
+            const raw = localStorage.getItem(ACCOUNTS_STORAGE_KEY);
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].studentNumber && parsed[0].studentNumber.includes('BN-0')) {
+                    return parsed;
+                }
+            }
+        } catch (e) {
+            console.warn('Failed parsing stored officers, restoring defaults:', e);
+        }
+        localStorage.setItem(ACCOUNTS_STORAGE_KEY, JSON.stringify(defaultOfficers));
+        return defaultOfficers;
+    }
+
+    function saveOfficers(officers) {
+        try {
+            localStorage.setItem(ACCOUNTS_STORAGE_KEY, JSON.stringify(officers));
+        } catch (e) {
+            console.error('Failed saving officers to localStorage:', e);
+        }
+    }
+
+    let officersList = loadOfficers();
+
+    // =========================================================================
+    // 6. DOM REFERENCES
     // =========================================================================
     const searchInput = document.getElementById('officer-search-input');
     const searchClearBtn = document.getElementById('officer-search-clear');
@@ -122,121 +223,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const editRoleOfficerName = document.getElementById('edit-role-officer-name');
     const editRoleCurrentBadge = document.getElementById('edit-role-current-badge');
     const btnCloseEditRoleModal = document.getElementById('btn-close-edit-role-modal');
+
     let targetEditRoleId = null;
 
     // =========================================================================
-    // 4. CUSTOM SCROLLABLE ROLE DROPDOWN CONTROLLERS (Add & Edit Modals)
-    // =========================================================================
-    function initCustomRoleDropdown(wrapperId, triggerId, labelId, menuId, selectId) {
-        const wrapper = document.getElementById(wrapperId);
-        const trigger = document.getElementById(triggerId);
-        const label = document.getElementById(labelId);
-        const menu = document.getElementById(menuId);
-        const select = document.getElementById(selectId);
-
-        if (!wrapper || !trigger || !label || !menu || !select) return null;
-
-        function closeDropdown() {
-            menu.classList.add('hidden');
-            trigger.classList.remove('active');
-            trigger.setAttribute('aria-expanded', 'false');
-        }
-
-        function openDropdown() {
-            // Close any other open custom dropdowns first
-            document.querySelectorAll('.custom-select-menu').forEach(m => m.classList.add('hidden'));
-            document.querySelectorAll('.custom-select-trigger').forEach(t => t.classList.remove('active'));
-
-            menu.classList.remove('hidden');
-            trigger.classList.add('active');
-            trigger.setAttribute('aria-expanded', 'true');
-
-            // Scroll to currently selected item if any
-            const selectedOpt = menu.querySelector('.custom-select-option.selected');
-            if (selectedOpt) {
-                selectedOpt.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-            }
-        }
-
-        trigger.addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (menu.classList.contains('hidden')) {
-                openDropdown();
-            } else {
-                closeDropdown();
-            }
-        });
-
-        menu.addEventListener('click', (e) => {
-            const opt = e.target.closest('.custom-select-option');
-            if (!opt) return;
-
-            const val = opt.dataset.value;
-            const roleName = opt.dataset.roleName || (opt.querySelector('span') ? opt.querySelector('span').textContent.trim() : '');
-
-            select.value = val;
-            label.textContent = roleName;
-            trigger.classList.remove('input-invalid');
-
-            menu.querySelectorAll('.custom-select-option').forEach(o => o.classList.remove('selected'));
-            opt.classList.add('selected');
-
-            closeDropdown();
-            select.dispatchEvent(new Event('change', { bubbles: true }));
-        });
-
-        function setValue(val, text) {
-            select.value = val;
-            let matchedName = text;
-            menu.querySelectorAll('.custom-select-option').forEach(opt => {
-                if (String(opt.dataset.value) === String(val) || (text && opt.dataset.roleName && opt.dataset.roleName.toLowerCase() === text.toLowerCase())) {
-                    opt.classList.add('selected');
-                    matchedName = opt.dataset.roleName;
-                    select.value = opt.dataset.value;
-                } else {
-                    opt.classList.remove('selected');
-                }
-            });
-            label.textContent = matchedName || 'Select role...';
-        }
-
-        function resetValue() {
-            select.value = '';
-            label.textContent = 'Select role...';
-            menu.querySelectorAll('.custom-select-option').forEach(o => o.classList.remove('selected'));
-            trigger.classList.remove('input-invalid');
-            closeDropdown();
-        }
-
-        return { closeDropdown, openDropdown, setValue, resetValue };
-    }
-
-    const addRoleDropdown = initCustomRoleDropdown(
-        'add-role-select-wrapper',
-        'add-role-trigger',
-        'add-role-label',
-        'add-role-menu',
-        'officer-input-role'
-    );
-
-    const editRoleDropdown = initCustomRoleDropdown(
-        'edit-role-select-wrapper',
-        'edit-role-trigger',
-        'edit-role-label',
-        'edit-role-menu',
-        'edit-role-select'
-    );
-
-    // Global click-outside listener to close open custom select menus
-    document.addEventListener('click', (e) => {
-        if (!e.target.closest('.custom-select-wrapper')) {
-            document.querySelectorAll('.custom-select-menu').forEach(m => m.classList.add('hidden'));
-            document.querySelectorAll('.custom-select-trigger').forEach(t => t.classList.remove('active'));
-        }
-    });
-
-    // =========================================================================
-    // 5. FILTER & RENDER ACCOUNTS LIST
+    // 7. RENDER OFFICER ACCOUNTS LIST
     // =========================================================================
     function getFilteredOfficers() {
         const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
@@ -248,7 +239,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return false;
             }
 
-            // Search query matching Name, Role, or Student Number
+            // Search query matching Name, Role, or Student Number (BN-0)
             if (query) {
                 const nameMatch = (officer.name || '').toLowerCase().includes(query);
                 const roleMatch = (officer.role || '').toLowerCase().includes(query);
@@ -267,7 +258,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const deactivatedCount = total - activeCount;
 
         statsCounterEl.innerHTML = `
-            <span><strong class="stat-highlight">${total}</strong> Total Officers &amp; Staff</span>
+            <span><strong class="stat-highlight">${total}</strong> Total Officers</span>
             <span class="stat-dot-separator">•</span>
             <span><strong class="stat-highlight text-emerald-700">${activeCount}</strong> Active</span>
             <span class="stat-dot-separator">•</span>
@@ -282,13 +273,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const filtered = getFilteredOfficers();
 
         if (filtered.length === 0) {
+            const query = searchInput ? searchInput.value.trim() : '';
+            const isSearching = !!query || (statusFilterSelect && statusFilterSelect.value !== 'all');
             accountsContainer.innerHTML = `
                 <div class="empty-accounts-box">
                     <i class="fa-solid fa-users-slash"></i>
-                    <h4 class="empty-accounts-title">No Accounts Found</h4>
-                    <p class="empty-accounts-subtitle">
-                        No member accounts match your current search and filter criteria.
-                    </p>
+                    <h4 class="empty-accounts-title">${isSearching ? 'No accounts found' : 'No accounts yet'}</h4>
                 </div>
             `;
             return;
@@ -296,7 +286,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         accountsContainer.innerHTML = filtered.map(officer => {
             const isDeactivated = officer.status === 'deactivated';
-            const avatarSrc = officer.avatar || '/images/member-placeholder.svg';
+            const avatarSrc = officer.avatar || 'images/member-placeholder.svg';
 
             return `
                 <div class="account-box ${isDeactivated ? 'deactivated' : ''}" id="account-card-${officer.id}">
@@ -304,7 +294,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <!-- Left: Profile Picture + Details -->
                     <div class="account-info-stack">
                         <div class="officer-avatar-wrapper" title="${escapeHTML(officer.name)}">
-                            <img src="${escapeHTML(avatarSrc)}" alt="${escapeHTML(officer.name)}" class="officer-profile-img" onerror="this.src='/images/member-placeholder.svg'">
+                            <img src="${escapeHTML(avatarSrc)}" alt="${escapeHTML(officer.name)}" class="officer-profile-img">
                         </div>
 
                         <div class="officer-details">
@@ -314,30 +304,29 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <span class="officer-role-tag">${escapeHTML(officer.role)}</span>
                             </div>
 
-                            <!-- Bottom Line: Account Status & Student Number -->
+                            <!-- Bottom Line: Account Status (Replaces Student Number) -->
                             <div class="officer-meta-row">
                                 <span class="status-pill ${isDeactivated ? 'deactivated' : 'active'}">
                                     <span class="status-dot"></span>
                                     <span>${isDeactivated ? 'Deactivated' : 'Active'}</span>
                                 </span>
-                                ${officer.studentNumber ? `<span class="officer-sn-tag" style="font-size:0.75rem; color:#64748b; font-weight:500;">${escapeHTML(officer.studentNumber)}</span>` : ''}
                             </div>
                         </div>
                     </div>
 
                     <!-- Right Actions: Edit Role + Deactivate / Activate -->
                     <div class="account-actions-stack">
-                        <button type="button" class="btn-account-edit-role" data-action="edit-role" data-id="${officer.id}" title="Edit role">
+                        <button type="button" class="btn-account-edit-role" data-action="edit-role" data-id="${officer.id}" title="Edit officer role">
                             <i class="fa-solid fa-user-pen"></i>
                             <span>Edit Role</span>
                         </button>
                         ${isDeactivated ? `
-                            <button type="button" class="btn-account-activate" data-action="activate" data-id="${officer.id}" title="Reactivate this account">
+                            <button type="button" class="btn-account-activate" data-action="activate" data-id="${officer.id}" title="Reactivate this officer account">
                                 <i class="fa-solid fa-user-check"></i>
                                 <span>Activate</span>
                             </button>
                         ` : `
-                            <button type="button" class="btn-account-deactivate" data-action="deactivate" data-id="${officer.id}" title="Deactivate account credentials">
+                            <button type="button" class="btn-account-deactivate" data-action="deactivate" data-id="${officer.id}" title="Deactivate officer credentials">
                                 <i class="fa-solid fa-user-slash"></i>
                                 <span>Deactivate</span>
                             </button>
@@ -350,7 +339,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // =========================================================================
-    // 6. SEARCH & FILTER EVENT LISTENERS
+    // 8. SEARCH & FILTER EVENT LISTENERS
     // =========================================================================
     if (searchInput) {
         searchInput.addEventListener('input', () => {
@@ -380,31 +369,24 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // =========================================================================
-    // 7. ACTION DELEGATION: EDIT ROLE, DEACTIVATE & ACTIVATE
+    // 9. ACTION DELEGATION: DEACTIVATE & ACTIVATE
     // =========================================================================
     if (accountsContainer) {
-        accountsContainer.addEventListener('click', async (e) => {
+        accountsContainer.addEventListener('click', (e) => {
             const btn = e.target.closest('button[data-action]');
             if (!btn) return;
 
             const action = btn.dataset.action;
             const officerId = btn.dataset.id;
-            const officer = officersList.find(o => String(o.id) === String(officerId));
+            const officer = officersList.find(o => o.id === officerId);
             if (!officer) return;
 
             if (action === 'edit-role') {
                 targetEditRoleId = officerId;
                 if (editRoleOfficerName) editRoleOfficerName.textContent = officer.name;
-                if (editRoleAvatar) editRoleAvatar.src = officer.avatar || '/images/member-placeholder.svg';
+                if (editRoleAvatar) editRoleAvatar.src = officer.avatar || 'images/member-placeholder.svg';
                 if (editRoleCurrentBadge) editRoleCurrentBadge.innerHTML = `Current Role: <strong>${escapeHTML(officer.role)}</strong>`;
-                
-                // Synchronize custom dropdown
-                if (editRoleDropdown) {
-                    editRoleDropdown.setValue(officer.roleId, officer.role);
-                } else if (editRoleSelect) {
-                    editRoleSelect.value = officer.roleId;
-                }
-
+                if (editRoleSelect) editRoleSelect.value = officer.role;
                 if (editRoleModal) editRoleModal.classList.remove('hidden');
             } else if (action === 'deactivate') {
                 targetDeactivateId = officerId;
@@ -415,128 +397,71 @@ document.addEventListener('DOMContentLoaded', () => {
                     deactivateModal.classList.remove('hidden');
                 }
             } else if (action === 'activate') {
-                // Send PATCH request to backend to activate account
-                btn.disabled = true;
-                const originalHtml = btn.innerHTML;
-                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>Activating...</span>';
-
-                try {
-                    const url = `${routes.toggleStatus}/${officerId}/status`;
-                    const response = await fetch(url, {
-                        method: 'PATCH',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json',
-                            'X-CSRF-TOKEN': getCsrfToken()
-                        },
-                        body: JSON.stringify({ status: 'active' })
-                    });
-
-                    const data = await response.json();
-
-                    if (!response.ok || !data.success) {
-                        showToast(data.message || 'Failed to reactivate account.', 'warning');
-                        btn.disabled = false;
-                        btn.innerHTML = originalHtml;
-                        return;
-                    }
-
-                    officer.status = 'active';
-                    renderAccounts();
-                    showToast(data.message || 'Account reactivated.', 'success');
-                } catch (err) {
-                    console.error('Network error activating account:', err);
-                    showToast('Network error while activating account.', 'warning');
-                    btn.disabled = false;
-                    btn.innerHTML = originalHtml;
-                }
+                officer.status = 'active';
+                saveOfficers(officersList);
+                renderAccounts();
+                showToast(`Officer account reactivated.`, 'success');
             }
         });
     }
 
-    // =========================================================================
-    // 8. EDIT ROLE MODAL & FORM SUBMISSION
-    // =========================================================================
+    // Edit Role Modal Controller
     function closeEditRoleModal() {
         if (editRoleModal) {
             editRoleModal.classList.add('hidden');
         }
-        document.querySelectorAll('.custom-select-menu').forEach(m => m.classList.add('hidden'));
-        document.querySelectorAll('.custom-select-trigger').forEach(t => t.classList.remove('active'));
         targetEditRoleId = null;
     }
 
     if (btnCloseEditRoleModal) btnCloseEditRoleModal.addEventListener('click', closeEditRoleModal);
 
     if (editRoleForm) {
-        editRoleForm.addEventListener('submit', async (e) => {
+        editRoleForm.addEventListener('submit', (e) => {
             e.preventDefault();
             if (!targetEditRoleId) return;
 
-            const officer = officersList.find(o => String(o.id) === String(targetEditRoleId));
+            const officer = officersList.find(o => o.id === targetEditRoleId);
             if (!officer) return;
 
-            const newRoleId = editRoleSelect ? editRoleSelect.value : '';
-            if (!newRoleId) {
-                showToast('Please select a valid role.', 'warning');
-                return;
-            }
+            const newRole = editRoleSelect ? editRoleSelect.value : '';
+            if (!newRole) return;
 
-            const submitBtn = editRoleForm.querySelector('button[type="submit"]');
-            const originalContent = submitBtn ? submitBtn.innerHTML : '';
-            if (submitBtn) {
-                submitBtn.disabled = true;
-                submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>Saving...</span>';
-            }
+            const oldRole = officer.role;
+            officer.role = newRole;
+            saveOfficers(officersList);
 
-            try {
-                const url = `${routes.updateRole}/${targetEditRoleId}/role`;
-                const response = await fetch(url, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'X-CSRF-TOKEN': getCsrfToken()
-                    },
-                    body: JSON.stringify({ role_id: newRoleId })
-                });
-
-                const data = await response.json();
-
-                if (!response.ok || !data.success) {
-                    const errorMsg = data.message || (data.errors ? Object.values(data.errors).flat().join(' ') : 'Failed to update role.');
-                    showToast(errorMsg, 'warning');
-                    return;
-                }
-
-                if (data.officer) {
-                    const updated = normalizeOfficer(data.officer);
-                    officer.role = updated.role;
-                    officer.roleId = updated.roleId;
-                } else {
-                    const selectedOpt = editRoleSelect.options[editRoleSelect.selectedIndex];
-                    officer.role = selectedOpt ? (selectedOpt.dataset.roleName || selectedOpt.textContent.trim()) : 'Officer';
-                    officer.roleId = newRoleId;
-                }
-
-                closeEditRoleModal();
-                renderAccounts();
-                showToast(data.message || `Role updated successfully.`, 'success');
-            } catch (err) {
-                console.error('Error updating role:', err);
-                showToast('A network error occurred while updating the role.', 'warning');
-            } finally {
-                if (submitBtn) {
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = originalContent;
+            // If edited officer is currently signed in, sync userRole in localStorage and live chrome
+            const activeUserRole = localStorage.getItem('userRole');
+            if (activeUserRole === oldRole || officer.name === (localStorage.getItem('userName') || 'Juan Dela Cruz')) {
+                localStorage.setItem('userRole', newRole);
+                if (window.ExecutiveShell && window.ExecutiveShell.hydrateUserRole) {
+                    window.ExecutiveShell.hydrateUserRole();
                 }
             }
+
+            closeEditRoleModal();
+            renderAccounts();
+            showToast(`Role for ${officer.name} updated to ${newRole}.`, 'success');
         });
     }
 
-    // =========================================================================
-    // 9. DEACTIVATE CONFIRMATION MODAL & SUBMISSION
-    // =========================================================================
+    // Confirmation for Deactivation
+    if (btnConfirmDeactivate) {
+        btnConfirmDeactivate.addEventListener('click', () => {
+            if (!targetDeactivateId) return;
+
+            const officerIndex = officersList.findIndex(o => o.id === targetDeactivateId);
+            if (officerIndex !== -1) {
+                officersList[officerIndex].status = 'deactivated';
+                saveOfficers(officersList);
+                renderAccounts();
+                showToast(`Officer account deactivated.`, 'danger');
+            }
+
+            closeDeactivateModal();
+        });
+    }
+
     function closeDeactivateModal() {
         if (deactivateModal) {
             deactivateModal.classList.add('hidden');
@@ -546,52 +471,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (btnCloseDeactivate) btnCloseDeactivate.addEventListener('click', closeDeactivateModal);
 
-    if (btnConfirmDeactivate) {
-        btnConfirmDeactivate.addEventListener('click', async () => {
-            if (!targetDeactivateId) return;
-
-            const officer = officersList.find(o => String(o.id) === String(targetDeactivateId));
-            if (!officer) return;
-
-            btnConfirmDeactivate.disabled = true;
-            const originalContent = btnConfirmDeactivate.innerHTML;
-            btnConfirmDeactivate.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>Deactivating...</span>';
-
-            try {
-                const url = `${routes.toggleStatus}/${targetDeactivateId}/status`;
-                const response = await fetch(url, {
-                    method: 'PATCH',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'X-CSRF-TOKEN': getCsrfToken()
-                    },
-                    body: JSON.stringify({ status: 'deactivated' })
-                });
-
-                const data = await response.json();
-
-                if (!response.ok || !data.success) {
-                    showToast(data.message || 'Failed to deactivate account.', 'warning');
-                    return;
-                }
-
-                officer.status = 'deactivated';
-                closeDeactivateModal();
-                renderAccounts();
-                showToast(data.message || 'Account deactivated.', 'danger');
-            } catch (err) {
-                console.error('Error deactivating account:', err);
-                showToast('A network error occurred while deactivating account.', 'warning');
-            } finally {
-                btnConfirmDeactivate.disabled = false;
-                btnConfirmDeactivate.innerHTML = originalContent;
-            }
-        });
-    }
-
     // =========================================================================
-    // 10. ADD OFFICER ACCOUNT MODAL & FORM SUBMISSION
+    // 10. ADD OFFICER ACCOUNT MODAL & FORM VALIDATION (BN-0 FORMAT)
     // =========================================================================
     function openAddModal() {
         if (addOfficerModal) {
@@ -604,9 +485,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function closeAddModal() {
         if (addOfficerModal) {
             addOfficerModal.classList.add('hidden');
-        }
-        if (addRoleDropdown) {
-            addRoleDropdown.resetValue();
         }
         if (addOfficerForm) {
             addOfficerForm.reset();
@@ -639,17 +517,16 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     if (addOfficerForm) {
-        addOfficerForm.addEventListener('submit', async (e) => {
+        addOfficerForm.addEventListener('submit', (e) => {
             e.preventDefault();
 
             const studentIdInput = document.getElementById('officer-input-student-id');
             const nameInput = document.getElementById('officer-input-name');
             const roleSelect = document.getElementById('officer-input-role');
-            const addTrigger = document.getElementById('add-role-trigger');
 
             const studentNumber = studentIdInput ? studentIdInput.value.trim() : '';
             const name = nameInput ? nameInput.value.trim() : '';
-            const roleId = roleSelect ? roleSelect.value : '';
+            const role = roleSelect ? roleSelect.value : '';
 
             let hasError = false;
 
@@ -667,13 +544,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 nameInput.classList.remove('input-invalid');
             }
 
-            if (!roleId) {
+            if (!role) {
                 hasError = true;
-                if (addTrigger) addTrigger.classList.add('input-invalid');
                 if (roleSelect) roleSelect.classList.add('input-invalid');
-            } else {
-                if (addTrigger) addTrigger.classList.remove('input-invalid');
-                if (roleSelect) roleSelect.classList.remove('input-invalid');
+            } else if (roleSelect) {
+                roleSelect.classList.remove('input-invalid');
             }
 
             if (hasError) {
@@ -681,57 +556,35 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            const submitBtn = addOfficerForm.querySelector('button[type="submit"]');
-            const originalBtnContent = submitBtn ? submitBtn.innerHTML : '';
-            if (submitBtn) {
-                submitBtn.disabled = true;
-                submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>Creating...</span>';
+            // Check if student number already exists
+            const snExists = officersList.some(o => (o.studentNumber || '').toLowerCase() === studentNumber.toLowerCase());
+            if (snExists) {
+                showToast('An officer with this student number already exists.', 'warning');
+                if (studentIdInput) studentIdInput.classList.add('input-invalid');
+                return;
             }
 
-            try {
-                const response = await fetch(routes.store, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'X-CSRF-TOKEN': getCsrfToken()
-                    },
-                    body: JSON.stringify({
-                        student_number: studentNumber,
-                        full_name: name,
-                        role_id: roleId
-                    })
-                });
+            const newOfficer = {
+                id: `off-${Date.now()}`,
+                name: name,
+                studentNumber: studentNumber,
+                role: role,
+                avatar: 'images/member-placeholder.svg',
+                status: 'active'
+            };
 
-                const data = await response.json();
+            // Prepend new officer
+            officersList.unshift(newOfficer);
+            saveOfficers(officersList);
 
-                if (!response.ok || !data.success) {
-                    const errorMsg = data.message || (data.errors ? Object.values(data.errors).flat().join(' ') : 'Failed to create account.');
-                    showToast(errorMsg, 'warning');
-                    if (data.errors && data.errors.student_number && studentIdInput) {
-                        studentIdInput.classList.add('input-invalid');
-                    }
-                    return;
-                }
+            // Re-render accounts list
+            renderAccounts();
 
-                // Add newly created officer to local array and re-render
-                if (data.officer) {
-                    const createdOfficer = normalizeOfficer(data.officer);
-                    officersList.unshift(createdOfficer);
-                }
+            // Close modal & reset form
+            closeAddModal();
 
-                renderAccounts();
-                closeAddModal();
-                showToast(data.message || 'Account created successfully.', 'success');
-            } catch (err) {
-                console.error('Error creating account:', err);
-                showToast('A network error occurred while creating the account.', 'warning');
-            } finally {
-                if (submitBtn) {
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = originalBtnContent;
-                }
-            }
+            // Success feedback
+            showToast('Officer account created successfully.', 'success');
         });
     }
 
@@ -741,3 +594,4 @@ document.addEventListener('DOMContentLoaded', () => {
     renderAccounts();
 
 });
+

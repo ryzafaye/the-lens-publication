@@ -5,13 +5,17 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 use App\Models\Article;
 use App\Models\Category;
 use App\Models\User;
 use App\Models\Role;
+use App\Models\ActivityLog;
+use App\Traits\LogsActivity;
 
 class MpcController extends Controller
 {
+    use LogsActivity;
     public function dashboard()
     {
         /** @var \App\Models\User $user */
@@ -22,7 +26,7 @@ class MpcController extends Controller
             return Article::selectRaw("
                 COALESCE(SUM(views), 0) as total_views,
                 COUNT(CASE WHEN status = 'Published' THEN 1 END) as published_stories,
-                COUNT(CASE WHEN status IN ('Pending EIC Review', 'Pending Review', 'Approved') THEN 1 END) as pending
+                COUNT(CASE WHEN status IN ('Approved', 'Ready to Publish') THEN 1 END) as pending
             ")->first();
         });
 
@@ -40,8 +44,8 @@ class MpcController extends Controller
 
         $pendingArticles = Cache::remember('mpc_dashboard_pending_articles', 30, function () {
             return Article::with(['user.role', 'category'])
-                ->whereIn('status', ['Approved', 'Pending EIC Review', 'Pending Review'])
-                ->latest()
+                ->whereIn('status', ['Approved', 'Ready to Publish'])
+                ->latest('updated_at')
                 ->take(5)
                 ->get()
                 ->map(function ($art) {
@@ -50,25 +54,107 @@ class MpcController extends Controller
                         'title' => $art->title,
                         'author' => $art->user->full_name ?? 'Author',
                         'category' => $art->category->name ?? 'General',
-                        'status' => $art->status,
-                        'date' => $art->created_at->format('M d, Y'),
+                        'status' => 'Ready to Publish',
+                        'date' => $art->updated_at ? $art->updated_at->format('M d, Y') : ($art->created_at ? $art->created_at->format('M d, Y') : date('M d, Y')),
+                        'dateApproved' => $art->updated_at ? $art->updated_at->format('M d, Y') : ($art->created_at ? $art->created_at->format('M d, Y') : date('M d, Y')),
                         'content' => $art->content,
-                        'excerpt' => $art->excerpt,
+                        'excerpt' => $art->excerpt ?: Str::limit(strip_tags($art->content ?? ''), 120),
                     ];
                 });
         });
 
-        return view('mpc.dashboard', compact('metrics', 'pendingArticles'));
+        $publishedArticles = Cache::remember('mpc_dashboard_published_articles', 30, function () {
+            return Article::with(['user.role', 'category'])
+                ->where('status', 'Published')
+                ->orderBy('views', 'desc')
+                ->take(10)
+                ->get()
+                ->map(function ($art) {
+                    return [
+                        'id' => $art->id,
+                        'title' => $art->title,
+                        'author' => $art->user->full_name ?? 'Author',
+                        'category' => $art->category->name ?? 'General',
+                        'status' => 'Published',
+                        'views' => $art->views ?? 0,
+                        'shares' => $art->shares ?? 0,
+                        'date' => $art->published_at ? $art->published_at->format('M d, Y') : ($art->created_at ? $art->created_at->format('M d, Y') : date('M d, Y')),
+                        'content' => $art->content,
+                    ];
+                });
+        });
+
+        $recentActivities = ActivityLog::with(['user.role', 'entity'])
+            ->latest()
+            ->take(5)
+            ->get()
+            ->map->formatForTimeline();
+
+        return view('mpc.dashboard', compact('metrics', 'pendingArticles', 'publishedArticles', 'recentActivities'));
     }
 
     public function publishArticle()
     {
-        $approvedArticles = Article::with(['user.role', 'category'])
-            ->whereIn('status', ['Approved', 'Published'])
-            ->latest()
-            ->get();
+        $articles = Article::with(['user.role', 'category'])
+            ->whereIn('status', ['Approved', 'Ready to Publish', 'Published', 'Unpublished'])
+            ->latest('updated_at')
+            ->get()
+            ->map(function ($article) {
+                $rawStatus = strtolower(trim($article->status));
+                $statusSlug = match ($rawStatus) {
+                    'published' => 'published',
+                    'unpublished' => 'unpublished',
+                    default => 'ready', // 'approved', 'ready to publish', etc.
+                };
 
-        return view('mpc.publish-article', compact('approvedArticles'));
+                $catName = $article->category->name ?? 'General';
+                $catSlug = strtolower(trim($catName));
+                if (str_contains($catSlug, 'news')) {
+                    $catSlug = 'news';
+                } elseif (str_contains($catSlug, 'opinion')) {
+                    $catSlug = 'opinion';
+                } elseif (str_contains($catSlug, 'feature')) {
+                    $catSlug = 'features';
+                } elseif (str_contains($catSlug, 'sci') || str_contains($catSlug, 'tech')) {
+                    $catSlug = 'scitech';
+                } elseif (str_contains($catSlug, 'liter')) {
+                    $catSlug = 'literature';
+                } else {
+                    $catSlug = 'news';
+                }
+
+                $authorName = $article->user->full_name ?? 'Staff Writer';
+                $endorserName = $article->endorser ? ('Approved by ' . $article->endorser) : 'Endorsed by Section Head';
+
+                return [
+                    'id' => $article->id,
+                    'title' => $article->title,
+                    'category' => $catName,
+                    'categorySlug' => $catSlug,
+                    'author' => $authorName,
+                    'sectionHead' => $endorserName,
+                    'eicApprover' => 'Approved by Editor-in-Chief',
+                    'readTime' => max(1, (int) ceil(str_word_count(strip_tags($article->content ?? '')) / 200)) . ' min read',
+                    'dateApproved' => $article->updated_at ? $article->updated_at->format('M d, Y') : ($article->created_at ? $article->created_at->format('M d, Y') : date('M d, Y')),
+                    'rawDate' => $article->updated_at ? $article->updated_at->toIso8601String() : ($article->created_at ? $article->created_at->toIso8601String() : now()->toIso8601String()),
+                    'status' => $statusSlug,
+                    'db_status' => $article->status,
+                    'assignedCoverId' => '',
+                    'excerpt' => $article->excerpt ?: Str::limit(strip_tags($article->content ?? ''), 120),
+                    'body' => $article->content ? (str_contains($article->content, '<p>') ? $article->content : collect(preg_split('/\n\n+/', trim($article->content)))->map(fn($p) => '<p>' . htmlspecialchars(trim($p)) . '</p>')->implode('')) : '<p>Manuscript content approved.</p>',
+                    'publishedAt' => $article->published_at ? $article->published_at->format('M d, Y') : null,
+                ];
+            });
+
+        $readyCount = $articles->where('status', 'ready')->count();
+        $publishedCount = $articles->where('status', 'published')->count();
+        $unpublishedCount = $articles->where('status', 'unpublished')->count();
+        $coversCount = 0;
+
+        // Also alias $approvedArticles for full view compatibility
+        $approvedArticles = $articles;
+
+        return view('mpc.publish-article', compact('articles', 'approvedArticles', 'readyCount', 'publishedCount', 'unpublishedCount', 'coversCount'));
     }
 
     public function mediaDesk()
@@ -172,8 +258,12 @@ class MpcController extends Controller
                 'excerpt' => substr(strip_tags($validated['content'] ?? ''), 0, 150),
                 'status' => $status,
             ]);
+
+            if ($status === 'Pending Review') {
+                ActivityLog::logAction(Auth::id(), 'submitted', $article);
+            }
         } else {
-            Article::create([
+            $article = Article::create([
                 'user_id' => Auth::id(),
                 'title' => $validated['title'],
                 'category_id' => $validated['category_id'],
@@ -183,6 +273,10 @@ class MpcController extends Controller
                 'views' => 0,
                 'shares' => 0,
             ]);
+
+            if ($status === 'Pending Review') {
+                ActivityLog::logAction(Auth::id(), 'submitted', $article);
+            }
         }
 
         return redirect()->route('mpc.manage-my-articles')->with('success', 'Article saved successfully.');
@@ -202,12 +296,63 @@ class MpcController extends Controller
 
     public function activityLogs()
     {
-        return view('mpc.activity-logs');
+        $activities = ActivityLog::with(['user.role', 'entity'])
+            ->latest()
+            ->take(100)
+            ->get()
+            ->map->formatForTimeline();
+
+        return view('mpc.activity-logs', compact('activities'));
     }
 
     public function transparency()
     {
         return view('mpc.transparency');
+    }
+
+    public function publishArticleRelease(Request $request, $id)
+    {
+        $article = Article::findOrFail($id);
+        $article->update([
+            'status' => 'Published',
+            'published_at' => now(),
+        ]);
+
+        ActivityLog::logAction(Auth::id(), 'published', $article);
+
+        Cache::forget('mpc_dashboard_stats');
+        Cache::forget('mpc_dashboard_pending_articles');
+        Cache::forget('mpc_dashboard_published_articles');
+        Cache::forget('eic_dashboard_stats');
+        Cache::forget('writer_dashboard_stats_' . $article->user_id);
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['success' => true, 'message' => 'Article published successfully.']);
+        }
+
+        return redirect()->back()->with('success', 'Article published successfully.');
+    }
+
+    public function unpublishArticleRelease(Request $request, $id)
+    {
+        $article = Article::findOrFail($id);
+        $article->update([
+            'status' => 'Unpublished',
+        ]);
+
+        ActivityLog::logAction(Auth::id(), 'unpublished', $article);
+
+        Cache::forget('mpc_dashboard_stats');
+        Cache::forget('mpc_dashboard_pending_articles');
+        Cache::forget('mpc_dashboard_published_articles');
+        Cache::forget('eic_dashboard_stats');
+        Cache::forget('writer_dashboard_stats_' . $article->user_id);
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['success' => true, 'message' => 'Article unpublished.']);
+        }
+
+        return redirect()->back()->with('success', 'Article unpublished.');
     }
 
     public function profileSettings()

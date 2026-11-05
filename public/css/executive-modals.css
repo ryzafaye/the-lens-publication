@@ -184,14 +184,14 @@
 }
 
 .viewer-excerpt {
-    font-size: 0.88rem;
-    line-height: 1.55;
+    font-size: 1.10rem;
+    line-height: 1.65;
     color: #475467;
     font-weight: 500;
-    margin: 10px 0 16px 0;
+    margin: 14px 0 20px 0;
     font-style: italic;
     border-left: 3px solid var(--sidebar-maroon, #5c0a18);
-    padding: 6px 14px;
+    padding: 8px 16px;
     background: #faf8f9;
     border-radius: 0 8px 8px 0;
 }
@@ -270,7 +270,6 @@
 /* 5. Edit Modal Specifics */
 .edit-modal-card {
     max-width: 560px !important;
-    overflow: visible !important;
 }
 
 .modal-header-simple {

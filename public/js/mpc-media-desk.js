@@ -88,12 +88,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const inspectApproveBtn = document.getElementById('inspect-approve-btn');
 
     // Return Modal
-    const returnModal = document.getElementById('return-remarks-modal');
+    const returnModal = document.getElementById('cover-return-modal') || document.getElementById('return-remarks-modal');
     const closeReturnModalBtn = document.getElementById('close-return-modal-btn');
     const cancelReturnBtn = document.getElementById('cancel-return-btn');
     const confirmReturnBtn = document.getElementById('confirm-return-btn');
     const returnHeadName = document.getElementById('return-head-name');
-    const returnRemarksText = document.getElementById('return-remarks-text');
+    const returnRemarksText = document.getElementById('return-remarks-input') || document.getElementById('return-remarks-text');
     const returnRemarksError = document.getElementById('return-remarks-error');
 
     const toastContainer = document.getElementById('toast-container');
@@ -197,8 +197,11 @@ document.addEventListener('DOMContentLoaded', () => {
             cardsGrid.innerHTML = '';
             if (emptyState) {
                 emptyState.style.display = 'block';
-                const emptyTitle = emptyState.querySelector('h3');
+                const emptyTitle = document.getElementById('cover-empty-title') || emptyState.querySelector('h3');
+                const emptyIcon = document.getElementById('cover-empty-icon') || emptyState.querySelector('i');
                 const emptyDesc = emptyState.querySelector('p');
+                if (emptyDesc) emptyDesc.remove();
+
                 if (emptyTitle) {
                     if (currentTab === 'pubmat') {
                         emptyTitle.textContent = 'All Caught Up on PUBMAT Reviews';
@@ -210,15 +213,15 @@ document.addEventListener('DOMContentLoaded', () => {
                         emptyTitle.textContent = 'Media Library is Empty';
                     }
                 }
-                if (emptyDesc) {
+                if (emptyIcon) {
                     if (currentTab === 'pubmat') {
-                        emptyDesc.textContent = 'No publication materials are currently pending review.';
+                        emptyIcon.className = 'fa-solid fa-palette';
                     } else if (currentTab === 'photo') {
-                        emptyDesc.textContent = 'No photojournalist captures are currently pending review.';
+                        emptyIcon.className = 'fa-solid fa-camera';
                     } else if (currentTab === 'cartoon') {
-                        emptyDesc.textContent = 'No editorial cartoons are currently pending review.';
+                        emptyIcon.className = 'fa-solid fa-pen-nib';
                     } else {
-                        emptyDesc.textContent = 'No media assets have been approved for the library yet.';
+                        emptyIcon.className = 'fa-solid fa-photo-film';
                     }
                 }
             }

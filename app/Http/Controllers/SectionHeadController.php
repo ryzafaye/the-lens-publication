@@ -72,7 +72,7 @@ class SectionHeadController extends ExecutiveController
 
     public function activityLogs()
     {
-        return view('executive.activity-logs');
+        return parent::activityLogs();
     }
 
     public function profileSettings()

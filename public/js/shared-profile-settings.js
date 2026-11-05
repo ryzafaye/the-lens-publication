@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateAllAvatars(src) {
         const avatars = document.querySelectorAll(
-            '#avatar-preview-img, .avatar-preview-img, .profile-avatar img, .topbar-avatar-circle img, .mobile-nav-avatar img, #sidebar-avatar-img'
+            '#avatar-preview-img, .avatar-preview-img, .profile-avatar img, .topbar-avatar-circle img, .mobile-nav-avatar img, #sidebar-avatar-img, #sidebar-user-avatar, #topbar-user-avatar, #mobile-user-avatar'
         );
         avatars.forEach(img => {
             if (img) img.src = src;
@@ -180,7 +180,22 @@ document.addEventListener('DOMContentLoaded', () => {
                     body: formData
                 });
 
-                const data = await response.json();
+                if (response.status === 419) {
+                    showToast('Session expired. Please refresh the page and try again.', 'danger');
+                    return;
+                }
+                if (response.status === 401) {
+                    showToast('Unauthenticated. Redirecting to login...', 'danger');
+                    setTimeout(() => { window.location.href = '/login'; }, 1200);
+                    return;
+                }
+
+                let data = null;
+                try {
+                    data = await response.json();
+                } catch (jsonErr) {
+                    data = null;
+                }
 
                 if (!response.ok) {
                     throw new Error(getErrorMessage(data, 'Failed to update profile information.'));
@@ -189,16 +204,37 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Sync updated full name with DOM headers, sidebars, and topbars
                 if (data.user && data.user.full_name) {
                     const nameElements = document.querySelectorAll(
-                        '.profile-name, #sidebar-user-name, #mobile-user-name, #sidebar-writer-name, #mobile-writer-name'
+                        '.profile-name, #sidebar-user-name, #mobile-user-name, #sidebar-writer-name, #mobile-writer-name, .topbar-user-name'
                     );
                     nameElements.forEach(el => {
                         el.textContent = data.user.full_name;
                     });
+
+                    // Sync localStorage so other views reflect the update immediately
+                    try {
+                        localStorage.setItem('userName', data.user.full_name);
+                        localStorage.setItem('cartoonistName', data.user.full_name);
+                        localStorage.setItem('mpcName', data.user.full_name);
+                        if (data.user.student_number) {
+                            localStorage.setItem('studentNumber', data.user.student_number);
+                            localStorage.setItem('cartoonistStudentNumber', data.user.student_number);
+                            localStorage.setItem('mpcStudentNumber', data.user.student_number);
+                        }
+                    } catch (storageErr) {}
+                }
+
+                if (data.user && data.user.student_number && inputStudentNumber) {
+                    inputStudentNumber.value = data.user.student_number;
                 }
 
                 // Sync new avatar URL if returned
                 if (data.user && data.user.avatar_url) {
                     updateAllAvatars(data.user.avatar_url);
+                    try {
+                        localStorage.setItem('userAvatar', data.user.avatar_url);
+                        localStorage.setItem('cartoonistAvatar', data.user.avatar_url);
+                        localStorage.setItem('mpcAvatar', data.user.avatar_url);
+                    } catch (storageErr) {}
                 }
 
                 // Reset file input and removal state
@@ -330,7 +366,22 @@ document.addEventListener('DOMContentLoaded', () => {
                     body: formData
                 });
 
-                const data = await response.json();
+                if (response.status === 419) {
+                    showToast('Session expired. Please refresh the page and try again.', 'danger');
+                    return;
+                }
+                if (response.status === 401) {
+                    showToast('Unauthenticated. Redirecting to login...', 'danger');
+                    setTimeout(() => { window.location.href = '/login'; }, 1200);
+                    return;
+                }
+
+                let data = null;
+                try {
+                    data = await response.json();
+                } catch (jsonErr) {
+                    data = null;
+                }
 
                 if (!response.ok) {
                     throw new Error(getErrorMessage(data, 'Failed to update password.'));

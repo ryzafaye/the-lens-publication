@@ -1,6 +1,6 @@
 // One-time automatic workflow purge to guarantee zero-mock state for testing
 try {
-    const CLEAR_FLAG = 'theLens_workflow_v4_purged';
+    const CLEAR_FLAG = 'theLens_zero_mock_purged_v10';
     if (localStorage.getItem(CLEAR_FLAG) !== 'true') {
         const keysToRemove = [
             'theLensWriterArticles_v3',
@@ -66,35 +66,22 @@ try {
         // 1. DYNAMIC EIC PROFILE & ROLE HYDRATION
         // =====================================================================
         function hydrateEICProfile() {
-            let role = 'Editorial-In-Chief';
-            let name = 'Victoria Reyes';
-            let studentNum = '2024-00010-BN-0';
+            let role = window.LARAVEL_USER_ROLE || 'Editor-in-Chief';
+            let name = window.LARAVEL_USER_NAME || 'Editor-in-Chief';
+            let studentNum = window.LARAVEL_STUDENT_NUMBER || '';
 
             try {
                 if (window.LARAVEL_USER_ROLE) {
                     role = window.LARAVEL_USER_ROLE;
                     if (window.LARAVEL_USER_NAME) name = window.LARAVEL_USER_NAME;
                 } else {
-                    const storedRole = localStorage.getItem('eicRole') || (localStorage.getItem('userRole') && (localStorage.getItem('userRole').toLowerCase().includes('chief') || localStorage.getItem('userRole').toLowerCase().includes('eic')) ? localStorage.getItem('userRole') : null);
-                    const storedName = localStorage.getItem('eicName') || (storedRole ? localStorage.getItem('userName') : null);
-                    const storedNum = localStorage.getItem('eicStudentNumber') || (storedRole ? localStorage.getItem('studentNumber') : null);
+                    const storedRole = localStorage.getItem('eicRole') || localStorage.getItem('userRole');
+                    const storedName = localStorage.getItem('eicName') || localStorage.getItem('userName');
+                    const storedNum = localStorage.getItem('eicStudentNumber') || localStorage.getItem('studentNumber');
 
-                    if (storedRole && (storedRole.toLowerCase().includes('chief') || storedRole.toLowerCase().includes('eic'))) {
-                        role = storedRole;
-                        if (storedName) name = storedName;
-                        if (storedNum) studentNum = storedNum;
-                    } else {
-                        // Initialize default EIC session
-                        role = 'Editor-in-Chief';
-                        name = 'Victoria Reyes';
-                        studentNum = '2024-00010-BN-0';
-                        localStorage.setItem('userRole', 'Editor-in-Chief');
-                        localStorage.setItem('userName', 'Victoria Reyes');
-                        localStorage.setItem('studentNumber', '2024-00010-BN-0');
-                        localStorage.setItem('eicRole', 'Editor-in-Chief');
-                        localStorage.setItem('eicName', 'Victoria Reyes');
-                        localStorage.setItem('eicStudentNumber', '2024-00010-BN-0');
-                    }
+                    if (storedRole) role = storedRole;
+                    if (storedName) name = storedName;
+                    if (storedNum) studentNum = storedNum;
                 }
             } catch (e) {
                 // Storage unavailable
@@ -281,11 +268,23 @@ try {
                     localStorage.removeItem('eicStudentNumber');
                     sessionStorage.clear();
                 } catch (err) {}
-                const logoutForm = document.getElementById('logout-form');
+                const logoutForm = document.getElementById('logout-form') || document.querySelector('form[action*="logout"]');
                 if (logoutForm) {
                     logoutForm.submit();
                 } else {
-                    window.location.href = '/login';
+                    const postForm = document.createElement('form');
+                    postForm.method = 'POST';
+                    postForm.action = '/logout';
+                    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                    if (token) {
+                        const input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = '_token';
+                        input.value = token;
+                        postForm.appendChild(input);
+                    }
+                    document.body.appendChild(postForm);
+                    postForm.submit();
                 }
             });
         }

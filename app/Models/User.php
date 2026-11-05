@@ -64,6 +64,11 @@ class User extends Authenticatable
         return $this->belongsTo(Role::class);
     }
 
+    public function activityLogs()
+    {
+        return $this->hasMany(ActivityLog::class);
+    }
+
     public function getAvatarAttribute()
     {
         return $this->attributes['profile_picture_url'] ?? null;

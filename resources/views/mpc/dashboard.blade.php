@@ -211,8 +211,10 @@
         window.INITIAL_DATA = {
             metrics: @json($metrics ?? []),
             pending: @json($pendingArticles ?? []),
-            published: @json($approvedArticles ?? [])
+            published: @json($publishedArticles ?? $approvedArticles ?? []),
+            recentActivities: @json($recentActivities ?? [])
         };
+        window.INITIAL_ACTIVITIES = @json($recentActivities ?? []);
     </script>
     <script type="module" src="{{ asset('js/mpc-dashboard.js') }}"></script>
 @endpush

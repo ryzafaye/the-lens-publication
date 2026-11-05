@@ -15,6 +15,7 @@
         <div class="profile-header-row">
             <div class="profile-title-wrap">
                 <h1>Profile Settings</h1>
+                <p class="text-xs text-slate-500 mt-0.5">Manage your personal credentials, assigned desk, and account security.</p>
             </div>
         </div>
 
@@ -41,7 +42,7 @@
                     <!-- Profile Picture Upload Row -->
                     <div class="profile-avatar-row">
                         <div class="avatar-preview-wrapper">
-                            <img id="avatar-preview-img" class="avatar-preview-img" src="{{ Auth::user()->avatar ? asset('storage/' . Auth::user()->avatar) : (Auth::user()->profile_picture_url ? asset(Auth::user()->profile_picture_url) : asset('images/member-placeholder.svg')) }}" alt="Writer Avatar">
+                            <img id="avatar-preview-img" class="avatar-preview-img" src="{{ Auth::user()?->avatar_url ?? (Auth::user()?->avatar ? asset(Auth::user()->avatar) : asset('images/member-placeholder.svg')) }}" alt="Writer Avatar">
                         </div>
                         <div class="avatar-upload-info">
                             <span class="settings-label">Profile Picture</span>

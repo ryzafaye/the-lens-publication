@@ -69,42 +69,50 @@ try {
             let studentNum = '2024-00020-BN-0';
 
             try {
-                const storedRole = localStorage.getItem('mpcRole') || localStorage.getItem('userRole');
-                const storedName = localStorage.getItem('mpcName') || localStorage.getItem('userName');
-                const storedNum = localStorage.getItem('mpcStudentNumber') || localStorage.getItem('studentNumber');
-
-                const isAssoc = storedRole && (
-                    storedRole.toLowerCase().includes('assoc') || 
-                    storedRole.toLowerCase().includes('associate')
-                );
-
-                if (isAssoc) {
-                    role = 'Assoc M&PC Head';
-                    name = (storedName && storedName !== 'Samantha Cruz' && storedName !== 'Julian Del Rosario') ? storedName : (storedName || 'Assoc M&PC Head');
-                    studentNum = storedNum || '';
-                } else if (storedRole && (
-                    storedRole.toLowerCase().includes('media') || 
-                    storedRole.toLowerCase().includes('communications') || 
-                    storedRole.toLowerCase().includes('m&pc') ||
-                    storedRole.toLowerCase().includes('mpc')
-                )) {
-                    role = 'M&PC Head';
-                    name = (storedName && storedName !== 'Samantha Cruz' && storedName !== 'Julian Del Rosario') ? storedName : (storedName || 'M&PC Head');
-                    studentNum = storedNum || '';
+                if (window.LARAVEL_USER_ROLE) {
+                    role = window.LARAVEL_USER_ROLE;
+                    if (window.LARAVEL_USER_NAME) name = window.LARAVEL_USER_NAME;
                 } else {
-                    role = 'M&PC Head';
-                    name = (storedName && storedName !== 'Samantha Cruz' && storedName !== 'Julian Del Rosario') ? storedName : (storedName || 'M&PC Head');
-                    studentNum = storedNum || '';
+                    const storedRole = localStorage.getItem('mpcRole') || localStorage.getItem('userRole');
+                    const storedName = localStorage.getItem('mpcName') || localStorage.getItem('userName');
+                    const storedNum = localStorage.getItem('mpcStudentNumber') || localStorage.getItem('studentNumber');
+
+                    const isAssoc = storedRole && (
+                        storedRole.toLowerCase().includes('assoc') || 
+                        storedRole.toLowerCase().includes('associate')
+                    );
+
+                    if (isAssoc) {
+                        role = 'Assoc M&PC Head';
+                        name = (storedName && storedName !== 'Samantha Cruz' && storedName !== 'Julian Del Rosario') ? storedName : (storedName || 'Assoc M&PC Head');
+                        studentNum = storedNum || '';
+                    } else if (storedRole && (
+                        storedRole.toLowerCase().includes('media') || 
+                        storedRole.toLowerCase().includes('communications') || 
+                        storedRole.toLowerCase().includes('m&pc') ||
+                        storedRole.toLowerCase().includes('mpc')
+                    )) {
+                        role = 'M&PC Head';
+                        name = (storedName && storedName !== 'Samantha Cruz' && storedName !== 'Julian Del Rosario') ? storedName : (storedName || 'M&PC Head');
+                        studentNum = storedNum || '';
+                    } else if (storedRole) {
+                        // User has another legitimate role - do NOT stomp it
+                        role = storedRole;
+                        if (storedName) name = storedName;
+                        if (storedNum) studentNum = storedNum;
+                    }
                 }
 
-                // Synchronize all keys cleanly for complete parity
-                localStorage.setItem('userRole', role);
-                localStorage.setItem('userName', name);
-                localStorage.setItem('studentNumber', studentNum);
-                localStorage.setItem('mpcRole', role);
-                localStorage.setItem('mpcName', name);
-                localStorage.setItem('mpcStudentNumber', studentNum);
-                localStorage.setItem('mpcId', name.toLowerCase().replace(/[^a-z0-9]+/g, '-'));
+                // Synchronize all keys cleanly
+                if (role.toLowerCase().includes('m&pc') || role.toLowerCase().includes('mpc') || (role.toLowerCase().includes('media') && role.toLowerCase().includes('public'))) {
+                    localStorage.setItem('userRole', role);
+                    localStorage.setItem('userName', name);
+                    localStorage.setItem('studentNumber', studentNum);
+                    localStorage.setItem('mpcRole', role);
+                    localStorage.setItem('mpcName', name);
+                    localStorage.setItem('mpcStudentNumber', studentNum);
+                    localStorage.setItem('mpcId', name.toLowerCase().replace(/[^a-z0-9]+/g, '-'));
+                }
             } catch (e) {
                 // Storage unavailable
             }

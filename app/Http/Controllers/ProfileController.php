@@ -108,6 +108,16 @@ class ProfileController extends Controller
         }
         $user->loadMissing('role');
 
+        if (!$request->filled('new_password') && $request->filled('password')) {
+            $request->merge(['new_password' => $request->input('password')]);
+        }
+        if (!$request->filled('new_password_confirmation')) {
+            $confirm = $request->input('confirm_password') ?? $request->input('password_confirmation');
+            if ($confirm) {
+                $request->merge(['new_password_confirmation' => $confirm]);
+            }
+        }
+
         $request->validate([
             'current_password' => ['required', 'string'],
             'new_password' => ['required', 'string', 'min:6', 'confirmed', 'different:current_password'],

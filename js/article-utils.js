@@ -55,7 +55,7 @@ export function escapeHTML(value = "") {
 export function isArchivedArticle(article) {
     const status = String(article?.status || article?.publicationStatus || "").toLowerCase();
     return article?.archived === true || article?.isArchived === true || article?.is_archived === true
-        || article?.archive === true || status === "archived" || status === "archive";
+        || article?.archive === true || status === "archived" || status === "archive" || status === "unpublished";
 }
 
 export function getPublicArticles() {
@@ -92,14 +92,31 @@ export function getPublicArticles() {
     const serverArticles = Array.isArray(window.LARAVEL_PUBLISHED_ARTICLES)
         ? window.LARAVEL_PUBLISHED_ARTICLES.filter(article => !isArchivedArticle(article))
         : [];
-    const combined = [...storageArticles, ...serverArticles];
+    const archivedIds = new Set(
+        (Array.isArray(window.LARAVEL_ARCHIVED_ARTICLES) ? window.LARAVEL_ARCHIVED_ARTICLES : [])
+            .map(a => String(a.id || '').trim().replace(/^published-/, ''))
+    );
+
+    const combined = [...serverArticles, ...storageArticles];
     staticList.forEach(s => {
-        if (!combined.some(c => String(c.id) === String(s.id))) {
+        const sNorm = String(s.id).trim().replace(/^published-/, '');
+        if (!combined.some(c => String(c.id).trim().replace(/^published-/, '') === sNorm)) {
             combined.push(s);
         }
     });
 
-    return combined.filter(article => !isArchivedArticle(article));
+    const seen = new Set();
+    const result = [];
+    for (const item of combined) {
+        const rawKey = String(item.id || '').trim();
+        const normKey = rawKey.replace(/^published-/, '');
+        if (normKey && !seen.has(normKey) && !isArchivedArticle(item) && !archivedIds.has(normKey)) {
+            seen.add(normKey);
+            result.push(item);
+        }
+    }
+
+    return result;
 }
 
 export function getArchivedArticles() {
@@ -120,6 +137,8 @@ export function getArchivedArticles() {
                         readTime: item.readTime || '2 min read',
                         shares: Number(item.shares) || 0,
                         isArchived: true,
+                        archived: true,
+                        status: 'Archived',
                         title: item.title,
                         excerpt: item.excerpt || (item.body ? item.body.replace(/<[^>]*>/g, '').slice(0, 160) + '...' : ''),
                         author: item.author || 'The Lens Staff',
@@ -133,21 +152,50 @@ export function getArchivedArticles() {
     } catch (e) {}
 
     const staticList = (articles || []).filter(article => isArchivedArticle(article));
-    const combined = [...storageArticles];
+    const serverArchived = Array.isArray(window.LARAVEL_ARCHIVED_ARTICLES)
+        ? window.LARAVEL_ARCHIVED_ARTICLES
+        : [];
+    const serverPublishedArchived = Array.isArray(window.LARAVEL_PUBLISHED_ARTICLES)
+        ? window.LARAVEL_PUBLISHED_ARTICLES.filter(article => isArchivedArticle(article))
+        : [];
+
+    const combined = [...serverArchived, ...serverPublishedArchived, ...storageArticles];
     staticList.forEach(s => {
-        if (!combined.some(c => String(c.id) === String(s.id))) {
+        const sNorm = String(s.id).trim().replace(/^published-/, '');
+        if (!combined.some(c => String(c.id).trim().replace(/^published-/, '') === sNorm)) {
             combined.push(s);
         }
     });
 
-    return combined;
+    const seen = new Set();
+    const result = [];
+    for (const item of combined) {
+        const rawKey = String(item.id || '').trim();
+        const normKey = rawKey.replace(/^published-/, '');
+        if (normKey && !seen.has(normKey)) {
+            seen.add(normKey);
+            result.push({
+                ...item,
+                isArchived: true,
+                archived: true,
+                status: 'Archived'
+            });
+        }
+    }
+
+    return result;
 }
 
 export function getArticle(id) {
     if (!id) return undefined;
     const cleanId = String(id).trim();
+    const cleanNormId = cleanId.replace(/^published-/, '');
     const list = [...getPublicArticles(), ...getArchivedArticles()];
-    return list.find(article => String(article.id).trim() === cleanId);
+    return list.find(article => {
+        const artId = String(article.id || '').trim();
+        const artNormId = artId.replace(/^published-/, '');
+        return artId === cleanId || artNormId === cleanNormId;
+    });
 }
 
 export function getAuthorProfileURL(authorName) {

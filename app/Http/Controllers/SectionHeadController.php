@@ -394,7 +394,9 @@ class SectionHeadController extends Controller
      */
     public function activityLogs()
     {
-        return view('section-head.activity-logs');
+        $activities = ActivityLog::formattedLogs();
+
+        return view('section-head.activity-logs', compact('activities'));
     }
 
     /**

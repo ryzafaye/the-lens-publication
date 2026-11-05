@@ -9,6 +9,7 @@ use App\Models\Article;
 use App\Models\Category;
 use App\Models\User;
 use App\Models\Role;
+use App\Models\ActivityLog;
 use Illuminate\Support\Facades\Hash;
 
 class ExecutiveController extends Controller
@@ -67,11 +68,7 @@ class ExecutiveController extends Controller
             ")->first();
         });
 
-        $activeMembers = Cache::remember('active_writers_count', 60, function () {
-            return \App\Models\User::whereHas('role', function ($q) {
-                $q->where('role_name', 'Writer');
-            })->count();
-        });
+        $activeMembers = User::activeCount();
 
         $metrics = [
             'total_views' => (int) ($stats->total_views ?? 0),
@@ -98,7 +95,30 @@ class ExecutiveController extends Controller
             ];
         });
 
-        return view('executive.dashboard', compact('metrics', 'pendingArticles', 'category'));
+        $recentActivities = ActivityLog::latest()->take(5)->get()->map(function ($log) {
+            $created = \Carbon\Carbon::parse($log->getRawOriginal('created_at'), 'UTC')->timezone('Asia/Manila');
+            return [
+                'user' => $log->causer_name,
+                'role' => $log->causer_role,
+                'action' => $log->action,
+                'subjectType' => $log->subject_type,
+                'target' => $log->subject_name,
+                'time' => $created->diffForHumans(),
+                'avatar' => asset('images/member-placeholder.svg'),
+            ];
+        });
+
+        $mostViewed = Article::with('category')
+            ->where('status', 'Published')
+            ->orderBy('views', 'desc')
+            ->take(5)
+            ->get();
+
+        $topJournalists = User::whereHas('role', function ($q) {
+            $q->where('role_name', 'Writer');
+        })->withCount('articles')->orderBy('articles_count', 'desc')->take(5)->get();
+
+        return view('executive.dashboard', compact('metrics', 'pendingArticles', 'category', 'recentActivities', 'mostViewed', 'topJournalists'));
     }
 
     public function reviewArticles(Request $request)
@@ -206,17 +226,19 @@ class ExecutiveController extends Controller
 
     public function activityLogs()
     {
-        return view('executive.activity-logs');
+        $activities = ActivityLog::formattedLogs();
+
+        return view('executive.activity-logs', compact('activities'));
     }
 
     public function manageArticles()
     {
         $articles = Article::with(['user.role', 'category'])
-            ->whereIn('status', ['Published', 'Unpublished', 'Pending M&PC Review', 'Pending EIC Review', 'Pending Review', 'Draft', 'Archived'])
+            ->whereIn('status', ['Published', 'Unpublished', 'Archived'])
             ->latest()
             ->get()
             ->map(function ($article) {
-                $isArchived = in_array($article->status, ['Unpublished', 'Archived', 'Declined']);
+                $isArchived = in_array($article->status, ['Unpublished', 'Archived']);
                 $content = $article->content ?? '';
                 $wordCount = max(1, (int) ceil(str_word_count(strip_tags($content)) / 220));
 
@@ -481,27 +503,41 @@ class ExecutiveController extends Controller
         $request->merge(['role_id' => $roleId]);
 
         $validated = $request->validate([
-            'student_number' => 'required|string|max:50|unique:users,student_number',
+            'student_number' => [
+                'required',
+                'string',
+                'regex:/^\d{4}-\d{4,5}-[A-Za-z0-9]{2,4}-\d$/i',
+                'unique:users,student_number',
+            ],
             'full_name' => 'required|string|max:255',
             'role_id' => 'required|exists:roles,id',
+            'password' => 'nullable|string|min:6',
+        ], [
+            'student_number.regex' => 'The student number format is invalid. Expected format: YYYY-XXXXX-BN-0 (e.g. 2024-00123-BN-0).',
+            'student_number.unique' => 'An officer account with this student number already exists.',
+            'student_number.required' => 'Student number is required.',
         ]);
 
+        $studentNumber = strtoupper(trim($validated['student_number']));
+        $password = !empty($validated['password']) ? $validated['password'] : 'password123';
+
         $officer = User::create([
-            'student_number' => $validated['student_number'],
+            'student_number' => $studentNumber,
             'full_name' => $validated['full_name'],
             'role_id' => $validated['role_id'],
-            'password' => Hash::make('password123'),
+            'password' => Hash::make($password),
             'account_status' => 'active',
         ]);
 
         $officer->load('role');
+        Cache::forget('active_members_count');
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,
                 'message' => 'Officer account created successfully.',
                 'officer' => $officer,
-            ]);
+            ], 201);
         }
 
         return redirect()->back()->with('success', 'Officer account created successfully.');
@@ -509,7 +545,7 @@ class ExecutiveController extends Controller
 
     public function updateRole(Request $request, $id)
     {
-        $officer = User::findOrFail($id);
+        $officer = User::with('role')->findOrFail($id);
 
         $roleId = $request->input('role_id');
         if (!$roleId && $request->filled('role')) {
@@ -532,20 +568,31 @@ class ExecutiveController extends Controller
 
         $officer->load('role');
 
+        if ($officer->id === Auth::id()) {
+            Auth::setUser($officer->fresh());
+        }
+
+        $newRoleName = $officer->role?->role_name ?? 'Officer';
+        $dashboardRoute = AuthController::getDashboardRouteForRole($newRoleName);
+        $dashboardUrl = \Illuminate\Support\Facades\Route::has($dashboardRoute) ? route($dashboardRoute) : url('/dashboard');
+
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,
-                'message' => "Role for {$officer->full_name} updated to {$officer->role->role_name}.",
+                'message' => "Role for {$officer->full_name} updated to {$newRoleName}.",
                 'officer' => $officer,
+                'new_role' => $newRoleName,
+                'dashboard_url' => $dashboardUrl,
+                'is_self' => ($officer->id === Auth::id()),
             ]);
         }
 
-        return redirect()->back()->with('success', "Role for {$officer->full_name} updated to {$officer->role->role_name}.");
+        return redirect()->back()->with('success', "Role for {$officer->full_name} updated to {$newRoleName}.");
     }
 
     public function toggleStatus(Request $request, $id)
     {
-        $officer = User::findOrFail($id);
+        $officer = User::with('role')->findOrFail($id);
 
         $status = $request->input('status');
         if (!$status) {
@@ -571,6 +618,7 @@ class ExecutiveController extends Controller
         ]);
 
         $officer->load('role');
+        Cache::forget('active_members_count');
 
         $statusLabel = ($status === 'active') ? 'reactivated' : 'deactivated';
 
@@ -584,5 +632,27 @@ class ExecutiveController extends Controller
         }
 
         return redirect()->back()->with('success', "Officer account {$statusLabel}.");
+    }
+
+    public function changeOfficerPassword(Request $request, $id)
+    {
+        $officer = User::with('role')->findOrFail($id);
+
+        $validated = $request->validate([
+            'password' => 'required|string|min:6',
+        ]);
+
+        $officer->update([
+            'password' => Hash::make($validated['password']),
+        ]);
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => "Password for {$officer->full_name} updated successfully.",
+            ]);
+        }
+
+        return redirect()->back()->with('success', "Password for {$officer->full_name} updated successfully.");
     }
 }

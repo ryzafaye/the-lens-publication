@@ -198,8 +198,30 @@ document.addEventListener('DOMContentLoaded', () => {
     let officersList = loadOfficers();
 
     // =========================================================================
-    // 6. DOM REFERENCES
+    // 6. DOM REFERENCES & HELPERS
     // =========================================================================
+    const EXECUTIVE_ROLES = [
+        'President',
+        'Executive Vice President',
+        'Secretary',
+        'Associate Secretary',
+        'Treasurer',
+        'Auditor',
+        'Public Relations Officer'
+    ];
+
+    function isEicViewer() {
+        const role = (window.CURRENT_USER_ROLE || localStorage.getItem('userRole') || '').toLowerCase();
+        const path = (window.location.pathname || '').toLowerCase();
+        return path.includes('/eic') || role.includes('chief') || role.includes('eic');
+    }
+
+    function getCsrfToken() {
+        return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+            || document.querySelector('input[name="_token"]')?.value
+            || '';
+    }
+
     const searchInput = document.getElementById('officer-search-input');
     const searchClearBtn = document.getElementById('officer-search-clear');
     const statusFilterSelect = document.getElementById('status-filter-select');
@@ -211,6 +233,26 @@ document.addEventListener('DOMContentLoaded', () => {
     const addOfficerModal = document.getElementById('add-officer-modal');
     const addOfficerForm = document.getElementById('add-officer-form');
     const btnCloseAddModal = document.getElementById('btn-close-add-modal');
+    const studentIdInput = document.getElementById('officer-input-student-id');
+
+    // Auto-format student number on typing (e.g. 2024-00123-BN-0)
+    if (studentIdInput) {
+        studentIdInput.addEventListener('input', (e) => {
+            let val = e.target.value.toUpperCase();
+            let clean = val.replace(/[^A-Z0-9]/g, '');
+            if (clean.length > 4 && !val.includes('-')) {
+                if (/^\d{4}/.test(clean)) {
+                    let formatted = clean.slice(0, 4);
+                    if (clean.length > 4) formatted += '-' + clean.slice(4, 9);
+                    if (clean.length > 9) formatted += '-' + clean.slice(9, 11);
+                    if (clean.length > 11) formatted += '-' + clean.slice(11, 12);
+                    e.target.value = formatted;
+                }
+            } else {
+                e.target.value = val;
+            }
+        });
+    }
 
     // Deactivation Confirmation Modal Elements
     const deactivateModal = document.getElementById('deactivate-confirm-modal');
@@ -227,8 +269,37 @@ document.addEventListener('DOMContentLoaded', () => {
     const editRoleOfficerName = document.getElementById('edit-role-officer-name');
     const editRoleCurrentBadge = document.getElementById('edit-role-current-badge');
     const btnCloseEditRoleModal = document.getElementById('btn-close-edit-role-modal');
-
     let targetEditRoleId = null;
+
+    // Change Password Modal Elements
+    const changePasswordModal = document.getElementById('change-password-modal');
+    const changePasswordForm = document.getElementById('change-officer-password-form');
+    const changePasswordOfficerName = document.getElementById('change-password-officer-name');
+    const changePasswordCurrentBadge = document.getElementById('change-password-current-badge');
+    const changePasswordAvatar = document.getElementById('change-password-avatar');
+    const officerNewPasswordInput = document.getElementById('officer-new-password');
+    const btnClosePasswordModal = document.getElementById('btn-close-password-modal');
+    let targetChangePasswordId = null;
+
+    // Global password toggle eye listener
+    document.addEventListener('click', (e) => {
+        const toggleBtn = e.target.closest('.password-toggle-btn');
+        if (!toggleBtn) return;
+
+        const targetId = toggleBtn.getAttribute('data-target');
+        if (!targetId) return;
+
+        const input = document.getElementById(targetId);
+        if (!input) return;
+
+        const isPass = (input.type === 'password');
+        input.type = isPass ? 'text' : 'password';
+
+        const icon = toggleBtn.querySelector('i');
+        if (icon) {
+            icon.className = isPass ? 'fa-regular fa-eye-slash' : 'fa-regular fa-eye';
+        }
+    });
 
     // =========================================================================
     // 7. RENDER OFFICER ACCOUNTS LIST
@@ -289,9 +360,13 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        const isViewerEic = isEicViewer();
+
         accountsContainer.innerHTML = filtered.map(officer => {
             const isDeactivated = officer.status === 'deactivated';
             const avatarSrc = officer.avatar || 'images/member-placeholder.svg';
+            const isExecutive = EXECUTIVE_ROLES.includes(officer.role);
+            const eicRestricted = isViewerEic && isExecutive;
 
             return `
                 <div class="account-box ${isDeactivated ? 'deactivated' : ''}" id="account-card-${officer.id}">
@@ -309,7 +384,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <span class="officer-role-tag">${escapeHTML(officer.role)}</span>
                             </div>
 
-                            <!-- Bottom Line: Account Status (Replaces Student Number) -->
+                            <!-- Bottom Line: Account Status -->
                             <div class="officer-meta-row">
                                 <span class="status-pill ${isDeactivated ? 'deactivated' : 'active'}">
                                     <span class="status-dot"></span>
@@ -319,13 +394,27 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     </div>
 
-                    <!-- Right Actions: Edit Role + Deactivate / Activate -->
+                    <!-- Right Actions: Edit Role + Change Password + Deactivate / Activate -->
                     <div class="account-actions-stack">
-                        <button type="button" class="btn-account-edit-role" data-action="edit-role" data-id="${officer.id}" title="Edit officer role">
-                            <i class="fa-solid fa-user-pen"></i>
-                            <span>Edit Role</span>
-                        </button>
-                        ${isDeactivated ? `
+                        ${!eicRestricted ? `
+                            <button type="button" class="btn-account-edit-role" data-action="edit-role" data-id="${officer.id}" title="Edit officer role">
+                                <i class="fa-solid fa-user-pen"></i>
+                                <span>Edit Role</span>
+                            </button>
+                            <button type="button" class="btn-account-change-password" data-action="change-password" data-id="${officer.id}" title="Change officer password">
+                                <i class="fa-solid fa-key"></i>
+                                <span>Password</span>
+                            </button>
+                        ` : `
+                            <button type="button" class="btn-account-edit-role opacity-50 cursor-not-allowed" data-action="eic-restricted" title="Editor-in-Chief cannot modify executive accounts">
+                                <i class="fa-solid fa-lock text-stone-400"></i>
+                                <span>Executive</span>
+                            </button>
+                        `}
+
+                        ${eicRestricted ? `
+                            <span class="text-xs text-stone-400 italic font-medium px-2 py-1">Protected</span>
+                        ` : (isDeactivated ? `
                             <button type="button" class="btn-account-activate" data-action="activate" data-id="${officer.id}" title="Reactivate this officer account">
                                 <i class="fa-solid fa-user-check"></i>
                                 <span>Activate</span>
@@ -335,7 +424,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <i class="fa-solid fa-user-slash"></i>
                                 <span>Deactivate</span>
                             </button>
-                        `}
+                        `)}
                     </div>
 
                 </div>
@@ -374,26 +463,53 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // =========================================================================
-    // 9. ACTION DELEGATION: DEACTIVATE & ACTIVATE
+    // 9. ACTION DELEGATION: EDIT ROLE, PASSWORD, DEACTIVATE & ACTIVATE
     // =========================================================================
     if (accountsContainer) {
-        accountsContainer.addEventListener('click', (e) => {
+        accountsContainer.addEventListener('click', async (e) => {
             const btn = e.target.closest('button[data-action]');
             if (!btn) return;
 
             const action = btn.dataset.action;
+
+            if (action === 'eic-restricted') {
+                showToast('Editor-in-Chief is not permitted to modify executive accounts or change their status.', 'warning');
+                return;
+            }
+
             const officerId = btn.dataset.id;
-            const officer = officersList.find(o => o.id === officerId);
+            const officer = officersList.find(o => String(o.id) === String(officerId));
             if (!officer) return;
 
+            const isOfficerExecutive = EXECUTIVE_ROLES.includes(officer.role);
+
             if (action === 'edit-role') {
+                if (isEicViewer() && isOfficerExecutive) {
+                    showToast('Editor-in-Chief is not permitted to modify executive accounts.', 'danger');
+                    return;
+                }
                 targetEditRoleId = officerId;
                 if (editRoleOfficerName) editRoleOfficerName.textContent = officer.name;
                 if (editRoleAvatar) editRoleAvatar.src = officer.avatar || 'images/member-placeholder.svg';
                 if (editRoleCurrentBadge) editRoleCurrentBadge.innerHTML = `Current Role: <strong>${escapeHTML(officer.role)}</strong>`;
                 if (editRoleSelect) editRoleSelect.value = officer.role;
                 if (editRoleModal) editRoleModal.classList.remove('hidden');
+            } else if (action === 'change-password') {
+                if (isEicViewer() && isOfficerExecutive) {
+                    showToast('Editor-in-Chief is not permitted to modify passwords of executive accounts.', 'danger');
+                    return;
+                }
+                targetChangePasswordId = officerId;
+                if (changePasswordOfficerName) changePasswordOfficerName.textContent = officer.name;
+                if (changePasswordAvatar) changePasswordAvatar.src = officer.avatar || 'images/member-placeholder.svg';
+                if (changePasswordCurrentBadge) changePasswordCurrentBadge.innerHTML = `Role: <strong>${escapeHTML(officer.role)}</strong>`;
+                if (officerNewPasswordInput) officerNewPasswordInput.value = '';
+                if (changePasswordModal) changePasswordModal.classList.remove('hidden');
             } else if (action === 'deactivate') {
+                if (isEicViewer() && isOfficerExecutive) {
+                    showToast('Editor-in-Chief is not permitted to change the status of executive accounts.', 'danger');
+                    return;
+                }
                 targetDeactivateId = officerId;
                 if (deactivateOfficerNameEl) {
                     deactivateOfficerNameEl.textContent = officer.name;
@@ -402,6 +518,33 @@ document.addEventListener('DOMContentLoaded', () => {
                     deactivateModal.classList.remove('hidden');
                 }
             } else if (action === 'activate') {
+                if (isEicViewer() && isOfficerExecutive) {
+                    showToast('Editor-in-Chief is not permitted to change the status of executive accounts.', 'danger');
+                    return;
+                }
+
+                // Call backend toggleStatus
+                if (window.__ACCOUNT_ROUTES__ && window.__ACCOUNT_ROUTES__.toggleStatus && !String(officerId).startsWith('off-')) {
+                    try {
+                        const res = await fetch(`${window.__ACCOUNT_ROUTES__.toggleStatus}/${officerId}/status`, {
+                            method: 'PATCH',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': getCsrfToken(),
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({ status: 'active' })
+                        });
+                        const data = await res.json();
+                        if (!res.ok || data.success === false) {
+                            showToast(data.message || 'Failed to activate officer account.', 'danger');
+                            return;
+                        }
+                    } catch (err) {
+                        console.warn('Network error activating officer on backend:', err);
+                    }
+                }
+
                 officer.status = 'active';
                 saveOfficers(officersList);
                 renderAccounts();
@@ -410,7 +553,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // -------------------------------------------------------------------------
     // Edit Role Modal Controller
+    // -------------------------------------------------------------------------
     function closeEditRoleModal() {
         if (editRoleModal) {
             editRoleModal.classList.add('hidden');
@@ -421,21 +566,72 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnCloseEditRoleModal) btnCloseEditRoleModal.addEventListener('click', closeEditRoleModal);
 
     if (editRoleForm) {
-        editRoleForm.addEventListener('submit', (e) => {
+        editRoleForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             if (!targetEditRoleId) return;
 
-            const officer = officersList.find(o => o.id === targetEditRoleId);
+            const officer = officersList.find(o => String(o.id) === String(targetEditRoleId));
             if (!officer) return;
 
             const newRole = editRoleSelect ? editRoleSelect.value : '';
             if (!newRole) return;
 
+            // EIC cannot promote accounts to executives
+            if (isEicViewer() && EXECUTIVE_ROLES.includes(newRole)) {
+                showToast('Editor-in-Chief cannot promote accounts to executive roles.', 'danger');
+                return;
+            }
+
             const oldRole = officer.role;
+
+            // Sync with backend
+            if (window.__ACCOUNT_ROUTES__ && window.__ACCOUNT_ROUTES__.updateRole && !String(targetEditRoleId).startsWith('off-')) {
+                try {
+                    const res = await fetch(`${window.__ACCOUNT_ROUTES__.updateRole}/${targetEditRoleId}/role`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': getCsrfToken(),
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({ role: newRole })
+                    });
+                    const data = await res.json();
+                    if (!res.ok || data.success === false) {
+                        showToast(data.message || 'Failed to update officer role.', 'danger');
+                        return;
+                    }
+
+                    officer.role = data.new_role || newRole;
+                    saveOfficers(officersList);
+                    closeEditRoleModal();
+                    renderAccounts();
+                    showToast(data.message || `Role for ${officer.name} updated to ${newRole}.`, 'success');
+
+                    // If edited officer is currently signed in, sync userRole and redirect to new dashboard
+                    const isSelf = data.is_self || String(targetEditRoleId) === String(window.CURRENT_USER_ID);
+                    if (isSelf) {
+                        localStorage.setItem('userRole', data.new_role || newRole);
+                        if (window.ExecutiveShell && window.ExecutiveShell.hydrateUserRole) {
+                            window.ExecutiveShell.hydrateUserRole();
+                        }
+                        if (data.dashboard_url) {
+                            showToast(`Your role changed to ${data.new_role}. Updating dashboard...`, 'info');
+                            setTimeout(() => {
+                                window.location.href = data.dashboard_url;
+                            }, 1200);
+                        }
+                    }
+                    return;
+                } catch (err) {
+                    console.warn('Network error updating role on backend:', err);
+                }
+            }
+
             officer.role = newRole;
             saveOfficers(officersList);
 
-            // If edited officer is currently signed in, sync userRole in localStorage and live chrome
+            // Sync client userRole if self
             const activeUserRole = localStorage.getItem('userRole');
             if (activeUserRole === oldRole || officer.name === (localStorage.getItem('userName') || '')) {
                 localStorage.setItem('userRole', newRole);
@@ -444,39 +640,119 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            // Sync with backend if available
-            if (window.__ACCOUNT_ROUTES__ && window.__ACCOUNT_ROUTES__.updateRole && !String(targetEditRoleId).startsWith('off-')) {
-                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-                fetch(`${window.__ACCOUNT_ROUTES__.updateRole}/${targetEditRoleId}/role`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': csrfToken,
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify({ role: newRole })
-                }).catch(err => console.warn('Could not sync role to backend:', err));
-            }
-
             closeEditRoleModal();
             renderAccounts();
             showToast(`Role for ${officer.name} updated to ${newRole}.`, 'success');
         });
     }
 
-    // Confirmation for Deactivation
-    if (btnConfirmDeactivate) {
-        btnConfirmDeactivate.addEventListener('click', () => {
-            if (!targetDeactivateId) return;
+    // -------------------------------------------------------------------------
+    // Change Officer Password Modal Controller
+    // -------------------------------------------------------------------------
+    function closeChangePasswordModal() {
+        if (changePasswordModal) {
+            changePasswordModal.classList.add('hidden');
+        }
+        if (officerNewPasswordInput) {
+            officerNewPasswordInput.value = '';
+            officerNewPasswordInput.classList.remove('input-invalid');
+        }
+        targetChangePasswordId = null;
+    }
 
-            const officerIndex = officersList.findIndex(o => o.id === targetDeactivateId);
-            if (officerIndex !== -1) {
-                officersList[officerIndex].status = 'deactivated';
-                saveOfficers(officersList);
-                renderAccounts();
-                showToast(`Officer account deactivated.`, 'danger');
+    if (btnClosePasswordModal) btnClosePasswordModal.addEventListener('click', closeChangePasswordModal);
+
+    if (changePasswordForm) {
+        changePasswordForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!targetChangePasswordId) return;
+
+            const officer = officersList.find(o => String(o.id) === String(targetChangePasswordId));
+            if (!officer) return;
+
+            const newPass = officerNewPasswordInput ? officerNewPasswordInput.value.trim() : '';
+            if (!newPass || newPass.length < 6) {
+                if (officerNewPasswordInput) officerNewPasswordInput.classList.add('input-invalid');
+                showToast('Password must be at least 6 characters.', 'warning');
+                return;
             }
 
+            // Sync with backend
+            if (window.__ACCOUNT_ROUTES__ && window.__ACCOUNT_ROUTES__.changePassword && !String(targetChangePasswordId).startsWith('off-')) {
+                try {
+                    const res = await fetch(`${window.__ACCOUNT_ROUTES__.changePassword}/${targetChangePasswordId}/password`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': getCsrfToken(),
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({ password: newPass })
+                    });
+                    const data = await res.json();
+                    if (!res.ok || data.success === false) {
+                        showToast(data.message || 'Failed to update officer password.', 'danger');
+                        return;
+                    }
+                    closeChangePasswordModal();
+                    showToast(data.message || `Password for ${officer.name} updated successfully.`, 'success');
+                    return;
+                } catch (err) {
+                    console.warn('Network error changing officer password:', err);
+                }
+            }
+
+            closeChangePasswordModal();
+            showToast(`Password for ${officer.name} updated successfully.`, 'success');
+        });
+    }
+
+    // -------------------------------------------------------------------------
+    // Deactivation Confirmation Controller
+    // -------------------------------------------------------------------------
+    if (btnConfirmDeactivate) {
+        btnConfirmDeactivate.addEventListener('click', async () => {
+            if (!targetDeactivateId) return;
+
+            const officerIndex = officersList.findIndex(o => String(o.id) === String(targetDeactivateId));
+            if (officerIndex === -1) return;
+
+            const officer = officersList[officerIndex];
+
+            // EIC cannot change status of executives
+            if (isEicViewer() && EXECUTIVE_ROLES.includes(officer.role)) {
+                showToast('Editor-in-Chief is not permitted to change the status of executive accounts.', 'danger');
+                closeDeactivateModal();
+                return;
+            }
+
+            // Call backend toggleStatus
+            if (window.__ACCOUNT_ROUTES__ && window.__ACCOUNT_ROUTES__.toggleStatus && !String(targetDeactivateId).startsWith('off-')) {
+                try {
+                    const res = await fetch(`${window.__ACCOUNT_ROUTES__.toggleStatus}/${targetDeactivateId}/status`, {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': getCsrfToken(),
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({ status: 'deactivated' })
+                    });
+                    const data = await res.json();
+                    if (!res.ok || data.success === false) {
+                        showToast(data.message || 'Failed to deactivate officer account.', 'danger');
+                        closeDeactivateModal();
+                        return;
+                    }
+                } catch (err) {
+                    console.warn('Network error deactivating officer on backend:', err);
+                }
+            }
+
+            officersList[officerIndex].status = 'deactivated';
+            saveOfficers(officersList);
+            renderAccounts();
+            showToast(`Officer account deactivated.`, 'danger');
             closeDeactivateModal();
         });
     }
@@ -491,7 +767,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnCloseDeactivate) btnCloseDeactivate.addEventListener('click', closeDeactivateModal);
 
     // =========================================================================
-    // 10. ADD OFFICER ACCOUNT MODAL & FORM VALIDATION (BN-0 FORMAT)
+    // 10. ADD OFFICER ACCOUNT MODAL & FORM VALIDATION
     // =========================================================================
     function openAddModal() {
         if (addOfficerModal) {
@@ -516,7 +792,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnCloseAddModal) btnCloseAddModal.addEventListener('click', closeAddModal);
 
     // Close modals on overlay backdrop click
-    [addOfficerModal, deactivateModal, editRoleModal].forEach(modal => {
+    [addOfficerModal, deactivateModal, editRoleModal, changePasswordModal].forEach(modal => {
         if (modal) {
             modal.addEventListener('click', (e) => {
                 if (e.target === modal) {
@@ -532,26 +808,32 @@ document.addEventListener('DOMContentLoaded', () => {
             closeAddModal();
             closeDeactivateModal();
             closeEditRoleModal();
+            closeChangePasswordModal();
         }
     });
 
     if (addOfficerForm) {
-        addOfficerForm.addEventListener('submit', (e) => {
+        addOfficerForm.addEventListener('submit', async (e) => {
             e.preventDefault();
 
             const studentIdInput = document.getElementById('officer-input-student-id');
             const nameInput = document.getElementById('officer-input-name');
             const roleSelect = document.getElementById('officer-input-role');
+            const passwordInput = document.getElementById('officer-input-password');
 
             const studentNumber = studentIdInput ? studentIdInput.value.trim() : '';
             const name = nameInput ? nameInput.value.trim() : '';
             const role = roleSelect ? roleSelect.value : '';
+            const password = passwordInput ? passwordInput.value.trim() : '';
 
             let hasError = false;
 
-            if (!studentNumber || studentNumber.length < 4) {
+            const studentNumberRegex = /^\d{4}-\d{4,5}-[A-Za-z0-9]{2,4}-\d$/i;
+            if (!studentNumber || !studentNumberRegex.test(studentNumber)) {
                 hasError = true;
                 if (studentIdInput) studentIdInput.classList.add('input-invalid');
+                showToast('Invalid student number format. Expected format: YYYY-XXXXX-BN-0 (e.g. 2024-00123-BN-0)', 'warning');
+                return;
             } else if (studentIdInput) {
                 studentIdInput.classList.remove('input-invalid');
             }
@@ -570,17 +852,74 @@ document.addEventListener('DOMContentLoaded', () => {
                 roleSelect.classList.remove('input-invalid');
             }
 
+            if (!password || password.length < 6) {
+                hasError = true;
+                if (passwordInput) passwordInput.classList.add('input-invalid');
+            } else if (passwordInput) {
+                passwordInput.classList.remove('input-invalid');
+            }
+
             if (hasError) {
-                showToast('Please complete all required fields with valid details.', 'warning');
+                showToast('Please complete all fields. Password must be at least 6 characters.', 'warning');
                 return;
             }
 
-            // Check if student number already exists
+            // EIC cannot create accounts with executive roles
+            if (isEicViewer() && EXECUTIVE_ROLES.includes(role)) {
+                showToast('Editor-in-Chief is not permitted to create executive accounts.', 'danger');
+                return;
+            }
+
+            // Check if student number already exists locally
             const snExists = officersList.some(o => (o.studentNumber || '').toLowerCase() === studentNumber.toLowerCase());
             if (snExists) {
                 showToast('An officer with this student number already exists.', 'warning');
                 if (studentIdInput) studentIdInput.classList.add('input-invalid');
                 return;
+            }
+
+            // Post to backend
+            if (window.__ACCOUNT_ROUTES__ && window.__ACCOUNT_ROUTES__.store) {
+                try {
+                    const res = await fetch(window.__ACCOUNT_ROUTES__.store, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': getCsrfToken(),
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            student_number: studentNumber,
+                            full_name: name,
+                            role: role,
+                            password: password
+                        })
+                    });
+
+                    const data = await res.json();
+                    if (!res.ok || data.success === false) {
+                        showToast(data.message || 'Failed to create officer account.', 'danger');
+                        return;
+                    }
+
+                    const createdOfficer = {
+                        id: data.officer?.id || `off-${Date.now()}`,
+                        name: data.officer?.full_name || name,
+                        studentNumber: data.officer?.student_number || studentNumber,
+                        role: data.officer?.role?.role_name || data.officer?.role || role,
+                        avatar: data.officer?.avatar || data.officer?.profile_picture_url || 'images/member-placeholder.svg',
+                        status: data.officer?.account_status || 'active'
+                    };
+
+                    officersList.unshift(createdOfficer);
+                    saveOfficers(officersList);
+                    renderAccounts();
+                    closeAddModal();
+                    showToast(data.message || 'Officer account created successfully.', 'success');
+                    return;
+                } catch (err) {
+                    console.warn('Network error creating officer on backend:', err);
+                }
             }
 
             const newOfficer = {
@@ -592,17 +931,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 status: 'active'
             };
 
-            // Prepend new officer
             officersList.unshift(newOfficer);
             saveOfficers(officersList);
-
-            // Re-render accounts list
             renderAccounts();
-
-            // Close modal & reset form
             closeAddModal();
-
-            // Success feedback
             showToast('Officer account created successfully.', 'success');
         });
     }

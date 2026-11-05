@@ -27,7 +27,7 @@ class EicController extends Controller
             COUNT(CASE WHEN status = 'Pending EIC Review' THEN 1 END) as pending
         ")->first();
 
-        $activeMembers = User::count();
+        $activeMembers = User::activeCount();
 
         $metrics = [
             'total_views' => (int) ($stats->total_views ?? 0),
@@ -56,13 +56,14 @@ class EicController extends Controller
             });
 
         $recentActivities = ActivityLog::latest()->take(10)->get()->map(function ($log) {
+            $created = \Carbon\Carbon::parse($log->getRawOriginal('created_at'), 'UTC')->timezone('Asia/Manila');
             return [
                 'user' => $log->causer_name,
                 'role' => $log->causer_role,
                 'action' => $log->action,
                 'subjectType' => $log->subject_type,
                 'target' => $log->subject_name,
-                'time' => $log->created_at->diffForHumans(),
+                'time' => $created->diffForHumans(),
                 'avatar' => asset('images/member-placeholder.svg'),
             ];
         });
@@ -83,11 +84,11 @@ class EicController extends Controller
     public function manageArticles()
     {
         $articles = Article::with(['user.role', 'category'])
-            ->whereIn('status', ['Published', 'Unpublished', 'Pending M&PC Review', 'Pending EIC Review', 'Pending Review', 'Draft', 'Archived'])
+            ->whereIn('status', ['Published', 'Unpublished', 'Archived'])
             ->latest()
             ->get()
             ->map(function ($article) {
-                $isArchived = in_array($article->status, ['Unpublished', 'Archived', 'Declined']);
+                $isArchived = in_array($article->status, ['Unpublished', 'Archived']);
                 $content = $article->content ?? '';
                 $wordCount = max(1, (int) ceil(str_word_count(strip_tags($content)) / 220));
 
@@ -514,6 +515,16 @@ class EicController extends Controller
         return redirect()->route('eic.submit-article', ['tab' => 'drafts'])->with('success', 'Draft deleted successfully.');
     }
 
+    public const EXECUTIVE_ROLES = [
+        'President',
+        'Executive Vice President',
+        'Secretary',
+        'Associate Secretary',
+        'Treasurer',
+        'Auditor',
+        'Public Relations Officer',
+    ];
+
     public function manageAccounts(Request $request)
     {
         // Fetch all accounts including Writers, Cartoonists, Media Team, and Executive/Editorial board
@@ -549,27 +560,52 @@ class EicController extends Controller
         $request->merge(['role_id' => $roleId]);
 
         $validated = $request->validate([
-            'student_number' => 'required|string|max:50|unique:users,student_number',
+            'student_number' => [
+                'required',
+                'string',
+                'regex:/^\d{4}-\d{4,5}-[A-Za-z0-9]{2,4}-\d$/i',
+                'unique:users,student_number',
+            ],
             'full_name' => 'required|string|max:255',
             'role_id' => 'required|exists:roles,id',
+            'password' => 'nullable|string|min:6',
+        ], [
+            'student_number.regex' => 'The student number format is invalid. Expected format: YYYY-XXXXX-BN-0 (e.g. 2024-00123-BN-0).',
+            'student_number.unique' => 'An officer account with this student number already exists.',
+            'student_number.required' => 'Student number is required.',
         ]);
 
+        $targetRole = Role::find($validated['role_id']);
+        if ($targetRole && in_array($targetRole->role_name, self::EXECUTIVE_ROLES, true)) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Editor-in-Chief is not permitted to create executive accounts.',
+                ], 403);
+            }
+            return redirect()->back()->with('error', 'Editor-in-Chief is not permitted to create executive accounts.');
+        }
+
+        $studentNumber = strtoupper(trim($validated['student_number']));
+        $password = !empty($validated['password']) ? $validated['password'] : 'password123';
+
         $officer = User::create([
-            'student_number' => $validated['student_number'],
+            'student_number' => $studentNumber,
             'full_name' => $validated['full_name'],
             'role_id' => $validated['role_id'],
-            'password' => Hash::make('password123'),
+            'password' => Hash::make($password),
             'account_status' => 'active',
         ]);
 
         $officer->load('role');
+        Cache::forget('active_members_count');
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,
                 'message' => 'Officer account created successfully.',
                 'officer' => $officer,
-            ]);
+            ], 201);
         }
 
         return redirect()->back()->with('success', 'Officer account created successfully.');
@@ -577,7 +613,7 @@ class EicController extends Controller
 
     public function updateRole(Request $request, $id)
     {
-        $officer = User::findOrFail($id);
+        $officer = User::with('role')->findOrFail($id);
 
         $roleId = $request->input('role_id');
         if (!$roleId && $request->filled('role')) {
@@ -594,26 +630,71 @@ class EicController extends Controller
             'role_id' => 'required|exists:roles,id',
         ]);
 
+        // EIC cannot modify executive accounts
+        if ($officer->role && in_array($officer->role->role_name, self::EXECUTIVE_ROLES, true)) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Editor-in-Chief is not permitted to modify executive accounts.',
+                ], 403);
+            }
+            return redirect()->back()->with('error', 'Editor-in-Chief is not permitted to modify executive accounts.');
+        }
+
+        // EIC cannot promote accounts to executives
+        $newRole = Role::find($validated['role_id']);
+        if ($newRole && in_array($newRole->role_name, self::EXECUTIVE_ROLES, true)) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Editor-in-Chief is not permitted to promote accounts to executive roles.',
+                ], 403);
+            }
+            return redirect()->back()->with('error', 'Editor-in-Chief is not permitted to promote accounts to executive roles.');
+        }
+
         $officer->update([
             'role_id' => $validated['role_id'],
         ]);
 
         $officer->load('role');
 
+        if ($officer->id === Auth::id()) {
+            Auth::setUser($officer->fresh());
+        }
+
+        $newRoleName = $officer->role?->role_name ?? 'Officer';
+        $dashboardRoute = AuthController::getDashboardRouteForRole($newRoleName);
+        $dashboardUrl = \Illuminate\Support\Facades\Route::has($dashboardRoute) ? route($dashboardRoute) : url('/dashboard');
+
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,
-                'message' => "Role for {$officer->full_name} updated to {$officer->role->role_name}.",
+                'message' => "Role for {$officer->full_name} updated to {$newRoleName}.",
                 'officer' => $officer,
+                'new_role' => $newRoleName,
+                'dashboard_url' => $dashboardUrl,
+                'is_self' => ($officer->id === Auth::id()),
             ]);
         }
 
-        return redirect()->back()->with('success', "Role for {$officer->full_name} updated to {$officer->role->role_name}.");
+        return redirect()->back()->with('success', "Role for {$officer->full_name} updated to {$newRoleName}.");
     }
 
     public function toggleStatus(Request $request, $id)
     {
-        $officer = User::findOrFail($id);
+        $officer = User::with('role')->findOrFail($id);
+
+        // EIC cannot change the status of executives, but it can change the status of any other roles
+        if ($officer->role && in_array($officer->role->role_name, self::EXECUTIVE_ROLES, true)) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Editor-in-Chief is not permitted to change the status of executive accounts.',
+                ], 403);
+            }
+            return redirect()->back()->with('error', 'Editor-in-Chief is not permitted to change the status of executive accounts.');
+        }
 
         $status = $request->input('status');
         if (!$status) {
@@ -639,6 +720,7 @@ class EicController extends Controller
         ]);
 
         $officer->load('role');
+        Cache::forget('active_members_count');
 
         $statusLabel = ($status === 'active') ? 'reactivated' : 'deactivated';
 
@@ -654,22 +736,41 @@ class EicController extends Controller
         return redirect()->back()->with('success', "Officer account {$statusLabel}.");
     }
 
+    public function changeOfficerPassword(Request $request, $id)
+    {
+        $officer = User::with('role')->findOrFail($id);
+
+        if ($officer->role && in_array($officer->role->role_name, self::EXECUTIVE_ROLES, true)) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Editor-in-Chief is not permitted to modify passwords of executive accounts.',
+                ], 403);
+            }
+            return redirect()->back()->with('error', 'Editor-in-Chief is not permitted to modify passwords of executive accounts.');
+        }
+
+        $validated = $request->validate([
+            'password' => 'required|string|min:6',
+        ]);
+
+        $officer->update([
+            'password' => Hash::make($validated['password']),
+        ]);
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => "Password for {$officer->full_name} updated successfully.",
+            ]);
+        }
+
+        return redirect()->back()->with('success', "Password for {$officer->full_name} updated successfully.");
+    }
+
     public function activityLogs()
     {
-        $activities = ActivityLog::latest()->take(100)->get()->map(function ($log) {
-            return [
-                'id' => $log->id,
-                'causer' => $log->causer_name,
-                'causerRole' => $log->causer_role,
-                'action' => $log->action,
-                'subjectType' => $log->subject_type,
-                'subjectName' => $log->subject_name,
-                'remarks' => $log->remarks,
-                'timestampText' => $log->created_at->diffForHumans(),
-                'isoDate' => $log->created_at->toIso8601String(),
-                'formattedDate' => $log->created_at->format('M d, Y • h:i A'),
-            ];
-        });
+        $activities = ActivityLog::formattedLogs();
 
         return view('eic.activity-logs', compact('activities'));
     }

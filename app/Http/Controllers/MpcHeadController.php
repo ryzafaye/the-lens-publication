@@ -23,7 +23,7 @@ class MpcHeadController extends Controller
             COUNT(CASE WHEN status = 'Pending M&PC Review' THEN 1 END) as pending
         ")->first();
 
-        $activeMembers = User::count();
+        $activeMembers = User::activeCount();
 
         $metrics = [
             'total_views' => (int) ($stats->total_views ?? 0),
@@ -98,13 +98,14 @@ class MpcHeadController extends Controller
             });
 
         $recentActivities = ActivityLog::latest()->take(10)->get()->map(function ($log) {
+            $created = \Carbon\Carbon::parse($log->getRawOriginal('created_at'), 'UTC')->timezone('Asia/Manila');
             return [
                 'user' => $log->causer_name,
                 'role' => $log->causer_role,
                 'action' => $log->action,
                 'subjectType' => $log->subject_type,
                 'target' => $log->subject_name,
-                'time' => $log->created_at->diffForHumans(),
+                'time' => $created->diffForHumans(),
                 'avatar' => asset('images/member-placeholder.svg'),
             ];
         });
@@ -219,14 +220,15 @@ class MpcHeadController extends Controller
 
     public function takedownArticle(Request $request, $id)
     {
-        $article = Article::with(['user', 'category'])->where('status', 'Published')->findOrFail($id);
+        $article = Article::with(['user', 'category'])->whereIn('status', ['Published', 'Approved'])->findOrFail($id);
         $user = Auth::user();
         $user?->loadMissing('role');
+        $roleName = $user->role?->role_name ?? 'Editorial';
 
         $article->update([
             'status' => 'Unpublished',
             'remarks' => trim(($article->remarks ? $article->remarks . "\n" : '')
-                . 'Taken down from public site by M&PC: ' . ($user->full_name ?? 'Media and Public Communications Head') . ' on ' . now()->format('M d, Y h:i A')),
+                . "Taken down from public site by {$roleName}: " . ($user->full_name ?? 'Staff') . ' on ' . now()->format('M d, Y h:i A')),
         ]);
 
         ActivityLog::record($user, 'took down from the public site', $article);
@@ -234,6 +236,7 @@ class MpcHeadController extends Controller
         Cache::forget('writer_dashboard_stats_' . $article->user_id);
         Cache::forget('eic_dashboard_stats');
         Cache::forget('mpc_dashboard_stats');
+        Cache::forget('executive_dashboard_stats_all');
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
@@ -243,21 +246,26 @@ class MpcHeadController extends Controller
             ]);
         }
 
+        if ($request->header('referer')) {
+            return redirect()->back()->with('success', "Article \"{$article->title}\" has been taken down from the public site.");
+        }
+
         return redirect()->route('mpc-head.dashboard')
             ->with('success', "Article \"{$article->title}\" has been taken down from the public site.");
     }
 
     public function republishArticle(Request $request, $id)
     {
-        $article = Article::with(['user', 'category'])->whereIn('status', ['Unpublished', 'Pending M&PC Review'])->findOrFail($id);
+        $article = Article::with(['user', 'category'])->whereIn('status', ['Unpublished', 'Archived', 'Pending M&PC Review'])->findOrFail($id);
         $user = Auth::user();
         $user?->loadMissing('role');
+        $roleName = $user->role?->role_name ?? 'Editorial';
 
         $article->update([
             'status' => 'Published',
             'published_at' => now(),
             'remarks' => trim(($article->remarks ? $article->remarks . "\n" : '')
-                . 'Republished by M&PC: ' . ($user->full_name ?? 'Media and Public Communications Head') . ' on ' . now()->format('M d, Y h:i A')),
+                . "Republished by {$roleName}: " . ($user->full_name ?? 'Staff') . ' on ' . now()->format('M d, Y h:i A')),
         ]);
 
         ActivityLog::record($user, 'republished to the public site', $article);
@@ -265,6 +273,7 @@ class MpcHeadController extends Controller
         Cache::forget('writer_dashboard_stats_' . $article->user_id);
         Cache::forget('eic_dashboard_stats');
         Cache::forget('mpc_dashboard_stats');
+        Cache::forget('executive_dashboard_stats_all');
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
@@ -274,8 +283,40 @@ class MpcHeadController extends Controller
             ]);
         }
 
+        if ($request->header('referer')) {
+            return redirect()->back()->with('success', "Article \"{$article->title}\" has been republished.");
+        }
+
         return redirect()->route('mpc-head.dashboard')
             ->with('success', "Article \"{$article->title}\" has been republished.");
+    }
+
+    public function destroyArticle(Request $request, $id)
+    {
+        $article = Article::with(['user', 'category'])->findOrFail($id);
+        $user = Auth::user();
+        $user?->loadMissing('role');
+        $title = $article->title;
+        $authorId = $article->user_id;
+
+        ActivityLog::record($user, 'permanently deleted', $article);
+
+        $article->delete();
+
+        Cache::forget('writer_dashboard_stats_' . $authorId);
+        Cache::forget('eic_dashboard_stats');
+        Cache::forget('mpc_dashboard_stats');
+        Cache::forget('executive_dashboard_stats_all');
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => "Article \"{$title}\" has been permanently deleted.",
+            ]);
+        }
+
+        return redirect()->back()
+            ->with('success', "Article \"{$title}\" has been permanently deleted.");
     }
 
     public function activityLogs()
@@ -285,9 +326,6 @@ class MpcHeadController extends Controller
 
     public function publishArticle()
     {
-        $response = app(PublicSiteController::class)->renderPortalPage('mpc-publish-article.html');
-        $html = $response->getContent();
-
         $availableCovers = [
             [
                 'id' => 'cov-01',
@@ -411,14 +449,7 @@ class MpcHeadController extends Controller
                 ];
             })->values()->all();
 
-        $bootstrapScript = '<script>'
-            . 'window.LARAVEL_MPC_ARTICLES = ' . json_encode($articles, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) . ';'
-            . 'window.LARAVEL_APPROVED_COVERS = ' . json_encode($availableCovers, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) . ';'
-            . '</script>';
-
-        $html = str_ireplace('</head>', $bootstrapScript . '</head>', $html);
-
-        return response($html)->header('Content-Type', 'text/html; charset=UTF-8');
+        return view('shared.publish-article', compact('articles', 'availableCovers'));
     }
 
     public function mediaDesk()

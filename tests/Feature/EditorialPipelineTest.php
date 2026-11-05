@@ -235,4 +235,218 @@ class EditorialPipelineTest extends TestCase
         $this->assertEquals('Declined', $article2->status);
         $this->assertStringContainsString('Duplicate submission', $article2->remarks);
     }
+
+    public function test_unapproved_articles_do_not_appear_in_manage_articles_until_published(): void
+    {
+        $data = $this->createRolesAndUsers();
+
+        $presidentRole = Role::firstOrCreate(['role_name' => 'President']);
+        $president = User::create([
+            'student_number' => '2024-00099-BN-0',
+            'full_name' => 'Pres Maria',
+            'email' => 'pres.maria@pup.edu.ph',
+            'password' => bcrypt('secret123'),
+            'role_id' => $presidentRole->id,
+        ]);
+
+        // 1. Writer creates article with status 'Pending Review' (unapproved by category head)
+        $article = Article::create([
+            'title' => 'Ryza Literature Unapproved Poem',
+            'category_id' => $data['category']->id,
+            'user_id' => $data['writer']->id,
+            'status' => 'Pending Review',
+            'content' => '<p>Beautiful unpublished lines...</p>',
+        ]);
+
+        // EIC & Executive manage-articles must NOT contain unapproved articles
+        $eicResp = $this->actingAs($data['eic'])->get('/eic/manage-articles');
+        $eicResp->assertStatus(200);
+        $eicResp->assertDontSee('Ryza Literature Unapproved Poem');
+
+        $presResp = $this->actingAs($president)->get('/executive/manage-articles');
+        $presResp->assertStatus(200);
+        $presResp->assertDontSee('Ryza Literature Unapproved Poem');
+
+        // 2. Section head approves -> becomes 'Pending EIC Review'
+        $article->update(['status' => 'Pending EIC Review']);
+        $eicResp = $this->actingAs($data['eic'])->get('/eic/manage-articles');
+        $eicResp->assertDontSee('Ryza Literature Unapproved Poem');
+
+        // 3. EIC approves -> becomes 'Pending M&PC Review'
+        $article->update(['status' => 'Pending M&PC Review']);
+        $eicResp = $this->actingAs($data['eic'])->get('/eic/manage-articles');
+        $eicResp->assertDontSee('Ryza Literature Unapproved Poem');
+
+        // 4. M&PC Head publishes -> becomes 'Published'
+        $article->update([
+            'status' => 'Published',
+            'published_at' => now(),
+            'cover_image' => 'images/covers/portal-pubmat.svg',
+        ]);
+
+        $eicResp = $this->actingAs($data['eic'])->get('/eic/manage-articles');
+        $eicResp->assertSee('Ryza Literature Unapproved Poem');
+        $eicResp->assertSee('"isArchived":false', false);
+
+        $presResp = $this->actingAs($president)->get('/executive/manage-articles');
+        $presResp->assertSee('Ryza Literature Unapproved Poem');
+        $presResp->assertSee('"isArchived":false', false);
+
+        // 5. Takedown -> becomes 'Unpublished' (Archived)
+        $article->update(['status' => 'Unpublished']);
+
+        $eicResp = $this->actingAs($data['eic'])->get('/eic/manage-articles');
+        $eicResp->assertSee('Ryza Literature Unapproved Poem');
+        $eicResp->assertSee('"isArchived":true', false);
+    }
+
+    public function test_section_head_submitting_article_records_activity_log_successfully(): void
+    {
+        $data = $this->createRolesAndUsers();
+
+        $submitResponse = $this->actingAs($data['sectionHead'])
+            ->post('/section-head/submit-article', [
+                'title' => 'Breaking News: Student Council Elections',
+                'category_id' => $data['category']->id,
+                'excerpt' => 'Elections kick off this semester.',
+                'content' => '<p>Comprehensive coverage of the candidates and platforms.</p>',
+                'status' => 'Pending EIC Review',
+            ]);
+
+        $submitResponse->assertRedirect(route('section-head.dashboard'));
+        $submitResponse->assertSessionHas('success');
+
+        $article = Article::where('title', 'Breaking News: Student Council Elections')->first();
+        $this->assertNotNull($article);
+        $this->assertEquals('Pending EIC Review', $article->status);
+
+        $log = ActivityLog::where('subject_id', $article->id)->first();
+        $this->assertNotNull($log);
+        $this->assertEquals('Section Head Bob', $log->causer_name);
+        $this->assertEquals('News Head', $log->causer_role);
+        $this->assertEquals('submitted and forwarded to EIC', $log->action);
+
+        // Verify Activity Logs pages bootstrap the log to window.LARAVEL_ACTIVITY_LOGS
+        $eicActivityResp = $this->actingAs($data['eic'])->get('/eic/activity-logs');
+        $eicActivityResp->assertStatus(200);
+        $eicActivityResp->assertSee('window.LARAVEL_ACTIVITY_LOGS =', false);
+        $eicActivityResp->assertSee('Section Head Bob');
+        $eicActivityResp->assertSee('submitted and forwarded to EIC');
+
+        $presRole = Role::firstOrCreate(['role_name' => 'President']);
+        $president = User::create([
+            'student_number' => '2024-00199-BN-0',
+            'full_name' => 'Pres Activity Checker',
+            'email' => 'pres.activity@pup.edu.ph',
+            'password' => bcrypt('secret123'),
+            'role_id' => $presRole->id,
+        ]);
+
+        $execActivityResp = $this->actingAs($president)->get('/executive/activity-logs');
+        $execActivityResp->assertStatus(200);
+        $execActivityResp->assertSee('window.LARAVEL_ACTIVITY_LOGS =', false);
+        $execActivityResp->assertSee('Section Head Bob');
+
+        $secHeadActivityResp = $this->actingAs($data['sectionHead'])->get('/section-head/activity-logs');
+        $secHeadActivityResp->assertStatus(200);
+        $secHeadActivityResp->assertSee('window.LARAVEL_ACTIVITY_LOGS =', false);
+        $secHeadActivityResp->assertSee('Section Head Bob');
+    }
+
+    public function test_executive_dashboard_active_members_and_manage_article_actions(): void
+    {
+        $data = $this->createRolesAndUsers();
+
+        $presRole = Role::firstOrCreate(['role_name' => 'President']);
+        $president = User::create([
+            'student_number' => '2024-00200-BN-0',
+            'full_name' => 'President Roster Test',
+            'email' => 'pres.roster@pup.edu.ph',
+            'password' => bcrypt('secret123'),
+            'role_id' => $presRole->id,
+            'account_status' => 'active',
+        ]);
+
+        // President dashboard shows all active members (more than just writers)
+        \Illuminate\Support\Facades\Cache::forget('active_members_count');
+        $dashResp = $this->actingAs($president)->get('/executive/dashboard');
+        $dashResp->assertStatus(200);
+        // There are at least 5 active users created in this test
+        $this->assertGreaterThanOrEqual(5, User::where('account_status', 'active')->count());
+
+        // Create a published article
+        $article = Article::create([
+            'title' => 'Article to Archive and Delete',
+            'category_id' => $data['category']->id,
+            'user_id' => $data['writer']->id,
+            'status' => 'Published',
+            'published_at' => now(),
+        ]);
+
+        // 1. Executive moves article to archive (takedown)
+        $archiveResp = $this->actingAs($president)->postJson("/executive/articles/{$article->id}/takedown");
+        $archiveResp->assertStatus(200);
+        $archiveResp->assertJson(['success' => true]);
+
+        $article->refresh();
+        $this->assertEquals('Unpublished', $article->status);
+
+        // 2. Executive restores article (republish)
+        $restoreResp = $this->actingAs($president)->postJson("/executive/articles/{$article->id}/republish");
+        $restoreResp->assertStatus(200);
+        $restoreResp->assertJson(['success' => true]);
+
+        $article->refresh();
+        $this->assertEquals('Published', $article->status);
+
+        // 3. Executive permanently deletes article
+        $deleteResp = $this->actingAs($president)->deleteJson("/executive/articles/{$article->id}");
+        $deleteResp->assertStatus(200);
+        $deleteResp->assertJson(['success' => true]);
+
+        $this->assertNull(Article::find($article->id));
+    }
+
+    public function test_archived_articles_appear_in_public_archives_page(): void
+    {
+        $data = $this->createRolesAndUsers();
+
+        $archivedArticle = Article::create([
+            'title' => 'Historical Campus Milestone Archive Story',
+            'excerpt' => 'This is an important archived story for historical reference.',
+            'category_id' => $data['category']->id,
+            'user_id' => $data['writer']->id,
+            'status' => 'Unpublished',
+            'published_at' => now()->subMonths(2),
+            'content' => '<p>Archived story detailed body content.</p>',
+        ]);
+
+        $activeArticle = Article::create([
+            'title' => 'Active Breaking News Today',
+            'excerpt' => 'Current breaking news story.',
+            'category_id' => $data['category']->id,
+            'user_id' => $data['writer']->id,
+            'status' => 'Published',
+            'published_at' => now(),
+            'content' => '<p>Live active story.</p>',
+        ]);
+
+        // 1. Archives friendly URL redirect
+        $archivesRedirect = $this->get('/archives');
+        $archivesRedirect->assertRedirect('/archives.html');
+
+        // 2. Archives page bootstraps LARAVEL_ARCHIVED_ARTICLES with the unpublished/archived article
+        $archivesPage = $this->get('/archives.html');
+        $archivesPage->assertStatus(200);
+        $archivesContent = $archivesPage->getContent();
+        $this->assertStringContainsString('window.LARAVEL_ARCHIVED_ARTICLES =', $archivesContent);
+        $this->assertStringContainsString('Historical Campus Milestone Archive Story', $archivesContent);
+
+        // 3. Public home page does not include archived article in LARAVEL_PUBLISHED_ARTICLES
+        $homePage = $this->get('/');
+        $homePage->assertStatus(200);
+        $homeContent = $homePage->getContent();
+        $this->assertStringContainsString('window.LARAVEL_PUBLISHED_ARTICLES =', $homeContent);
+        $this->assertStringContainsString('Active Breaking News Today', $homeContent);
+    }
 }

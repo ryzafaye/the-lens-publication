@@ -17,6 +17,18 @@ class CheckRole
 
         /** @var \App\Models\User $user */
         $user = Auth::user();
+
+        // If the authenticated user's account is deactivated, invalidate session immediately
+        if (in_array(strtolower((string) $user->account_status), ['deactivated', 'inactive', 'disabled'], true)) {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return redirect('/login')->withErrors([
+                'student_number' => 'Your account has been deactivated. Please contact an administrator or Editor-in-Chief.',
+            ]);
+        }
+
         // Eager load role relationship if not already loaded
         $user?->loadMissing('role');
 
@@ -56,7 +68,14 @@ class CheckRole
             return $next($request);
         }
 
-        // If unauthorized, log out and redirect to login with an error message
+        // If the user's role is not allowed for this route, redirect them to their actual role's dashboard
+        $actualRole = $user->role->role_name ?? '';
+        $dashboardRoute = \App\Http\Controllers\AuthController::getDashboardRouteForRole($actualRole);
+        if ($dashboardRoute !== 'login' && \Illuminate\Support\Facades\Route::has($dashboardRoute)) {
+            return redirect()->route($dashboardRoute)->with('info', "Your dashboard has been updated to your assigned role: {$actualRole}.");
+        }
+
+        // If unauthorized and has no dashboard, log out and redirect to login
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();

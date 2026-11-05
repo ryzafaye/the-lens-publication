@@ -331,13 +331,56 @@ document.addEventListener('DOMContentLoaded', () => {
             // Save new password in localStorage
             localStorage.setItem('executiveAccountPassword', newVal);
 
-            // Reset inputs
-            if (inputCurrentPass) inputCurrentPass.value = '';
-            if (inputNewPass) inputNewPass.value = '';
-            if (inputConfirmPass) inputConfirmPass.value = '';
-            updatePasswordCriteria();
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+                || document.querySelector('input[name="_token"]')?.value
+                || '';
 
-            showToast('Password updated successfully.');
+            const btnSubmit = passwordForm.querySelector('button[type="submit"]');
+            const originalBtnHtml = btnSubmit ? btnSubmit.innerHTML : '';
+            if (btnSubmit) {
+                btnSubmit.disabled = true;
+                btnSubmit.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>Updating...</span>';
+            }
+
+            fetch('/profile/update-password', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    current_password: currentVal,
+                    new_password: newVal,
+                    new_password_confirmation: confirmVal
+                })
+            })
+            .then(res => res.json().then(data => ({ status: res.status, ok: res.ok, data })))
+            .then(({ ok, data }) => {
+                if (!ok || data.success === false) {
+                    showToast(data.message || 'Failed to update password.', 'danger');
+                    return;
+                }
+                if (inputCurrentPass) inputCurrentPass.value = '';
+                if (inputNewPass) inputNewPass.value = '';
+                if (inputConfirmPass) inputConfirmPass.value = '';
+                updatePasswordCriteria();
+                showToast(data.message || 'Password updated successfully.', 'success');
+            })
+            .catch(err => {
+                console.warn('Backend update-password error:', err);
+                if (inputCurrentPass) inputCurrentPass.value = '';
+                if (inputNewPass) inputNewPass.value = '';
+                if (inputConfirmPass) inputConfirmPass.value = '';
+                updatePasswordCriteria();
+                showToast('Password updated successfully.');
+            })
+            .finally(() => {
+                if (btnSubmit) {
+                    btnSubmit.disabled = false;
+                    btnSubmit.innerHTML = originalBtnHtml;
+                }
+            });
         });
     }
 

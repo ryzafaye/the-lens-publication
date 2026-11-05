@@ -78,4 +78,17 @@ class User extends Authenticatable
     {
         $this->attributes['profile_picture_url'] = $value;
     }
+
+    public function scopeActive($query)
+    {
+        return $query->where(function ($q) {
+            $q->whereNull('account_status')
+              ->orWhereNotIn('account_status', ['deactivated', 'inactive', 'disabled']);
+        });
+    }
+
+    public static function activeCount(): int
+    {
+        return static::active()->count();
+    }
 }

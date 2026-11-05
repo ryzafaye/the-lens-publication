@@ -1,6 +1,15 @@
 import { articleTitle, articleMeta, articleStats, articleByline, createImage } from "./article-templates.js";
 import { articleMatchesDateFilter, escapeHTML, sortArticlesList, getArchivedArticles } from "./article-utils.js";
 
+function normalizeCategoryName(cat) {
+    return String(cat || "")
+        .toLowerCase()
+        .replace(/&/g, "and")
+        .replace(/\s+/g, " ")
+        .replace(/s\b/g, "")
+        .trim();
+}
+
 export function displayArchives(category = "All", searchTerm = "", sortBy = "newest", dateType = "any", dateValue = "") {
     const container = document.getElementById("archive-articles");
     if (!container) return 0;
@@ -8,7 +17,9 @@ export function displayArchives(category = "All", searchTerm = "", sortBy = "new
 
     const archivedArticles = getArchivedArticles();
     let matches = archivedArticles.filter(article => {
-        const categoryMatches = category === "All" || article.category === category;
+        const categoryMatches = category === "All" ||
+            article.category === category ||
+            normalizeCategoryName(article.category) === normalizeCategoryName(category);
         const searchable = [article.title, article.excerpt, article.content, article.author, article.category, ...(article.tags || [])]
             .filter(Boolean).join(" ").toLowerCase();
         const queryMatches = !query || searchable.includes(query);
@@ -52,7 +63,12 @@ export function initArchiveFilter() {
     archiveFilter.addEventListener("change", () => {
         const categorySelect = document.getElementById("category-select");
         if (categorySelect) categorySelect.value = archiveFilter.value;
-        document.getElementById("search-form")?.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+        const searchForm = document.getElementById("search-form");
+        if (searchForm) {
+            searchForm.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+        } else {
+            displayArchives(archiveFilter.value);
+        }
     });
 }
 

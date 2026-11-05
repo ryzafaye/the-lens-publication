@@ -34,10 +34,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // 2. DATA STORE: SHARED ARTICLES DATASET (Connected with public/executive)
     // =========================================================================
     function getStoredArticles() {
-        if (Array.isArray(window.LARAVEL_EXECUTIVE_ARTICLES) && window.LARAVEL_EXECUTIVE_ARTICLES.length > 0) {
+        if (Array.isArray(window.LARAVEL_EXECUTIVE_ARTICLES)) {
             return window.LARAVEL_EXECUTIVE_ARTICLES;
         }
-        if (Array.isArray(window.LARAVEL_PUBLISHED_ARTICLES) && window.LARAVEL_PUBLISHED_ARTICLES.length > 0) {
+        if (Array.isArray(window.LARAVEL_PUBLISHED_ARTICLES)) {
             return window.LARAVEL_PUBLISHED_ARTICLES;
         }
         try {
@@ -314,12 +314,38 @@ document.addEventListener('DOMContentLoaded', () => {
         return copy;
     }
 
+    function isArticleArchived(item) {
+        if (!item) return false;
+        const status = String(item.status || '').toLowerCase().trim();
+        return Boolean(item.isArchived || item.archived || status === 'unpublished' || status === 'archived');
+    }
+
+    function isArticleActive(item) {
+        if (!item) return false;
+        if (isArticleArchived(item)) return false;
+        const unapprovedStatuses = [
+            'pending review',
+            'pending eic review',
+            'pending m&pc review',
+            'draft',
+            'for revision',
+            'declined'
+        ];
+        const status = String(item.status || '').toLowerCase().trim();
+        if (unapprovedStatuses.includes(status)) {
+            return false;
+        }
+        return true;
+    }
+
     function getFilteredAndSortedArticles() {
         const isArchivedTarget = (currentTab === 'archived');
         const q = searchQuery.toLowerCase().trim();
 
         // 1. Filter by Tab (Active vs Archived)
-        let filtered = articles.filter(item => item.isArchived === isArchivedTarget);
+        let filtered = articles.filter(item => {
+            return isArchivedTarget ? isArticleArchived(item) : isArticleActive(item);
+        });
 
         // 2. Filter by Search (Matching BOTH Title AND Author)
         if (q) {
@@ -350,8 +376,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // 11. RENDER 2-COLUMN CARDS GRID (Always 2 per line on desktop & mobile)
     // =========================================================================
     function updateTabCounts() {
-        const activeCount = articles.filter(a => !a.isArchived).length;
-        const archivedCount = articles.filter(a => a.isArchived).length;
+        const activeCount = articles.filter(a => isArticleActive(a)).length;
+        const archivedCount = articles.filter(a => isArticleArchived(a)).length;
 
         if (badgeActiveCount) badgeActiveCount.textContent = activeCount;
         if (badgeArchivedCount) badgeArchivedCount.textContent = archivedCount;
@@ -472,7 +498,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderArticlesGrid() {
         const list = getFilteredAndSortedArticles();
-        const totalInTab = articles.filter(a => a.isArchived === (currentTab === 'archived')).length;
+        const totalInTab = articles.filter(a => (currentTab === 'archived' ? isArticleArchived(a) : isArticleActive(a))).length;
 
         // Results counter
         if (articlesResultsCounter) {
@@ -496,7 +522,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!articlesGrid) return;
 
         articlesGrid.innerHTML = list.map(article => {
-            const isArchived = article.isArchived;
+            const isArchived = isArticleArchived(article);
             const viewsFormatted = Number(article.views || 0).toLocaleString();
             const readTime = article.readTime || '2 min read';
             const shares = article.shares || 0;
@@ -687,6 +713,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================================================================
     // 13. CARD ACTIONS DISPATCHER
     // =========================================================================
+    function getRoleApiPrefix() {
+        const path = window.location.pathname.toLowerCase();
+        if (path.startsWith('/eic')) return '/eic';
+        if (path.startsWith('/mpc-head')) return '/mpc-head';
+        return '/executive';
+    }
+
     function handleCardAction(action, id) {
         const article = articles.find(a => String(a.id) === String(id));
         if (!article) return;
@@ -702,9 +735,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 `Are you sure you want to move "${article.title}" to the archived editions? It will no longer appear on the active desk.`,
                 'Move to Archive',
                 async () => {
+                    const prefix = getRoleApiPrefix();
                     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
                     try {
-                        await fetch(`/mpc-head/articles/${article.id}/takedown`, {
+                        const res = await fetch(`${prefix}/articles/${article.id}/takedown`, {
                             method: 'POST',
                             headers: {
                                 'X-CSRF-TOKEN': csrfToken || '',
@@ -712,7 +746,14 @@ document.addEventListener('DOMContentLoaded', () => {
                                 'X-Requested-With': 'XMLHttpRequest'
                             }
                         });
-                    } catch (e) {}
+                        if (!res.ok) {
+                            const errData = await res.json().catch(() => ({}));
+                            showToast(errData.message || 'Failed to archive article.', 'danger');
+                            return;
+                        }
+                    } catch (e) {
+                        console.error('Error archiving article:', e);
+                    }
 
                     article.isArchived = true;
                     article.archived = true;
@@ -729,20 +770,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 `Restore "${article.title}" back to active editorial circulation?`,
                 'Restore Article',
                 async () => {
+                    const prefix = getRoleApiPrefix();
                     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
                     try {
-                        const formData = new FormData();
-                        formData.append('cover_image', article.image || 'images/covers/portal-pubmat.svg');
-                        await fetch(`/mpc-head/articles/${article.id}/approve`, {
+                        const res = await fetch(`${prefix}/articles/${article.id}/republish`, {
                             method: 'POST',
                             headers: {
                                 'X-CSRF-TOKEN': csrfToken || '',
                                 'Accept': 'application/json',
                                 'X-Requested-With': 'XMLHttpRequest'
-                            },
-                            body: formData
+                            }
                         });
-                    } catch (e) {}
+                        if (!res.ok) {
+                            const errData = await res.json().catch(() => ({}));
+                            showToast(errData.message || 'Failed to restore article.', 'danger');
+                            return;
+                        }
+                    } catch (e) {
+                        console.error('Error restoring article:', e);
+                    }
 
                     article.isArchived = false;
                     article.archived = false;
@@ -758,11 +804,31 @@ document.addEventListener('DOMContentLoaded', () => {
                 'Emergency Delete Article',
                 `PERMANENT ACTION: Are you sure you want to permanently delete "${article.title}" by ${article.author}? This operation cannot be reversed.`,
                 'Emergency Delete',
-                () => {
+                async () => {
+                    const prefix = getRoleApiPrefix();
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                    try {
+                        const res = await fetch(`${prefix}/articles/${article.id}`, {
+                            method: 'DELETE',
+                            headers: {
+                                'X-CSRF-TOKEN': csrfToken || '',
+                                'Accept': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        });
+                        if (!res.ok) {
+                            const errData = await res.json().catch(() => ({}));
+                            showToast(errData.message || 'Failed to delete article.', 'danger');
+                            return;
+                        }
+                    } catch (e) {
+                        console.error('Error deleting article:', e);
+                    }
+
                     articles = articles.filter(a => String(a.id) !== String(id));
                     saveArticles(articles);
                     renderArticlesGrid();
-                    showToast(`Article permanently deleted.`, 'danger');
+                    showToast('Article permanently deleted.', 'danger');
                 }
             );
         }
@@ -787,7 +853,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (viewerShares) viewerShares.textContent = Number(article.shares || 0).toLocaleString();
 
         if (viewerArchiveLabel) {
-            viewerArchiveLabel.textContent = article.isArchived ? 'Restore Article' : 'Move to Archive';
+            viewerArchiveLabel.textContent = isArticleArchived(article) ? 'Restore Article' : 'Move to Archive';
         }
 
         // Paragraphs
@@ -853,7 +919,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const art = articles.find(a => String(a.id) === String(id));
                 closeViewerModal();
                 if (art) {
-                    handleCardAction(art.isArchived ? 'restore' : 'archive', id);
+                    handleCardAction(isArticleArchived(art) ? 'restore' : 'archive', id);
                 }
             }
         });

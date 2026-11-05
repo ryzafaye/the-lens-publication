@@ -635,11 +635,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Send AJAX request to backend Laravel endpoint
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        const apiPrefix = window.location.pathname.startsWith('/executive') ? '/executive' : (window.location.pathname.startsWith('/eic') ? '/eic' : '/mpc-head');
         try {
             const formData = new FormData();
             formData.append('cover_image', targetCover);
 
-            await fetch(`/mpc-head/articles/${articleId}/approve`, {
+            await fetch(`${apiPrefix}/articles/${articleId}/approve`, {
                 method: 'POST',
                 headers: {
                     'X-CSRF-TOKEN': csrfToken || '',
@@ -736,8 +737,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Send AJAX request to backend Laravel endpoint
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        const apiPrefix = window.location.pathname.startsWith('/executive') ? '/executive' : (window.location.pathname.startsWith('/eic') ? '/eic' : '/mpc-head');
         try {
-            await fetch(`/mpc-head/articles/${articleId}/takedown`, {
+            await fetch(`${apiPrefix}/articles/${articleId}/takedown`, {
                 method: 'POST',
                 headers: {
                     'X-CSRF-TOKEN': csrfToken || '',

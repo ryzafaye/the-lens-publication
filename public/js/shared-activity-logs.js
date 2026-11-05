@@ -45,6 +45,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const ACTIVITY_STORAGE_KEY = 'executiveActivityLogs_v1';
 
     function loadActivities() {
+        if (Array.isArray(window.LARAVEL_ACTIVITY_LOGS)) {
+            return window.LARAVEL_ACTIVITY_LOGS;
+        }
         try {
             const raw = localStorage.getItem(ACTIVITY_STORAGE_KEY);
             if (raw) {

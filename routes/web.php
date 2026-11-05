@@ -21,8 +21,17 @@ Route::match(['get', 'post'], '/logout', [AuthController::class, 'logout'])->nam
 
 // Shared Authenticated Profile Routes (All Roles)
 Route::middleware('auth')->group(function () {
+    Route::get('/dashboard', function () {
+        $user = Auth::user();
+        $user?->loadMissing('role');
+        $route = AuthController::getDashboardRouteForRole($user?->role?->role_name);
+        return redirect()->route($route);
+    })->name('dashboard.redirect');
+
     Route::post('/profile/update-info', [ProfileController::class, 'updateInfo'])->name('profile.update-info');
     Route::post('/profile/update-password', [ProfileController::class, 'updatePassword'])->name('profile.update-password');
+    Route::put('/profile/update-password', [ProfileController::class, 'updatePassword']);
+    Route::post('/settings/password', [ProfileController::class, 'updatePassword'])->name('profile.settings-password');
 });
 
 // Executive Portal
@@ -45,6 +54,11 @@ Route::middleware(['auth', 'role:President,Executive Vice President,Secretary,As
         Route::post('/manage-accounts', [ExecutiveController::class, 'storeAccount'])->name('manage-accounts.store');
         Route::put('/manage-accounts/{id}/role', [ExecutiveController::class, 'updateRole'])->name('manage-accounts.update-role');
         Route::patch('/manage-accounts/{id}/status', [ExecutiveController::class, 'toggleStatus'])->name('manage-accounts.toggle-status');
+        Route::post('/manage-accounts/{id}/status', [ExecutiveController::class, 'toggleStatus']);
+        Route::put('/manage-accounts/{id}/password', [ExecutiveController::class, 'changeOfficerPassword'])->name('manage-accounts.change-password');
+        Route::post('/manage-accounts/{id}/password', [ExecutiveController::class, 'changeOfficerPassword']);
+        Route::post('/settings/password', [ProfileController::class, 'updatePassword'])->name('settings.password');
+        Route::post('/profile/update-password', [ProfileController::class, 'updatePassword']);
         Route::get('/activity-logs', [ExecutiveController::class, 'activityLogs'])->name('activity-logs');
         Route::get('/transparency', [ExecutiveController::class, 'transparency'])->name('transparency');
         Route::get('/feedback', [ExecutiveController::class, 'feedback'])->name('feedback');
@@ -52,6 +66,12 @@ Route::middleware(['auth', 'role:President,Executive Vice President,Secretary,As
         Route::get('/profile-settings', [ExecutiveController::class, 'profileSettings'])->name('profile-settings');
         Route::get('/settings', fn () => redirect()->route('executive.profile-settings'));
         Route::delete('/drafts/{id}', [ExecutiveController::class, 'destroyDraft'])->name('destroyDraft');
+        Route::post('/articles/{id}/approve', [MpcHeadController::class, 'approveArticle'])->name('articles.approve');
+        Route::post('/articles/{id}/revision', [MpcHeadController::class, 'returnForRevision'])->name('articles.revision');
+        Route::post('/articles/{id}/decline', [MpcHeadController::class, 'declineArticle'])->name('articles.decline');
+        Route::post('/articles/{id}/takedown', [MpcHeadController::class, 'takedownArticle'])->name('articles.takedown');
+        Route::post('/articles/{id}/republish', [MpcHeadController::class, 'republishArticle'])->name('articles.republish');
+        Route::delete('/articles/{id}', [MpcHeadController::class, 'destroyArticle'])->name('articles.destroy');
 
         // Aliases for relative lens-ui file links
         Route::get('/executive-dashboard.html', fn () => redirect()->route('executive.dashboard'));
@@ -182,6 +202,11 @@ Route::middleware(['auth', 'role:Editor-in-Chief,Associate Editor-in-Chief'])
         Route::post('/manage-accounts', [EicController::class, 'storeAccount'])->name('manage-accounts.store');
         Route::put('/manage-accounts/{id}/role', [EicController::class, 'updateRole'])->name('manage-accounts.update-role');
         Route::patch('/manage-accounts/{id}/status', [EicController::class, 'toggleStatus'])->name('manage-accounts.toggle-status');
+        Route::post('/manage-accounts/{id}/status', [EicController::class, 'toggleStatus']);
+        Route::put('/manage-accounts/{id}/password', [EicController::class, 'changeOfficerPassword'])->name('manage-accounts.change-password');
+        Route::post('/manage-accounts/{id}/password', [EicController::class, 'changeOfficerPassword']);
+        Route::post('/settings/password', [ProfileController::class, 'updatePassword'])->name('settings.password');
+        Route::post('/profile/update-password', [ProfileController::class, 'updatePassword']);
         Route::get('/activity-logs', [EicController::class, 'activityLogs'])->name('activity-logs');
         Route::get('/transparency', [EicController::class, 'transparency'])->name('transparency');
         Route::get('/feedback-inbox', [EicController::class, 'feedbackInbox'])->name('feedback-inbox');
@@ -189,6 +214,10 @@ Route::middleware(['auth', 'role:Editor-in-Chief,Associate Editor-in-Chief'])
         Route::get('/profile-settings', [EicController::class, 'profileSettings'])->name('profile-settings');
         Route::get('/settings', fn () => redirect()->route('eic.profile-settings'));
         Route::delete('/drafts/{id}', [EicController::class, 'destroyDraft'])->name('destroyDraft');
+        Route::post('/articles/{id}/approve', [MpcHeadController::class, 'approveArticle'])->name('articles.approve');
+        Route::post('/articles/{id}/takedown', [MpcHeadController::class, 'takedownArticle'])->name('articles.takedown');
+        Route::post('/articles/{id}/republish', [MpcHeadController::class, 'republishArticle'])->name('articles.republish');
+        Route::delete('/articles/{id}', [MpcHeadController::class, 'destroyArticle'])->name('articles.destroy');
 
         Route::get('/eic-dashboard.html', fn () => redirect()->route('eic.dashboard'));
         Route::get('/dashboard.html', fn () => redirect()->route('eic.dashboard'));
@@ -222,7 +251,7 @@ Route::middleware(['auth', 'role:Editor-in-Chief,Associate Editor-in-Chief'])
     });
 
 // Media & Public Communications Head Portal
-Route::middleware(['auth', 'role:Media and Public Communications Head,Associate Media and Public Communications Head,Media & Public Communications Head,Assoc M&PC Head,Editor-in-Chief,Associate Editor-in-Chief,President,Executive Vice President,Vice President,Secretary,Associate Secretary,Treasurer,Auditor,Public Relations Officer'])
+Route::middleware(['auth', 'role:Media and Public Communications Head,Associate Media and Public Communications Head,Media & Public Communications Head,Assoc M&PC Head'])
     ->prefix('mpc-head')
     ->name('mpc-head.')
     ->group(function () {
@@ -253,6 +282,7 @@ Route::middleware(['auth', 'role:Media and Public Communications Head,Associate 
         Route::post('/articles/{id}/decline', [MpcHeadController::class, 'declineArticle'])->name('articles.decline');
         Route::post('/articles/{id}/takedown', [MpcHeadController::class, 'takedownArticle'])->name('articles.takedown');
         Route::post('/articles/{id}/republish', [MpcHeadController::class, 'republishArticle'])->name('articles.republish');
+        Route::delete('/articles/{id}', [MpcHeadController::class, 'destroyArticle'])->name('articles.destroy');
 
         Route::get('/{page}.html', function ($page) {
             return app(PublicSiteController::class)->renderPortalPage($page . '.html');
@@ -315,6 +345,12 @@ Route::get('/author', function (\Illuminate\Http\Request $request) {
     $queryString = $request->getQueryString();
     return redirect('/author.html' . ($queryString ? '?' . $queryString : ''));
 })->name('public-site.author');
+
+// Archives friendly URL
+Route::get('/archives', function (\Illuminate\Http\Request $request) {
+    $queryString = $request->getQueryString();
+    return redirect('/archives.html' . ($queryString ? '?' . $queryString : ''));
+})->name('public-site.archives');
 
 // Catch-all asset redirects for any nested role paths requesting /prefix/images/xxx
 Route::get('{prefix}/images/{file}', fn ($prefix, $file) => redirect('/site-assets/images/' . $file))->where('prefix', '.+');

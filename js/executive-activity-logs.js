@@ -42,6 +42,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const defaultActivities = [];
 
     function loadActivities() {
+        if (Array.isArray(window.LARAVEL_ACTIVITY_LOGS)) {
+            return window.LARAVEL_ACTIVITY_LOGS;
+        }
         try {
             const raw = localStorage.getItem(ACTIVITY_STORAGE_KEY);
             if (raw) {

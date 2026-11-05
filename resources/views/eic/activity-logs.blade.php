@@ -69,6 +69,9 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('js/shared-activity-logs.js') }}"></script>
+<script>
+    window.LARAVEL_ACTIVITY_LOGS = {!! json_encode($activities ?? [], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) !!};
+</script>
+<script src="{{ asset('js/shared-activity-logs.js') }}"></script>
 @endpush
 

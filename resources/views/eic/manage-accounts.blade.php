@@ -91,6 +91,8 @@
                     name="student_number"
                     class="form-input" 
                     placeholder="e.g. 2024-00123-BN-0" 
+                    pattern="^\d{4}-\d{4,5}-[A-Za-z0-9]{2,4}-\d$"
+                    title="Format: YYYY-XXXXX-BN-0 (e.g. 2024-00123-BN-0)"
                     required>
             </div>
 
@@ -105,14 +107,43 @@
                     required>
             </div>
 
+@php
+    $isExecutivePortal = request()->is('executive*');
+    $execRoles = ['President', 'Executive Vice President', 'Secretary', 'Associate Secretary', 'Treasurer', 'Auditor', 'Public Relations Officer'];
+@endphp
+
             <div class="form-field">
                 <label for="officer-input-role">Role *</label>
                 <select id="officer-input-role" name="role_id" class="form-select" required>
                     <option value="" disabled selected>Select role...</option>
                     @foreach($roles ?? [] as $roleItem)
-                        <option value="{{ $roleItem->role_name }}" data-id="{{ $roleItem->id }}">{{ $roleItem->role_name }}</option>
+                        @php
+                            $isExec = in_array($roleItem->role_name, $execRoles);
+                            $isDisabled = (!$isExecutivePortal && $isExec);
+                        @endphp
+                        <option value="{{ $roleItem->role_name }}" data-id="{{ $roleItem->id }}" {{ $isDisabled ? 'disabled' : '' }}>
+                            {{ $roleItem->role_name }}{{ $isDisabled ? ' (Executive Only)' : '' }}
+                        </option>
                     @endforeach
                 </select>
+            </div>
+
+            <div class="form-field">
+                <label for="officer-input-password">Password *</label>
+                <div class="password-input-wrapper" style="position: relative;">
+                    <input 
+                        type="password" 
+                        id="officer-input-password" 
+                        name="password"
+                        class="form-input" 
+                        placeholder="Enter password (min. 6 characters)" 
+                        required 
+                        minlength="6"
+                        autocomplete="new-password">
+                    <button type="button" class="password-toggle-btn" data-target="officer-input-password" aria-label="Toggle password visibility" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #64748b;">
+                        <i class="fa-regular fa-eye"></i>
+                    </button>
+                </div>
             </div>
 
             <!-- Footer with Maroon Designed Create Account Button -->
@@ -198,7 +229,13 @@
                 <select id="edit-role-select" name="role_id" class="form-select" required>
                     <option value="" disabled selected>Select role...</option>
                     @foreach($roles ?? [] as $roleItem)
-                        <option value="{{ $roleItem->role_name }}" data-id="{{ $roleItem->id }}">{{ $roleItem->role_name }}</option>
+                        @php
+                            $isExec = in_array($roleItem->role_name, $execRoles);
+                            $isDisabled = (!$isExecutivePortal && $isExec);
+                        @endphp
+                        <option value="{{ $roleItem->role_name }}" data-id="{{ $roleItem->id }}" {{ $isDisabled ? 'disabled' : '' }}>
+                            {{ $roleItem->role_name }}{{ $isDisabled ? ' (Executive Only)' : '' }}
+                        </option>
                     @endforeach
                 </select>
             </div>
@@ -215,19 +252,81 @@
     </div>
 </div>
 
+<!-- ====================================================================== -->
+<!-- MODAL 4: CHANGE OFFICER PASSWORD MODAL                                -->
+<!-- ====================================================================== -->
+<div id="change-password-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="change-password-modal-title">
+    <div class="modal-card edit-modal-card">
+        
+        <div class="modal-header-simple">
+            <h3 id="change-password-modal-title" class="modal-title font-semibold text-base">
+                <i class="fa-solid fa-key text-[#5c0a18]"></i>
+                <span>Change Officer Password</span>
+            </h3>
+            <button type="button" id="btn-close-password-modal" class="viewer-close-btn" aria-label="Close dialog">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <form id="change-officer-password-form" class="edit-modal-form" novalidate>
+            
+            <div class="edit-role-officer-banner">
+                <div class="edit-role-avatar-wrap">
+                    <img id="change-password-avatar" src="{{ asset('images/member-placeholder.svg') }}" alt="Officer Avatar" class="edit-role-avatar-img">
+                </div>
+                <div class="edit-role-officer-info">
+                    <div id="change-password-officer-name" class="edit-role-name">Officer Name</div>
+                    <div id="change-password-current-badge" class="edit-role-current">Role: <strong>Role</strong></div>
+                </div>
+            </div>
+
+            <div class="form-field">
+                <label for="officer-new-password">New Password *</label>
+                <div class="password-input-wrapper" style="position: relative;">
+                    <input 
+                        type="password" 
+                        id="officer-new-password" 
+                        name="password"
+                        class="form-input" 
+                        placeholder="Enter new password (min. 6 characters)" 
+                        required 
+                        minlength="6"
+                        autocomplete="new-password">
+                    <button type="button" class="password-toggle-btn" data-target="officer-new-password" aria-label="Toggle password visibility" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #64748b;">
+                        <i class="fa-regular fa-eye"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="modal-single-btn-footer">
+                <button type="submit" class="btn-modal-submit-maroon">
+                    <i class="fa-solid fa-check"></i>
+                    <span>Update Password</span>
+                </button>
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
 <!-- Toast Notifications Fallback Container -->
 <div id="toast-container" class="toast-container" aria-live="polite"></div>
 @endsection
 
 @push('scripts')
     <script>
+        window.CURRENT_USER_ID = {{ auth()->id() ?? 'null' }};
+        window.CURRENT_USER_ROLE = "{{ auth()->user()?->role?->role_name ?? '' }}";
+        window.IS_EXECUTIVE_PORTAL = {{ request()->is('executive*') ? 'true' : 'false' }};
         window.OFFICER_DATA = @json($officers ?? []);
         window.AVAILABLE_ROLES = @json($roles ?? []);
         window.__ACCOUNT_ROUTES__ = {
             base: "{{ url(request()->is('executive*') ? '/executive/manage-accounts' : '/eic/manage-accounts') }}",
             store: "{{ url(request()->is('executive*') ? '/executive/manage-accounts' : '/eic/manage-accounts') }}",
             updateRole: "{{ url(request()->is('executive*') ? '/executive/manage-accounts' : '/eic/manage-accounts') }}",
-            toggleStatus: "{{ url(request()->is('executive*') ? '/executive/manage-accounts' : '/eic/manage-accounts') }}"
+            toggleStatus: "{{ url(request()->is('executive*') ? '/executive/manage-accounts' : '/eic/manage-accounts') }}",
+            changePassword: "{{ url(request()->is('executive*') ? '/executive/manage-accounts' : '/eic/manage-accounts') }}"
         };
     </script>
     <script src="{{ asset('js/executive-manage-accounts.js') }}"></script>

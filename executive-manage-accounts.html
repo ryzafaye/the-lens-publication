@@ -317,8 +317,11 @@
                     <input 
                         type="text" 
                         id="officer-input-student-id" 
+                        name="student_number"
                         class="form-input" 
-                        placeholder="e.g. 2023-00123-BN-0" 
+                        placeholder="e.g. 2024-00123-BN-0" 
+                        pattern="^\d{4}-\d{4,5}-[A-Za-z0-9]{2,4}-\d$"
+                        title="Expected format: YYYY-XXXXX-BN-0 (e.g. 2024-00123-BN-0)"
                         required>
                 </div>
 
@@ -337,18 +340,45 @@
                     <select id="officer-input-role" class="form-select" required>
                         <option value="" disabled selected>Select role...</option>
                         <option value="President">President</option>
-                        <option value="Vice President">Vice President</option>
+                        <option value="Executive Vice President">Executive Vice President</option>
+                        <option value="Secretary">Secretary</option>
+                        <option value="Associate Secretary">Associate Secretary</option>
+                        <option value="Treasurer">Treasurer</option>
+                        <option value="Auditor">Auditor</option>
+                        <option value="Public Relations Officer">Public Relations Officer</option>
                         <option value="Editor-in-Chief">Editor-in-Chief</option>
-                        <option value="Associate Editor">Associate Editor</option>
-                        <option value="Managing Editor">Managing Editor</option>
+                        <option value="Associate Editor-in-Chief">Associate Editor-in-Chief</option>
                         <option value="Section Head - News">Section Head - News</option>
                         <option value="Section Head - Features">Section Head - Features</option>
                         <option value="Section Head - Opinions">Section Head - Opinions</option>
                         <option value="Section Head - SciTech">Section Head - SciTech</option>
                         <option value="Section Head - Literature">Section Head - Literature</option>
-                        <option value="M&PC Head">M&PC Head</option>
-                        <option value="Assoc M&PC Head">Assoc M&PC Head</option>
+                        <option value="Media and Public Communications Head">Media and Public Communications Head</option>
+                        <option value="Associate Media and Public Communications Head">Associate Media and Public Communications Head</option>
+                        <option value="Photojournalist Head">Photojournalist Head</option>
+                        <option value="Cartoonist Head">Cartoonist Head</option>
+                        <option value="Writer">Writer</option>
+                        <option value="Cartoonist">Cartoonist</option>
+                        <option value="Media Team">Media Team</option>
                     </select>
+                </div>
+
+                <div class="form-field">
+                    <label for="officer-input-password">Password *</label>
+                    <div class="password-input-wrapper" style="position: relative;">
+                        <input 
+                            type="password" 
+                            id="officer-input-password" 
+                            name="password"
+                            class="form-input" 
+                            placeholder="Enter password (min. 6 characters)" 
+                            required 
+                            minlength="6"
+                            autocomplete="new-password">
+                        <button type="button" class="password-toggle-btn" data-target="officer-input-password" aria-label="Toggle password visibility" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #64748b;">
+                            <i class="fa-regular fa-eye"></i>
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Footer with Maroon Designed Create Account Button (Cancel removed per user request) -->

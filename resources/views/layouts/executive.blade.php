@@ -20,27 +20,13 @@
 
     <script>
         @auth
-            const rawRole = "{!! Auth::user()->role->role_name ?? 'News Head' !!}";
-            const userName = "{!! Auth::user()->full_name ?? 'Section Head' !!}";
-            
-            // Exact mapping from Database Role to Dropdown Value
-            let derivedSection = rawRole.replace(/ Head/i, '').trim();
-            
-            if (derivedSection.toLowerCase() === 'literary') {
-                derivedSection = 'Literature';
-            } else if (derivedSection.toLowerCase() === 'science and technology') {
-                derivedSection = 'Science & Technology';
-            } else if (derivedSection.toLowerCase() === 'opinion') {
-                derivedSection = 'Opinion';
-            } else if (derivedSection.toLowerCase() === 'feature') {
-                derivedSection = 'Feature'; 
-            }
-
-            // Expose globally for the Vanilla JS to consume
-            window.LARAVEL_USER_ROLE = rawRole;
-            window.LARAVEL_USER_SECTION = derivedSection;
-
+            const rawRole = "{!! Auth::user()->role->role_name ?? 'President' !!}";
+            const userName = "{!! Auth::user()->full_name ?? 'Executive' !!}";
             const studentNum = "{!! Auth::user()->student_number ?? '' !!}";
+
+            // Expose globally for JS to consume
+            window.LARAVEL_USER_ROLE = rawRole;
+            window.LARAVEL_USER_NAME = userName;
 
             // Sync for fallback logic in existing JS files
             localStorage.setItem('userRole', rawRole);
@@ -49,10 +35,6 @@
             localStorage.setItem('executiveRole', rawRole);
             localStorage.setItem('executiveName', userName);
             localStorage.setItem('executiveStudentNumber', studentNum);
-            localStorage.setItem('sectionHeadRole', rawRole);
-            localStorage.setItem('sectionHeadName', userName);
-            localStorage.setItem('sectionHeadStudentNumber', studentNum);
-            localStorage.setItem('sectionHeadSection', derivedSection);
         @endauth
     </script>
 </head>

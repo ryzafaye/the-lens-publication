@@ -576,22 +576,7 @@ class EicController extends Controller
 
     public function feedbackInbox()
     {
-        $feedbacks = Cache::remember('eic_feedbacks_list', 30, function () {
-            return Feedback::latest()->get()->map(function ($fb) {
-                return [
-                    'id' => (string) $fb->id,
-                    'name' => $fb->name ?? '',
-                    'email' => $fb->email ?? '',
-                    'subject' => $fb->subject,
-                    'message' => $fb->message,
-                    'date' => $fb->created_at->diffForHumans(),
-                    'fullDate' => $fb->created_at->format('M d, Y • h:i A'),
-                    'timestamp' => $fb->created_at->getTimestamp() * 1000,
-                    'isRead' => (bool) $fb->is_read,
-                ];
-            });
-        });
-
+        $feedbacks = [];
         return view('eic.feedback-inbox', compact('feedbacks'));
     }
 

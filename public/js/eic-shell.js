@@ -37,7 +37,9 @@ try {
             'mpcActivityLogs_v1',
             'cartoonistHeadActivityLogs_v1',
             'eicActivityLogs_v1',
-            'sectionHeadActivityLogs_v1'
+            'sectionHeadActivityLogs_v1',
+            'executiveFeedbackInbox_v1',
+            'theLensFeedbackDemoSubmissions'
         ];
         keysToRemove.forEach(k => localStorage.removeItem(k));
         localStorage.setItem(CLEAR_FLAG, 'true');

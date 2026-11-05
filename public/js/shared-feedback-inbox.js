@@ -46,7 +46,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================================================================
     // 3. SHARED FEEDBACK DATASET MANAGEMENT
     // =========================================================================
-    const INBOX_STORAGE_KEY = 'executiveFeedbackInbox_v1';
+    // Purge any stale mock/hardcoded items from previous sessions
+    try {
+        localStorage.removeItem('executiveFeedbackInbox_v1');
+        sessionStorage.removeItem('theLensFeedbackDemoSubmissions');
+    } catch (e) {}
 
     function loadFeedbacks() {
         if (window.INITIAL_DATA !== undefined && Array.isArray(window.INITIAL_DATA)) {
@@ -63,69 +67,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }));
         }
 
-        let stored = [];
-        try {
-            const raw = localStorage.getItem(INBOX_STORAGE_KEY);
-            if (raw) {
-                const parsed = JSON.parse(raw);
-                if (Array.isArray(parsed) && parsed.length > 0) {
-                    stored = parsed;
-                }
-            }
-        } catch (e) {
-            console.warn('Could not read executiveFeedbackInbox_v1', e);
-        }
-
-        // Also check if any submissions were made via public feedback form (sessionStorage)
-        try {
-            const pubRaw = sessionStorage.getItem('theLensFeedbackDemoSubmissions');
-            if (pubRaw) {
-                const pubParsed = JSON.parse(pubRaw);
-                if (Array.isArray(pubParsed) && pubParsed.length > 0) {
-                    pubParsed.forEach(item => {
-                        if (!stored.some(s => s.id === item.id)) {
-                            const savedTime = item.savedAt ? new Date(item.savedAt).getTime() : Date.now();
-                            stored.unshift({
-                                id: item.id || `fb-${Date.now()}`,
-                                name: item.name || '',
-                                subject: item.subject || 'Reader Feedback',
-                                message: item.message || '',
-                                date: 'Just now',
-                                fullDate: new Date(savedTime).toLocaleString('en-US', {
-                                    month: 'short',
-                                    day: 'numeric',
-                                    year: 'numeric',
-                                    hour: 'numeric',
-                                    minute: '2-digit',
-                                    hour12: true
-                                }),
-                                timestamp: savedTime,
-                                isRead: false
-                            });
-                        }
-                    });
-                }
-            }
-        } catch (e) {
-            // Ignore
-        }
-
-        // Ensure each item has a numeric timestamp
-        stored.forEach((item, index) => {
-            if (!item.timestamp) {
-                item.timestamp = Date.now() - index * 60 * 60 * 1000;
-            }
-        });
-
-        return stored;
+        return [];
     }
 
     function saveFeedbacks(list) {
-        try {
-            localStorage.setItem(INBOX_STORAGE_KEY, JSON.stringify(list));
-        } catch (e) {
-            console.error('Failed saving feedbacks:', e);
-        }
+        // No-op until backend feedback endpoints are wired
     }
 
     let feedbackList = loadFeedbacks();

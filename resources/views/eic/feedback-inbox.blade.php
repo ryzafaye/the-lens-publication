@@ -16,8 +16,19 @@
             <h1 class="feedback-page-title">Feedback Inbox</h1>
         </div>
 
+        <!-- Clean Empty State when Inbox has no submissions (No boxes shown) -->
+        <div class="feedback-empty-state {{ count($feedbacks ?? []) === 0 ? '' : 'hidden' }}" id="feedback-empty-state">
+            <div class="feedback-empty-card">
+                <div class="feedback-empty-icon-wrap">
+                    <i class="fa-regular fa-envelope-open"></i>
+                </div>
+                <h2 class="feedback-empty-heading">No feedback messages yet</h2>
+                <p class="feedback-empty-description">When readers submit feedback, suggestions, or comments through the publication, they will appear here in your inbox.</p>
+            </div>
+        </div>
+
         <!-- Search, Filter, and Sort Controls Bar (Directly under Title) -->
-        <div class="feedback-controls-bar">
+        <div class="feedback-controls-bar {{ count($feedbacks ?? []) === 0 ? 'hidden' : '' }}" id="feedback-controls-bar">
             <div class="feedback-search-box">
                 <i class="fa-solid fa-magnifying-glass feedback-search-icon"></i>
                 <input 
@@ -60,7 +71,7 @@
         </div>
 
         <!-- Master-Detail Split Inbox Layout -->
-        <div class="inbox-split-grid">
+        <div class="inbox-split-grid {{ count($feedbacks ?? []) === 0 ? 'hidden' : '' }}" id="inbox-split-grid">
             
             <!-- Left: Scrollable Message List -->
             <div class="inbox-list-pane">

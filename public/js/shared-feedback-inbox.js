@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const INBOX_STORAGE_KEY = 'executiveFeedbackInbox_v1';
 
     function loadFeedbacks() {
-        if (window.INITIAL_DATA && Array.isArray(window.INITIAL_DATA) && window.INITIAL_DATA.length > 0) {
+        if (window.INITIAL_DATA !== undefined && Array.isArray(window.INITIAL_DATA)) {
             return window.INITIAL_DATA.map(item => ({
                 id: String(item.id),
                 name: item.name || '',
@@ -109,9 +109,6 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) {
             // Ignore
         }
-
-        return stored;
-    }
 
         // Ensure each item has a numeric timestamp
         stored.forEach((item, index) => {
@@ -192,11 +189,30 @@ document.addEventListener('DOMContentLoaded', () => {
     // 6. RENDERING
     // =========================================================================
     function renderList() {
+        const emptyState = document.getElementById('feedback-empty-state');
+        const controlsBar = document.getElementById('feedback-controls-bar');
+        const splitGrid = document.getElementById('inbox-split-grid');
+
+        // If the inbox is completely empty: show empty message card, DO NOT show the boxes
+        if (feedbackList.length === 0) {
+            if (emptyState) emptyState.classList.remove('hidden');
+            if (controlsBar) controlsBar.classList.add('hidden');
+            if (splitGrid) splitGrid.classList.add('hidden');
+            updateBadges();
+            return;
+        }
+
+        // If inbox has feedback: ensure boxes & controls are shown, hide empty message card
+        if (emptyState) emptyState.classList.add('hidden');
+        if (controlsBar) controlsBar.classList.remove('hidden');
+        if (splitGrid) splitGrid.classList.remove('hidden');
+
         updateBadges();
         const filtered = getFilteredList();
 
         if (!scrollList) return;
 
+        // If active search query yielded no results inside the list
         if (filtered.length === 0) {
             scrollList.innerHTML = `
                 <div class="inbox-empty-box">

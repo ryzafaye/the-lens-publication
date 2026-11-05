@@ -39,6 +39,67 @@ html {
     white-space: nowrap;
 }
 
+/* Clean Empty State (When Feedback Inbox has No Submissions) */
+.feedback-empty-state {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 60px 20px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.feedback-empty-state.hidden,
+.feedback-controls-bar.hidden,
+.inbox-split-grid.hidden {
+    display: none !important;
+}
+
+.feedback-empty-card {
+    background: #ffffff;
+    border: 1px dashed #d0d5dd;
+    border-radius: 16px;
+    padding: 56px 36px;
+    text-align: center;
+    max-width: 520px;
+    width: 100%;
+    box-sizing: border-box;
+    box-shadow: 0 1px 3px rgba(16, 24, 40, 0.05);
+}
+
+.feedback-empty-icon-wrap {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background-color: #fdf2f4;
+    color: var(--sidebar-maroon, #5c0a18);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.75rem;
+    margin-bottom: 20px;
+}
+
+.feedback-empty-heading {
+    font-family: var(--font-heading, 'Playfair Display', Georgia, serif);
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: #101828;
+    margin: 0 0 10px 0;
+    line-height: 1.3;
+}
+
+.feedback-empty-description {
+    font-family: var(--font-sans, 'DM Sans', sans-serif);
+    font-size: 0.9rem;
+    color: #667085;
+    line-height: 1.55;
+    margin: 0;
+    max-width: 420px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
 /* Filter & Search Bar */
 .feedback-controls-bar {
     display: flex;

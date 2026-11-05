@@ -88,7 +88,7 @@ class ExecutiveController extends Controller
                 return [
                     'id' => $art->id,
                     'title' => $art->title,
-                    'author' => $art->user->full_name ?? 'Staff Writer',
+                    'author' => $art->user->full_name ?? 'Author',
                     'category' => $art->category->name ?? 'General',
                     'status' => $art->status,
                     'date' => $art->created_at->format('M d, Y'),

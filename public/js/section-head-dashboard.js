@@ -377,7 +377,38 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // =========================================================================
-    // 8. IN-PLACE ARTICLE VIEWER MODAL
+    // 8. NOTIFICATION TOAST UTILITY
+    // =========================================================================
+    const toastContainer = document.getElementById('toast-container');
+    function showToast(message, type = 'success') {
+        if (!toastContainer) return;
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        
+        let icon = 'fa-circle-check';
+        if (type === 'warning' || type === 'error' || type === 'danger') icon = 'fa-triangle-exclamation';
+        if (type === 'info') icon = 'fa-circle-info';
+
+        toast.innerHTML = `
+            <i class="fa-solid ${icon}"></i>
+            <span>${escapeHTML(message)}</span>
+        `;
+        toastContainer.appendChild(toast);
+
+        setTimeout(() => {
+            toast.classList.add('toast-show');
+        }, 10);
+
+        setTimeout(() => {
+            toast.classList.remove('toast-show');
+            setTimeout(() => {
+                if (toast.parentNode) toast.parentNode.removeChild(toast);
+            }, 300);
+        }, 3500);
+    }
+
+    // =========================================================================
+    // 9. IN-PLACE ARTICLE VIEWER MODAL WITH REVIEW ACTIONS (Approve / Revision)
     // =========================================================================
     const viewerModal = document.getElementById('article-viewer-modal');
     const closeViewerBtn = document.getElementById('close-viewer-btn');
@@ -386,15 +417,66 @@ document.addEventListener('DOMContentLoaded', () => {
     const viewerTitle = document.getElementById('viewer-title');
     const viewerAuthor = document.getElementById('viewer-author');
     const viewerContent = document.getElementById('viewer-content');
-    const viewerReviewBtn = document.getElementById('viewer-review-btn');
+    const viewerModalFooter = document.getElementById('viewer-modal-footer');
+    const viewerRemarksSection = document.getElementById('viewer-remarks-section');
+    const viewerRemarks = document.getElementById('viewer-remarks');
+    const viewerRemarksError = document.getElementById('viewer-remarks-error');
+    const viewerApproveBtn = document.getElementById('viewer-approve-btn');
+    const viewerRevisionBtn = document.getElementById('viewer-revision-btn');
+
+    let currentActiveArticle = null;
+    const reviewBaseUrl = window.__REVIEW_ARTICLES_URL__ || (window.location.pathname.startsWith('/section-head') ? '/section-head/review-articles' : '/executive/review-articles');
+
+    function removeArticleFromView(targetId) {
+        pendingQueue = pendingQueue.filter(a => String(a.id) !== String(targetId));
+        sectionPending = sectionPending.filter(a => String(a.id) !== String(targetId));
+        if (window.__DASHBOARD_PENDING__ && Array.isArray(window.__DASHBOARD_PENDING__)) {
+            window.__DASHBOARD_PENDING__ = window.__DASHBOARD_PENDING__.filter(a => String(a.id) !== String(targetId));
+        }
+
+        if (submissionsTableBody) {
+            if (sectionPending.length === 0) {
+                submissionsTableBody.innerHTML = `<tr><td colspan="5" style="font-size: 0.85rem; color: #667085; text-align: center; padding: 24px 0; border-bottom: none; pointer-events: none; background: transparent;">No pending submissions for this section.</td></tr>`;
+            } else {
+                submissionsTableBody.innerHTML = sectionPending.map(item => `
+                    <tr>
+                        <td>
+                            <button type="button" class="table-article-btn" data-action="view-modal" data-id="${item.id}" title="${escapeHTML(item.title)}">
+                                ${escapeHTML(item.title)}
+                            </button>
+                        </td>
+                        <td><span class="table-author">${escapeHTML(item.author || 'Author')}</span></td>
+                        <td>${getStatusBadgeHtml('In Review')}</td>
+                        <td class="hide-on-mobile"><span class="table-date">${escapeHTML(item.date)}</span></td>
+                        <td class="text-right">
+                            <a href="${reviewBaseUrl}" class="table-manage-btn" title="Review Article">
+                                Manage
+                            </a>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+        }
+
+        // Update metric card counter
+        const metricCards = document.querySelectorAll('.metric-card');
+        metricCards.forEach(card => {
+            const label = card.querySelector('.metric-label')?.textContent?.trim();
+            if (label && label.includes('Pending')) {
+                const valEl = card.querySelector('.metric-value');
+                if (valEl) valEl.textContent = String(sectionPending.length);
+            }
+        });
+    }
 
     function openModalForArticle(art) {
         if (!viewerModal || !art) return;
+        currentActiveArticle = art;
 
         if (viewerCategory) viewerCategory.textContent = art.category || currentSection;
         if (viewerDate) viewerDate.textContent = art.date || 'Recent';
         if (viewerTitle) viewerTitle.textContent = art.title || 'Untitled';
-        if (viewerAuthor) viewerAuthor.textContent = art.author || 'Staff Writer';
+        if (viewerAuthor) viewerAuthor.textContent = art.author || 'Author';
 
         const viewerExcerpt = document.getElementById('viewer-excerpt');
         if (viewerExcerpt) {
@@ -410,16 +492,157 @@ document.addEventListener('DOMContentLoaded', () => {
             viewerContent.innerHTML = formatCleanArticleContent(art.content || art.excerpt);
         }
 
+        // Reset remarks input
+        if (viewerRemarks) {
+            viewerRemarks.value = '';
+            viewerRemarks.classList.remove('input-invalid');
+        }
+        if (viewerRemarksError) {
+            viewerRemarksError.classList.add('hidden');
+        }
+
+        // Display review action buttons only for pending submissions
+        const statusLower = (art.status || 'pending').toLowerCase();
+        const isPending = statusLower.includes('pending') || statusLower.includes('review') || !statusLower.includes('publish');
+        if (viewerModalFooter) {
+            viewerModalFooter.style.display = isPending ? 'flex' : 'none';
+        }
+        if (viewerRemarksSection) {
+            viewerRemarksSection.style.display = isPending ? 'block' : 'none';
+        }
+
         viewerModal.classList.remove('hidden');
     }
 
-    // Click handlers for table rows and ranked cards
+    // Approve Action Handler
+    if (viewerApproveBtn) {
+        viewerApproveBtn.addEventListener('click', async () => {
+            if (!currentActiveArticle) return;
+            const targetId = currentActiveArticle.id;
+            const targetTitle = currentActiveArticle.title;
+
+            viewerApproveBtn.disabled = true;
+            if (viewerRevisionBtn) viewerRevisionBtn.disabled = true;
+            const originalHtml = viewerApproveBtn.innerHTML;
+            viewerApproveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>Approving...</span>';
+
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+            try {
+                const response = await fetch(`${reviewBaseUrl}/${targetId}/approve`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json',
+                    }
+                });
+
+                const data = await response.json().catch(() => ({}));
+
+                if (response.ok && data.success !== false) {
+                    viewerModal.classList.add('hidden');
+                    showToast(data.message || `Approved "${targetTitle}" and forwarded to Editor-in-Chief.`, 'success');
+                    removeArticleFromView(targetId);
+                } else {
+                    showToast(data.message || 'Failed to approve manuscript.', 'danger');
+                }
+            } catch (err) {
+                console.error('Approval request failed:', err);
+                showToast('A network error occurred while approving the manuscript.', 'danger');
+            } finally {
+                viewerApproveBtn.disabled = false;
+                if (viewerRevisionBtn) viewerRevisionBtn.disabled = false;
+                viewerApproveBtn.innerHTML = originalHtml;
+            }
+        });
+    }
+
+    // For Revision Action Handler
+    if (viewerRevisionBtn) {
+        viewerRevisionBtn.addEventListener('click', async () => {
+            if (!currentActiveArticle) return;
+            const targetId = currentActiveArticle.id;
+            const targetTitle = currentActiveArticle.title;
+
+            const remarks = viewerRemarks ? viewerRemarks.value.trim() : '';
+            if (!remarks) {
+                if (viewerRemarks) {
+                    viewerRemarks.classList.add('input-invalid');
+                    viewerRemarks.focus();
+                }
+                if (viewerRemarksError) {
+                    viewerRemarksError.classList.remove('hidden');
+                }
+                return;
+            }
+
+            viewerRevisionBtn.disabled = true;
+            if (viewerApproveBtn) viewerApproveBtn.disabled = true;
+            const originalHtml = viewerRevisionBtn.innerHTML;
+            viewerRevisionBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>Returning...</span>';
+
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+            try {
+                const response = await fetch(`${reviewBaseUrl}/${targetId}/revision`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({ remarks: remarks })
+                });
+
+                const data = await response.json().catch(() => ({}));
+
+                if (response.ok && data.success !== false) {
+                    viewerModal.classList.add('hidden');
+                    showToast(data.message || `Returned "${targetTitle}" to writer with revision remarks.`, 'warning');
+                    removeArticleFromView(targetId);
+                } else {
+                    showToast(data.message || 'Failed to return manuscript for revision.', 'danger');
+                }
+            } catch (err) {
+                console.error('Revision request failed:', err);
+                showToast('A network error occurred while returning the manuscript.', 'danger');
+            } finally {
+                viewerRevisionBtn.disabled = false;
+                if (viewerApproveBtn) viewerApproveBtn.disabled = false;
+                viewerRevisionBtn.innerHTML = originalHtml;
+            }
+        });
+    }
+
+    // Clear remarks error on user input
+    if (viewerRemarks) {
+        viewerRemarks.addEventListener('input', () => {
+            if (viewerRemarks.value.trim().length > 0) {
+                viewerRemarks.classList.remove('input-invalid');
+                if (viewerRemarksError) viewerRemarksError.classList.add('hidden');
+            }
+        });
+    }
+
+    // Click handlers for table rows and ranked cards to view modal
     document.addEventListener('click', (e) => {
-        const trigger = e.target.closest('[data-action="view-modal"]');
+        const trigger = e.target.closest('[data-action="view-modal"], [data-action="view"]');
         if (!trigger) return;
         const id = trigger.getAttribute('data-id');
-        const match = allArticles.find(a => String(a.id) === String(id)) || 
-                      pendingQueue.find(a => String(a.id) === String(id));
+        let match = null;
+        if (id) {
+            match = pendingQueue.find(a => String(a.id) === String(id)) || 
+                    allArticles.find(a => String(a.id) === String(id));
+        }
+        if (!match) {
+            const rawArt = trigger.getAttribute('data-article');
+            if (rawArt) {
+                try {
+                    match = JSON.parse(rawArt);
+                } catch (err) {}
+            }
+        }
         if (match) {
             openModalForArticle(match);
         }
@@ -429,14 +652,6 @@ document.addEventListener('DOMContentLoaded', () => {
         closeViewerBtn.addEventListener('click', () => viewerModal.classList.add('hidden'));
         viewerModal.addEventListener('click', (e) => {
             if (e.target === viewerModal) viewerModal.classList.add('hidden');
-        });
-    }
-
-    if (viewerReviewBtn) {
-        viewerReviewBtn.addEventListener('click', () => {
-            window.location.href = window.location.pathname.startsWith('/section-head') 
-                ? '/section-head/review-articles' 
-                : '/executive/review-articles';
         });
     }
 });

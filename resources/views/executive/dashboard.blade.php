@@ -82,12 +82,12 @@
                                 <tr>
                                     <td>
                                         <div class="table-article-info">
-                                            <button type="button" class="table-article-btn" data-action="view" data-article="{{ json_encode($art) }}">
+                                            <button type="button" class="table-article-btn" data-action="view-modal" data-id="{{ $art['id'] }}" data-article="{{ json_encode($art) }}" title="{{ $art['title'] }}">
                                                 {{ $art['title'] }}
                                             </button>
                                         </div>
                                     </td>
-                                    <td>{{ $art['author'] ?? 'Staff Writer' }}</td>
+                                    <td><span class="table-author">{{ $art['author'] ?? 'Author' }}</span></td>
                                     <td><span class="status-badge status-review">Pending</span></td>
                                     <td class="hide-on-mobile"><span class="table-date">{{ $art['date'] ?? '' }}</span></td>
                                     <td class="text-right">
@@ -175,29 +175,44 @@
             <h1 id="viewer-title" class="viewer-title">Article Title</h1>
             
             <div class="viewer-byline-row">
-                <div class="viewer-author-avatar">
-                    <img id="viewer-author-img" src="{{ asset('images/member-placeholder.svg') }}" alt="Author avatar">
-                </div>
-                <div class="viewer-author-details">
-                    <div id="viewer-author" class="viewer-author-name">Author Name</div>
-                    <div class="viewer-author-role">Staff Writer</div>
+                <div class="viewer-byline-author">
+                    <i class="fa-solid fa-pen-nib" aria-hidden="true" style="color: var(--text-muted, #667085); font-size: 0.85rem; margin-right: 4px;"></i>
+                    <span class="viewer-by">By <strong id="viewer-author" class="viewer-author-name">Author Name</strong></span>
                 </div>
             </div>
 
             <p id="viewer-excerpt" class="viewer-excerpt" style="display: none;"></p>
 
-            <div class="viewer-banner-wrapper">
-                <img id="viewer-banner-img" src="{{ asset('images/maroon.jpg') }}" alt="Article banner">
-            </div>
-
             <div id="viewer-content" class="viewer-content-text"></div>
+
+            <!-- Editorial Revision Remarks Box -->
+            <div class="manuscript-remarks-section" id="viewer-remarks-section">
+                <label for="viewer-remarks" class="remarks-label">
+                    <span class="remarks-label-text">
+                        <i class="fa-solid fa-comment-dots"></i>
+                        <span>Editorial Revision Remarks:</span>
+                    </span>
+                    <span class="required-badge">Required</span>
+                </label>
+                <textarea id="viewer-remarks" class="remarks-textarea" placeholder="Enter mandatory revision feedback for the writer before returning this story..."></textarea>
+                <div id="viewer-remarks-error" class="remarks-error-msg hidden">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                    <span>Revision remarks are required. You cannot return for revision without remarks.</span>
+                </div>
+            </div>
         </div>
 
-        <div class="viewer-modal-footer">
-            <a href="{{ request()->is('section-head*') ? route('section-head.review-articles') : route('executive.review-articles') }}" id="viewer-review-btn" class="btn-primary-action" style="text-decoration: none;">
-                <i class="fa-solid fa-clipboard-check"></i>
-                <span>Open in Review Queue</span>
-            </a>
+        <div class="viewer-modal-footer" id="viewer-modal-footer">
+            <div class="modal-footer-right">
+                <button type="button" id="viewer-revision-btn" class="btn-box-revision">
+                    <i class="fa-solid fa-rotate-left"></i>
+                    <span>For Revision</span>
+                </button>
+                <button type="button" id="viewer-approve-btn" class="btn-box-approve">
+                    <i class="fa-solid fa-check"></i>
+                    <span>Approve</span>
+                </button>
+            </div>
         </div>
     </div>
 </div>

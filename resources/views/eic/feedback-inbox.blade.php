@@ -23,7 +23,6 @@
                     <i class="fa-regular fa-envelope-open"></i>
                 </div>
                 <h2 class="feedback-empty-heading">No feedback messages yet</h2>
-                <p class="feedback-empty-description">When readers submit feedback, suggestions, or comments through the publication, they will appear here in your inbox.</p>
             </div>
         </div>
 

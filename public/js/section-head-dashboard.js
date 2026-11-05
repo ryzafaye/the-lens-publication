@@ -238,6 +238,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 4. RECENT SUBMISSIONS TABLE (Executive Formatting)
     // =========================================================================
     const submissionsTableBody = document.getElementById('submissions-table-body');
+    const reviewArticlesUrl = window.__REVIEW_ARTICLES_URL__ || (window.location.pathname.startsWith('/section-head') ? '/section-head/review-articles' : '/executive/review-articles');
     if (submissionsTableBody) {
         if (sectionPending.length === 0) {
             submissionsTableBody.innerHTML = `<tr><td colspan="5" class="text-center py-6 text-gray-500 text-sm">No pending submissions for this section.</td></tr>`;
@@ -250,9 +251,13 @@ document.addEventListener('DOMContentLoaded', () => {
                         </button>
                     </td>
                     <td><span class="table-author">${escapeHTML(item.author)}</span></td>
-                    <td class="hide-on-mobile">${formatSectionBadgeHtml(item.category || currentSection)}</td>
                     <td>${getStatusBadgeHtml('In Review')}</td>
                     <td class="hide-on-mobile"><span class="table-date">${escapeHTML(item.date)}</span></td>
+                    <td class="text-right">
+                        <a href="${reviewArticlesUrl}" class="table-manage-btn" title="Review Article">
+                            Manage
+                        </a>
+                    </td>
                 </tr>
             `).join('');
         }

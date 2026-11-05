@@ -63,7 +63,7 @@
             <section class="card-panel animate-fade-in delay-2" aria-labelledby="recent-submissions-heading">
                 <div class="panel-header">
                     <h2 id="recent-submissions-heading" class="panel-title">Recent Submissions</h2>
-                    <a href="{{ route('executive.review-articles') }}" class="panel-action-link">View all &rarr;</a>
+                    <a href="{{ request()->is('section-head*') ? route('section-head.review-articles') : route('executive.review-articles') }}" class="panel-action-link">View all &rarr;</a>
                 </div>
                 
                 <div class="table-responsive">
@@ -72,9 +72,9 @@
                             <tr>
                                 <th>Article Title</th>
                                 <th>Author</th>
-                                <th class="hide-on-mobile">Section</th>
                                 <th>Status</th>
                                 <th class="hide-on-mobile">Date</th>
+                                <th class="text-right">Action</th>
                             </tr>
                         </thead>
                         <tbody id="submissions-table-body">
@@ -88,9 +88,13 @@
                                         </div>
                                     </td>
                                     <td>{{ $art['author'] ?? 'Staff Writer' }}</td>
-                                    <td class="hide-on-mobile"><span class="table-section-tag">{{ $art['category'] ?? 'General' }}</span></td>
                                     <td><span class="status-badge status-review">Pending</span></td>
                                     <td class="hide-on-mobile"><span class="table-date">{{ $art['date'] ?? '' }}</span></td>
+                                    <td class="text-right">
+                                        <a href="{{ request()->is('section-head*') ? route('section-head.review-articles') : route('executive.review-articles') }}" class="table-manage-btn" title="Review Article">
+                                            Manage
+                                        </a>
+                                    </td>
                                 </tr>
                             @empty
                                 <tr>
@@ -190,7 +194,7 @@
         </div>
 
         <div class="viewer-modal-footer">
-            <a href="{{ route('executive.review-articles') }}" id="viewer-review-btn" class="btn-primary-action" style="text-decoration: none;">
+            <a href="{{ request()->is('section-head*') ? route('section-head.review-articles') : route('executive.review-articles') }}" id="viewer-review-btn" class="btn-primary-action" style="text-decoration: none;">
                 <i class="fa-solid fa-clipboard-check"></i>
                 <span>Open in Review Queue</span>
             </a>
@@ -207,6 +211,7 @@
         window.__DASHBOARD_PENDING__ = @json($pendingArticles ?? []);
         window.__DASHBOARD_METRICS__ = @json($metrics ?? []);
         window.__SECTION_CATEGORY__ = @json($category?->name ?? null);
+        window.__REVIEW_ARTICLES_URL__ = @json(request()->is('section-head*') ? route('section-head.review-articles') : route('executive.review-articles'));
     </script>
     <script type="module" src="{{ asset('js/section-head-dashboard.js') }}"></script>
 @endpush

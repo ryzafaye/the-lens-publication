@@ -95,23 +95,24 @@ try {
         // 2. DYNAMIC USER ROLE HYDRATION
         // =====================================================================
         function hydrateUserRole() {
-            let role = window.LARAVEL_USER_ROLE || 'President';
-            try {
-                role = window.LARAVEL_USER_ROLE || localStorage.getItem('userRole') || localStorage.getItem('executiveRole') || 'President';
-                if (!localStorage.getItem('userRole')) {
-                    localStorage.setItem('userRole', role);
+            let role = window.LARAVEL_USER_ROLE;
+            if (!role) {
+                try {
+                    role = localStorage.getItem('userRole') || localStorage.getItem('executiveRole');
+                } catch (e) {
+                    // LocalStorage blocked or unavailable
                 }
-            } catch (e) {
-                // LocalStorage blocked or unavailable
             }
 
             const topbarRole = document.getElementById('topbar-user-role');
             const sidebarRole = document.getElementById('sidebar-user-role');
             const mobileRole = document.getElementById('mobile-user-role');
 
-            if (topbarRole) topbarRole.textContent = role;
-            if (sidebarRole) sidebarRole.textContent = role;
-            if (mobileRole) mobileRole.textContent = role;
+            if (role) {
+                if (topbarRole) topbarRole.textContent = role;
+                if (sidebarRole) sidebarRole.textContent = role;
+                if (mobileRole) mobileRole.textContent = role;
+            }
         }
         hydrateUserRole();
 

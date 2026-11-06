@@ -100,10 +100,12 @@
                     <i class="fa-solid fa-pen-nib" aria-hidden="true"></i>
                     <span>By <strong id="modal-writer">Author Name</strong></span>
                 </div>
+                @if(!request()->is('section-head*'))
                 <div class="manuscript-byline-endorser">
                     <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
                     <span>Approved by Section Head: <strong id="modal-endorser">Elena Ramos (News Head)</strong></span>
                 </div>
+                @endif
             </div>
 
             <!-- Story Text -->
@@ -137,7 +139,7 @@
                 </button>
                 <button type="button" id="modal-approve-btn" class="btn-box-approve">
                     <i class="fa-solid fa-check"></i>
-                    <span>Approve for M&amp;PC</span>
+                    <span>{{ request()->is('section-head*') ? 'Approve for EIC' : 'Approve for M&PC' }}</span>
                 </button>
             </div>
         </div>

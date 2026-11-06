@@ -508,6 +508,11 @@ document.addEventListener('DOMContentLoaded', () => {
                                     <span>Read Article</span>
                                 </button>
 
+                                <button type="button" class="btn-mpc-return" data-action="return-revision" data-id="${item.id}" style="padding: 7px 14px; font-size: 0.8rem; font-weight: 600; border-radius: 8px; border: 1px solid #fecdca; background: #fff5f5; color: #b42318; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                                    <i class="fa-solid fa-rotate-left"></i>
+                                    <span>For Revision</span>
+                                </button>
+
                                 <button type="button" class="btn-mpc-publish" data-action="publish" data-id="${item.id}">
                                     <i class="fa-solid fa-globe"></i>
                                     <span>Publish to Website</span>
@@ -980,7 +985,103 @@ document.addEventListener('DOMContentLoaded', () => {
                 publishArticle(id);
             } else if (action === 'unpublish') {
                 unpublishArticle(id);
+            } else if (action === 'return-revision') {
+                openReturnArticleModal(id);
             }
+        });
+    }
+
+    // -------------------------------------------------------------------------
+    // 12. RETURN ARTICLE FOR REVISION MODAL LOGIC
+    // -------------------------------------------------------------------------
+    const returnArticleModal = document.getElementById('mpc-return-article-modal');
+    const closeMpcReturnBtn = document.getElementById('close-mpc-return-modal-btn');
+    const cancelMpcReturnBtn = document.getElementById('cancel-mpc-return-btn');
+    const confirmMpcReturnBtn = document.getElementById('confirm-mpc-return-btn');
+    const returnRemarksInput = document.getElementById('mpc-return-remarks');
+    const returnRemarksError = document.getElementById('mpc-return-error');
+    const returnArticleTitle = document.getElementById('mpc-return-article-title');
+    let activeReturnArticleId = null;
+
+    function openReturnArticleModal(id) {
+        const article = articlesList.find(a => String(a.id) === String(id));
+        if (!article || !returnArticleModal) return;
+
+        activeReturnArticleId = id;
+        if (returnArticleTitle) returnArticleTitle.textContent = article.title;
+        if (returnRemarksInput) {
+            returnRemarksInput.value = '';
+            returnRemarksInput.classList.remove('input-invalid');
+        }
+        if (returnRemarksError) returnRemarksError.classList.add('hidden');
+
+        returnArticleModal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+        setTimeout(() => {
+            if (returnRemarksInput) returnRemarksInput.focus();
+        }, 120);
+    }
+
+    function closeReturnArticleModal() {
+        if (!returnArticleModal) return;
+        returnArticleModal.classList.add('hidden');
+        document.body.style.overflow = '';
+        activeReturnArticleId = null;
+    }
+
+    if (closeMpcReturnBtn) closeMpcReturnBtn.addEventListener('click', closeReturnArticleModal);
+    if (cancelMpcReturnBtn) cancelMpcReturnBtn.addEventListener('click', closeReturnArticleModal);
+    if (returnArticleModal) {
+        returnArticleModal.addEventListener('click', (e) => {
+            if (e.target === returnArticleModal) closeReturnArticleModal();
+        });
+    }
+
+    if (returnRemarksInput) {
+        returnRemarksInput.addEventListener('input', () => {
+            if (returnRemarksInput.value.trim()) {
+                returnRemarksInput.classList.remove('input-invalid');
+                if (returnRemarksError) returnRemarksError.classList.add('hidden');
+            }
+        });
+    }
+
+    if (confirmMpcReturnBtn) {
+        confirmMpcReturnBtn.addEventListener('click', () => {
+            if (!activeReturnArticleId) return;
+
+            const remarks = returnRemarksInput ? returnRemarksInput.value.trim() : '';
+            if (!remarks) {
+                if (returnRemarksInput) returnRemarksInput.classList.add('input-invalid');
+                if (returnRemarksError) returnRemarksError.classList.remove('hidden');
+                return;
+            }
+
+            const targetId = activeReturnArticleId;
+            const targetArticle = articlesList.find(a => String(a.id) === String(targetId));
+
+            // Backend sync
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            if (csrfToken) {
+                fetch(`/mpc/articles/${targetId}/revision`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ remarks: remarks })
+                }).catch(err => console.error('Error returning article for revision:', err));
+            }
+
+            // Remove from articlesList
+            articlesList = articlesList.filter(a => String(a.id) !== String(targetId));
+            saveArticles(articlesList);
+
+            closeReturnArticleModal();
+            updateCounters();
+            renderArticlesGrid();
+            showToast(`Article "${targetArticle ? targetArticle.title : 'Story'}" returned to Editor-in-Chief with remarks.`, 'warning');
         });
     }
 

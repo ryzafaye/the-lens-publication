@@ -355,6 +355,34 @@ class MpcController extends Controller
         return redirect()->back()->with('success', 'Article unpublished.');
     }
 
+    public function returnArticleForRevision(Request $request, $id)
+    {
+        $request->validate([
+            'remarks' => 'required|string',
+        ]);
+
+        $article = Article::findOrFail($id);
+        $article->update([
+            'status' => 'Pending EIC Review',
+            'remarks' => $request->remarks,
+        ]);
+
+        ActivityLog::logAction(Auth::id(), 'returned for revision', $article);
+
+        Cache::forget('mpc_dashboard_stats');
+        Cache::forget('mpc_dashboard_pending_articles');
+        Cache::forget('mpc_dashboard_published_articles');
+        Cache::forget('eic_dashboard_stats');
+        Cache::forget('eic_review_articles_newest');
+        Cache::forget('eic_review_articles_oldest');
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['success' => true, 'message' => 'Article returned to Editor-in-Chief for revision.']);
+        }
+
+        return redirect()->back()->with('success', 'Article returned to Editor-in-Chief for revision.');
+    }
+
     public function profileSettings()
     {
         return view('mpc.profile-settings');

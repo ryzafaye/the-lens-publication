@@ -209,6 +209,15 @@ class CartoonistController extends Controller
     }
 
     /**
+     * Cartoon Desk View (Cartoonist Head Review Queue)
+     */
+    public function cartoonDesk()
+    {
+        $pendingCartoons = [];
+        return view('cartoonist.cartoon-desk', compact('pendingCartoons'));
+    }
+
+    /**
      * Profile Settings View
      */
     public function profileSettings()

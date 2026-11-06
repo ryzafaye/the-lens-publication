@@ -31,8 +31,12 @@ class AuthController extends Controller
             $rawRoleName = $user->role->role_name ?? '';
             $roleName = strtolower(trim($rawRoleName));
 
-            // Broad check for Editor-in-Chief and Associate Editor-in-Chief roles (e.g., "Associate Editor-in-Chief", "Assoc EIC")
-            if (str_contains($roleName, 'editor-in-chief') || str_contains($roleName, 'chief') || str_contains($roleName, 'eic')) {
+            // Cartoonist and Cartoonist Head portal
+            if (str_contains($roleName, 'cartoonist')) {
+                return redirect()->route('cartoonist.dashboard');
+            } elseif (str_contains($roleName, 'media team') || $roleName === 'media & communication' || str_contains($roleName, 'photojournalist')) {
+                return redirect()->route('media.dashboard');
+            } elseif (str_contains($roleName, 'editor-in-chief') || (str_contains($roleName, 'eic') && !str_contains($roleName, 'section')) || $roleName === 'associate editor-in-chief') {
                 return redirect()->route('eic.dashboard');
             } elseif (str_contains($roleName, 'm&pc') || str_contains($roleName, 'media and public')) {
                 return redirect()->route('mpc.dashboard');
@@ -40,10 +44,6 @@ class AuthController extends Controller
                 return redirect()->route('section-head.dashboard');
             } elseif ($roleName === 'writer') {
                 return redirect()->route('writer.dashboard');
-            } elseif ($roleName === 'cartoonist') {
-                return redirect()->route('cartoonist.dashboard');
-            } elseif ($roleName === 'media team' || str_contains($roleName, 'media team') || $roleName === 'media & communication') {
-                return redirect()->route('media.dashboard');
             } elseif (in_array($rawRoleName, ['President', 'Executive Vice President', 'Secretary', 'Associate Secretary', 'Treasurer', 'Auditor', 'Public Relations Officer'])) {
                 return redirect()->route('executive.dashboard');
             }

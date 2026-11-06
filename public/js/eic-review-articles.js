@@ -62,8 +62,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // LocalStorage Queue Management
     function getStoredPendingQueue() {
+        let list = [];
         if (window.__PENDING_ARTICLES__ && Array.isArray(window.__PENDING_ARTICLES__)) {
-            return window.__PENDING_ARTICLES__.map(item => ({
+            list = window.__PENDING_ARTICLES__.map(item => ({
                 id: item.id,
                 title: item.title,
                 author: item.author || 'Writer',
@@ -75,22 +76,55 @@ document.addEventListener('DOMContentLoaded', () => {
                 ...item,
                 endorsedBy: resolveEndorser(item)
             }));
+        } else {
+            try {
+                const raw = localStorage.getItem('eicPendingReviewQueue') || localStorage.getItem('executivePendingReviewQueue');
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    if (Array.isArray(parsed)) {
+                        list = parsed.map(item => ({
+                            ...item,
+                            endorsedBy: resolveEndorser(item)
+                        }));
+                    }
+                }
+            } catch (e) {
+                console.warn('Could not read eicPendingReviewQueue', e);
+            }
         }
+
+        // Also merge pending Media and Cartoons awaiting EIC review from articleCoverReviewQueue_v1
         try {
-            const raw = localStorage.getItem('eicPendingReviewQueue') || localStorage.getItem('executivePendingReviewQueue');
-            if (raw) {
-                const parsed = JSON.parse(raw);
-                if (Array.isArray(parsed)) {
-                    return parsed.map(item => ({
-                        ...item,
-                        endorsedBy: resolveEndorser(item)
-                    }));
+            const rawQ = localStorage.getItem('articleCoverReviewQueue_v1');
+            if (rawQ) {
+                const parsedQ = JSON.parse(rawQ);
+                if (Array.isArray(parsedQ)) {
+                    parsedQ.forEach(cov => {
+                        const s = (cov.status || '').toLowerCase().trim();
+                        if (s === 'pending eic review' || s === 'forwarded to eic') {
+                            const isCartoon = (cov.type === 'cartoon');
+                            if (!list.some(existing => existing.id === cov.id)) {
+                                list.push({
+                                    id: cov.id,
+                                    title: cov.title || (isCartoon ? 'Editorial Cartoon' : 'Media Publication Material'),
+                                    author: cov.artist || (isCartoon ? 'Staff Cartoonist' : 'Media Team'),
+                                    category: isCartoon ? 'Cartoon' : 'Media',
+                                    content: cov.image ? `<div style="text-align:center; padding: 20px;"><img src="${cov.image}" alt="${escapeHTML(cov.title)}" style="max-width: 100%; max-height: 520px; border-radius: 8px; object-fit: contain; box-shadow: 0 4px 12px rgba(0,0,0,0.1);"></div>` : '<p>Visual submission preview.</p>',
+                                    excerpt: cov.caption || cov.targetArticle || (isCartoon ? 'Editorial Cartoon Submission' : 'Media Asset Submission'),
+                                    image: cov.image,
+                                    date: cov.date || 'Recent',
+                                    isMediaOrCartoon: true,
+                                    mediaType: cov.type || (isCartoon ? 'cartoon' : 'pubmat'),
+                                    endorsedBy: cov.approvedBy || (isCartoon ? 'Cartoonist Head' : 'Media & Public Communications Head')
+                                });
+                            }
+                        }
+                    });
                 }
             }
-        } catch (e) {
-            console.warn('Could not read eicPendingReviewQueue', e);
-        }
-        return [];
+        } catch (e) {}
+
+        return list;
     }
 
     function savePendingQueue(list) {
@@ -194,6 +228,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (target === 'features' || target === 'feature') return cat.includes('feature');
         if (target.includes('sci') || target.includes('tech')) return cat.includes('sci') || cat.includes('tech');
         if (target.includes('lit')) return cat.includes('lit');
+        if (target === 'media') return cat.includes('media') || cat.includes('pubmat') || cat.includes('photo');
+        if (target === 'cartoon' || target === 'cartoons') return cat.includes('cartoon');
         return cat === target;
     }
 
@@ -204,6 +240,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const featuresCount = reviewList.filter(i => matchesCategory(i.category, 'Features')).length;
         const scitechCount = reviewList.filter(i => matchesCategory(i.category, 'Science and Technology')).length;
         const litCount = reviewList.filter(i => matchesCategory(i.category, 'Literature')).length;
+        const mediaCount = reviewList.filter(i => matchesCategory(i.category, 'Media')).length;
+        const cartoonCount = reviewList.filter(i => matchesCategory(i.category, 'Cartoon')).length;
 
         const bAll = document.getElementById('badge-review-all');
         const bNews = document.getElementById('badge-review-news');
@@ -211,6 +249,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const bFeatures = document.getElementById('badge-review-features');
         const bScitech = document.getElementById('badge-review-scitech');
         const bLit = document.getElementById('badge-review-literature');
+        const bMedia = document.getElementById('badge-review-media');
+        const bCartoon = document.getElementById('badge-review-cartoon');
 
         if (bAll) bAll.textContent = allCount;
         if (bNews) bNews.textContent = newsCount;
@@ -218,6 +258,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (bFeatures) bFeatures.textContent = featuresCount;
         if (bScitech) bScitech.textContent = scitechCount;
         if (bLit) bLit.textContent = litCount;
+        if (bMedia) bMedia.textContent = mediaCount;
+        if (bCartoon) bCartoon.textContent = cartoonCount;
     }
 
     // Category Tabs Event Listeners
@@ -340,6 +382,55 @@ document.addEventListener('DOMContentLoaded', () => {
             reviewList = reviewList.filter(a => String(a.id) !== String(id));
             savePendingQueue(reviewList);
 
+            if (item.isMediaOrCartoon) {
+                // Update in articleCoverReviewQueue_v1 to 'EIC Approved'
+                try {
+                    const rawQ = localStorage.getItem('articleCoverReviewQueue_v1');
+                    if (rawQ) {
+                        let queue = JSON.parse(rawQ);
+                        if (Array.isArray(queue)) {
+                            queue = queue.map(q => (q.id === item.id ? { ...q, status: 'EIC Approved', approvedBy: `${window.LARAVEL_USER_NAME || 'Editor-in-Chief'} (EIC)` } : q));
+                            localStorage.setItem('articleCoverReviewQueue_v1', JSON.stringify(queue));
+                        }
+                    }
+                } catch (e) {}
+
+                // Add to approved pool for MPC posting
+                try {
+                    const rawPool = localStorage.getItem('mpcApprovedCoversPool_v1');
+                    let pool = rawPool ? JSON.parse(rawPool) : [];
+                    pool = pool.filter(p => p.id !== item.id);
+                    pool.unshift({
+                        id: item.id,
+                        type: item.mediaType || 'pubmat',
+                        title: item.title,
+                        artist: item.author,
+                        image: item.image,
+                        status: 'EIC Approved',
+                        date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                    });
+                    localStorage.setItem('mpcApprovedCoversPool_v1', JSON.stringify(pool));
+                    localStorage.setItem('mpc_approved_covers_v1', JSON.stringify(pool));
+                } catch (e) {}
+
+                // Sync to personal submissions
+                try {
+                    const subKey = (item.mediaType === 'cartoon') ? 'cartoonistSubmissions_v1' : 'mediaTeamSubmissions_v2';
+                    const rawSub = localStorage.getItem(subKey);
+                    if (rawSub) {
+                        let subs = JSON.parse(rawSub);
+                        if (Array.isArray(subs)) {
+                            subs = subs.map(s => (s.id === item.id ? { ...s, status: 'EIC Approved' } : s));
+                            localStorage.setItem(subKey, JSON.stringify(subs));
+                        }
+                    }
+                } catch (e) {}
+
+                renderReviewBoxes();
+                showToast(`"${item.title}" approved and forwarded to M&PC for posting/library.`, 'success');
+                return;
+            }
+
             // Backend sync if running on Laravel
             try {
                 const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
@@ -427,6 +518,39 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => {
             reviewList = reviewList.filter(a => String(a.id) !== String(id));
             savePendingQueue(reviewList);
+
+            if (item.isMediaOrCartoon) {
+                const targetRecipient = (item.mediaType === 'cartoon') ? 'Cartoonist Head' : 'Media & Public Communications Head';
+
+                // Sync backward status 'Returned for Revision' with remarks to review queue
+                try {
+                    const rawQ = localStorage.getItem('articleCoverReviewQueue_v1');
+                    if (rawQ) {
+                        let queue = JSON.parse(rawQ);
+                        if (Array.isArray(queue)) {
+                            queue = queue.map(q => (q.id === item.id ? { ...q, status: 'Returned for Revision', remarks: remarks } : q));
+                            localStorage.setItem('articleCoverReviewQueue_v1', JSON.stringify(queue));
+                        }
+                    }
+                } catch (e) {}
+
+                // Sync to personal submissions
+                try {
+                    const subKey = (item.mediaType === 'cartoon') ? 'cartoonistSubmissions_v1' : 'mediaTeamSubmissions_v2';
+                    const rawSub = localStorage.getItem(subKey);
+                    if (rawSub) {
+                        let subs = JSON.parse(rawSub);
+                        if (Array.isArray(subs)) {
+                            subs = subs.map(s => (s.id === item.id ? { ...s, status: 'Returned for Revision', remarks: remarks } : s));
+                            localStorage.setItem(subKey, JSON.stringify(subs));
+                        }
+                    }
+                } catch (e) {}
+
+                renderReviewBoxes();
+                showToast(`"${item.title}" returned backwards to ${targetRecipient} with remarks.`, 'warning');
+                return;
+            }
 
             // Backend sync if running on Laravel
             try {

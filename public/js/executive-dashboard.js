@@ -460,10 +460,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // -------------------------------------------------------------------------
     // Article Viewer Modal Logic
     // -------------------------------------------------------------------------
-    function openArticleViewer(id) {
-        const pendingList = getPendingQueue();
-        const article = articles.find(a => String(a.id) === String(id)) ||
-                        pendingList.find(a => String(a.id) === String(id));
+    function openArticleViewer(idOrArticle) {
+        let article = typeof idOrArticle === 'object' && idOrArticle !== null ? idOrArticle : null;
+        if (!article) {
+            const pendingList = getPendingQueue();
+            article = articles.find(a => String(a.id) === String(idOrArticle)) ||
+                      pendingList.find(a => String(a.id) === String(idOrArticle));
+        }
         if (!article || !viewerModal) return;
 
         currentViewingArticleId = article.id;
@@ -724,17 +727,38 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('click', (e) => {
         // 1. Direct [data-action="view"] button or link
         const viewTrigger = e.target.closest('[data-action="view"]');
-        if (viewTrigger && viewTrigger.dataset.id) {
-            e.preventDefault();
-            e.stopPropagation();
-            openArticleViewer(viewTrigger.dataset.id);
-            return;
+        if (viewTrigger) {
+            if (viewTrigger.dataset.article) {
+                try {
+                    const parsed = JSON.parse(viewTrigger.dataset.article);
+                    e.preventDefault();
+                    e.stopPropagation();
+                    openArticleViewer(parsed);
+                    return;
+                } catch (err) {}
+            }
+            if (viewTrigger.dataset.id) {
+                e.preventDefault();
+                e.stopPropagation();
+                openArticleViewer(viewTrigger.dataset.id);
+                return;
+            }
         }
 
         // 2. Click anywhere inside a ranked item in Most Viewed Articles
         const rankedItem = e.target.closest('.ranked-item');
-        if (rankedItem && rankedItem.dataset.articleId) {
-            openArticleViewer(rankedItem.dataset.articleId);
+        if (rankedItem) {
+            if (rankedItem.dataset.article) {
+                try {
+                    const parsed = JSON.parse(rankedItem.dataset.article);
+                    openArticleViewer(parsed);
+                    return;
+                } catch (err) {}
+            }
+            if (rankedItem.dataset.articleId) {
+                openArticleViewer(rankedItem.dataset.articleId);
+                return;
+            }
         }
     });
 

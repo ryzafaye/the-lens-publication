@@ -32,13 +32,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // LocalStorage Queue Management
     function getStoredPendingQueue() {
-        if (window.INITIAL_PENDING && Array.isArray(window.INITIAL_PENDING) && window.INITIAL_PENDING.length > 0) {
+        if (window.INITIAL_PENDING && Array.isArray(window.INITIAL_PENDING)) {
             return window.INITIAL_PENDING.map(item => ({
                 ...item,
                 endorsedBy: item.endorsedBy || getEndorserForCategory(item.category)
             }));
         }
-        if (window.INITIAL_DATA && Array.isArray(window.INITIAL_DATA) && window.INITIAL_DATA.length > 0) {
+        if (window.INITIAL_DATA && Array.isArray(window.INITIAL_DATA)) {
             return window.INITIAL_DATA.map(item => ({
                 ...item,
                 endorsedBy: item.endorsedBy || getEndorserForCategory(item.category)
@@ -231,6 +231,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (emptyQueueState) emptyQueueState.style.display = 'none';
 
+        const isSectionHead = window.location.pathname.startsWith('/section-head');
+        const approveBtnText = isSectionHead ? 'Approve for EIC' : 'Approve for M&amp;PC';
+
         listContainer.innerHTML = sorted.map(item => `
             <div class="review-box" id="box-${item.id}" data-id="${item.id}">
                 <!-- Left Stack: Meta Line, Bold Article Title, Author with Pen Nib Icon -->
@@ -238,7 +241,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="review-box-meta">
                         <span class="review-box-category">${escapeHTML(item.category)}</span>
                         <span class="review-box-date"><i class="fa-regular fa-calendar" aria-hidden="true"></i> ${escapeHTML(item.date)}</span>
-                        <span class="review-box-endorsed"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Approved by <strong>${escapeHTML(item.endorsedBy || getEndorserForCategory(item.category))}</strong></span>
+                        ${!isSectionHead ? `<span class="review-box-endorsed"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Approved by <strong>${escapeHTML(item.endorsedBy || getEndorserForCategory(item.category))}</strong></span>` : ''}
                     </div>
 
                     <button type="button" class="review-box-title" data-action="read" data-id="${item.id}" title="${escapeHTML(item.title)}">
@@ -261,9 +264,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         <i class="fa-solid fa-rotate-left"></i>
                         <span>For Revision</span>
                     </button>
-                    <button type="button" class="btn-box-approve" data-action="approve-mpc" data-id="${item.id}" title="Approve for Media & Publication Committee">
+                    <button type="button" class="btn-box-approve" data-action="approve-mpc" data-id="${item.id}" title="${isSectionHead ? 'Approve and forward to EIC' : 'Approve for Media & Publication Committee'}">
                         <i class="fa-solid fa-check"></i>
-                        <span>Approve for M&amp;PC</span>
+                        <span>${approveBtnText}</span>
                     </button>
                 </div>
             </div>
@@ -271,11 +274,30 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // =========================================================================
-    // 6. ACTION HANDLERS (Without Page Refresh & No Browser Alert/Prompt)
+    // 6. ACTION HANDLERS (With Backend API Persistence & Smooth Toast)
     // =========================================================================
     function approveStoryForMPC(id) {
-        const item = reviewList.find(a => a.id === id);
+        const item = reviewList.find(a => String(a.id) === String(id));
         if (!item) return;
+
+        const isSectionHead = window.location.pathname.startsWith('/section-head');
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        const approveBaseUrl = window.__APPROVE_URL__ || (isSectionHead ? '/section-head/review-articles' : '/executive/review-articles');
+
+        // Persist to backend database
+        fetch(`${approveBaseUrl}/${id}/approve`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken,
+                'Accept': 'application/json'
+            }
+        })
+        .then(res => {
+            if (!res.ok) throw new Error('Failed to approve article');
+            return res.json();
+        })
+        .catch(err => console.error('Error approving article on backend:', err));
 
         const box = document.getElementById(`box-${id}`);
         if (box) {
@@ -283,64 +305,70 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         setTimeout(() => {
-            reviewList = reviewList.filter(a => a.id !== id);
+            reviewList = reviewList.filter(a => String(a.id) !== String(id));
             savePendingQueue(reviewList);
 
-            // Forward to MPC publishing queue
-            try {
-                let mpcList = [];
-                const rawMpc = localStorage.getItem('mpc_publish_articles_v2');
-                if (rawMpc) {
-                    const parsed = JSON.parse(rawMpc);
-                    if (Array.isArray(parsed)) mpcList = parsed;
+            // Forward to MPC publishing queue if Executive
+            if (!isSectionHead) {
+                try {
+                    let mpcList = [];
+                    const rawMpc = localStorage.getItem('mpc_publish_articles_v2');
+                    if (rawMpc) {
+                        const parsed = JSON.parse(rawMpc);
+                        if (Array.isArray(parsed)) mpcList = parsed;
+                    }
+                    mpcList = mpcList.filter(m => String(m.id) !== String(item.id) && m.title !== item.title);
+                    mpcList.unshift({
+                        id: item.id || `mpc-art-${Date.now()}`,
+                        title: item.title,
+                        category: item.category || 'News',
+                        author: item.author || 'The Lens Staff',
+                        dateApproved: item.date || 'Recent',
+                        status: 'ready',
+                        assignedCoverId: null,
+                        assignedCover: null,
+                        views: 0,
+                        shares: 0,
+                        excerpt: item.excerpt || '',
+                        body: item.content ? item.content.split(/\n\n+/).map(p => `<p>${escapeHTML(p.trim())}</p>`).join('') : '<p>Manuscript content approved.</p>'
+                    });
+                    localStorage.setItem('mpc_publish_articles_v2', JSON.stringify(mpcList));
+                } catch (e) {
+                    console.error('Failed to forward to MPC publishing queue:', e);
                 }
-                mpcList = mpcList.filter(m => m.id !== item.id && m.title !== item.title);
-                mpcList.unshift({
-                    id: item.id || `mpc-art-${Date.now()}`,
-                    title: item.title,
-                    category: item.category || 'News',
-                    author: item.author || 'The Lens Staff',
-                    dateApproved: item.date || 'Recent',
-                    status: 'ready',
-                    assignedCoverId: null,
-                    assignedCover: null,
-                    views: 0,
-                    shares: 0,
-                    excerpt: item.excerpt || '',
-                    body: item.content ? item.content.split(/\n\n+/).map(p => `<p>${escapeHTML(p.trim())}</p>`).join('') : '<p>Manuscript content approved.</p>'
-                });
-                localStorage.setItem('mpc_publish_articles_v2', JSON.stringify(mpcList));
-            } catch (e) {
-                console.error('Failed to forward to MPC publishing queue:', e);
             }
 
-            // Also update writer's article in writer storage
-            try {
-                const rawWriter = localStorage.getItem('theLensWriterArticles_v3');
-                if (rawWriter) {
-                    let writerList = JSON.parse(rawWriter);
-                    if (Array.isArray(writerList)) {
-                        let updated = false;
-                        writerList = writerList.map(w => {
-                            if (w.id === item.id || w.title === item.title) {
-                                updated = true;
-                                return { ...w, status: 'Ready for Publishing', remarks: 'Approved by Executive Board; awaiting cover & publication by M&PC.' };
-                            }
-                            return w;
-                        });
-                        if (updated) localStorage.setItem('theLensWriterArticles_v3', JSON.stringify(writerList));
-                    }
-                }
-            } catch (e) {}
-
             renderReviewBoxes();
-            showToast('Article approved and forwarded to the Media & Publication Committee (M&PC).', 'success');
+            const successMsg = isSectionHead
+                ? 'Article approved and forwarded to Editor-in-Chief (EIC).'
+                : 'Article approved and forwarded to Media & Publication Committee (M&PC).';
+            showToast(successMsg, 'success');
         }, 220);
     }
 
     function returnStoryForRevision(id, remarks) {
-        const item = reviewList.find(a => a.id === id);
+        const item = reviewList.find(a => String(a.id) === String(id));
         if (!item) return;
+
+        const isSectionHead = window.location.pathname.startsWith('/section-head');
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        const revisionBaseUrl = window.__REVISION_URL__ || (isSectionHead ? '/section-head/review-articles' : '/executive/review-articles');
+
+        // Persist to backend database
+        fetch(`${revisionBaseUrl}/${id}/revision`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken,
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ remarks: remarks })
+        })
+        .then(res => {
+            if (!res.ok) throw new Error('Failed to return article for revision');
+            return res.json();
+        })
+        .catch(err => console.error('Error returning for revision on backend:', err));
 
         const box = document.getElementById(`box-${id}`);
         if (box) {
@@ -348,27 +376,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         setTimeout(() => {
-            reviewList = reviewList.filter(a => a.id !== id);
+            reviewList = reviewList.filter(a => String(a.id) !== String(id));
             savePendingQueue(reviewList);
-
-            // Update writer's article with status: 'For Revision' and remarks
-            try {
-                const rawWriter = localStorage.getItem('theLensWriterArticles_v3');
-                if (rawWriter) {
-                    let writerList = JSON.parse(rawWriter);
-                    if (Array.isArray(writerList)) {
-                        let updated = false;
-                        writerList = writerList.map(w => {
-                            if (w.id === item.id || w.title === item.title) {
-                                updated = true;
-                                return { ...w, status: 'For Revision', remarks: remarks || 'Please revise according to Executive feedback.' };
-                            }
-                            return w;
-                        });
-                        if (updated) localStorage.setItem('theLensWriterArticles_v3', JSON.stringify(writerList));
-                    }
-                }
-            } catch (e) {}
 
             renderReviewBoxes();
             showToast('Article returned to writer for revision.', 'warning');
@@ -379,16 +388,24 @@ document.addEventListener('DOMContentLoaded', () => {
     // 7. MANUSCRIPT MODAL VIEWER WITH DIRECT-TO-REMARKS & VALIDATION
     // =========================================================================
     function openManuscript(id, options = {}) {
-        const item = reviewList.find(a => a.id === id);
+        const item = reviewList.find(a => String(a.id) === String(id));
         if (!item) return;
 
-        currentActiveId = id;
+        currentActiveId = item.id;
         if (modalHeadline) modalHeadline.textContent = item.title;
         if (modalSection) modalSection.textContent = item.category;
         if (modalDate) modalDate.textContent = item.date;
         if (modalWriter) modalWriter.textContent = item.author;
+
+        const isSectionHead = window.location.pathname.startsWith('/section-head');
+        const modalEndorserWrap = document.querySelector('.manuscript-byline-endorser');
+        if (modalEndorserWrap) {
+            modalEndorserWrap.style.display = isSectionHead ? 'none' : '';
+        }
         const modalEndorser = document.getElementById('modal-endorser');
-        if (modalEndorser) modalEndorser.textContent = item.endorsedBy || getEndorserForCategory(item.category);
+        if (modalEndorser && !isSectionHead) {
+            modalEndorser.textContent = item.endorsedBy || getEndorserForCategory(item.category);
+        }
 
         // Reset remarks and validation state
         if (modalRemarks) {

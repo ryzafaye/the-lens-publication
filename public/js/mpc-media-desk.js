@@ -339,11 +339,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 footerBtnGroup.innerHTML = `
                     <button type="button" id="inspect-return-btn" class="btn-inspect-return">
                         <i class="fa-solid fa-rotate-left"></i>
-                        <span>Return to Head</span>
+                        <span>Return to Media Team</span>
                     </button>
                     <button type="button" id="inspect-approve-btn" class="btn-inspect-approve">
                         <i class="fa-solid fa-check"></i>
-                        <span>Approve for Library</span>
+                        <span>Endorse to EIC</span>
                     </button>
                 `;
                 const rBtn = document.getElementById('inspect-return-btn');
@@ -456,8 +456,30 @@ document.addEventListener('DOMContentLoaded', () => {
             const itemIndex = coverList.findIndex(c => c.id === activeReturnId);
             if (itemIndex > -1) {
                 const target = coverList[itemIndex];
-                target.status = 'returned_for_revision';
+                target.status = 'Returned for Revision';
                 target.remarks = remarks;
+
+                try {
+                    const rawSub = localStorage.getItem('mediaTeamSubmissions_v2');
+                    if (rawSub) {
+                        let subs = JSON.parse(rawSub);
+                        if (Array.isArray(subs)) {
+                            subs = subs.map(s => (s.id === target.id ? { ...s, status: 'Returned for Revision', remarks: remarks } : s));
+                            localStorage.setItem('mediaTeamSubmissions_v2', JSON.stringify(subs));
+                        }
+                    }
+                } catch (e) {}
+
+                try {
+                    const rawCart = localStorage.getItem('cartoonistSubmissions_v1');
+                    if (rawCart) {
+                        let carts = JSON.parse(rawCart);
+                        if (Array.isArray(carts)) {
+                            carts = carts.map(s => (s.id === target.id ? { ...s, status: 'Returned for Revision', remarks: remarks } : s));
+                            localStorage.setItem('cartoonistSubmissions_v1', JSON.stringify(carts));
+                        }
+                    }
+                } catch (e) {}
 
                 // Log to Activity Log (Executive sentence parity)
                 try {
@@ -512,7 +534,19 @@ document.addEventListener('DOMContentLoaded', () => {
         if (itemIndex === -1) return;
 
         const target = coverList[itemIndex];
-        target.status = 'approved_for_mpc';
+        target.status = 'Pending EIC Review';
+        target.endorsedBy = cleanArtistName(window.LARAVEL_USER_NAME || localStorage.getItem('mpcName') || 'M&PC Head');
+
+        try {
+            const rawSub = localStorage.getItem('mediaTeamSubmissions_v2');
+            if (rawSub) {
+                let subs = JSON.parse(rawSub);
+                if (Array.isArray(subs)) {
+                    subs = subs.map(s => (s.id === target.id ? { ...s, status: 'Pending EIC Review', endorsedBy: target.endorsedBy } : s));
+                    localStorage.setItem('mediaTeamSubmissions_v2', JSON.stringify(subs));
+                }
+            }
+        } catch (e) {}
 
         // Add to Approved Pool and Sync with Publish Article Covers
         try {
@@ -582,7 +616,7 @@ document.addEventListener('DOMContentLoaded', () => {
             renderCards();
         }
 
-        showToast(`${target.type.toUpperCase()} approved and added to Media Library.`, 'success');
+        showToast(`${target.type.toUpperCase()} endorsed and forwarded to Editor-in-Chief.`, 'success');
     }
 
     // =========================================================================

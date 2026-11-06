@@ -126,7 +126,42 @@
                     <span class="panel-badge">By Views</span>
                 </div>
                 <div class="ranked-list">
-                    <!-- Iteration for top performing articles here -->
+                    @forelse($topArticles ?? [] as $index => $topArt)
+                        @php
+                            $categoryName = $topArt->category->name ?? 'General';
+                            $modalData = [
+                                'id' => $topArt->id,
+                                'title' => $topArt->title,
+                                'category' => $categoryName,
+                                'date' => $topArt->created_at ? $topArt->created_at->format('M d, Y') : '',
+                                'author' => Auth::user()->full_name,
+                                'excerpt' => $topArt->excerpt,
+                                'content' => $topArt->content,
+                                'status' => $topArt->status,
+                                'views' => $topArt->views ?? 0,
+                            ];
+                        @endphp
+                        <div class="ranked-item" data-action="view" data-article="{{ json_encode($modalData) }}">
+                            <span class="rank-number {{ $index === 0 ? 'top-rank' : '' }}">{{ $index + 1 }}</span>
+                            <div class="ranked-content">
+                                <div class="ranked-category-tag">{{ $categoryName }}</div>
+                                <button type="button" class="ranked-title-btn" data-action="view" data-article="{{ json_encode($modalData) }}" title="{{ $topArt->title }}">
+                                    {{ $topArt->title }}
+                                </button>
+                                <div class="ranked-meta-row">
+                                    <span class="ranked-author">
+                                        <i class="fa-solid fa-pen-nib" aria-hidden="true" style="font-size: 0.70rem; margin-right: 4px; color: var(--text-muted, #667085);"></i>
+                                        {{ Auth::user()->full_name }}
+                                    </span>
+                                    <span class="ranked-stats">
+                                        <span class="stat-metric" title="Views"><i class="fa-regular fa-eye"></i> {{ number_format($topArt->views ?? 0) }}</span>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    @empty
+                        <div style="font-size: 0.85rem; color: #667085; text-align: center; padding: 24px 0;">No published articles yet.</div>
+                    @endforelse
                 </div>
             </section>
         </aside>

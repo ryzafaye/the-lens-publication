@@ -17,6 +17,26 @@
     <link rel="stylesheet" href="{{ asset('css/writer-dashboard.css') }}">
     @yield('extra-css')
     @stack('styles')
+
+    <script>
+        @auth
+            const rawRole = "{!! Auth::user()->role->role_name ?? 'Writer' !!}";
+            const userName = "{!! Auth::user()->full_name ?? 'Writer' !!}";
+            const studentNum = "{!! Auth::user()->student_number ?? '' !!}";
+            const userAvatar = "{!! Auth::user()->avatar_url ?? asset('images/member-placeholder.svg') !!}";
+
+            window.LARAVEL_USER_ROLE = rawRole;
+            window.LARAVEL_USER_NAME = userName;
+            window.LARAVEL_USER_AVATAR = userAvatar;
+
+            localStorage.setItem('userRole', rawRole);
+            localStorage.setItem('userName', userName);
+            localStorage.setItem('studentNumber', studentNum);
+            localStorage.setItem('userAvatar', userAvatar);
+            localStorage.setItem('writerRole', rawRole);
+            localStorage.setItem('writerName', userName);
+        @endauth
+    </script>
 </head>
 <body class="dashboard-body">
 
@@ -55,7 +75,7 @@
                     <div class="topbar-avatar-circle">
                         <img src="{{ Auth::user()?->avatar_url ?? (Auth::user()?->avatar ? asset(Auth::user()->avatar) : asset('images/member-placeholder.svg')) }}" alt="User">
                     </div>
-                    <span id="topbar-user-role" class="topbar-role-badge">Writer</span>
+                    <span id="topbar-user-role" class="topbar-role-badge">{{ Auth::user()->role->role_name ?? 'Writer' }}</span>
                 </div>
             </div>
         </header>

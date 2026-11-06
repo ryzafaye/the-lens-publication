@@ -42,7 +42,16 @@ class WriterController extends Controller
                 ->get();
         });
 
-        return view('writer.dashboard', compact('writerStats', 'recentArticles'));
+        $topArticles = Cache::remember('writer_top_articles_' . $userId, 30, function () use ($userId) {
+            return Article::with(['category', 'user.role'])
+                ->where('user_id', $userId)
+                ->where('status', 'Published')
+                ->orderByDesc('views')
+                ->take(5)
+                ->get();
+        });
+
+        return view('writer.dashboard', compact('writerStats', 'recentArticles', 'topArticles'));
     }
 
     public function submitArticle(Request $request)

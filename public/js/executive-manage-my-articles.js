@@ -247,10 +247,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // 3. ANALYTICS CARDS (EXACT WRITER DASHBOARD LOGIC) & TAB BADGES
     // =========================================================================
     function updateAnalyticsAndCounters() {
-        const publishedArticles = allArticles.filter(a => a.status === 'Published');
-        const pendingArticles = allArticles.filter(a => a.status === 'Pending Review');
-        const revisionArticles = allArticles.filter(a => a.status === 'For Revision');
-        const draftsArticles = allArticles.filter(a => a.status === 'Draft');
+        const publishedArticles = allArticles.filter(a => (a.status || '').toLowerCase().trim() === 'published');
+        const pendingArticles = allArticles.filter(a => (a.status || '').toLowerCase().includes('pending'));
+        const revisionArticles = allArticles.filter(a => (a.status || '').toLowerCase().includes('revision'));
+        const draftsArticles = allArticles.filter(a => (a.status || '').toLowerCase().includes('draft'));
 
         const totalViewsCount = publishedArticles.reduce((sum, a) => sum + (Number(a.views) || 0), 0);
 
@@ -276,10 +276,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Filter by Tab
         let filtered = allArticles.filter(a => {
-            if (currentTab === 'published') return a.status === 'Published';
-            if (currentTab === 'pending') return a.status === 'Pending Review';
-            if (currentTab === 'revision') return a.status === 'For Revision';
-            if (currentTab === 'drafts') return a.status === 'Draft';
+            const st = (a.status || '').toLowerCase().trim();
+            if (currentTab === 'published') return st === 'published';
+            if (currentTab === 'pending') return st.includes('pending');
+            if (currentTab === 'revision') return st.includes('revision');
+            if (currentTab === 'drafts') return st.includes('draft');
             return true;
         });
 
@@ -326,7 +327,7 @@ document.addEventListener('DOMContentLoaded', () => {
         articlesListContainer.innerHTML = filtered.map(item => {
             let badgeClass = 'status-draft';
             if (item.status === 'Published') badgeClass = 'status-published';
-            if (item.status === 'Pending Review') badgeClass = 'status-pending';
+            if (item.status === 'Pending Review' || item.status === 'Pending EIC Review') badgeClass = 'status-pending';
             if (item.status === 'For Revision') badgeClass = 'status-revision';
 
             let categoryTagClass = 'tag-news';
@@ -353,13 +354,13 @@ document.addEventListener('DOMContentLoaded', () => {
                             ` : ''}
                             ${item.remarks ? `
                                 <span class="meta-dot">&bull;</span>
-                                <span class="btn-show-remarks" data-id="${item.id}" style="color: #b42318; font-size: 0.74rem; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; cursor: pointer;" title="View section head feedback">
+                                <span class="btn-show-remarks" data-id="${item.id}" style="color: #b42318; font-size: 0.74rem; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; cursor: pointer;" title="View feedback">
                                     <i class="fa-solid fa-comment-dots"></i> Feedback
                                 </span>
                             ` : ''}
                         </div>
                         <div class="article-card-status-top">
-                            <span class="status-badge ${badgeClass}">${escapeHTML(item.status)}</span>
+                            <span class="status-badge ${badgeClass}">${escapeHTML(item.status === 'Pending EIC Review' ? 'Pending Review' : item.status)}</span>
                         </div>
                     </div>
 
@@ -470,7 +471,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function openRemarksModal(articleId) {
         if (!remarksModal) return;
-        const article = allArticles.find(a => a.id === articleId);
+        const article = allArticles.find(a => String(a.id) === String(articleId));
         if (!article) return;
 
         activeRemarksArticleId = article.id;
@@ -482,7 +483,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function attachCardEventListeners() {
         const cards = articlesListContainer.querySelectorAll('.writer-article-card, .clickable-article-card');
         cards.forEach(card => {
-            card.addEventListener('click', () => {
+            card.addEventListener('click', (e) => {
+                if (e.target.closest('button, a, input, select, textarea')) return;
                 const articleId = card.getAttribute('data-id');
                 openArticleViewer(articleId);
             });
@@ -511,7 +513,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function openArticleViewer(articleId) {
         if (!viewerModal) return;
-        const article = allArticles.find(a => a.id === articleId);
+        const article = allArticles.find(a => String(a.id) === String(articleId));
         if (!article) return;
 
         if (viewerTitle) viewerTitle.textContent = article.title;
@@ -536,7 +538,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const viewerExcerpt = document.getElementById('viewer-excerpt');
         if (viewerExcerpt) {
-            const rawExcerpt = article.excerpt || (item && item.excerpt) || '';
+            const rawExcerpt = article.excerpt || '';
             if (rawExcerpt && rawExcerpt.trim()) {
                 viewerExcerpt.textContent = rawExcerpt.trim();
                 viewerExcerpt.style.display = 'block';
@@ -600,7 +602,19 @@ document.addEventListener('DOMContentLoaded', () => {
         confirmDeleteBtn.addEventListener('click', () => {
             if (!pendingDeleteId) return;
 
-            allArticles = allArticles.filter(a => a.id !== pendingDeleteId);
+            if (window.DELETE_DRAFT_URL) {
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                fetch(`${window.DELETE_DRAFT_URL}/${pendingDeleteId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken
+                    }
+                }).catch(err => console.error(err));
+            }
+
+            allArticles = allArticles.filter(a => String(a.id) !== String(pendingDeleteId));
             saveArticles(allArticles);
 
             // Also remove from executiveArticleDrafts if present
@@ -609,7 +623,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (rawDrafts) {
                     let drafts = JSON.parse(rawDrafts);
                     if (Array.isArray(drafts)) {
-                        drafts = drafts.filter(d => d.id !== pendingDeleteId);
+                        drafts = drafts.filter(d => String(d.id) !== String(pendingDeleteId));
                         localStorage.setItem('executiveArticleDrafts', JSON.stringify(drafts));
                     }
                 }

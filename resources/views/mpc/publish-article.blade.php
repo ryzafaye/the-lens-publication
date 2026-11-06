@@ -190,6 +190,46 @@
         </div>
     </div>
 </div>
+
+<!-- Modal 3: Return Article to EIC for Revision Modal -->
+<div id="mpc-return-article-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="mpc-return-title">
+    <div class="modal-card return-modal-card" style="max-width: 500px;">
+        <div class="mpc-modal-header" style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #eaecf0; padding: 18px 24px;">
+            <div class="mpc-modal-header-left">
+                <h2 id="mpc-return-title" class="mpc-modal-title" style="font-size: 1.15rem; font-weight: 700; color: #101828; margin: 0;">Return Article to Editor-in-Chief</h2>
+                <div class="mpc-modal-sub" style="font-size: 0.8rem; color: #667085; margin-top: 4px;">Story: <strong id="mpc-return-article-title">Article</strong></div>
+            </div>
+            <button type="button" id="close-mpc-return-modal-btn" class="cover-modal-close-btn" aria-label="Close modal" style="background: transparent; border: none; font-size: 1.25rem; color: #667085; cursor: pointer;">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <div style="padding: 20px 24px;">
+            <div style="background: #fdf2f4; border: 1px solid #fecdca; border-radius: 8px; padding: 12px 14px; margin-bottom: 16px; display: flex; align-items: center; gap: 10px;">
+                <i class="fa-solid fa-rotate-left" style="color: #b42318; font-size: 1rem;"></i>
+                <span style="font-size: 0.82rem; color: #7a1f2e; font-weight: 500;">This article will be returned backwards to the Editor-in-Chief's review queue.</span>
+            </div>
+
+            <div class="form-group">
+                <label for="mpc-return-remarks" style="display: block; font-weight: 600; font-size: 0.85rem; color: #344054; margin-bottom: 8px;">
+                    Revision Remarks for EIC / Writer: <span style="color: #d92d20;">*</span>
+                </label>
+                <textarea id="mpc-return-remarks" rows="4" placeholder="Detail any requested editorial or formatting adjustments..." style="width: 100%; border: 1px solid #d0d5dd; border-radius: 8px; padding: 10px 12px; font-family: inherit; font-size: 0.85rem; box-sizing: border-box;"></textarea>
+                <div id="mpc-return-error" class="hidden" style="color: #d92d20; font-size: 0.78rem; margin-top: 6px;">Please provide revision remarks before returning.</div>
+            </div>
+        </div>
+
+        <div class="mpc-modal-footer" style="display: flex; justify-content: flex-end; gap: 10px; padding: 14px 24px; border-top: 1px solid #eaecf0; background: #fafafa; border-radius: 0 0 16px 16px;">
+            <button type="button" id="cancel-mpc-return-btn" class="btn-modal-cancel" style="padding: 8px 16px; border: 1px solid #d0d5dd; background: #fff; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.85rem; color: #344054;">
+                Cancel
+            </button>
+            <button type="button" id="confirm-mpc-return-btn" style="padding: 8px 18px; border: none; background: #b42318; color: #fff; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-rotate-left"></i>
+                <span>Confirm Return</span>
+            </button>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')

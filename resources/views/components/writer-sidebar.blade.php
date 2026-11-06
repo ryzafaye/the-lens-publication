@@ -14,7 +14,7 @@
                 <img id="sidebar-avatar-img" src="{{ Auth::user()?->avatar_url ?? (Auth::user()?->avatar ? asset(Auth::user()->avatar) : asset('images/member-placeholder.svg')) }}" alt="{{ Auth::user()?->full_name ?? 'User' }} Avatar">
             </div>
             <div id="sidebar-writer-name" class="profile-name">{{ Auth::user()->full_name ?? 'Writer' }}</div>
-            <div id="sidebar-user-role" class="profile-role-text">Writer</div>
+            <div id="sidebar-user-role" class="profile-role-text">{{ Auth::user()->role->role_name ?? 'Writer' }}</div>
         </div>
 
         <nav class="sidebar-nav" aria-label="Writer Portal Navigation">

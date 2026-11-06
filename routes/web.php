@@ -148,6 +148,7 @@ Route::middleware(['auth', 'role:Media and Public Communications Head,Associate 
         Route::get('/publish-article', [MpcController::class, 'publishArticle'])->name('publish-article');
         Route::post('/articles/{id}/publish', [MpcController::class, 'publishArticleRelease'])->name('publishArticleRelease');
         Route::post('/articles/{id}/unpublish', [MpcController::class, 'unpublishArticleRelease'])->name('unpublishArticleRelease');
+        Route::post('/articles/{id}/revision', [MpcController::class, 'returnArticleForRevision'])->name('returnArticleForRevision');
         Route::get('/media-desk', [MpcController::class, 'mediaDesk'])->name('media-desk');
         Route::get('/submit-media', [MpcController::class, 'submitMedia'])->name('submit-media');
         Route::post('/submit-media', [MpcController::class, 'storeMedia'])->name('store-media');
@@ -182,6 +183,7 @@ Route::middleware(['auth', 'role:Cartoonist,Cartoonist Head,Associate Cartoonist
         Route::get('/submit-cartoon', [CartoonistController::class, 'submitCartoon'])->name('submit-cartoon');
         Route::post('/submit-cartoon', [CartoonistController::class, 'storeCartoon'])->name('store-cartoon');
         Route::get('/manage-cartoons', [CartoonistController::class, 'manageCartoons'])->name('manage-cartoons');
+        Route::get('/cartoon-desk', [CartoonistController::class, 'cartoonDesk'])->name('cartoon-desk');
         Route::get('/profile-settings', [CartoonistController::class, 'profileSettings'])->name('profile-settings');
         Route::get('/settings', function () {
             return redirect()->route('cartoonist.profile-settings');

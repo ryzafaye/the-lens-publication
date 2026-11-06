@@ -93,10 +93,10 @@
     <!-- Empty State (Only Shown When Searching or Filtering) -->
     <div id="manage-empty-state" class="manage-empty-state hidden" role="status" aria-live="polite">
         <div class="manage-empty-icon">
-            <i class="fa-regular fa-folder-open" id="manage-empty-icon-i" aria-hidden="true"></i>
+            <i class="fa-solid fa-magnifying-glass" id="manage-empty-icon-i" aria-hidden="true"></i>
         </div>
         <h3 class="manage-empty-title" id="manage-empty-title">No articles found</h3>
-        <p class="manage-empty-desc" id="manage-empty-desc">We couldn't find any articles matching your search query or active filter settings.</p>
+        <p class="manage-empty-desc hidden" id="manage-empty-desc">We couldn't find any articles matching your search query or active filter settings.</p>
         <button type="button" id="reset-filters-btn" class="modal-btn modal-btn-cancel" style="margin-top: 8px;">
             <i class="fa-solid fa-rotate-left"></i> Reset Search &amp; Filters
         </button>
@@ -108,7 +108,7 @@
             <i class="fa-regular fa-newspaper" id="no-articles-icon-i" aria-hidden="true"></i>
         </div>
         <h3 class="manage-empty-title" id="no-articles-title">No articles yet</h3>
-        <p class="manage-empty-desc" id="no-articles-desc">You haven't submitted or drafted any articles yet.</p>
+        <p class="manage-empty-desc hidden" id="no-articles-desc">You haven't submitted or drafted any articles yet.</p>
     </div>
 
 </main>

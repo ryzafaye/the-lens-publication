@@ -200,10 +200,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateTabBadges(articles) {
         const total = articles.length;
-        const published = articles.filter(a => a.status === 'Published').length;
-        const pending = articles.filter(a => a.status === 'Pending Review').length;
-        const revision = articles.filter(a => a.status === 'For Revision').length;
-        const drafts = articles.filter(a => a.status === 'Draft').length;
+        const published = articles.filter(a => (a.status || '').toLowerCase().trim() === 'published').length;
+        const pending = articles.filter(a => {
+            const st = (a.status || '').toLowerCase().trim();
+            return st === 'pending review' || st === 'pending';
+        }).length;
+        const revision = articles.filter(a => {
+            const st = (a.status || '').toLowerCase().trim();
+            return st === 'for revision' || st === 'revision';
+        }).length;
+        const drafts = articles.filter(a => {
+            const st = (a.status || '').toLowerCase().trim();
+            return st === 'draft' || st === 'drafts';
+        }).length;
 
         if (badgeAll) badgeAll.textContent = String(total);
         if (badgePublished) badgePublished.textContent = String(published);
@@ -212,7 +221,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (badgeDrafts) badgeDrafts.textContent = String(drafts);
 
         if (statTotalViews) {
-            const totalViews = articles.reduce((sum, art) => sum + (art.status === 'Published' && art.views ? Number(art.views) : 0), 0);
+            const totalViews = articles.reduce((sum, art) => sum + ((art.status || '').toLowerCase().trim() === 'published' && art.views ? Number(art.views) : 0), 0);
             statTotalViews.textContent = formatNumber(totalViews);
         }
     }
@@ -226,10 +235,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Filter by tab
         let filtered = allMyArticles.filter(item => {
-            if (currentTab === 'published') return item.status === 'Published';
-            if (currentTab === 'pending') return item.status === 'Pending Review';
-            if (currentTab === 'revision') return item.status === 'For Revision';
-            if (currentTab === 'drafts') return item.status === 'Draft';
+            const st = (item.status || '').toLowerCase().trim();
+            if (currentTab === 'published') return st === 'published';
+            if (currentTab === 'pending') return st === 'pending review' || st === 'pending';
+            if (currentTab === 'revision') return st === 'for revision' || st === 'revision';
+            if (currentTab === 'drafts') return st === 'draft' || st === 'drafts';
             return true; // 'all'
         });
 
@@ -349,36 +359,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (resetFiltersBtn) resetFiltersBtn.style.display = 'none';
                     emptyStateEl.classList.remove('hidden');
                 }
-                    let titleText = 'No articles yet';
-                    let descText = 'You haven\'t submitted or drafted any articles yet.';
-
-                    if (currentTab === 'published') {
-                        iconClass = 'fa-solid fa-circle-check';
-                        titleText = 'No published articles yet';
-                        descText = 'You don\'t have any published articles in this section yet.';
-                    } else if (currentTab === 'pending') {
-                        iconClass = 'fa-regular fa-clock';
-                        titleText = 'No pending articles';
-                        descText = 'No articles are currently awaiting editorial review.';
-                    } else if (currentTab === 'revision') {
-                        iconClass = 'fa-solid fa-rotate-left';
-                        titleText = 'No articles for revision';
-                        descText = 'No articles are currently returned for revision.';
-                    } else if (currentTab === 'drafts') {
-                        iconClass = 'fa-regular fa-folder-open';
-                        titleText = 'No drafts yet';
-                        descText = 'You don\'t have any saved drafts.';
-                    }
-
-                    if (emptyIcon) emptyIcon.className = iconClass;
-                    if (emptyTitle) emptyTitle.textContent = titleText;
-                    if (emptyDesc) {
-                        emptyDesc.textContent = descText;
-                        emptyDesc.classList.remove('hidden');
-                    }
-                    if (resetFiltersBtn) resetFiltersBtn.style.display = 'none';
-                    emptyStateEl.classList.remove('hidden');
-                }
             }
             return;
         }
@@ -474,7 +454,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function openArticleViewer(articleId) {
         if (!viewerModal) return;
         const myArticles = fetchMyArticles();
-        const article = myArticles.find(a => a.id === articleId);
+        const article = myArticles.find(a => String(a.id) === String(articleId));
         if (!article) return;
 
         if (viewerTitle) viewerTitle.textContent = article.title;
@@ -501,7 +481,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const viewerExcerpt = document.getElementById('viewer-excerpt');
         if (viewerExcerpt) {
-            const rawExcerpt = article.excerpt || (item && item.excerpt) || '';
+            const rawExcerpt = article.excerpt || '';
             if (rawExcerpt && rawExcerpt.trim()) {
                 viewerExcerpt.textContent = rawExcerpt.trim();
                 viewerExcerpt.style.display = 'block';
@@ -549,7 +529,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function openRemarksModal(articleId) {
         if (!remarksModal) return;
         const myArticles = fetchMyArticles();
-        const article = myArticles.find(a => a.id === articleId);
+        const article = myArticles.find(a => String(a.id) === String(articleId));
         if (!article) return;
 
         activeRemarksArticleId = article.id;

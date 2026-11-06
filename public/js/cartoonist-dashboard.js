@@ -55,46 +55,30 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================================================================
     // 3. LOAD DATA & CALCULATE METRICS (Backend Data Transition)
     // Controller hydration via window.INITIAL_DATA / window.INITIAL_CARTOONS
-    // with graceful fallback & sync to localStorage for backward compatibility
+    // with graceful fallback to localStorage for backward compatibility
     // =========================================================================
-    let serverList = [];
-    if (window.INITIAL_CARTOONS && Array.isArray(window.INITIAL_CARTOONS)) {
-        serverList = window.INITIAL_CARTOONS;
-    } else if (window.INITIAL_DATA && Array.isArray(window.INITIAL_DATA)) {
-        serverList = window.INITIAL_DATA;
-    }
-
-    let localList = [];
-    try {
-        const raw = localStorage.getItem('cartoonistSubmissions_v1');
-        if (raw) {
-            const parsed = JSON.parse(raw);
-            if (Array.isArray(parsed)) localList = parsed;
-        }
-    } catch (e) {
-        localList = [];
-    }
-
-    const combinedList = [...serverList];
-    localList.forEach(localItem => {
-        const exists = combinedList.some(s => String(s.id) === String(localItem.id) || (s.title && s.title === localItem.title));
-        if (!exists) {
-            combinedList.push(localItem);
-        }
-    });
-
-    const cartoonList = combinedList;
+    const cartoonList = (window.INITIAL_CARTOONS && Array.isArray(window.INITIAL_CARTOONS))
+        ? window.INITIAL_CARTOONS
+        : ((window.INITIAL_DATA && Array.isArray(window.INITIAL_DATA))
+            ? window.INITIAL_DATA
+            : ((typeof getCartoonSubmissions === 'function')
+                ? getCartoonSubmissions()
+                : (() => {
+                    try {
+                        const raw = localStorage.getItem('cartoonistSubmissions_v1');
+                        return raw ? JSON.parse(raw) : [];
+                    } catch (e) {
+                        return [];
+                    }
+                })()));
 
     // Official 4 Status Metric Counters:
     // 1. Total Cartoons Published: status === 'Published'
     // 2. Total Pending Approvals: status === 'Pending with Head'
     // 3. Total in Cartoon Library: status === 'Published' || status === 'EIC Approved'
     const publishedCount = cartoonList.filter(m => m.status === 'Published').length;
-    const pendingCount = cartoonList.filter(m => {
-        const s = (m.status || '').toLowerCase();
-        return s === 'pending with head' || s.includes('pending');
-    }).length;
-    const libraryCount = cartoonList.filter(m => m.status === 'Published' || m.status === 'EIC Approved' || m.status === 'Forwarded to EIC').length;
+    const pendingCount = cartoonList.filter(m => m.status === 'Pending with Head').length;
+    const libraryCount = cartoonList.filter(m => m.status === 'Published' || m.status === 'EIC Approved').length;
 
     if (statCartoonsPublished) statCartoonsPublished.textContent = formatNumber(publishedCount);
     if (statPendingApprovals) statPendingApprovals.textContent = formatNumber(pendingCount);
@@ -202,7 +186,7 @@ document.addEventListener('DOMContentLoaded', () => {
             el.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const id = el.getAttribute('data-id');
-                const found = cartoonList.find(c => String(c.id) === String(id));
+                const found = cartoonList.find(c => c.id === id);
                 if (found) openInspectModal(found);
             });
         });

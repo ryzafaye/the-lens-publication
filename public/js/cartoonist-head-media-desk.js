@@ -36,40 +36,19 @@ document.addEventListener('DOMContentLoaded', () => {
     // Default Seed Cartoons (Empty by default for clean workflow testing)
     const defaultSeedCartoons = [];
 
-    // Read stored cartoons (merging server INITIAL_DATA and client localStorage)
+    // Read stored cartoons
     let cartoons = [];
-
-    function loadCartoons() {
-        let serverCartoons = [];
-        if (window.INITIAL_DATA && Array.isArray(window.INITIAL_DATA)) {
-            serverCartoons = window.INITIAL_DATA;
-        }
-
-        let localCartoons = [];
-        try {
-            const stored = localStorage.getItem(STORAGE_KEY);
-            if (stored) {
-                const parsed = JSON.parse(stored);
-                if (Array.isArray(parsed)) {
-                    localCartoons = parsed;
-                }
+    try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+            const parsed = JSON.parse(stored);
+            if (Array.isArray(parsed)) {
+                cartoons = parsed;
             }
-        } catch (e) {
-            console.warn('Could not read stored cartoons', e);
         }
-
-        const combined = [...serverCartoons];
-        localCartoons.forEach(localItem => {
-            const exists = combined.some(s => String(s.id) === String(localItem.id) || (s.title && s.title === localItem.title));
-            if (!exists) {
-                combined.push(localItem);
-            }
-        });
-
-        cartoons = combined;
+    } catch (e) {
+        console.warn('Could not read stored cartoons', e);
     }
-
-    loadCartoons();
 
     function saveCartoons() {
         try {
@@ -274,7 +253,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Theater Artwork Inspection Modal Logic
     // -------------------------------------------------------------------------
     function openInspectModal(id) {
-        const item = cartoons.find(c => String(c.id) === String(id));
+        const item = cartoons.find(c => c.id === id);
         if (!item || !inspectModal) return;
 
         activeInspectionId = id;
@@ -325,7 +304,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Approve & Endorse to EIC Logic
     // -------------------------------------------------------------------------
     function handleApprove(id) {
-        const item = cartoons.find(c => String(c.id) === String(id));
+        const item = cartoons.find(c => c.id === id);
         if (!item) return;
 
         item.status = 'Forwarded to EIC';
@@ -335,18 +314,6 @@ document.addEventListener('DOMContentLoaded', () => {
         saveCartoons();
         logActivity('endorsed', 'Editorial Cartoon to EIC', item.title);
 
-        // Sync with backend API if numeric ID
-        if (!isNaN(Number(id))) {
-            fetch(`/cartoonist/cartoons/${id}/endorse`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-                },
-                body: JSON.stringify({ endorsed_by: currentHeadName })
-            }).catch(e => console.warn('Server endorse error:', e));
-        }
-
         // Push to review queue for EIC review (does NOT go to MPC covers until EIC approves)
         try {
             let queue = [];
@@ -355,7 +322,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const parsedQ = JSON.parse(rawQ);
                 if (Array.isArray(parsedQ)) queue = parsedQ;
             }
-            const existingIdx = queue.findIndex(q => String(q.id) === String(item.id));
+            const existingIdx = queue.findIndex(q => q.id === item.id);
             const queueItem = {
                 id: item.id,
                 type: 'cartoon',
@@ -374,6 +341,27 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             localStorage.setItem('articleCoverReviewQueue_v1', JSON.stringify(queue));
         } catch (e) {}
+                queue[existingIdx] = {
+                    ...queue[existingIdx],
+                    status: 'approved_for_mpc',
+                    approvedBy: `${currentHeadName} (Cartoonist Head)`
+                };
+            } else {
+                queue.unshift({
+                    id: item.id,
+                    type: 'cartoon',
+                    title: item.title,
+                    category: item.category || 'Opinion',
+                    artist: item.artist || 'Staff Cartoonist',
+                    approvedBy: `${currentHeadName} (Cartoonist Head)`,
+                    image: item.image,
+                    date: item.endorsedDate || item.date || 'Recent',
+                    status: 'approved_for_mpc',
+                    remarks: ''
+                });
+            }
+            localStorage.setItem('articleCoverReviewQueue_v1', JSON.stringify(queue));
+        } catch (e) {}
 
         showToast(`"${item.title}" successfully endorsed to Editor-in-Chief.`, 'success');
         renderCards();
@@ -383,7 +371,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Mandatory Return Revision Modal Logic
     // -------------------------------------------------------------------------
     function openReturnModal(id) {
-        const item = cartoons.find(c => String(c.id) === String(id));
+        const item = cartoons.find(c => c.id === id);
         if (!item || !returnModal) return;
 
         activeReturnId = id;
@@ -434,25 +422,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            const item = cartoons.find(c => String(c.id) === String(activeReturnId));
+            const item = cartoons.find(c => c.id === activeReturnId);
             if (item) {
                 item.status = 'Returned for Revision';
                 item.remarks = remarks;
 
                 saveCartoons();
                 logActivity('returned', 'Cartoon for Revision', item.title);
-
-                // Sync with backend API if numeric ID
-                if (!isNaN(Number(activeReturnId))) {
-                    fetch(`/cartoonist/cartoons/${activeReturnId}/return`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-                        },
-                        body: JSON.stringify({ remarks: remarks })
-                    }).catch(e => console.warn('Server return error:', e));
-                }
 
                 // Sync status to articleCoverReviewQueue_v1
                 try {
@@ -461,7 +437,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         let queue = JSON.parse(rawQ);
                         if (Array.isArray(queue)) {
                             queue = queue.map(q => {
-                                if (String(q.id) === String(item.id)) {
+                                if (q.id === item.id) {
                                     return { ...q, status: 'needs_revision', remarks: remarks };
                                 }
                                 return q;

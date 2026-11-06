@@ -158,10 +158,10 @@
 <div id="toast-container" class="toast-container" aria-live="polite"></div>
 @endsection
 
-@section('extra-js')
+@push('scripts')
     <script>
         window.INITIAL_DATA = @json($pendingCartoons ?? []);
     </script>
     <script src="{{ asset('js/cartoonist-head-media-desk.js') }}"></script>
-@endsection
+@endpush
 

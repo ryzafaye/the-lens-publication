@@ -30,25 +30,32 @@ document.addEventListener('DOMContentLoaded', () => {
     const STORAGE_KEY = 'articleCoverReviewQueue_v1';
 
     function getCoverQueue() {
-        if (window.INITIAL_DATA && Array.isArray(window.INITIAL_DATA)) {
-            return window.INITIAL_DATA;
-        }
-        if (window.INITIAL_COVERS && Array.isArray(window.INITIAL_COVERS)) {
-            return window.INITIAL_COVERS;
-        }
-        if (window.INITIAL_DATA && Array.isArray(window.INITIAL_DATA.covers)) {
-            return window.INITIAL_DATA.covers;
-        }
+        let list = [];
         try {
             const raw = localStorage.getItem(STORAGE_KEY);
             if (raw) {
                 const parsed = JSON.parse(raw);
-                if (Array.isArray(parsed)) return parsed;
+                if (Array.isArray(parsed)) list = parsed;
             }
         } catch (e) {
             console.warn('Could not read cover review queue from localStorage', e);
         }
-        return [];
+
+        const initialList = (window.INITIAL_DATA && Array.isArray(window.INITIAL_DATA) && window.INITIAL_DATA.length > 0)
+            ? window.INITIAL_DATA
+            : ((window.INITIAL_COVERS && Array.isArray(window.INITIAL_COVERS) && window.INITIAL_COVERS.length > 0)
+                ? window.INITIAL_COVERS
+                : ((window.INITIAL_DATA && Array.isArray(window.INITIAL_DATA.covers) && window.INITIAL_DATA.covers.length > 0)
+                    ? window.INITIAL_DATA.covers
+                    : []));
+
+        initialList.forEach(item => {
+            if (!list.some(existing => String(existing.id) === String(item.id))) {
+                list.push(item);
+            }
+        });
+
+        return list;
     }
 
     function saveCoverQueue(list) {
@@ -126,14 +133,29 @@ document.addEventListener('DOMContentLoaded', () => {
     function isItemPending(item) {
         if (!item) return false;
         const s = (item.status || '').toLowerCase().trim();
-        return s === 'pending' || s === 'pending with head' || s === 'submitted_to_mpc' || s === 'under-review';
+        return s === 'pending' || 
+               s === 'pending with head' || 
+               s === 'pending m&pc review' || 
+               s === 'pending m&pc' || 
+               s === 'pending review' || 
+               s === 'submitted_to_mpc' || 
+               s === 'under-review' ||
+               (s.includes('pending') && !s.includes('eic'));
+    }
+
+    function getItemType(item) {
+        if (!item) return 'pubmat';
+        const t = (item.type || '').toLowerCase().trim();
+        if (t === 'photo' || t === 'photos' || t === 'photojournalism') return 'photo';
+        if (t === 'cartoon' || t === 'cartoons') return 'cartoon';
+        return 'pubmat';
     }
 
     function updateBadges() {
-        const pubmatCount = coverList.filter(item => item.type === 'pubmat' && isItemPending(item)).length;
-        const photoCount = coverList.filter(item => item.type === 'photo' && isItemPending(item)).length;
-        const cartoonCount = coverList.filter(item => item.type === 'cartoon' && isItemPending(item)).length;
-        const libraryCount = coverList.filter(item => item.status === 'approved_for_mpc' || item.status === 'approved').length;
+        const pubmatCount = coverList.filter(item => getItemType(item) === 'pubmat' && isItemPending(item)).length;
+        const photoCount = coverList.filter(item => getItemType(item) === 'photo' && isItemPending(item)).length;
+        const cartoonCount = coverList.filter(item => getItemType(item) === 'cartoon' && isItemPending(item)).length;
+        const libraryCount = coverList.filter(item => item.status === 'approved_for_mpc' || item.status === 'approved' || item.status === 'EIC Approved').length;
 
         if (badgePubmat) badgePubmat.textContent = pubmatCount;
         if (badgePhoto) badgePhoto.textContent = photoCount;
@@ -161,9 +183,9 @@ document.addEventListener('DOMContentLoaded', () => {
     function getFilteredList() {
         let filtered = [];
         if (currentTab === 'library') {
-            filtered = coverList.filter(item => item.status === 'approved_for_mpc' || item.status === 'approved');
+            filtered = coverList.filter(item => item.status === 'approved_for_mpc' || item.status === 'approved' || item.status === 'EIC Approved');
         } else {
-            filtered = coverList.filter(item => item.type === currentTab && isItemPending(item));
+            filtered = coverList.filter(item => getItemType(item) === currentTab && isItemPending(item));
         }
 
         return filtered.sort((a, b) => {
@@ -231,7 +253,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (emptyState) emptyState.style.display = 'none';
 
         cardsGrid.innerHTML = filtered.map(item => {
-            const isApproved = (item.status === 'approved_for_mpc' || item.status === 'approved');
+            const isApproved = (item.status === 'approved_for_mpc' || item.status === 'approved' || item.status === 'EIC Approved');
+            const itemType = getItemType(item);
 
             return `
             <div class="cover-card" id="card-${item.id}" data-id="${item.id}">
@@ -245,7 +268,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
 
                     <div class="cover-thumb-badge-group">
-                        <span class="cover-type-tag ${item.type}">${escapeHTML(item.type.toUpperCase())}</span>
+                        <span class="cover-type-tag ${itemType}">${escapeHTML(itemType.toUpperCase())}</span>
                         ${isApproved ? '<span class="cover-status-tag approved"><i class="fa-solid fa-circle-check"></i> APPROVED</span>' : ''}
                     </div>
 
@@ -259,13 +282,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="cover-card-body">
                     <div class="cover-provenance-box">
                         <div class="cover-artist-row">
-                            <i class="fa-solid fa-${item.type === 'photo' ? 'camera' : (item.type === 'cartoon' ? 'pen-nib' : 'paintbrush')}"></i>
-                            <span>${item.type === 'photo' ? 'Photojournalist' : 'Artist'}: <strong>${escapeHTML(cleanArtistName(item.artist))}</strong></span>
+                            <i class="fa-solid fa-${itemType === 'photo' ? 'camera' : (itemType === 'cartoon' ? 'pen-nib' : 'palette')}"></i>
+                            <span>${itemType === 'photo' ? 'Photojournalist' : (itemType === 'cartoon' ? 'Cartoonist' : 'Creator')}: <strong>${escapeHTML(cleanArtistName(item.artist || 'Media Team Member'))}</strong></span>
                         </div>
+                        ${item.approvedBy ? `
                         <div class="cover-head-row">
                             <i class="fa-solid fa-circle-check"></i>
                             <span>Approved by: <strong>${escapeHTML(item.approvedBy)}</strong></span>
                         </div>
+                        ` : `
+                        <div class="cover-head-row" style="color: #64748b;">
+                            <i class="fa-regular fa-clock"></i>
+                            <span>Queue: <strong>Pending Approval</strong></span>
+                        </div>
+                        `}
                     </div>
                 </div>
 
@@ -283,13 +313,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 ` : `
                 <div class="cover-card-footer">
-                    <button type="button" class="btn-cover-return" data-action="return" data-id="${item.id}" title="Return to Head for revisions">
+                    <button type="button" class="btn-cover-return" data-action="return" data-id="${item.id}" title="Return for revisions">
                         <i class="fa-solid fa-rotate-left"></i>
-                        <span>Return to Head</span>
+                        <span>Return for Revision</span>
                     </button>
-                    <button type="button" class="btn-cover-approve" data-action="approve" data-id="${item.id}" title="Approve for Library">
+                    <button type="button" class="btn-cover-approve" data-action="approve" data-id="${item.id}" title="Endorse to EIC">
                         <i class="fa-solid fa-check"></i>
-                        <span>Approve for Library</span>
+                        <span>Endorse to EIC</span>
                     </button>
                 </div>
                 `}
@@ -409,7 +439,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         activeReturnId = id;
 
-        if (returnHeadName) returnHeadName.textContent = item.approvedBy || 'Section Head';
+        if (returnHeadName) returnHeadName.textContent = item.approvedBy || item.artist || 'Media Team Member';
         if (returnRemarksText) {
             returnRemarksText.value = '';
             returnRemarksText.classList.remove('input-invalid');
@@ -512,7 +542,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 closeReturnModal();
                 renderCards();
-                showToast(`Artwork returned to ${target.approvedBy} with revision remarks.`);
+                const recipientName = target.approvedBy || target.artist || 'Media Team';
+                showToast(`Artwork returned to ${recipientName} with revision remarks.`);
             }
         });
     }

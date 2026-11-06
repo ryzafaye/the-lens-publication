@@ -478,7 +478,7 @@ class ExecutiveController extends Controller
         return redirect()->route('executive.submit-article', ['tab' => 'drafts'])->with('success', 'Draft deleted successfully.');
     }
 
-    private function sanitizeArticleContent($content)
+    protected function sanitizeArticleContent($content)
     {
         if (!$content) return '';
 
@@ -536,9 +536,19 @@ class ExecutiveController extends Controller
     {
         $this->authorizePresidentOrVp($request);
 
+        if (!$request->filled('student_number') && $request->filled('studentNumber')) {
+            $request->merge(['student_number' => $request->input('studentNumber')]);
+        }
+        if (!$request->filled('full_name') && $request->filled('name')) {
+            $request->merge(['full_name' => $request->input('name')]);
+        }
+
         $roleId = $request->input('role_id');
         if (!$roleId && $request->filled('role')) {
-            $roleObj = Role::where('role_name', $request->input('role'))->first();
+            $roleVal = $request->input('role');
+            $roleObj = is_numeric($roleVal)
+                ? Role::find($roleVal)
+                : Role::where('role_name', $roleVal)->first();
             $roleId = $roleObj?->id;
         }
         $request->merge(['role_id' => $roleId]);
@@ -567,11 +577,20 @@ class ExecutiveController extends Controller
 
         $officer->load('role');
 
+        $formatted = [
+            'id' => (string) $officer->id,
+            'name' => $officer->full_name,
+            'studentNumber' => $officer->student_number ?? '2024-00000-BN-0',
+            'role' => $officer->role->role_name ?? 'Staff',
+            'avatar' => $officer->avatar_url ?? ($officer->avatar ? asset($officer->avatar) : asset('images/member-placeholder.svg')),
+            'status' => $officer->account_status ?? 'active',
+        ];
+
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,
                 'message' => 'Officer account created successfully.',
-                'officer' => $officer,
+                'officer' => $formatted,
             ]);
         }
 
@@ -586,7 +605,10 @@ class ExecutiveController extends Controller
 
         $roleId = $request->input('role_id');
         if (!$roleId && $request->filled('role')) {
-            $roleObj = Role::where('role_name', $request->input('role'))->first();
+            $roleVal = $request->input('role');
+            $roleObj = is_numeric($roleVal)
+                ? Role::find($roleVal)
+                : Role::where('role_name', $roleVal)->first();
             $roleId = $roleObj?->id;
         }
         $request->merge(['role_id' => $roleId]);
@@ -610,11 +632,20 @@ class ExecutiveController extends Controller
 
         $officer->load('role');
 
+        $formatted = [
+            'id' => (string) $officer->id,
+            'name' => $officer->full_name,
+            'studentNumber' => $officer->student_number ?? '2024-00000-BN-0',
+            'role' => $officer->role->role_name ?? 'Staff',
+            'avatar' => $officer->avatar_url ?? ($officer->avatar ? asset($officer->avatar) : asset('images/member-placeholder.svg')),
+            'status' => $officer->account_status ?? 'active',
+        ];
+
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,
                 'message' => "Role for {$officer->full_name} updated to {$officer->role->role_name}.",
-                'officer' => $officer,
+                'officer' => $formatted,
             ]);
         }
 
@@ -662,12 +693,21 @@ class ExecutiveController extends Controller
 
         $officer->load('role');
 
+        $formatted = [
+            'id' => (string) $officer->id,
+            'name' => $officer->full_name,
+            'studentNumber' => $officer->student_number ?? '2024-00000-BN-0',
+            'role' => $officer->role->role_name ?? 'Staff',
+            'avatar' => $officer->avatar_url ?? ($officer->avatar ? asset($officer->avatar) : asset('images/member-placeholder.svg')),
+            'status' => $officer->account_status ?? 'active',
+        ];
+
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,
                 'message' => "Officer account {$statusLabel}.",
                 'status' => $status,
-                'officer' => $officer,
+                'officer' => $formatted,
             ]);
         }
 

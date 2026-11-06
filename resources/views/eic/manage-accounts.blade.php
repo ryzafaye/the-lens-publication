@@ -107,26 +107,35 @@
 
             <div class="form-field">
                 <label for="officer-input-role">Role *</label>
-                <div class="custom-select-wrapper" id="add-role-select-wrapper">
-                    <button type="button" class="form-select custom-select-trigger" id="add-role-trigger" aria-haspopup="listbox" aria-expanded="false">
-                        <span class="custom-select-label" id="add-role-label">Select role...</span>
-                        <i class="fa-solid fa-chevron-down custom-select-arrow" aria-hidden="true"></i>
-                    </button>
-                    <div class="custom-select-menu hidden" id="add-role-menu" role="listbox">
-                        @foreach($roles ?? [] as $roleItem)
-                            <div class="custom-select-option" data-value="{{ $roleItem->id }}" data-role-name="{{ $roleItem->role_name }}" role="option">
-                                <span>{{ $roleItem->role_name }}</span>
-                                <i class="fa-solid fa-check option-check" aria-hidden="true"></i>
-                            </div>
-                        @endforeach
-                    </div>
-                    <select id="officer-input-role" name="role_id" class="hidden-native-select" required>
-                        <option value="" disabled selected>Select role...</option>
-                        @foreach($roles ?? [] as $roleItem)
-                            <option value="{{ $roleItem->id }}" data-role-name="{{ $roleItem->role_name }}">{{ $roleItem->role_name }}</option>
-                        @endforeach
-                    </select>
-                </div>
+                <select id="officer-input-role" name="role_id" class="form-select" required>
+                    <option value="" disabled selected>Select role...</option>
+                    @foreach($roles ?? [] as $roleItem)
+                        <option value="{{ $roleItem->role_name }}" data-id="{{ $roleItem->id }}">{{ $roleItem->role_name }}</option>
+                    @endforeach
+                    @if(empty($roles) || count($roles) === 0)
+                        <option value="President">President</option>
+                        <option value="Executive Vice President">Executive Vice President</option>
+                        <option value="Secretary">Secretary</option>
+                        <option value="Associate Secretary">Associate Secretary</option>
+                        <option value="Treasurer">Treasurer</option>
+                        <option value="Auditor">Auditor</option>
+                        <option value="Public Relations Officer">Public Relations Officer</option>
+                        <option value="Editor-in-Chief">Editor-in-Chief</option>
+                        <option value="Associate Editor-in-Chief">Associate Editor-in-Chief</option>
+                        <option value="News Head">News Head</option>
+                        <option value="Literary Head">Literary Head</option>
+                        <option value="Feature Head">Feature Head</option>
+                        <option value="Science and Technology Head">Science and Technology Head</option>
+                        <option value="Documentary and Podcast Head">Documentary and Podcast Head</option>
+                        <option value="Media and Public Communications Head">Media and Public Communications Head</option>
+                        <option value="Associate Media and Public Communications Head">Associate Media and Public Communications Head</option>
+                        <option value="Photojournalist Head">Photojournalist Head</option>
+                        <option value="Cartoonist Head">Cartoonist Head</option>
+                        <option value="Writer">Writer</option>
+                        <option value="Cartoonist">Cartoonist</option>
+                        <option value="Media Team">Media Team</option>
+                    @endif
+                </select>
             </div>
 
             <!-- Footer with Maroon Designed Create Account Button -->
@@ -209,26 +218,35 @@
 
             <div class="form-field">
                 <label for="edit-role-select">Select New Role *</label>
-                <div class="custom-select-wrapper" id="edit-role-select-wrapper">
-                    <button type="button" class="form-select custom-select-trigger" id="edit-role-trigger" aria-haspopup="listbox" aria-expanded="false">
-                        <span class="custom-select-label" id="edit-role-label">Select role...</span>
-                        <i class="fa-solid fa-chevron-down custom-select-arrow" aria-hidden="true"></i>
-                    </button>
-                    <div class="custom-select-menu hidden" id="edit-role-menu" role="listbox">
-                        @foreach($roles ?? [] as $roleItem)
-                            <div class="custom-select-option" data-value="{{ $roleItem->id }}" data-role-name="{{ $roleItem->role_name }}" role="option">
-                                <span>{{ $roleItem->role_name }}</span>
-                                <i class="fa-solid fa-check option-check" aria-hidden="true"></i>
-                            </div>
-                        @endforeach
-                    </div>
-                    <select id="edit-role-select" name="role_id" class="hidden-native-select" required>
-                        <option value="" disabled selected>Select role...</option>
-                        @foreach($roles ?? [] as $roleItem)
-                            <option value="{{ $roleItem->id }}" data-role-name="{{ $roleItem->role_name }}">{{ $roleItem->role_name }}</option>
-                        @endforeach
-                    </select>
-                </div>
+                <select id="edit-role-select" name="role_id" class="form-select" required>
+                    <option value="" disabled selected>Select role...</option>
+                    @foreach($roles ?? [] as $roleItem)
+                        <option value="{{ $roleItem->role_name }}" data-id="{{ $roleItem->id }}">{{ $roleItem->role_name }}</option>
+                    @endforeach
+                    @if(empty($roles) || count($roles) === 0)
+                        <option value="President">President</option>
+                        <option value="Executive Vice President">Executive Vice President</option>
+                        <option value="Secretary">Secretary</option>
+                        <option value="Associate Secretary">Associate Secretary</option>
+                        <option value="Treasurer">Treasurer</option>
+                        <option value="Auditor">Auditor</option>
+                        <option value="Public Relations Officer">Public Relations Officer</option>
+                        <option value="Editor-in-Chief">Editor-in-Chief</option>
+                        <option value="Associate Editor-in-Chief">Associate Editor-in-Chief</option>
+                        <option value="News Head">News Head</option>
+                        <option value="Literary Head">Literary Head</option>
+                        <option value="Feature Head">Feature Head</option>
+                        <option value="Science and Technology Head">Science and Technology Head</option>
+                        <option value="Documentary and Podcast Head">Documentary and Podcast Head</option>
+                        <option value="Media and Public Communications Head">Media and Public Communications Head</option>
+                        <option value="Associate Media and Public Communications Head">Associate Media and Public Communications Head</option>
+                        <option value="Photojournalist Head">Photojournalist Head</option>
+                        <option value="Cartoonist Head">Cartoonist Head</option>
+                        <option value="Writer">Writer</option>
+                        <option value="Cartoonist">Cartoonist</option>
+                        <option value="Media Team">Media Team</option>
+                    @endif
+                </select>
             </div>
 
             <div class="modal-single-btn-footer">
@@ -249,13 +267,16 @@
 
 @push('scripts')
     <script>
-        window.OFFICER_DATA = @json($officers ?? []);
+        window.INITIAL_OFFICERS = @json($formattedOfficers ?? []);
+        window.INITIAL_DATA = @json($formattedOfficers ?? []);
+        window.OFFICER_DATA = @json($formattedOfficers ?? []);
         window.AVAILABLE_ROLES = @json($roles ?? []);
+        window.ROLES_DATA = @json($roles ?? []);
         window.__ACCOUNT_ROUTES__ = {
-            base: "{{ url(request()->is('executive*') ? '/executive/manage-accounts' : '/eic/manage-accounts') }}",
-            store: "{{ url(request()->is('executive*') ? '/executive/manage-accounts' : '/eic/manage-accounts') }}",
-            updateRole: "{{ url(request()->is('executive*') ? '/executive/manage-accounts' : '/eic/manage-accounts') }}",
-            toggleStatus: "{{ url(request()->is('executive*') ? '/executive/manage-accounts' : '/eic/manage-accounts') }}"
+            base: "{{ route('eic.manage-accounts') }}",
+            store: "{{ route('eic.manage-accounts.store') }}",
+            updateRole: "{{ route('eic.manage-accounts') }}",
+            toggleStatus: "{{ route('eic.manage-accounts') }}"
         };
     </script>
     <script src="{{ asset('js/executive-manage-accounts.js') }}"></script>

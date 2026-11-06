@@ -116,7 +116,7 @@
                     </div>
 
                     <div class="editor-body-wrapper" id="editor-body-wrapper">
-                        <div id="editor-content" class="rich-editor-content" contenteditable="true" spellcheck="true" data-placeholder="Write your article here..."></div>
+                        <div id="editor-content" class="rich-editor-content" contenteditable="true" spellcheck="true" data-placeholder="Write your article here...">{!! old('content', isset($editingDraft) ? $editingDraft->content : '') !!}</div>
                     </div>
 
                     <div class="editor-footer-bar">

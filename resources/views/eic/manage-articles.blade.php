@@ -149,9 +149,6 @@
                 <i class="fa-regular fa-folder-open"></i>
             </div>
             <div class="empty-state-title">No articles found</div>
-            <p class="empty-state-desc">We couldn't find any articles matching your search query or active filter settings.</p>
-            <button type="button" id="reset-empty-filters-btn" class="modal-btn modal-btn-cancel" style="margin-top: 8px;">
-            </button>
         </div>
 
         <!-- Default Empty State (Shown When Category/Tab Has No Articles) -->

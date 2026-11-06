@@ -109,6 +109,67 @@ document.addEventListener('DOMContentLoaded', () => {
             .replace(/'/g, '&#39;');
     }
 
+    function decodeCorruptedHtmlEntities(str) {
+        if (!str || typeof str !== 'string') return '';
+        let decoded = str;
+        let maxPasses = 5;
+        while (maxPasses > 0 && (/&amp;(?:lt|gt|quot|#39|amp);/i.test(decoded) || /&(?:lt|gt);/i.test(decoded))) {
+            const txt = document.createElement('textarea');
+            txt.innerHTML = decoded;
+            const newDecoded = txt.value;
+            if (newDecoded === decoded) break;
+            decoded = newDecoded;
+            maxPasses--;
+        }
+        return decoded;
+    }
+
+    function formatCleanArticleContent(rawContent) {
+        if (!rawContent || !String(rawContent).trim()) {
+            return '<p style="color: #667085; font-style: italic;">No manuscript text provided.</p>';
+        }
+
+        // 1. Decode any corrupted or double-encoded HTML entities so tags are real HTML
+        let content = decodeCorruptedHtmlEntities(String(rawContent).trim());
+
+        // 2. Strip dangerous script/iframe tags and inline event handlers
+        content = content
+            .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+            .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
+            .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
+            .replace(/\s+on\w+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, '');
+
+        // 3. Unwrap unnecessary span tags while keeping their text intact
+        content = content
+            .replace(/<\/?span[^>]*>/gi, '')
+            .replace(/\s*style="[^"]*"/gi, '')
+            .replace(/\s*style='[^']*'/gi, '');
+
+        // 4. Normalize any broken <div><br><div> constructs to standard <div><br></div>
+        content = content
+            .replace(/<div><br\s*\/?><div>/gi, '<div><br></div>');
+
+        // 5. Check if the content contains HTML structural tags
+        const hasHtmlTags = /<\/?(?:div|p|br|h[1-6]|blockquote|ul|ol|li|strong|b|em|i|u|s|a|hr)[^>]*>/i.test(content);
+
+        if (hasHtmlTags) {
+            // Injected as true HTML: do NOT pass through escapeHTML() so formatting and line breaks render correctly
+            return content;
+        }
+
+        // 6. Plain-text fallback: split into paragraphs and map to paragraph elements
+        const paragraphs = content
+            .split(/\r?\n\r?\n+/)
+            .map(p => p.trim())
+            .filter(p => p.length > 0);
+
+        if (paragraphs.length === 0) {
+            return '<p style="color: #667085; font-style: italic;">No manuscript text provided.</p>';
+        }
+
+        return paragraphs.map(p => `<p class="manuscript-paragraph">${escapeHTML(p).replace(/\r?\n/g, '<br>')}</p>`).join('');
+    }
+
     function showToast(message, type = 'success') {
         if (!toastContainer) return;
 
@@ -418,7 +479,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (modalBody) {
-            const paragraphs = item.content ? item.content.split('\n\n') : [];
             const modalExcerpt = document.getElementById('modal-excerpt');
             if (modalExcerpt) {
                 if (item.excerpt && item.excerpt.trim()) {
@@ -429,7 +489,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            modalBody.innerHTML = paragraphs.map(p => `<p>${escapeHTML(p.trim())}</p>`).join('');
+            modalBody.innerHTML = formatCleanArticleContent(item.content);
         }
 
         if (manuscriptModal) {

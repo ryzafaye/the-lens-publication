@@ -33,6 +33,21 @@
                         </div>
                     </div>
 
+                    <!-- Media Type Segmented Selector -->
+                    <div class="media-type-selector" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px;">
+                        <div class="media-type-card selected" data-type="pubmat" role="button" tabindex="0">
+                            <i class="fa-solid fa-palette"></i>
+                            <span>Publication Material (PUBMAT)</span>
+                            <small>Digital artworks, graphics, posters & announcements</small>
+                        </div>
+                        <div class="media-type-card" data-type="photo" role="button" tabindex="0">
+                            <i class="fa-solid fa-camera"></i>
+                            <span>Photojournalism (Photo)</span>
+                            <small>Event captures, photo stories & campus photography</small>
+                        </div>
+                    </div>
+                    <input type="hidden" id="selected-media-type" name="media_type" value="pubmat">
+
                     <!-- Upload Box Studio -->
                     <div class="media-section-group">
                         <!-- Dropzone -->

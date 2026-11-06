@@ -68,7 +68,7 @@
                         <thead>
                             <tr>
                                 <th>Article Title</th>
-                                <th>Author</th>
+                                <th>Category</th>
                                 <th>Status</th>
                                 <th class="hide-on-mobile">Date</th>
                                 <th class="text-right">Action</th>
@@ -82,9 +82,13 @@
                                             <button type="button" class="table-article-btn" data-action="view-modal" data-id="{{ $art['id'] }}" data-article="{{ json_encode($art) }}" title="{{ $art['title'] }}">
                                                 {{ $art['title'] }}
                                             </button>
+                                            <div class="table-author-subline">
+                                                <i class="fa-solid fa-pen-nib" aria-hidden="true"></i>
+                                                <span>{{ $art['author'] ?? 'Author' }}</span>
+                                            </div>
                                         </div>
                                     </td>
-                                    <td><span class="table-author"><i class="fa-solid fa-pen-nib" aria-hidden="true" style="color: var(--sidebar-maroon, #5c0a18); font-size: 0.72rem; margin-right: 4px;"></i>{{ $art['author'] ?? 'Author' }}</span></td>
+                                    <td><span class="table-section-tag">{{ $art['category'] ?? 'General' }}</span></td>
                                     <td><span class="status-badge status-review">Pending</span></td>
                                     <td class="hide-on-mobile"><span class="table-date">{{ $art['date'] ?? '' }}</span></td>
                                     <td class="text-right">

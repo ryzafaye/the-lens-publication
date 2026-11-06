@@ -225,5 +225,21 @@ class SectionHeadController extends ExecutiveController
     {
         return view('executive.profile-settings');
     }
+
+    protected function sanitizeArticleContent($content)
+    {
+        if (!$content) return '';
+
+        $decoded = html_entity_decode($content, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        while (($nextDecoded = html_entity_decode($decoded, ENT_QUOTES | ENT_HTML5, 'UTF-8')) !== $decoded) {
+            $decoded = $nextDecoded;
+        }
+
+        $sanitized = preg_replace('/<\/?span[^>]*>/i', '', $decoded);
+        $sanitized = preg_replace('/\s*style\s*=\s*("[^"]*"|\'[^\']*\')/i', '', $sanitized);
+        $sanitized = preg_replace('/\s*class\s*=\s*("[^"]*"|\'[^\']*\')/i', '', $sanitized);
+
+        return trim($sanitized);
+    }
 }
 

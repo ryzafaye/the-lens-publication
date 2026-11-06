@@ -34,17 +34,17 @@ function normalizeMediaStatus(rawStatus) {
     if (s === 'Published' || s === 'published') {
         return 'Published';
     }
-    if (s === 'EIC Approved' || s === 'eic_approved' || s === 'approved_for_mpc') {
+    if (s === 'EIC Approved' || s === 'eic_approved' || s === 'approved_for_mpc' || s === 'approved') {
         return 'EIC Approved';
     }
     if (s === 'Returned for Revision' || s === 'returned' || s === 'needs_revision' || s === 'For Revision') {
         return 'Returned for Revision';
     }
-    if (s === 'Pending with Head' || s === 'pending' || s === 'submitted_to_mpc' || s === 'under-review') {
-        return 'Pending with Head';
+    if (s === 'Pending EIC Review' || s === 'forwarded to eic') {
+        return 'Pending EIC Review';
     }
-    if (s === 'approved') {
-        return 'Published';
+    if (s === 'Pending with Head' || s === 'Pending M&PC Review' || s === 'pending' || s === 'submitted_to_mpc' || s === 'under-review') {
+        return 'Pending with Head';
     }
     return s;
 }

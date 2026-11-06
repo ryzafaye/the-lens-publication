@@ -14,6 +14,26 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================================================================
     const form = document.getElementById('media-submission-form');
 
+    // Media Type Selector
+    const typeCards = document.querySelectorAll('.media-type-card');
+    const selectedTypeInput = document.getElementById('selected-media-type');
+    let selectedMediaType = 'pubmat';
+
+    typeCards.forEach(card => {
+        card.addEventListener('click', () => {
+            typeCards.forEach(c => c.classList.remove('selected'));
+            card.classList.add('selected');
+            selectedMediaType = card.getAttribute('data-type') || 'pubmat';
+            if (selectedTypeInput) selectedTypeInput.value = selectedMediaType;
+        });
+        card.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                card.click();
+            }
+        });
+    });
+
     // File Upload & Preview
     const dropzone = document.getElementById('media-dropzone');
     const fileInput = document.getElementById('media-file-input');
@@ -188,16 +208,15 @@ document.addEventListener('DOMContentLoaded', () => {
             const dateStr = formatDateDisplay(now);
             const rawDateStr = now.toISOString().split('T')[0];
 
-            const authorName = localStorage.getItem('mediaName') || localStorage.getItem('userName') || 'Alyssa Marie Dizon';
-            const userRole = localStorage.getItem('mediaRole') || 'Media & Communication';
+            const authorName = window.LARAVEL_USER_NAME || localStorage.getItem('mediaName') || localStorage.getItem('userName') || 'Media Team Member';
+            const userRole = window.LARAVEL_USER_ROLE || localStorage.getItem('mediaRole') || 'Media & Communication';
 
             const newId = 'cov-' + Date.now();
             const newPubmatItem = {
                 id: newId,
-                type: 'pubmat',
+                type: selectedMediaType || 'pubmat',
                 title: cleanTitle,
                 targetArticle: cleanTitle,
-                category: 'Features',
                 artist: authorName,
                 uploaderRole: userRole,
                 image: currentImageDataUrl,

@@ -59,7 +59,7 @@
                 type="search" 
                 id="media-search-input" 
                 class="manage-search-input" 
-                placeholder="Search media by title, connected article, or category..." 
+                placeholder="Search media by title or connected article..." 
                 aria-label="Search media submissions" 
                 autocomplete="off"
             >
@@ -100,7 +100,6 @@
     <div class="modal-card media-inspect-modal-card">
         <div class="viewer-modal-header" style="padding: 14px 20px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between;">
             <div style="display: flex; align-items: center; gap: 8px;">
-                <span id="modal-inspect-category" class="media-card-category-chip maroon-category"><i class="fa-solid fa-tag"></i> Features</span>
                 <span id="modal-inspect-status" class="media-status-pill pending-with-head">Pending with Head</span>
             </div>
             <button type="button" id="close-inspect-modal-btn" class="modal-close-icon" aria-label="Close modal">

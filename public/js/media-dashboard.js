@@ -88,6 +88,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     label: 'EIC Approved',
                     icon: '<i class="fa-solid fa-shield-halved"></i>'
                 };
+            case 'Pending EIC Review':
+                return {
+                    cssClass: 'pending-eic-review',
+                    label: 'Pending EIC Review',
+                    icon: '<i class="fa-solid fa-user-tie"></i>'
+                };
             case 'Returned for Revision':
                 return {
                     cssClass: 'returned-for-revision',
@@ -130,13 +136,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="manage-media-card" data-id="${item.id}">
                     <div class="media-card-preview-box" data-action="inspect" data-id="${item.id}">
                         <img src="${escapeHTML(item.image || 'images/covers/election-guidelines.svg')}" 
-                             alt="${escapeHTML(item.category || 'Graphic Asset')}" 
+                             alt="${escapeHTML(item.title || 'Graphic Asset')}" 
                              class="media-card-img" 
                              onerror="this.onerror=null; this.src='images/covers/portal-pubmat.svg'">
                         <div class="media-card-badge-layer">
-                            <span class="media-card-category-chip maroon-category">
-                                <i class="fa-solid fa-tag"></i> ${escapeHTML(item.category || 'News')}
-                            </span>
                             <span class="media-status-pill ${statusCfg.cssClass}">
                                 ${statusCfg.icon} ${statusCfg.label}
                             </span>
@@ -182,10 +185,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 this.src = 'images/covers/portal-pubmat.svg';
             };
             modalImg.src = item.image || 'images/covers/election-guidelines.svg';
-            modalImg.alt = item.category || 'Graphic Preview';
+            modalImg.alt = item.title || 'Graphic Preview';
         }
         if (modalCategory) {
-            modalCategory.innerHTML = `<i class="fa-solid fa-tag"></i> ${escapeHTML(item.category || 'News')}`;
+            modalCategory.style.display = 'none';
         }
         if (modalStatus) {
             modalStatus.className = `media-status-pill ${statusCfg.cssClass}`;

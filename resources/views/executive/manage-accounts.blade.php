@@ -108,11 +108,10 @@
                 <select id="officer-input-role" class="form-select" required>
                     <option value="" disabled selected>Select role...</option>
                     @foreach($roles ?? [] as $role)
-                        <option value="{{ $role->role_name }}">{{ $role->role_name }}</option>
+                        <option value="{{ $role->role_name }}" data-id="{{ $role->id }}">{{ $role->role_name }}</option>
                     @endforeach
                     @if(empty($roles) || count($roles) === 0)
                         <option value="President">President</option>
-                        <option value="Vice President">Vice President</option>
                         <option value="Executive Vice President">Executive Vice President</option>
                         <option value="Secretary">Secretary</option>
                         <option value="Associate Secretary">Associate Secretary</option>
@@ -120,15 +119,16 @@
                         <option value="Auditor">Auditor</option>
                         <option value="Public Relations Officer">Public Relations Officer</option>
                         <option value="Editor-in-Chief">Editor-in-Chief</option>
-                        <option value="Associate Editor">Associate Editor</option>
-                        <option value="Managing Editor">Managing Editor</option>
-                        <option value="Section Head - News">Section Head - News</option>
-                        <option value="Section Head - Features">Section Head - Features</option>
-                        <option value="Section Head - Opinions">Section Head - Opinions</option>
-                        <option value="Section Head - SciTech">Section Head - SciTech</option>
-                        <option value="Section Head - Literature">Section Head - Literature</option>
-                        <option value="M&PC Head">M&PC Head</option>
-                        <option value="Assoc M&PC Head">Assoc M&PC Head</option>
+                        <option value="Associate Editor-in-Chief">Associate Editor-in-Chief</option>
+                        <option value="News Head">News Head</option>
+                        <option value="Literary Head">Literary Head</option>
+                        <option value="Feature Head">Feature Head</option>
+                        <option value="Science and Technology Head">Science and Technology Head</option>
+                        <option value="Documentary and Podcast Head">Documentary and Podcast Head</option>
+                        <option value="Media and Public Communications Head">Media and Public Communications Head</option>
+                        <option value="Associate Media and Public Communications Head">Associate Media and Public Communications Head</option>
+                        <option value="Photojournalist Head">Photojournalist Head</option>
+                        <option value="Cartoonist Head">Cartoonist Head</option>
                         <option value="Writer">Writer</option>
                         <option value="Cartoonist">Cartoonist</option>
                         <option value="Media Team">Media Team</option>
@@ -219,11 +219,10 @@
                 <select id="edit-role-select" class="form-select" required>
                     <option value="" disabled>Select role...</option>
                     @foreach($roles ?? [] as $role)
-                        <option value="{{ $role->role_name }}">{{ $role->role_name }}</option>
+                        <option value="{{ $role->role_name }}" data-id="{{ $role->id }}">{{ $role->role_name }}</option>
                     @endforeach
                     @if(empty($roles) || count($roles) === 0)
                         <option value="President">President</option>
-                        <option value="Vice President">Vice President</option>
                         <option value="Executive Vice President">Executive Vice President</option>
                         <option value="Secretary">Secretary</option>
                         <option value="Associate Secretary">Associate Secretary</option>
@@ -231,15 +230,16 @@
                         <option value="Auditor">Auditor</option>
                         <option value="Public Relations Officer">Public Relations Officer</option>
                         <option value="Editor-in-Chief">Editor-in-Chief</option>
-                        <option value="Associate Editor">Associate Editor</option>
-                        <option value="Managing Editor">Managing Editor</option>
-                        <option value="Section Head - News">Section Head - News</option>
-                        <option value="Section Head - Features">Section Head - Features</option>
-                        <option value="Section Head - Opinions">Section Head - Opinions</option>
-                        <option value="Section Head - SciTech">Section Head - SciTech</option>
-                        <option value="Section Head - Literature">Section Head - Literature</option>
-                        <option value="M&PC Head">M&PC Head</option>
-                        <option value="Assoc M&PC Head">Assoc M&PC Head</option>
+                        <option value="Associate Editor-in-Chief">Associate Editor-in-Chief</option>
+                        <option value="News Head">News Head</option>
+                        <option value="Literary Head">Literary Head</option>
+                        <option value="Feature Head">Feature Head</option>
+                        <option value="Science and Technology Head">Science and Technology Head</option>
+                        <option value="Documentary and Podcast Head">Documentary and Podcast Head</option>
+                        <option value="Media and Public Communications Head">Media and Public Communications Head</option>
+                        <option value="Associate Media and Public Communications Head">Associate Media and Public Communications Head</option>
+                        <option value="Photojournalist Head">Photojournalist Head</option>
+                        <option value="Cartoonist Head">Cartoonist Head</option>
                         <option value="Writer">Writer</option>
                         <option value="Cartoonist">Cartoonist</option>
                         <option value="Media Team">Media Team</option>
@@ -268,7 +268,16 @@
     <script>
         window.INITIAL_OFFICERS = @json($formattedOfficers ?? []);
         window.INITIAL_DATA = @json($formattedOfficers ?? []);
+        window.OFFICER_DATA = @json($formattedOfficers ?? []);
+        window.AVAILABLE_ROLES = @json($roles ?? []);
+        window.ROLES_DATA = @json($roles ?? []);
         window.MANAGE_ACCOUNTS_STORE_URL = @json(route('executive.manage-accounts.store'));
+        window.__ACCOUNT_ROUTES__ = {
+            base: "{{ route('executive.manage-accounts') }}",
+            store: "{{ route('executive.manage-accounts.store') }}",
+            updateRole: "{{ route('executive.manage-accounts') }}",
+            toggleStatus: "{{ route('executive.manage-accounts') }}"
+        };
     </script>
     <script src="{{ asset('js/executive-manage-accounts.js') }}"></script>
 @endpush

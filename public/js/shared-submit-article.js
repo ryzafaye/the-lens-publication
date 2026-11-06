@@ -829,12 +829,19 @@ document.addEventListener('DOMContentLoaded', () => {
             hiddenStatus.value = status;
         }
 
-        // Sync with sectionHeadReviewQueue_v1 in localStorage as client-side fallback
-        if (status === 'Pending Review') {
+        // Sync with review queues in localStorage as client-side fallback
+        if (status === 'Pending Review' || status === 'Pending EIC Review') {
             try {
                 const selectedOption = categorySelect ? categorySelect.options[categorySelect.selectedIndex] : null;
                 const categoryName = selectedOption ? selectedOption.text.trim() : '';
-                const authorName = (document.getElementById('mobile-user-name')?.textContent?.trim()) || localStorage.getItem('userName') || 'Staff Writer';
+                const authorName = (document.getElementById('mobile-user-name')?.textContent?.trim()) 
+                    || window.LARAVEL_USER_NAME 
+                    || localStorage.getItem('userName') 
+                    || 'Staff Writer';
+
+                const isSectionHead = window.location.pathname.includes('/section-head') 
+                    || (window.LARAVEL_USER_ROLE && window.LARAVEL_USER_ROLE.toLowerCase().includes('head'))
+                    || (localStorage.getItem('userRole') && localStorage.getItem('userRole').toLowerCase().includes('head'));
 
                 const queueItem = {
                     id: Date.now(),
@@ -845,19 +852,34 @@ document.addEventListener('DOMContentLoaded', () => {
                     rawDate: new Date().toISOString(),
                     excerpt: excerpt,
                     content: cleanContent,
-                    status: 'Pending Review'
+                    status: isSectionHead ? 'Pending EIC Review' : 'Pending Review'
                 };
 
-                let q = [];
-                const rawQ = localStorage.getItem('sectionHeadReviewQueue_v1');
-                if (rawQ) {
-                    try {
-                        const parsed = JSON.parse(rawQ);
-                        if (Array.isArray(parsed)) q = parsed;
-                    } catch (e) {}
+                if (isSectionHead) {
+                    // Section Head submissions bypass section head review and go directly to EIC/AEIC review
+                    let eicQ = [];
+                    const rawEic = localStorage.getItem('eicPendingReviewQueue');
+                    if (rawEic) {
+                        try {
+                            const parsed = JSON.parse(rawEic);
+                            if (Array.isArray(parsed)) eicQ = parsed;
+                        } catch (e) {}
+                    }
+                    eicQ.unshift(queueItem);
+                    localStorage.setItem('eicPendingReviewQueue', JSON.stringify(eicQ));
+                    localStorage.setItem('executivePendingReviewQueue', JSON.stringify(eicQ));
+                } else {
+                    let q = [];
+                    const rawQ = localStorage.getItem('sectionHeadReviewQueue_v1');
+                    if (rawQ) {
+                        try {
+                            const parsed = JSON.parse(rawQ);
+                            if (Array.isArray(parsed)) q = parsed;
+                        } catch (e) {}
+                    }
+                    q.unshift(queueItem);
+                    localStorage.setItem('sectionHeadReviewQueue_v1', JSON.stringify(q));
                 }
-                q.unshift(queueItem);
-                localStorage.setItem('sectionHeadReviewQueue_v1', JSON.stringify(q));
             } catch (err) {
                 console.warn('Failed to sync queue to localStorage:', err);
             }

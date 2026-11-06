@@ -462,22 +462,43 @@ class EicController extends Controller
                 ->get();
         });
 
+        $formattedOfficers = $officers->map(function ($officer) {
+            return [
+                'id' => (string) $officer->id,
+                'name' => $officer->full_name,
+                'studentNumber' => $officer->student_number ?? '2024-00000-BN-0',
+                'role' => $officer->role->role_name ?? 'Staff',
+                'avatar' => $officer->avatar_url ?? ($officer->avatar ? asset($officer->avatar) : asset('images/member-placeholder.svg')),
+                'status' => $officer->account_status ?? 'active',
+            ];
+        });
+
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,
-                'officers' => $officers,
+                'officers' => $formattedOfficers,
                 'roles' => $roles,
             ]);
         }
 
-        return view('eic.manage-accounts', compact('officers', 'roles'));
+        return view('eic.manage-accounts', compact('officers', 'roles', 'formattedOfficers'));
     }
 
     public function storeAccount(Request $request)
     {
+        if (!$request->filled('student_number') && $request->filled('studentNumber')) {
+            $request->merge(['student_number' => $request->input('studentNumber')]);
+        }
+        if (!$request->filled('full_name') && $request->filled('name')) {
+            $request->merge(['full_name' => $request->input('name')]);
+        }
+
         $roleId = $request->input('role_id');
         if (!$roleId && $request->filled('role')) {
-            $roleObj = Role::where('role_name', $request->input('role'))->first();
+            $roleVal = $request->input('role');
+            $roleObj = is_numeric($roleVal)
+                ? Role::find($roleVal)
+                : Role::where('role_name', $roleVal)->first();
             $roleId = $roleObj?->id;
         }
         $request->merge(['role_id' => $roleId]);
@@ -501,14 +522,25 @@ class EicController extends Controller
         Cache::forget('all_officers_list');
         Cache::forget('eic_active_members');
         Cache::forget('active_writers_count');
+        Cache::forget('exec_active_members_count');
+        Cache::forget('mpc_active_members');
 
         $officer->load('role');
+
+        $formatted = [
+            'id' => (string) $officer->id,
+            'name' => $officer->full_name,
+            'studentNumber' => $officer->student_number ?? '2024-00000-BN-0',
+            'role' => $officer->role->role_name ?? 'Staff',
+            'avatar' => $officer->avatar_url ?? ($officer->avatar ? asset($officer->avatar) : asset('images/member-placeholder.svg')),
+            'status' => $officer->account_status ?? 'active',
+        ];
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,
                 'message' => 'Officer account created successfully.',
-                'officer' => $officer,
+                'officer' => $formatted,
             ]);
         }
 
@@ -521,7 +553,10 @@ class EicController extends Controller
 
         $roleId = $request->input('role_id');
         if (!$roleId && $request->filled('role')) {
-            $roleObj = Role::where('role_name', $request->input('role'))->first();
+            $roleVal = $request->input('role');
+            $roleObj = is_numeric($roleVal)
+                ? Role::find($roleVal)
+                : Role::where('role_name', $roleVal)->first();
             $roleId = $roleObj?->id;
         }
         $request->merge(['role_id' => $roleId]);
@@ -536,16 +571,29 @@ class EicController extends Controller
 
         \App\Auth\CachedEloquentUserProvider::clearCache($officer->id);
         Cache::forget('all_officers_list');
+        Cache::forget('eic_active_members');
+        Cache::forget('active_writers_count');
+        Cache::forget('exec_active_members_count');
+        Cache::forget('mpc_active_members');
 
         $officer->load('role');
 
         ActivityLog::logAction(Auth::id(), 'updated role for', $officer);
 
+        $formatted = [
+            'id' => (string) $officer->id,
+            'name' => $officer->full_name,
+            'studentNumber' => $officer->student_number ?? '2024-00000-BN-0',
+            'role' => $officer->role->role_name ?? 'Staff',
+            'avatar' => $officer->avatar_url ?? ($officer->avatar ? asset($officer->avatar) : asset('images/member-placeholder.svg')),
+            'status' => $officer->account_status ?? 'active',
+        ];
+
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,
                 'message' => "Role for {$officer->full_name} updated to {$officer->role->role_name}.",
-                'officer' => $officer,
+                'officer' => $formatted,
             ]);
         }
 
@@ -579,21 +627,34 @@ class EicController extends Controller
             'account_status' => $status,
         ]);
 
-        \App\Auth\CachedEloquentUserProvider::clearCache($officer->id);
-        Cache::forget('all_officers_list');
-
-        $officer->load('role');
-
         $statusLabel = ($status === 'active') ? 'reactivated' : 'deactivated';
 
         ActivityLog::logAction(Auth::id(), $statusLabel, $officer);
+
+        \App\Auth\CachedEloquentUserProvider::clearCache($officer->id);
+        Cache::forget('all_officers_list');
+        Cache::forget('eic_active_members');
+        Cache::forget('active_writers_count');
+        Cache::forget('exec_active_members_count');
+        Cache::forget('mpc_active_members');
+
+        $officer->load('role');
+
+        $formatted = [
+            'id' => (string) $officer->id,
+            'name' => $officer->full_name,
+            'studentNumber' => $officer->student_number ?? '2024-00000-BN-0',
+            'role' => $officer->role->role_name ?? 'Staff',
+            'avatar' => $officer->avatar_url ?? ($officer->avatar ? asset($officer->avatar) : asset('images/member-placeholder.svg')),
+            'status' => $officer->account_status ?? 'active',
+        ];
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,
                 'message' => "Officer account {$statusLabel}.",
                 'status' => $status,
-                'officer' => $officer,
+                'officer' => $formatted,
             ]);
         }
 

@@ -98,12 +98,19 @@ document.addEventListener('DOMContentLoaded', () => {
                     label: 'EIC Approved',
                     icon: '<i class="fa-solid fa-shield-halved"></i>'
                 };
+            case 'Pending EIC Review':
+                return {
+                    cssClass: 'pending-eic-review',
+                    label: 'Pending EIC Review',
+                    icon: '<i class="fa-solid fa-user-tie"></i>'
+                };
             case 'Returned for Revision':
                 return {
                     cssClass: 'returned-for-revision',
                     label: 'Returned for Revision',
                     icon: '<i class="fa-solid fa-triangle-exclamation"></i>'
                 };
+            case 'Pending M&PC Review':
             case 'Pending with Head':
             default:
                 return {
@@ -130,7 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateCounters() {
         // "All Media" tab excludes published items per user request
         const queueCount = mediaItems.filter(m => m.status !== 'Published').length;
-        const pending = mediaItems.filter(m => m.status === 'Pending with Head').length;
+        const pending = mediaItems.filter(m => (m.status || '').toLowerCase().includes('pending')).length;
         const returned = mediaItems.filter(m => m.status === 'Returned for Revision').length;
         const eic = mediaItems.filter(m => m.status === 'EIC Approved').length;
         const published = mediaItems.filter(m => m.status === 'Published').length;
@@ -148,7 +155,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // "All" tab: do NOT include published items per user request!
             if (currentFilter === 'all' && item.status === 'Published') return false;
 
-            if (currentFilter === 'pending' && item.status !== 'Pending with Head') return false;
+            if (currentFilter === 'pending' && !(item.status || '').toLowerCase().includes('pending')) return false;
             if (currentFilter === 'returned' && item.status !== 'Returned for Revision') return false;
             if (currentFilter === 'eic_approved' && item.status !== 'EIC Approved') return false;
             if (currentFilter === 'published' && item.status !== 'Published') return false;
@@ -318,9 +325,6 @@ document.addEventListener('DOMContentLoaded', () => {
                             onerror="this.onerror=null; this.src='images/covers/portal-pubmat.svg'"
                         >
                         <div class="media-card-badge-layer">
-                            <span class="media-card-category-chip maroon-category">
-                                <i class="fa-solid fa-tag"></i> ${escapeHTML(item.category || 'News')}
-                            </span>
                             <span class="media-status-pill ${statusCfg.cssClass}">
                                 ${statusCfg.icon} ${statusCfg.label}
                             </span>
@@ -378,11 +382,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 this.src = 'images/covers/portal-pubmat.svg';
             };
             modalImg.src = item.image || 'images/covers/election-guidelines.svg';
-            modalImg.alt = item.category || 'Graphic Preview';
+            modalImg.alt = item.title || 'Graphic Preview';
         }
         if (modalTitle) modalTitle.textContent = item.title;
         if (modalCategory) {
-            modalCategory.innerHTML = `<i class="fa-solid fa-tag"></i> ${escapeHTML(item.category || 'News')}`;
+            modalCategory.style.display = 'none';
         }
         if (modalStatus) {
             modalStatus.className = `media-status-pill ${statusCfg.cssClass}`;

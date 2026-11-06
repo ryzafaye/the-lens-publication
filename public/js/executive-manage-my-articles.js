@@ -182,7 +182,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!str || typeof str !== 'string') return '';
         let decoded = str;
         let maxPasses = 5;
-        while (maxPasses > 0 && (/&amp;lt;/i.test(decoded) || /&lt;/i.test(decoded) || /&amp;gt;/i.test(decoded) || /&gt;/i.test(decoded))) {
+        while (maxPasses > 0 && (/&amp;(?:lt|gt|quot|#39|amp);/i.test(decoded) || /&(?:lt|gt);/i.test(decoded))) {
             const txt = document.createElement('textarea');
             txt.innerHTML = decoded;
             const newDecoded = txt.value;
@@ -194,29 +194,41 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function formatCleanArticleContent(rawContent) {
-        if (!rawContent) {
+        if (!rawContent || !String(rawContent).trim()) {
             return '<p style="color: #98a2b3; font-style: italic;">No content available for this manuscript.</p>';
         }
 
-        let decoded = decodeCorruptedHtmlEntities(rawContent);
+        // 1. Decode any corrupted or double-encoded HTML entities so tags are real HTML
+        let content = decodeCorruptedHtmlEntities(String(rawContent).trim());
 
-        // Aggressively strip any literal or encoded span tags and style attributes
-        decoded = decoded
-            .replace(/&lt;\/?span[^&>]*&gt;/gi, '')
+        // 2. Strip dangerous script/iframe tags and inline event handlers
+        content = content
+            .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+            .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
+            .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
+            .replace(/\s+on\w+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, '');
+
+        // 3. Unwrap unnecessary span tags while keeping their text intact
+        content = content
             .replace(/<\/?span[^>]*>/gi, '')
             .replace(/\s*style="[^"]*"/gi, '')
-            .replace(/\s*style='[^']*'/gi, '')
-            .replace(/&lt;[^&>]+&gt;/gi, '');
+            .replace(/\s*style='[^']*'/gi, '');
 
-        const stripped = decoded
-            .replace(/<div><br\s*\/?><\/div>/gi, '\n\n')
-            .replace(/<\/(?:div|p|blockquote|h[1-6])>/gi, '\n\n')
-            .replace(/<\/?(?:div|p|blockquote|h[1-6])[^>]*>/gi, '\n')
-            .replace(/<br\s*\/?>/gi, '\n')
-            .replace(/<[^>]+>/g, '');
+        // 4. Normalize any broken <div><br><div> constructs to standard <div><br></div>
+        content = content
+            .replace(/<div><br\s*\/?><div>/gi, '<div><br></div>');
 
-        const paragraphs = stripped
-            .split(/\n+/)
+        // 5. Check if the content contains HTML structural tags
+        const hasHtmlTags = /<\/?(?:div|p|br|h[1-6]|blockquote|ul|ol|li|strong|b|em|i|u|s|a|hr)[^>]*>/i.test(content);
+
+        if (hasHtmlTags) {
+            // Injected as true HTML: do NOT pass through escapeHTML() so formatting and line breaks render correctly
+            return content;
+        }
+
+        // 6. Plain-text fallback: split into paragraphs and map to paragraph elements
+        const paragraphs = content
+            .split(/\r?\n\r?\n+/)
             .map(p => p.trim())
             .filter(p => p.length > 0);
 
@@ -224,7 +236,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return '<p style="color: #98a2b3; font-style: italic;">No content available for this manuscript.</p>';
         }
 
-        return paragraphs.map(p => `<p class="viewer-paragraph">${escapeHTML(p)}</p>`).join('');
+        return paragraphs.map(p => `<p class="viewer-paragraph">${escapeHTML(p).replace(/\r?\n/g, '<br>')}</p>`).join('');
     }
 
     function showToast(message, type = 'success') {

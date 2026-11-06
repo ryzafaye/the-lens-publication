@@ -108,24 +108,70 @@
 
 /* Clean Article Viewer Content Text & Paragraphs */
 .viewer-content-text {
-    font-size: 0.96rem !important;
-    line-height: 1.8 !important;
-    color: #344054 !important;
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 16px !important;
+    font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif) !important;
+    font-size: 1.05rem !important;
+    line-height: 1.75 !important;
+    color: #1f2937 !important;
+    display: block !important;
     margin-top: 10px !important;
     margin-bottom: 20px !important;
+    word-break: break-word !important;
+    text-align: justify !important;
+    text-justify: inter-word !important;
 }
 
+.viewer-content-text *,
 .viewer-content-text p,
+.viewer-content-text div,
 .viewer-paragraph {
     margin: 0 !important;
-    line-height: 1.8 !important;
-    color: #344054 !important;
-    font-size: 0.96rem !important;
-    font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, sans-serif) !important;
-    text-align: left !important;
+    margin-block-start: 0 !important;
+    margin-block-end: 0 !important;
+    padding: 0 !important;
+    font-family: inherit !important;
+    font-size: inherit !important;
+    line-height: inherit !important;
+    color: inherit !important;
+    text-align: justify !important;
+    text-justify: inter-word !important;
+}
+
+.viewer-content-text div,
+.viewer-content-text p {
+    min-height: 1.75em;
+}
+
+.viewer-content-text h1,
+.viewer-content-text h2,
+.viewer-content-text h3,
+.viewer-content-text h4,
+.viewer-content-text h5,
+.viewer-content-text h6 {
+    margin-top: 1.25em !important;
+    margin-bottom: 0.5em !important;
+    color: #111827 !important;
+    font-weight: 700 !important;
+    line-height: 1.35 !important;
+}
+
+.viewer-content-text blockquote {
+    margin: 1.25em 0 !important;
+    padding: 8px 16px !important;
+    border-left: 3px solid var(--sidebar-maroon, #5c0a18) !important;
+    background: #faf8f9 !important;
+    color: #475467 !important;
+    font-style: italic !important;
+}
+
+.viewer-content-text ul,
+.viewer-content-text ol {
+    margin: 0.75em 0 0.75em 1.5em !important;
+    padding-left: 1.25em !important;
+}
+
+.viewer-content-text li {
+    margin-bottom: 0.35em !important;
+    line-height: 1.75 !important;
 }
 
 /* Ensure Edit, Revise & Delete buttons share identical 32px height & alignment */

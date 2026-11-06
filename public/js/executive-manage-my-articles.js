@@ -222,11 +222,24 @@ document.addEventListener('DOMContentLoaded', () => {
         const hasHtmlTags = /<\/?(?:div|p|br|h[1-6]|blockquote|ul|ol|li|strong|b|em|i|u|s|a|hr)[^>]*>/i.test(content);
 
         if (hasHtmlTags) {
-            // Injected as true HTML: do NOT pass through escapeHTML() so formatting and line breaks render correctly
+            // Convert <p> tags to <div> with canonical <div><br></div> paragraph separators
+            content = content
+                .replace(/<\/p>\s*<p[^>]*>/gi, '</div><div><br></div><div>')
+                .replace(/<p[^>]*>/gi, '<div>')
+                .replace(/<\/p>/gi, '</div>');
+
+            // Collapse multiple consecutive blank line divs into a single standard break
+            content = content.replace(/(?:<div>\s*(?:<br\s*\/?>)?\s*<\/div>\s*){2,}/gi, '<div><br></div>');
+
+            // Remove leading and trailing empty lines
+            content = content
+                .replace(/^(?:<div>\s*(?:<br\s*\/?>)?\s*<\/div>\s*)+/gi, '')
+                .replace(/(?:<div>\s*(?:<br\s*\/?>)?\s*<\/div>\s*)+$/gi, '');
+
             return content;
         }
 
-        // 6. Plain-text fallback: split into paragraphs and map to paragraph elements
+        // 6. Plain-text fallback: split into paragraphs and map to canonical block elements
         const paragraphs = content
             .split(/\r?\n\r?\n+/)
             .map(p => p.trim())
@@ -236,7 +249,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return '<p style="color: #98a2b3; font-style: italic;">No content available for this manuscript.</p>';
         }
 
-        return paragraphs.map(p => `<p class="viewer-paragraph">${escapeHTML(p).replace(/\r?\n/g, '<br>')}</p>`).join('');
+        return paragraphs.map(p => `<div>${escapeHTML(p).replace(/\r?\n/g, '<br>')}</div>`).join('<div><br></div>');
     }
 
     function showToast(message, type = 'success') {

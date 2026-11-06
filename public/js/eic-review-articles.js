@@ -60,11 +60,12 @@ document.addEventListener('DOMContentLoaded', () => {
         return 'Section Head';
     }
 
-    // LocalStorage Queue Management
+    // LocalStorage & Server Queue Management
     function getStoredPendingQueue() {
         let list = [];
-        if (window.__PENDING_ARTICLES__ && Array.isArray(window.__PENDING_ARTICLES__)) {
-            list = window.__PENDING_ARTICLES__.map(item => ({
+        const serverPending = window.__PENDING_ARTICLES__ || window.INITIAL_PENDING || window.INITIAL_DATA;
+        if (serverPending && Array.isArray(serverPending) && serverPending.length > 0) {
+            list = serverPending.map(item => ({
                 id: item.id,
                 title: item.title,
                 author: item.author || 'Writer',
@@ -76,12 +77,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 ...item,
                 endorsedBy: resolveEndorser(item)
             }));
-        } else {
+        }
+
+        // Fallback to localStorage if server list is empty (e.g. offline testing or client queue)
+        if (list.length === 0) {
             try {
                 const raw = localStorage.getItem('eicPendingReviewQueue') || localStorage.getItem('executivePendingReviewQueue');
                 if (raw) {
                     const parsed = JSON.parse(raw);
-                    if (Array.isArray(parsed)) {
+                    if (Array.isArray(parsed) && parsed.length > 0) {
                         list = parsed.map(item => ({
                             ...item,
                             endorsedBy: resolveEndorser(item)
@@ -189,11 +193,24 @@ document.addEventListener('DOMContentLoaded', () => {
         const hasHtmlTags = /<\/?(?:div|p|br|h[1-6]|blockquote|ul|ol|li|strong|b|em|i|u|s|a|hr)[^>]*>/i.test(content);
 
         if (hasHtmlTags) {
-            // Injected as true HTML: do NOT pass through escapeHTML() so formatting and line breaks render correctly
+            // Convert <p> tags to <div> with canonical <div><br></div> paragraph separators
+            content = content
+                .replace(/<\/p>\s*<p[^>]*>/gi, '</div><div><br></div><div>')
+                .replace(/<p[^>]*>/gi, '<div>')
+                .replace(/<\/p>/gi, '</div>');
+
+            // Collapse multiple consecutive blank line divs into a single standard break
+            content = content.replace(/(?:<div>\s*(?:<br\s*\/?>)?\s*<\/div>\s*){2,}/gi, '<div><br></div>');
+
+            // Remove leading and trailing empty lines
+            content = content
+                .replace(/^(?:<div>\s*(?:<br\s*\/?>)?\s*<\/div>\s*)+/gi, '')
+                .replace(/(?:<div>\s*(?:<br\s*\/?>)?\s*<\/div>\s*)+$/gi, '');
+
             return content;
         }
 
-        // 6. Plain-text fallback: split into paragraphs and map to paragraph elements
+        // 6. Plain-text fallback: split into paragraphs and map to canonical block elements
         const paragraphs = content
             .split(/\r?\n\r?\n+/)
             .map(p => p.trim())
@@ -203,7 +220,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return '<p style="color: #667085; font-style: italic;">No manuscript text provided.</p>';
         }
 
-        return paragraphs.map(p => `<p class="manuscript-paragraph">${escapeHTML(p).replace(/\r?\n/g, '<br>')}</p>`).join('');
+        return paragraphs.map(p => `<div>${escapeHTML(p).replace(/\r?\n/g, '<br>')}</div>`).join('<div><br></div>');
     }
 
     function showToast(message, type = 'success') {
@@ -375,12 +392,25 @@ document.addEventListener('DOMContentLoaded', () => {
         const item = reviewList.find(a => String(a.id) === String(id));
         if (!item) return;
 
-        const modalHeadline = document.getElementById('modal-headline');
-        const modalExcerpt = document.getElementById('modal-excerpt');
-        const bodyEditor = document.getElementById('modal-body');
-        const newTitle = modalHeadline && (modalHeadline.innerText || modalHeadline.textContent).trim() ? (modalHeadline.innerText || modalHeadline.textContent).trim() : item.title;
-        const newExcerpt = modalExcerpt && modalExcerpt.style.display !== 'none' ? (modalExcerpt.innerText || modalExcerpt.textContent).trim() : (item.excerpt || '');
-        const newContent = bodyEditor && bodyEditor.innerHTML.trim() ? bodyEditor.innerHTML.trim() : item.content;
+        let newTitle = item.title;
+        let newExcerpt = item.excerpt || '';
+        let newContent = item.content;
+
+        // If the modal is currently open for this specific article, take the edited values from the modal inputs
+        if (String(currentActiveId) === String(id)) {
+            const modalHeadline = document.getElementById('modal-headline');
+            const modalExcerpt = document.getElementById('modal-excerpt');
+            const bodyEditor = document.getElementById('modal-body');
+            if (modalHeadline && (modalHeadline.innerText || modalHeadline.textContent).trim()) {
+                newTitle = (modalHeadline.innerText || modalHeadline.textContent).trim();
+            }
+            if (modalExcerpt && modalExcerpt.style.display !== 'none') {
+                newExcerpt = (modalExcerpt.innerText || modalExcerpt.textContent).trim();
+            }
+            if (bodyEditor && bodyEditor.innerHTML.trim()) {
+                newContent = bodyEditor.innerHTML.trim();
+            }
+        }
 
         item.title = newTitle;
         item.excerpt = newExcerpt;

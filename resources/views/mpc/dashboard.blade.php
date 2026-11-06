@@ -212,7 +212,7 @@
 
             <p id="viewer-excerpt" class="viewer-excerpt" style="display: none;"></p>
 
-            <div id="viewer-content" class="viewer-article-body"></div>
+            <div id="viewer-content" class="viewer-content-text viewer-article-body"></div>
         </div>
 
         <div class="viewer-modal-footer">

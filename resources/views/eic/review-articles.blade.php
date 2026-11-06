@@ -151,7 +151,9 @@
 
 @push('scripts')
     <script>
-        window.__PENDING_ARTICLES__ = @json($pendingArticles ?? []);
+        window.INITIAL_PENDING = @json($pendingArticles ?? []);
+        window.INITIAL_DATA = window.INITIAL_PENDING;
+        window.__PENDING_ARTICLES__ = window.INITIAL_PENDING;
         window.__CATEGORY_HEADS__ = @json($categoryHeads ?? []);
         window.__UPDATE_URL__ = "{{ url('/eic/review-articles') }}";
         window.__APPROVE_URL__ = "{{ url('/eic/review-articles') }}";

@@ -857,9 +857,9 @@
     }
 
     .viewer-content-text {
-        font-size: 0.90rem;
+        font-size: 0.95rem;
         line-height: 1.65;
-        gap: 12px;
+        display: block;
     }
 
     .viewer-stats-bar {

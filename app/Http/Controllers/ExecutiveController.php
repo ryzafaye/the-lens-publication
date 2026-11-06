@@ -119,6 +119,29 @@ class ExecutiveController extends Controller
             });
         });
 
+        $publishedCacheKey = 'exec_dashboard_published_' . ($category->id ?? 'all');
+        $publishedArticles = Cache::remember($publishedCacheKey, 30, function () use ($category) {
+            $pubQuery = Article::with(['user.role', 'category'])
+                ->where('status', 'Published');
+            if ($category) {
+                $pubQuery->where('category_id', $category->id);
+            }
+            return $pubQuery->orderByDesc('views')->take(5)->get()->map(function ($art) {
+                return [
+                    'id' => (string) $art->id,
+                    'title' => $art->title,
+                    'author' => $art->user->full_name ?? 'Author',
+                    'category' => $art->category->name ?? 'General',
+                    'status' => $art->status,
+                    'date' => $art->created_at->format('M d, Y'),
+                    'content' => $art->content,
+                    'excerpt' => $art->excerpt,
+                    'views' => (int) ($art->views ?? 0),
+                    'shares' => (int) ($art->shares ?? 0),
+                ];
+            });
+        });
+
         $recentActivities = ActivityLog::with(['user.role', 'entity'])
             ->latest()
             ->take(5)
@@ -129,11 +152,12 @@ class ExecutiveController extends Controller
         $dashboardData = [
             'metrics' => $metrics,
             'pendingArticles' => $pendingArticles,
+            'articles' => $publishedArticles,
             'category' => $category?->name,
             'recentActivities' => $recentActivities,
         ];
 
-        return view('executive.dashboard', compact('metrics', 'pendingArticles', 'category', 'dashboardData', 'recentActivities'));
+        return view('executive.dashboard', compact('metrics', 'pendingArticles', 'publishedArticles', 'category', 'dashboardData', 'recentActivities'));
     }
 
     public function manageArticles(Request $request)
@@ -220,6 +244,59 @@ class ExecutiveController extends Controller
         return view('executive.review-articles', compact('pendingArticles', 'category', 'sort'));
     }
 
+    public function updateReviewArticle(Request $request, $id)
+    {
+        $this->authorizePresidentOrVp($request);
+
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'content' => 'required|string',
+            'excerpt' => 'nullable|string|max:1000',
+        ]);
+
+        $article = Article::findOrFail($id);
+
+        $cleanContent = $this->sanitizeArticleContent($request->content);
+
+        $article->update([
+            'title' => $request->title,
+            'excerpt' => $request->excerpt ?: \Illuminate\Support\Str::limit(strip_tags($cleanContent), 160),
+            'content' => $cleanContent,
+        ]);
+
+        ActivityLog::logAction(Auth::id(), 'edited manuscript', $article);
+
+        Cache::forget('executive_dashboard_stats_' . $article->category_id);
+        Cache::forget('executive_dashboard_stats_all');
+        Cache::forget('eic_dashboard_stats');
+        Cache::forget('eic_dashboard_pending_articles');
+        Cache::forget('eic_review_articles_newest');
+        Cache::forget('eic_review_articles_oldest');
+        Cache::forget('exec_review_articles_' . $article->category_id . '_newest');
+        Cache::forget('exec_review_articles_' . $article->category_id . '_oldest');
+        Cache::forget('exec_review_articles_all_newest');
+        Cache::forget('exec_review_articles_all_oldest');
+
+        $userId = Auth::id();
+        Cache::forget("section_head_dashboard_stats_{$userId}");
+        Cache::forget("section_head_recent_articles_{$userId}");
+        Cache::forget("section_head_review_articles_{$userId}_{$article->category_id}_newest");
+        Cache::forget("section_head_review_articles_{$userId}_{$article->category_id}_oldest");
+        Cache::forget("section_head_review_articles_{$userId}_all_newest");
+        Cache::forget("section_head_review_articles_{$userId}_all_oldest");
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Article changes saved successfully.',
+            'article' => [
+                'id' => $article->id,
+                'title' => $article->title,
+                'excerpt' => $article->excerpt,
+                'content' => $article->content,
+            ],
+        ]);
+    }
+
     public function approveArticle(Request $request, $id)
     {
         $this->authorizePresidentOrVp($request);
@@ -229,6 +306,17 @@ class ExecutiveController extends Controller
         $user?->loadMissing('role');
 
         $article = Article::findOrFail($id);
+
+        // If updated title or content are passed with the approve request, persist them as well
+        if ($request->filled('title') && $request->filled('content')) {
+            $cleanContent = $this->sanitizeArticleContent($request->content);
+            $article->update([
+                'title' => $request->title,
+                'excerpt' => $request->excerpt ?: \Illuminate\Support\Str::limit(strip_tags($cleanContent), 160),
+                'content' => $cleanContent,
+            ]);
+        }
+
         $article->update([
             'status' => 'Pending EIC Review',
         ]);
@@ -238,12 +326,21 @@ class ExecutiveController extends Controller
         Cache::forget('executive_dashboard_stats_' . $article->category_id);
         Cache::forget('executive_dashboard_stats_all');
         Cache::forget('eic_dashboard_stats');
+        Cache::forget('eic_dashboard_pending_articles');
         Cache::forget('eic_review_articles_newest');
         Cache::forget('eic_review_articles_oldest');
         Cache::forget('exec_review_articles_' . $article->category_id . '_newest');
         Cache::forget('exec_review_articles_' . $article->category_id . '_oldest');
         Cache::forget('exec_review_articles_all_newest');
         Cache::forget('exec_review_articles_all_oldest');
+
+        $userId = Auth::id();
+        Cache::forget("section_head_dashboard_stats_{$userId}");
+        Cache::forget("section_head_recent_articles_{$userId}");
+        Cache::forget("section_head_review_articles_{$userId}_{$article->category_id}_newest");
+        Cache::forget("section_head_review_articles_{$userId}_{$article->category_id}_oldest");
+        Cache::forget("section_head_review_articles_{$userId}_all_newest");
+        Cache::forget("section_head_review_articles_{$userId}_all_oldest");
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json(['success' => true, 'message' => 'Article approved and forwarded to Editor-in-Chief.']);
@@ -271,12 +368,21 @@ class ExecutiveController extends Controller
         Cache::forget('executive_dashboard_stats_' . $article->category_id);
         Cache::forget('executive_dashboard_stats_all');
         Cache::forget('eic_dashboard_stats');
+        Cache::forget('eic_dashboard_pending_articles');
         Cache::forget('eic_review_articles_newest');
         Cache::forget('eic_review_articles_oldest');
         Cache::forget('exec_review_articles_' . $article->category_id . '_newest');
         Cache::forget('exec_review_articles_' . $article->category_id . '_oldest');
         Cache::forget('exec_review_articles_all_newest');
         Cache::forget('exec_review_articles_all_oldest');
+
+        $userId = Auth::id();
+        Cache::forget("section_head_dashboard_stats_{$userId}");
+        Cache::forget("section_head_recent_articles_{$userId}");
+        Cache::forget("section_head_review_articles_{$userId}_{$article->category_id}_newest");
+        Cache::forget("section_head_review_articles_{$userId}_{$article->category_id}_oldest");
+        Cache::forget("section_head_review_articles_{$userId}_all_newest");
+        Cache::forget("section_head_review_articles_{$userId}_all_oldest");
 
         Cache::forget('executive_dashboard_stats_' . $article->category_id);
         Cache::forget('executive_dashboard_stats_all');

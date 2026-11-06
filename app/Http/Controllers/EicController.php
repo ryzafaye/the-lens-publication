@@ -67,13 +67,35 @@ class EicController extends Controller
                 });
         });
 
+        $publishedArticles = Cache::remember('eic_dashboard_published_articles', 30, function () {
+            return Article::with(['user.role', 'category'])
+                ->where('status', 'Published')
+                ->orderByDesc('views')
+                ->take(5)
+                ->get()
+                ->map(function ($art) {
+                    return [
+                        'id' => (string) $art->id,
+                        'title' => $art->title,
+                        'author' => $art->user->full_name ?? 'Author',
+                        'category' => $art->category->name ?? 'General',
+                        'status' => $art->status,
+                        'date' => $art->created_at->format('M d, Y'),
+                        'content' => $art->content,
+                        'excerpt' => $art->excerpt,
+                        'views' => (int) ($art->views ?? 0),
+                        'shares' => (int) ($art->shares ?? 0),
+                    ];
+                });
+        });
+
         $recentActivities = ActivityLog::with(['user.role', 'entity'])
             ->latest()
             ->take(5)
             ->get()
             ->map->formatForTimeline();
 
-        return view('eic.dashboard', compact('metrics', 'pendingArticles', 'recentActivities'));
+        return view('eic.dashboard', compact('metrics', 'pendingArticles', 'publishedArticles', 'recentActivities'));
     }
 
     public function manageArticles()
@@ -271,6 +293,46 @@ class EicController extends Controller
         return view('eic.review-articles', compact('pendingArticles', 'sort', 'categoryHeads'));
     }
 
+    public function updateReviewArticle(Request $request, $id)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'content' => 'required|string',
+            'excerpt' => 'nullable|string|max:1000',
+        ]);
+
+        $article = Article::findOrFail($id);
+
+        $cleanContent = $this->sanitizeArticleContent($request->content);
+
+        $article->update([
+            'title' => $request->title,
+            'excerpt' => $request->excerpt ?: \Illuminate\Support\Str::limit(strip_tags($cleanContent), 160),
+            'content' => $cleanContent,
+        ]);
+
+        ActivityLog::logAction(Auth::id(), 'edited manuscript', $article);
+
+        Cache::forget('eic_dashboard_stats');
+        Cache::forget('eic_dashboard_pending_articles');
+        Cache::forget('eic_review_articles_newest');
+        Cache::forget('eic_review_articles_oldest');
+        Cache::forget('mpc_dashboard_stats');
+        Cache::forget('mpc_dashboard_pending_articles');
+        Cache::forget('mpc_dashboard_published_articles');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Article changes saved successfully.',
+            'article' => [
+                'id' => $article->id,
+                'title' => $article->title,
+                'excerpt' => $article->excerpt,
+                'content' => $article->content,
+            ],
+        ]);
+    }
+
     public function approveArticle(Request $request, $id)
     {
         /** @var \App\Models\User $user */
@@ -278,6 +340,17 @@ class EicController extends Controller
         $user?->loadMissing('role');
 
         $article = Article::findOrFail($id);
+
+        // If updated title or content are passed with the approve request, persist them as well
+        if ($request->filled('title') && $request->filled('content')) {
+            $cleanContent = $this->sanitizeArticleContent($request->content);
+            $article->update([
+                'title' => $request->title,
+                'excerpt' => $request->excerpt ?: \Illuminate\Support\Str::limit(strip_tags($cleanContent), 160),
+                'content' => $cleanContent,
+            ]);
+        }
+
         $article->update([
             'status' => 'Approved',
         ]);

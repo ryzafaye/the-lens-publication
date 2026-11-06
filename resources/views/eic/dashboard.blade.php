@@ -127,7 +127,29 @@
                     <h2 id="most-viewed-heading" class="panel-title">Most Viewed Articles</h2>
                     <span id="most-viewed-month-badge" class="panel-badge">October</span>
                 </div>
-                <div id="most-viewed-list" class="ranked-list"></div>
+                <div id="most-viewed-list" class="ranked-list">
+                    @forelse($publishedArticles ?? [] as $idx => $art)
+                        <div class="ranked-item" data-action="view-modal" data-article-id="{{ $art['id'] }}" data-article="{{ json_encode($art) }}">
+                            <span class="rank-number {{ $idx === 0 ? 'top-rank' : '' }}">{{ $idx + 1 }}</span>
+                            <div class="ranked-content">
+                                <div class="ranked-category-tag">{{ $art['category'] }}</div>
+                                <button type="button" class="ranked-title-btn" data-action="view-modal" data-id="{{ $art['id'] }}" data-article="{{ json_encode($art) }}" title="{{ $art['title'] }}">
+                                    {{ $art['title'] }}
+                                </button>
+                                <div class="ranked-meta-row">
+                                    <span class="ranked-author"><i class="fa-solid fa-pen-nib" aria-hidden="true" style="font-size: 0.70rem; margin-right: 4px; color: var(--text-muted, #667085);"></i>{{ $art['author'] }}</span>
+                                    <span class="ranked-stats">
+                                        <span class="stat-metric" title="Views"><i class="fa-regular fa-eye"></i> {{ number_format($art['views'] ?? 0) }}</span>
+                                        <span class="stat-sep">•</span>
+                                        <span class="stat-metric" title="Shares"><i class="fa-solid fa-share-nodes"></i> {{ number_format($art['shares'] ?? 0) }}</span>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    @empty
+                        <div style="font-size: 0.85rem; color: #667085; text-align: center; padding: 24px 0;">No published articles yet.</div>
+                    @endforelse
+                </div>
             </section>
 
             <!-- Section 2: Top Performing Journalists (Table Layout) -->
@@ -214,6 +236,9 @@
         </div>
 
         <div class="viewer-modal-footer" id="viewer-modal-footer">
+            <button type="button" class="modal-btn modal-btn-cancel" onclick="document.getElementById('article-viewer-modal').classList.add('hidden')">
+                Close
+            </button>
             <div class="modal-footer-right" id="viewer-review-actions">
                 <button type="button" id="viewer-revision-btn" class="btn-box-revision">
                     <i class="fa-solid fa-rotate-left"></i>
@@ -326,6 +351,7 @@
 @push('scripts')
 <script>
     window.__DASHBOARD_PENDING__ = @json($pendingArticles ?? []);
+    window.__DASHBOARD_ARTICLES__ = @json($publishedArticles ?? []);
     window.__DASHBOARD_METRICS__ = @json($metrics ?? []);
     window.__REVIEW_ARTICLES_URL__ = "{{ route('eic.review-articles') }}";
     window.__ACTIVITY_LOGS_URL__ = "{{ route('eic.activity-logs') }}";

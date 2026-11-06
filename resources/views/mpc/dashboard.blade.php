@@ -80,7 +80,13 @@
                         <tbody id="submissions-table-body">
                             @forelse($pendingArticles ?? [] as $article)
                                 <tr>
-                                    <td class="font-medium text-dark">{{ $article['title'] }}</td>
+                                    <td>
+                                        <div class="table-article-info">
+                                            <button type="button" class="table-article-btn" data-action="view" data-id="{{ $article['id'] }}" data-article="{{ json_encode($article) }}" title="{{ $article['title'] }}">
+                                                {{ $article['title'] }}
+                                            </button>
+                                        </div>
+                                    </td>
                                     <td>
                                         <div class="author-cell">
                                             <i class="fa-solid fa-pen-nib author-pen-icon" style="color: #7b1113; margin-right: 6px; font-size: 0.85rem;"></i>
@@ -128,7 +134,23 @@
                     <span id="most-viewed-month-badge" class="panel-badge">{{ date('F') }}</span>
                 </div>
                 <div id="most-viewed-list" class="ranked-list">
-                    <div class="empty-state-cell" style="text-align: center; color: #667085; padding: 24px;">No data available yet</div>
+                    @forelse($publishedArticles ?? [] as $index => $pubArt)
+                        <div class="ranked-item" data-action="view" data-article-id="{{ $pubArt['id'] }}" data-article="{{ json_encode($pubArt) }}">
+                            <span class="rank-number {{ $index === 0 ? 'top-rank' : '' }}">{{ $index + 1 }}</span>
+                            <div class="ranked-content">
+                                <div class="ranked-category-tag">{{ $pubArt['category'] ?? 'General' }}</div>
+                                <button type="button" class="ranked-title-btn" data-action="view" data-id="{{ $pubArt['id'] }}" data-article="{{ json_encode($pubArt) }}" title="{{ $pubArt['title'] }}">
+                                    {{ $pubArt['title'] }}
+                                </button>
+                                <div class="ranked-meta-row">
+                                    <span class="ranked-author"><i class="fa-solid fa-pen-nib" style="font-size: 0.70rem; margin-right: 4px; color: #667085;"></i>{{ $pubArt['author'] ?? 'Author' }}</span>
+                                    <span class="ranked-stats"><i class="fa-regular fa-eye"></i> {{ number_format($pubArt['views'] ?? 0) }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    @empty
+                        <div class="empty-state-cell" style="text-align: center; color: #667085; padding: 24px;">No data available yet</div>
+                    @endforelse
                 </div>
             </section>
 

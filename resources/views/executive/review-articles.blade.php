@@ -93,7 +93,7 @@
 
         <!-- Modal Body -->
         <div class="manuscript-body">
-            <h2 id="modal-headline" class="manuscript-headline">Article Headline</h2>
+            <h2 id="modal-headline" class="manuscript-headline" contenteditable="true" spellcheck="true" role="textbox" aria-multiline="true">Article Headline</h2>
             
             <div class="manuscript-byline-banner">
                 <div class="manuscript-byline-author">
@@ -108,19 +108,20 @@
                 @endif
             </div>
 
-            <!-- Story Text -->
-            <p id="modal-excerpt" class="viewer-excerpt" style="display: none;"></p>
+            <!-- Story Excerpt -->
+            <p id="modal-excerpt" class="viewer-excerpt" contenteditable="true" spellcheck="true" role="textbox" aria-multiline="true" style="display: none;"></p>
 
-            <div id="modal-body" class="manuscript-text-content"></div>
+            <!-- Story Body -->
+            <div id="modal-body" class="manuscript-text-content" contenteditable="true" spellcheck="true" role="textbox" aria-multiline="true"></div>
 
             <!-- Mandatory Revision Remarks Box -->
-            <div class="manuscript-remarks-section" id="manuscript-remarks-section">
+            <div class="manuscript-remarks-section" id="manuscript-remarks-section" style="display: none;">
                 <label for="modal-remarks" class="remarks-label">
                     <span class="remarks-label-text">
                         <i class="fa-solid fa-comment-dots"></i>
                         <span>Revision Remarks for Writer:</span>
                     </span>
-                    <span class="required-badge">Required</span>
+                    <span class="required-badge">Required for Revision</span>
                 </label>
                 <textarea id="modal-remarks" class="remarks-textarea" placeholder="Enter mandatory revision feedback for the writer before returning this story..."></textarea>
                 <div id="remarks-error-msg" class="remarks-error-msg hidden">
@@ -132,16 +133,18 @@
 
         <!-- Modal Footer -->
         <div class="manuscript-footer">
-            <div class="modal-footer-right">
-                <button type="button" id="modal-revision-btn" class="btn-box-revision">
-                    <i class="fa-solid fa-rotate-left"></i>
-                    <span>For Revision</span>
-                </button>
-                <button type="button" id="modal-approve-btn" class="btn-box-approve">
-                    <i class="fa-solid fa-check"></i>
-                    <span>{{ request()->is('section-head*') ? 'Approve for EIC' : 'Approve for M&PC' }}</span>
-                </button>
-            </div>
+            <button type="button" id="modal-save-btn" class="btn-box-save" title="Save changes">
+                <i class="fa-solid fa-floppy-disk"></i>
+                <span>Save</span>
+            </button>
+            <button type="button" id="modal-revision-btn" class="btn-box-revision" style="display: none;">
+                <i class="fa-solid fa-rotate-left"></i>
+                <span>For Revision</span>
+            </button>
+            <button type="button" id="modal-approve-btn" class="btn-box-approve" style="display: none;">
+                <i class="fa-solid fa-check"></i>
+                <span>{{ request()->is('section-head*') ? 'Approve for EIC' : 'Approve for M&PC' }}</span>
+            </button>
         </div>
 
     </div>
@@ -157,6 +160,7 @@
         window.INITIAL_DATA = window.INITIAL_PENDING;
         window.__PENDING_ARTICLES__ = window.INITIAL_PENDING;
         window.__SECTION_CATEGORY__ = @json($category?->name ?? null);
+        window.__UPDATE_URL__ = "{{ url(request()->is('section-head*') ? '/section-head/review-articles' : '/executive/review-articles') }}";
         window.__APPROVE_URL__ = "{{ url(request()->is('section-head*') ? '/section-head/review-articles' : '/executive/review-articles') }}";
         window.__REVISION_URL__ = "{{ url(request()->is('section-head*') ? '/section-head/review-articles' : '/executive/review-articles') }}";
     </script>

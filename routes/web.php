@@ -53,6 +53,7 @@ Route::middleware(['auth', 'role:President,Executive Vice President,Secretary,As
         Route::get('/review-article', function () {
             return redirect()->route('executive.review-articles');
         })->name('review-article');
+        Route::match(['put', 'post'], '/review-articles/{id}', [ExecutiveController::class, 'updateReviewArticle'])->name('update-review-article');
         Route::post('/review-articles/{id}/approve', [ExecutiveController::class, 'approveArticle'])->name('approve-article');
         Route::post('/review-articles/{id}/revision', [ExecutiveController::class, 'returnForRevision'])->name('return-for-revision');
         Route::get('/manage-accounts', [ExecutiveController::class, 'manageAccounts'])->name('manage-accounts');
@@ -94,6 +95,7 @@ Route::middleware('auth')->prefix('section-head')->name('section-head.')->group(
         return redirect()->route('section-head.manage-my-articles');
     });
     Route::get('/review-articles', [SectionHeadController::class, 'reviewArticles'])->name('review-articles');
+    Route::match(['put', 'post'], '/review-articles/{id}', [SectionHeadController::class, 'updateReviewArticle'])->name('update-review-article');
     Route::post('/review-articles/{id}/approve', [SectionHeadController::class, 'approveArticle'])->name('approve-article');
     Route::post('/review-articles/{id}/revision', [SectionHeadController::class, 'returnForRevision'])->name('return-for-revision');
     Route::get('/submit-article', [SectionHeadController::class, 'submitArticle'])->name('submit-article');
@@ -118,6 +120,7 @@ Route::middleware(['auth', 'role:Editor-in-Chief,Associate Editor-in-Chief'])
             return redirect()->route('eic.manage-my-articles');
         });
         Route::get('/review-articles', [EicController::class, 'reviewArticles'])->name('review-articles');
+        Route::match(['put', 'post'], '/review-articles/{id}', [EicController::class, 'updateReviewArticle'])->name('update-review-article');
         Route::post('/review-articles/{id}/approve', [EicController::class, 'approveArticle'])->name('approve-article');
         Route::post('/review-articles/{id}/revision', [EicController::class, 'returnForRevision'])->name('return-for-revision');
         Route::get('/submit-article', [EicController::class, 'submitArticle'])->name('submit-article');

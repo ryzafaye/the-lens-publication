@@ -78,7 +78,7 @@
                                 <tr>
                                     <td>
                                         <div class="table-article-info">
-                                            <button type="button" class="table-article-btn" data-action="view" data-id="{{ $art['id'] }}" title="{{ $art['title'] }}">
+                                            <button type="button" class="table-article-btn" data-action="view" data-id="{{ $art['id'] }}" data-article="{{ json_encode($art) }}" title="{{ $art['title'] }}">
                                                 {{ $art['title'] }}
                                             </button>
                                             <div class="table-author-subline">
@@ -129,7 +129,27 @@
                     <span id="most-viewed-month-badge" class="panel-badge">{{ date('F') }}</span>
                 </div>
                 <div id="most-viewed-list" class="ranked-list">
-                    <div style="font-size: 0.85rem; color: #667085; text-align: center; padding: 24px 0;">No published articles yet.</div>
+                    @forelse($publishedArticles ?? [] as $idx => $art)
+                        <div class="ranked-item" data-action="view" data-article-id="{{ $art['id'] }}" data-article="{{ json_encode($art) }}">
+                            <span class="rank-number {{ $idx === 0 ? 'top-rank' : '' }}">{{ $idx + 1 }}</span>
+                            <div class="ranked-content">
+                                <div class="ranked-category-tag">{{ $art['category'] }}</div>
+                                <button type="button" class="ranked-title-btn" data-action="view" data-id="{{ $art['id'] }}" data-article="{{ json_encode($art) }}" title="{{ $art['title'] }}">
+                                    {{ $art['title'] }}
+                                </button>
+                                <div class="ranked-meta-row">
+                                    <span class="ranked-author"><i class="fa-solid fa-pen-nib" aria-hidden="true" style="font-size: 0.70rem; margin-right: 4px; color: var(--text-muted, #667085);"></i>{{ $art['author'] }}</span>
+                                    <span class="ranked-stats">
+                                        <span class="stat-metric" title="Views"><i class="fa-regular fa-eye"></i> {{ number_format($art['views'] ?? 0) }}</span>
+                                        <span class="stat-sep">•</span>
+                                        <span class="stat-metric" title="Shares"><i class="fa-solid fa-share-nodes"></i> {{ number_format($art['shares'] ?? 0) }}</span>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    @empty
+                        <div style="font-size: 0.85rem; color: #667085; text-align: center; padding: 24px 0;">No published articles yet.</div>
+                    @endforelse
                 </div>
             </section>
 
@@ -211,6 +231,9 @@
         </div>
 
         <div class="viewer-modal-footer">
+            <button type="button" class="modal-btn modal-btn-cancel" onclick="document.getElementById('article-viewer-modal').classList.add('hidden')">
+                Close
+            </button>
             <button type="button" id="viewer-action-edit" class="modal-btn modal-btn-secondary">
                 <i class="fa-regular fa-pen-to-square"></i> Edit Article
             </button>
@@ -313,6 +336,7 @@
         window.INITIAL_DATA = @json($dashboardData ?? []);
         window.INITIAL_METRICS = @json($metrics ?? []);
         window.INITIAL_PENDING = @json($pendingArticles ?? []);
+        window.INITIAL_ARTICLES = @json($publishedArticles ?? []);
         window.REVIEW_ARTICLES_URL = @json(request()->is('section-head*') ? route('section-head.review-articles') : route('executive.review-articles'));
         window.ACTIVITY_LOGS_URL = @json(url((request()->is('section-head*') ? 'section-head' : 'executive') . '/activity-logs'));
     </script>

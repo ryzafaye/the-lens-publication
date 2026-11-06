@@ -328,7 +328,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <tr>
                         <td>
                             <div class="table-article-info">
-                                <button type="button" class="table-article-btn" data-action="view" data-id="${escapeHTML(art.id)}" title="${escapeHTML(art.title)}">
+                                <button type="button" class="table-article-btn" data-action="view" data-id="${escapeHTML(art.id)}" data-article="${escapeHTML(JSON.stringify(art))}" title="${escapeHTML(art.title)}">
                                     ${escapeHTML(art.title)}
                                 </button>
                                 <div class="table-author-subline">
@@ -360,11 +360,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (mostViewed.length === 0) {
                 mostViewedContainer.innerHTML = '<div style="font-size: 0.85rem; color: #667085; text-align: center; padding: 24px 0;">No published articles yet.</div>';
             } else mostViewedContainer.innerHTML = mostViewed.map((art, idx) => `
-                <div class="ranked-item" data-article-id="${art.id}">
+                <div class="ranked-item" data-action="view" data-article-id="${art.id}" data-article="${escapeHTML(JSON.stringify(art))}">
                     <span class="rank-number ${idx === 0 ? 'top-rank' : ''}">${idx + 1}</span>
                     <div class="ranked-content">
                         <div class="ranked-category-tag">${escapeHTML(art.category)}</div>
-                        <button type="button" class="ranked-title-btn" data-action="view" data-id="${art.id}" title="${escapeHTML(art.title)}">
+                        <button type="button" class="ranked-title-btn" data-action="view" data-id="${art.id}" data-article="${escapeHTML(JSON.stringify(art))}" title="${escapeHTML(art.title)}">
                             ${escapeHTML(art.title)}
                         </button>
                         <div class="ranked-meta-row">
@@ -407,19 +407,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 topJournalistsContainer.innerHTML = '<div style="font-size: 0.85rem; color: #667085; text-align: center; padding: 24px 0;">No journalists yet.</div>';
             }
         } else if (topJournalistsTableBody) {
-            topJournalistsTableBody.innerHTML = topJournalists.map(j => 
+            topJournalistsTableBody.innerHTML = topJournalists.map(j => `
                 <tr>
-                    <td class="col-author-name">\</td>
-                    <td class="col-article-count">\</td>
+                    <td class="col-author-name">${escapeHTML(j.name)}</td>
+                    <td class="col-article-count">${j.count}</td>
                 </tr>
-            ).join('');
+            `).join('');
         } else if (topJournalistsContainer) {
-            topJournalistsContainer.innerHTML = topJournalists.map(j => 
+            topJournalistsContainer.innerHTML = topJournalists.map(j => `
                 <div class="journalist-item">
-                    <span class="journalist-name">\</span>
-                    <span class="journalist-count-badge">\</span>
+                    <span class="journalist-name">${escapeHTML(j.name)}</span>
+                    <span class="journalist-count-badge">${j.count}</span>
                 </div>
-            ).join('');
+            `).join('');
         }
     }
 

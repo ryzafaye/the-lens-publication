@@ -124,6 +124,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // 3. SHARED ARTICLES DATASET & PERSISTENCE
     // =========================================================================
     function getStoredArticles() {
+        if (window.__DASHBOARD_ARTICLES__ && Array.isArray(window.__DASHBOARD_ARTICLES__) && window.__DASHBOARD_ARTICLES__.length > 0) {
+            return window.__DASHBOARD_ARTICLES__;
+        }
         try {
             const pubRaw = localStorage.getItem('theLensPublishedArticles');
             if (pubRaw) {
@@ -332,7 +335,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <tr>
                         <td>
                             <div class="table-article-info">
-                                <button type="button" class="table-article-btn" data-action="view-modal" data-id="${escapeHTML(art.id)}" title="${escapeHTML(art.title)}">
+                                <button type="button" class="table-article-btn" data-action="view-modal" data-id="${escapeHTML(art.id)}" data-article="${escapeHTML(JSON.stringify(art))}" title="${escapeHTML(art.title)}">
                                     ${escapeHTML(art.title)}
                                 </button>
                                 <div class="table-author-subline">
@@ -365,11 +368,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 mostViewedContainer.innerHTML = '<p style="font-size: 0.85rem; color: var(--text-muted, #667085); padding: 28px 16px; text-align: center; margin: 0;">No published articles yet.</p>';
             } else {
                 mostViewedContainer.innerHTML = mostViewed.map((art, idx) => `
-                    <div class="ranked-item" data-article-id="${art.id}">
+                    <div class="ranked-item" data-action="view-modal" data-article-id="${art.id}" data-article="${escapeHTML(JSON.stringify(art))}">
                         <span class="rank-number ${idx === 0 ? 'top-rank' : ''}">${idx + 1}</span>
                         <div class="ranked-content">
                             <div class="ranked-category-tag">${escapeHTML(art.category)}</div>
-                            <button type="button" class="ranked-title-btn" data-action="view" data-id="${art.id}" title="${escapeHTML(art.title)}">
+                            <button type="button" class="ranked-title-btn" data-action="view-modal" data-id="${art.id}" data-article="${escapeHTML(JSON.stringify(art))}" title="${escapeHTML(art.title)}">
                                 ${escapeHTML(art.title)}
                             </button>
                             <div class="ranked-meta-row">
@@ -477,10 +480,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // -------------------------------------------------------------------------
     // Article Viewer Modal Logic
     // -------------------------------------------------------------------------
-    function openArticleViewer(id) {
-        const pendingList = getPendingQueue();
-        const article = articles.find(a => String(a.id) === String(id)) ||
-                        pendingList.find(a => String(a.id) === String(id));
+    function openArticleViewer(idOrArticle) {
+        let article = typeof idOrArticle === 'object' && idOrArticle !== null ? idOrArticle : null;
+        if (!article) {
+            const pendingList = getPendingQueue();
+            article = articles.find(a => String(a.id) === String(idOrArticle)) ||
+                      pendingList.find(a => String(a.id) === String(idOrArticle));
+        }
         if (!article || !viewerModal) return;
 
         currentViewingArticleId = article.id;
@@ -935,10 +941,17 @@ document.addEventListener('DOMContentLoaded', () => {
         // 1. Direct [data-action="view"] or [data-action="view-modal"] button or link
         const viewTrigger = e.target.closest('[data-action="view"], [data-action="view-modal"]');
         if (viewTrigger) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (viewTrigger.dataset.article) {
+                try {
+                    const parsed = JSON.parse(viewTrigger.dataset.article);
+                    openArticleViewer(parsed);
+                    return;
+                } catch (err) {}
+            }
             const targetId = viewTrigger.dataset.id || viewTrigger.getAttribute('data-id');
             if (targetId) {
-                e.preventDefault();
-                e.stopPropagation();
                 openArticleViewer(targetId);
                 return;
             }
@@ -946,8 +959,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // 2. Click anywhere inside a ranked item in Most Viewed Articles
         const rankedItem = e.target.closest('.ranked-item');
-        if (rankedItem && rankedItem.dataset.articleId) {
-            openArticleViewer(rankedItem.dataset.articleId);
+        if (rankedItem) {
+            if (rankedItem.dataset.article) {
+                try {
+                    const parsed = JSON.parse(rankedItem.dataset.article);
+                    openArticleViewer(parsed);
+                    return;
+                } catch (err) {}
+            }
+            if (rankedItem.dataset.articleId) {
+                openArticleViewer(rankedItem.dataset.articleId);
+                return;
+            }
         }
     });
 

@@ -235,7 +235,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <span class="review-box-date"><i class="fa-regular fa-calendar" aria-hidden="true"></i> ${escapeHTML(item.date)}</span>
                     </div>
 
-                    <button type="button" class="review-box-title" data-action="read" data-id="${item.id}" title="${escapeHTML(item.title)}">
+                    <button type="button" class="review-box-title" data-action="edit" data-id="${item.id}" title="${escapeHTML(item.title)}">
                         ${escapeHTML(item.title)}
                     </button>
 
@@ -249,9 +249,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 <!-- Right Actions: 3 small buttons in a row -->
                 <div class="review-box-actions">
-                    <button type="button" class="btn-box-read" data-action="read" data-id="${item.id}" title="Read full manuscript">
-                        <i class="fa-regular fa-eye"></i>
-                        <span>Read</span>
+                    <button type="button" class="btn-box-read btn-box-edit" data-action="edit" data-id="${item.id}" title="Edit writer's manuscript">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                        <span>Edit</span>
                     </button>
                     <button type="button" class="btn-box-revision" data-action="revision" data-id="${item.id}" title="Direct to revision remarks">
                         <i class="fa-solid fa-rotate-left"></i>
@@ -273,6 +273,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const item = reviewList.find(a => String(a.id) === String(id));
         if (!item) return;
 
+        const modalHeadline = document.getElementById('modal-headline');
+        const modalExcerpt = document.getElementById('modal-excerpt');
+        const bodyEditor = document.getElementById('modal-body');
+        const newTitle = modalHeadline && (modalHeadline.innerText || modalHeadline.textContent).trim() ? (modalHeadline.innerText || modalHeadline.textContent).trim() : item.title;
+        const newExcerpt = modalExcerpt && modalExcerpt.style.display !== 'none' ? (modalExcerpt.innerText || modalExcerpt.textContent).trim() : (item.excerpt || '');
+        const newContent = bodyEditor && bodyEditor.innerHTML.trim() ? bodyEditor.innerHTML.trim() : item.content;
+
+        item.title = newTitle;
+        item.excerpt = newExcerpt;
+        item.content = newContent;
+
         const box = document.getElementById(`box-${id}`);
         if (box) {
             box.classList.add('box-fade-out');
@@ -288,7 +299,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': csrfToken,
                 'Accept': 'application/json'
-            }
+            },
+            body: JSON.stringify({
+                title: newTitle,
+                excerpt: newExcerpt,
+                content: newContent
+            })
         }).catch(err => console.warn('Backend approve call failed:', err));
 
         setTimeout(() => {
@@ -423,43 +439,49 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!item || !manuscriptModal) return;
 
         currentActiveId = id;
-        if (modalHeadline) modalHeadline.textContent = item.title;
+        if (modalHeadline) modalHeadline.textContent = item.title || '';
         if (modalSection) modalSection.textContent = item.category || currentSection;
         if (modalDate) modalDate.textContent = item.date;
         if (modalWriter) modalWriter.textContent = item.author;
 
-        // Reset remarks
-        if (modalRemarks) {
-            let cleanRemarks = (item.remarks || '').trim();
-            if (/^(?:Endorsed to|Approved by)/i.test(cleanRemarks)) {
-                cleanRemarks = '';
+        const modalExcerpt = document.getElementById('modal-excerpt');
+        if (modalExcerpt) {
+            if (item.excerpt && item.excerpt.trim()) {
+                modalExcerpt.textContent = item.excerpt.trim();
+                modalExcerpt.style.display = 'block';
+            } else {
+                modalExcerpt.textContent = '';
+                modalExcerpt.style.display = 'none';
             }
-            modalRemarks.value = cleanRemarks;
-            modalRemarks.classList.remove('input-invalid');
-            modalRemarks.classList.remove('pulse-focus');
         }
-        if (remarksErrorMsg) remarksErrorMsg.classList.add('hidden');
 
         if (modalBody) {
-            const modalExcerpt = document.getElementById('modal-excerpt');
-            if (modalExcerpt) {
-                if (item.excerpt && item.excerpt.trim()) {
-                    modalExcerpt.textContent = item.excerpt.trim();
-                    modalExcerpt.style.display = 'block';
-                } else {
-                    modalExcerpt.style.display = 'none';
-                }
-            }
             modalBody.innerHTML = formatCleanArticleContent(item.content || item.excerpt);
         }
 
-        manuscriptModal.classList.remove('hidden');
-        document.body.style.overflow = 'hidden';
-
-        const bodyEl = document.querySelector('.manuscript-body');
-        // Direct-to-Remarks flow
+        // Toggle UI based on whether opening for Revision or Editing
+        const modalSaveBtn = document.getElementById('modal-save-btn');
         if (options.focusRemarks) {
+            // Revision mode
+            if (remarksSection) remarksSection.style.display = 'block';
+            if (modalRevisionBtn) modalRevisionBtn.style.display = 'inline-flex';
+            if (modalApproveBtn) modalApproveBtn.style.display = 'none';
+            if (modalSaveBtn) modalSaveBtn.style.display = 'none';
+
+            // Reset remarks
+            if (modalRemarks) {
+                let cleanRemarks = (item.remarks || '').trim();
+                if (/^(?:Endorsed to|Approved by)/i.test(cleanRemarks)) {
+                    cleanRemarks = '';
+                }
+                modalRemarks.value = cleanRemarks;
+                modalRemarks.classList.remove('input-invalid');
+                modalRemarks.classList.remove('pulse-focus');
+            }
+            if (remarksErrorMsg) remarksErrorMsg.classList.add('hidden');
+
             setTimeout(() => {
+                const bodyEl = document.querySelector('.manuscript-body');
                 if (bodyEl && remarksSection) {
                     bodyEl.scrollTo({ top: remarksSection.offsetTop - 30, behavior: 'smooth' });
                 }
@@ -470,8 +492,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }, 180);
         } else {
+            // Editing mode: Remove 'For Revision' and 'Approve for EIC' buttons, show maroon Save button only
+            if (remarksSection) remarksSection.style.display = 'none';
+            if (modalRevisionBtn) modalRevisionBtn.style.display = 'none';
+            if (modalApproveBtn) modalApproveBtn.style.display = 'none';
+            if (modalSaveBtn) modalSaveBtn.style.display = 'inline-flex';
+
+            const bodyEl = document.querySelector('.manuscript-body');
             if (bodyEl) bodyEl.scrollTop = 0;
         }
+
+        manuscriptModal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
     }
 
     function closeManuscript() {
@@ -493,6 +525,100 @@ document.addEventListener('DOMContentLoaded', () => {
     if (manuscriptModal) {
         manuscriptModal.addEventListener('click', (e) => {
             if (e.target === manuscriptModal) closeManuscript();
+        });
+    }
+
+    if (modalHeadline) {
+        modalHeadline.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const modalExcerpt = document.getElementById('modal-excerpt');
+                if (modalExcerpt && modalExcerpt.style.display !== 'none') {
+                    modalExcerpt.focus();
+                } else if (modalBody) {
+                    modalBody.focus();
+                }
+            }
+        });
+    }
+
+    // Save Changes Action Handler
+    async function saveArticleEdits(id) {
+        const item = reviewList.find(a => String(a.id) === String(id));
+        if (!item) return;
+
+        const modalHeadline = document.getElementById('modal-headline');
+        const modalExcerpt = document.getElementById('modal-excerpt');
+        const bodyEditor = document.getElementById('modal-body');
+
+        const newTitle = modalHeadline ? (modalHeadline.innerText || modalHeadline.textContent).trim() : item.title;
+        const newExcerpt = modalExcerpt && modalExcerpt.style.display !== 'none' ? (modalExcerpt.innerText || modalExcerpt.textContent).trim() : (item.excerpt || '');
+        const newContent = bodyEditor ? bodyEditor.innerHTML.trim() : item.content;
+
+        if (!newTitle) {
+            showToast('Please enter an article headline.', 'danger');
+            if (modalHeadline) modalHeadline.focus();
+            return;
+        }
+
+        const saveBtn = document.getElementById('modal-save-btn');
+        const origHtml = saveBtn ? saveBtn.innerHTML : '';
+        if (saveBtn) {
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>Saving...</span>';
+        }
+
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        const updateBaseUrl = window.__UPDATE_URL__ || '/section-head/review-articles';
+
+        try {
+            const res = await fetch(`${updateBaseUrl}/${id}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    title: newTitle,
+                    excerpt: newExcerpt,
+                    content: newContent
+                })
+            });
+
+            const data = await res.json().catch(() => ({}));
+            if (res.ok && data.success !== false) {
+                item.title = newTitle;
+                item.excerpt = newExcerpt;
+                item.content = newContent;
+                savePendingQueue(reviewList);
+                renderReviewBoxes();
+                showToast('Article changes saved successfully.', 'success');
+            } else {
+                showToast(data.message || 'Failed to save changes.', 'danger');
+            }
+        } catch (err) {
+            console.error('Error saving article:', err);
+            item.title = newTitle;
+            item.excerpt = newExcerpt;
+            item.content = newContent;
+            savePendingQueue(reviewList);
+            renderReviewBoxes();
+            showToast('Article changes saved locally.', 'success');
+        } finally {
+            if (saveBtn) {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = origHtml;
+            }
+        }
+    }
+
+    // Modal Save Changes Button
+    const modalSaveBtn = document.getElementById('modal-save-btn');
+    if (modalSaveBtn) {
+        modalSaveBtn.addEventListener('click', () => {
+            if (!currentActiveId) return;
+            saveArticleEdits(currentActiveId);
         });
     }
 
@@ -546,7 +672,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const id = actionBtn.getAttribute('data-id');
             if (!id) return;
 
-            if (action === 'read') {
+            if (action === 'edit' || action === 'read') {
                 openManuscript(id, { focusRemarks: false });
             } else if (action === 'revision') {
                 openManuscript(id, { focusRemarks: true });

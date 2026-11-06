@@ -61,8 +61,20 @@
                         // Determine status badge class
                         $badgeClass = 'status-draft';
                         $status = $art->status ?? $art['status'];
-                        if($status === 'Published') $badgeClass = 'status-published';
-                        elseif($status === 'Pending Review') $badgeClass = 'status-pending';
+                        $statusLower = strtolower($status);
+                        if (str_contains($statusLower, 'publish') || str_contains($statusLower, 'approve')) {
+                            $badgeClass = 'status-published';
+                        } elseif (str_contains($statusLower, 'pending')) {
+                            $badgeClass = 'status-pending';
+                        } elseif (str_contains($statusLower, 'revision')) {
+                            $badgeClass = 'status-revision';
+                        }
+
+                        $isPendingOrApproved = str_contains($statusLower, 'pending') 
+                            || str_contains($statusLower, 'approve') 
+                            || str_contains($statusLower, 'publish') 
+                            || str_contains($statusLower, 'ready');
+                        $canEdit = ($status === 'Draft' || $status === 'For Revision') && !$isPendingOrApproved;
 
                         $categoryName = $art->category->name ?? ($art['category']['name'] ?? ($art['category'] ?? 'Uncategorized'));
                         $formattedDate = $art->created_at ? $art->created_at->format('M d, Y') : ($art['date'] ?? '');
@@ -100,7 +112,7 @@
                             <h3 class="article-card-title">{{ $art->title ?? $art['title'] }}</h3>
                             <p class="article-card-excerpt">{{ $art->excerpt ?? $art['excerpt'] }}</p>
                         </div>
-                        @if($status !== 'Published' && $status !== 'Pending Review')
+                        @if($canEdit)
                             <div class="article-card-footer">
                                 <a href="{{ route('writer.submit-article', ['draft_id' => $art->id ?? $art['id']]) }}" class="btn-box-edit" onclick="event.stopPropagation()">
                                     <i class="fa-solid fa-pen-to-square"></i>
@@ -189,6 +201,11 @@
                 <div class="viewer-byline-text"><span class="viewer-by">By <strong id="viewer-author">Author</strong></span></div>
             </div>
             <div id="viewer-content" class="viewer-content-text"></div>
+        </div>
+        <div class="viewer-modal-footer">
+            <button type="button" class="modal-btn modal-btn-cancel" onclick="document.getElementById('article-viewer-modal').classList.add('hidden')">
+                Close
+            </button>
         </div>
     </div>
 </div>

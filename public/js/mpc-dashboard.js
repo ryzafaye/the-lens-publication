@@ -311,7 +311,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <tr>
                         <td>
                             <div class="table-article-info">
-                                <button type="button" class="table-article-btn" data-action="view" data-id="${escapeHTML(art.id)}" title="${escapeHTML(art.title)}">
+                                <button type="button" class="table-article-btn" data-action="view" data-id="${escapeHTML(art.id)}" data-article="${escapeHTML(JSON.stringify(art))}" title="${escapeHTML(art.title)}">
                                     ${escapeHTML(art.title)}
                                 </button>
                                 <div class="table-author-subline">
@@ -344,11 +344,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 mostViewedContainer.innerHTML = '<p class="text-sm text-gray-500 py-6 text-center">No published articles yet.</p>';
             } else {
                 mostViewedContainer.innerHTML = mostViewed.map((art, idx) => `
-                    <div class="ranked-item" data-article-id="${art.id}">
+                    <div class="ranked-item" data-action="view" data-article-id="${art.id}" data-article="${escapeHTML(JSON.stringify(art))}">
                         <span class="rank-number ${idx === 0 ? 'top-rank' : ''}">${idx + 1}</span>
                         <div class="ranked-content">
                             <div class="ranked-category-tag">${escapeHTML(art.category)}</div>
-                            <button type="button" class="ranked-title-btn" data-action="view" data-id="${art.id}" title="${escapeHTML(art.title)}">
+                            <button type="button" class="ranked-title-btn" data-action="view" data-id="${art.id}" data-article="${escapeHTML(JSON.stringify(art))}" title="${escapeHTML(art.title)}">
                                 ${escapeHTML(art.title)}
                             </button>
                             <div class="ranked-meta-row">
@@ -465,22 +465,51 @@ document.addEventListener('DOMContentLoaded', () => {
     // Delegate click for table buttons & ranked title buttons
     document.addEventListener('click', (e) => {
         const btn = e.target.closest('[data-action="view"]');
-        if (!btn) return;
+        if (btn) {
+            if (btn.dataset.article) {
+                try {
+                    const parsed = JSON.parse(btn.dataset.article);
+                    openViewerModal(parsed);
+                    return;
+                } catch (err) {}
+            }
 
-        const id = btn.getAttribute('data-id');
-        if (!id) return;
+            const id = btn.getAttribute('data-id');
+            if (id) {
+                const pendingList = getPendingQueue();
+                const foundPending = pendingList.find(a => String(a.id) === String(id));
+                if (foundPending) {
+                    openViewerModal(foundPending);
+                    return;
+                }
 
-        const pendingList = getPendingQueue();
-        const foundPending = pendingList.find(a => String(a.id) === String(id));
-        if (foundPending) {
-            openViewerModal(foundPending);
-            return;
+                const publishedList = getPublishedArticles();
+                const foundArticle = publishedList.find(a => String(a.id) === String(id));
+                if (foundArticle) {
+                    openViewerModal(foundArticle);
+                    return;
+                }
+            }
         }
 
-        const publishedList = getPublishedArticles();
-        const foundArticle = publishedList.find(a => String(a.id) === String(id));
-        if (foundArticle) {
-            openViewerModal(foundArticle);
+        const rankedItem = e.target.closest('.ranked-item');
+        if (rankedItem) {
+            if (rankedItem.dataset.article) {
+                try {
+                    const parsed = JSON.parse(rankedItem.dataset.article);
+                    openViewerModal(parsed);
+                    return;
+                } catch (err) {}
+            }
+            if (rankedItem.dataset.articleId) {
+                const id = rankedItem.dataset.articleId;
+                const found = getPublishedArticles().find(a => String(a.id) === String(id)) ||
+                              getPendingQueue().find(a => String(a.id) === String(id));
+                if (found) {
+                    openViewerModal(found);
+                    return;
+                }
+            }
         }
     });
 

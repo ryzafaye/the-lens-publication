@@ -201,11 +201,11 @@
     background-color: #ffffff;
     border: 1px solid var(--border-subtle, #eaecf0);
     border-radius: 10px;
-    padding: 18px 22px;
+    padding: 20px 24px;
     box-shadow: 0 1px 3px rgba(16, 24, 40, 0.03);
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
     cursor: pointer;
     transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
 }
@@ -1125,7 +1125,7 @@
    ---------------------------------------------------------------------------- */
 .writer-dashboard-content-grid {
     display: grid;
-    grid-template-columns: minmax(0, 1.45fr) minmax(320px, 1fr);
+    grid-template-columns: minmax(0, 1.85fr) minmax(280px, 1fr);
     gap: 24px;
     align-items: start;
     margin-top: 8px;

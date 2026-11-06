@@ -118,22 +118,37 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 4. Data Loading & Counters (Backend Data Transition)
     // Fetches data injected via controller (window.INITIAL_DATA or window.INITIAL_CARTOONS)
-    // with graceful fallback to localStorage for backward compatibility.
+    // with graceful fallback & sync to localStorage for backward compatibility.
     function loadCartoons() {
+        let serverCartoons = [];
         if (window.INITIAL_CARTOONS && Array.isArray(window.INITIAL_CARTOONS)) {
-            cartoonItems = window.INITIAL_CARTOONS;
+            serverCartoons = window.INITIAL_CARTOONS;
         } else if (window.INITIAL_DATA && Array.isArray(window.INITIAL_DATA)) {
-            cartoonItems = window.INITIAL_DATA;
-        } else if (typeof getCartoonSubmissions === 'function') {
-            cartoonItems = getCartoonSubmissions();
-        } else {
-            try {
-                const raw = localStorage.getItem('cartoonistSubmissions_v1');
-                cartoonItems = raw ? JSON.parse(raw) : [];
-            } catch (e) {
-                cartoonItems = [];
-            }
+            serverCartoons = window.INITIAL_DATA;
         }
+
+        let localCartoons = [];
+        try {
+            const raw = localStorage.getItem('cartoonistSubmissions_v1');
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                if (Array.isArray(parsed)) {
+                    localCartoons = parsed;
+                }
+            }
+        } catch (e) {
+            localCartoons = [];
+        }
+
+        const combined = [...serverCartoons];
+        localCartoons.forEach(localItem => {
+            const exists = combined.some(s => String(s.id) === String(localItem.id) || (s.title && s.title === localItem.title));
+            if (!exists) {
+                combined.push(localItem);
+            }
+        });
+
+        cartoonItems = combined;
         updateCounters();
         renderGrid();
     }
@@ -141,9 +156,12 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateCounters() {
         // "All Cartoons" tab excludes published items per user request
         const queueCount = cartoonItems.filter(m => m.status !== 'Published').length;
-        const pending = cartoonItems.filter(m => m.status === 'Pending with Head').length;
+        const pending = cartoonItems.filter(m => {
+            const s = (m.status || '').toLowerCase();
+            return s === 'pending with head' || s.includes('pending');
+        }).length;
         const returned = cartoonItems.filter(m => m.status === 'Returned for Revision').length;
-        const eic = cartoonItems.filter(m => m.status === 'EIC Approved').length;
+        const eic = cartoonItems.filter(m => m.status === 'EIC Approved' || m.status === 'Forwarded to EIC').length;
         const published = cartoonItems.filter(m => m.status === 'Published').length;
 
         if (pillAll) pillAll.textContent = String(queueCount);
@@ -156,11 +174,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // 5. Filtering & Sorting Pipeline
     function getFilteredAndSortedCartoons() {
         let filtered = cartoonItems.filter(item => {
+            const s = (item.status || '').toLowerCase();
             // "All Cartoons" tab displays queue items only, excluding Published
             if (currentFilter === 'all' && item.status === 'Published') {
                 return false;
             }
-            if (currentFilter === 'pending' && item.status !== 'Pending with Head') {
+            if (currentFilter === 'pending' && !(s === 'pending with head' || s.includes('pending'))) {
                 return false;
             }
             if (currentFilter === 'returned' && item.status !== 'Returned for Revision') {
@@ -379,7 +398,7 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const id = btn.getAttribute('data-id');
-                const item = cartoonItems.find(m => m.id === id);
+                const item = cartoonItems.find(m => String(m.id) === String(id));
                 if (item) openInspectModal(item);
             });
         });

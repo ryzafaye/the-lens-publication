@@ -188,6 +188,8 @@ Route::middleware(['auth', 'role:Cartoonist,Cartoonist Head,Associate Cartoonist
         Route::post('/submit-cartoon', [CartoonistController::class, 'storeCartoon'])->name('store-cartoon');
         Route::get('/manage-cartoons', [CartoonistController::class, 'manageCartoons'])->name('manage-cartoons');
         Route::get('/cartoon-desk', [CartoonistController::class, 'cartoonDesk'])->name('cartoon-desk');
+        Route::post('/cartoons/{id}/endorse', [CartoonistController::class, 'endorseCartoon'])->name('cartoons.endorse');
+        Route::post('/cartoons/{id}/return', [CartoonistController::class, 'returnCartoon'])->name('cartoons.return');
         Route::get('/profile-settings', [CartoonistController::class, 'profileSettings'])->name('profile-settings');
         Route::get('/settings', function () {
             return redirect()->route('cartoonist.profile-settings');

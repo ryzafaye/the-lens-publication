@@ -172,10 +172,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // 5. FORM SUBMISSION
     // =========================================================================
     if (form) {
-        form.addEventListener('submit', (e) => {
+        form.addEventListener('submit', async (e) => {
             e.preventDefault();
 
-            if (!selectedFile || !selectedImageDataUrl) {
+            if (!selectedFile) {
                 showToast('Please select or drag an editorial cartoon graphic first.', 'error');
                 return;
             }
@@ -194,14 +194,48 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             const rawDateStr = now.toISOString().split('T')[0];
 
-            const newCartoon = {
+            // Disable submit button and provide feedback
+            if (btnSubmit) {
+                btnSubmit.disabled = true;
+                btnSubmit.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Submitting...`;
+            }
+
+            // Prepare FormData for backend submission
+            const formData = new FormData(form);
+            if (!formData.get('cartoon_file') && selectedFile) {
+                formData.set('cartoon_file', selectedFile);
+            }
+            formData.set('title', cleanTitle);
+
+            let createdCartoon = null;
+            try {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                    },
+                    body: formData,
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data && data.cartoon) {
+                        createdCartoon = data.cartoon;
+                    }
+                }
+            } catch (err) {
+                console.warn('Backend upload network error, continuing with client fallback:', err);
+            }
+
+            const cartoonRecord = createdCartoon || {
                 id: 'cart-' + Date.now(),
                 type: 'cartoon',
                 title: cleanTitle,
                 category: 'Opinion',
                 artist: cartoonistName,
                 uploaderRole: cartoonistRole,
-                image: selectedImageDataUrl,
+                image: selectedImageDataUrl || 'images/covers/press-freedom-cartoon.svg',
                 date: dateStr,
                 rawDate: rawDateStr,
                 fileSize: formatFileSize(selectedFile.size),
@@ -219,13 +253,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 shares: 0
             };
 
-            // Save to cartoonistSubmissions_v1
-            let submissions = (typeof getCartoonSubmissions === 'function') ? getCartoonSubmissions() : [];
-            submissions.unshift(newCartoon);
-            if (typeof saveCartoonSubmissions === 'function') {
-                saveCartoonSubmissions(submissions);
-            } else {
+            // Save to cartoonistSubmissions_v1 in localStorage
+            try {
+                let submissions = [];
+                const raw = localStorage.getItem('cartoonistSubmissions_v1');
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    if (Array.isArray(parsed)) submissions = parsed;
+                }
+                submissions.unshift(cartoonRecord);
                 localStorage.setItem('cartoonistSubmissions_v1', JSON.stringify(submissions));
+            } catch (err) {
+                console.warn('LocalStorage save error:', err);
             }
 
             // Also push to review queue (articleCoverReviewQueue_v1)
@@ -237,16 +276,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (Array.isArray(parsed)) queue = parsed;
                 }
                 queue.unshift({
-                    id: newCartoon.id,
+                    id: cartoonRecord.id,
                     type: 'cartoon',
-                    title: newCartoon.title,
-                    category: newCartoon.category,
+                    title: cartoonRecord.title,
+                    category: cartoonRecord.category || 'Opinion',
                     artist: cartoonistName,
                     uploaderRole: cartoonistRole,
-                    image: newCartoon.image,
+                    image: cartoonRecord.image,
                     date: dateStr,
                     rawDate: rawDateStr,
-                    fileSize: newCartoon.fileSize,
+                    fileSize: cartoonRecord.fileSize,
                     status: 'submitted_to_mpc',
                     remarks: ''
                 });
@@ -255,17 +294,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.warn('Error syncing to review queue:', err);
             }
 
-            // Disable submit button and provide feedback
-            if (btnSubmit) {
-                btnSubmit.disabled = true;
-                btnSubmit.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Submitting...`;
-            }
-
             showToast('Cartoon illustration submitted successfully to the editorial desk!', 'success');
 
             setTimeout(() => {
                 window.location.href = window.CARTOONIST_MANAGE_CARTOONS_ROUTE || 'manage-cartoons';
-            }, 1200);
+            }, 800);
         });
     }
 

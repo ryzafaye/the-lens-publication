@@ -1,36 +1,63 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
+use App\Models\ActivityLog;
+use App\Models\Article;
+use App\Models\Cartoon;
+use App\Models\Category;
+use App\Models\User;
+use App\Traits\LogsActivity;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Storage;
-use App\Models\Category;
-use App\Models\Article;
-use App\Models\User;
-use App\Models\ActivityLog;
-use App\Traits\LogsActivity;
+use Illuminate\View\View;
 
 class CartoonistController extends Controller
 {
     use LogsActivity;
+
     /**
      * Cartoonist Dashboard
      */
-    public function dashboard()
+    public function dashboard(): View
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = Auth::user();
         $userId = $user->id;
+        $isHead = in_array($user?->role?->role_name, ['Cartoonist Head', 'Associate Cartoonist Head', 'Chief Cartoonist'], true);
+
+        $cartoonQuery = Cartoon::query();
+        if (! $isHead) {
+            $cartoonQuery->where('user_id', $userId);
+        }
+
+        $cartoons = (clone $cartoonQuery)->latest()
+            ->select(['id', 'user_id', 'title', 'category', 'artist', 'image_url', 'file_size', 'status', 'created_at'])
+            ->with(['user:id,full_name,role_id', 'user.role:id,role_name'])
+            ->take(10)
+            ->get()
+            ->map(fn (Cartoon $c) => [
+                'id' => (string) $c->id,
+                'title' => $c->title,
+                'category' => $c->category,
+                'artist' => $c->artist ?? ($c->user->full_name ?? 'Cartoonist'),
+                'image' => $c->image_url,
+                'fileSize' => $c->file_size ?? 'Standard',
+                'date' => $c->created_at?->format('M d, Y') ?? date('M d, Y'),
+                'rawDate' => $c->created_at?->format('Y-m-d') ?? date('Y-m-d'),
+                'status' => $c->status,
+            ]);
 
         $metrics = [
-            'published' => 0,
-            'pending' => 0,
-            'library' => 0,
+            'published' => (clone $cartoonQuery)->where('status', 'Published')->count(),
+            'pending' => (clone $cartoonQuery)->where('status', 'Pending with Head')->count(),
+            'library' => (clone $cartoonQuery)->whereIn('status', ['Published', 'EIC Approved'])->count(),
         ];
-
-        $cartoons = [];
 
         return view('cartoonist.dashboard', compact('metrics', 'cartoons'));
     }
@@ -38,9 +65,9 @@ class CartoonistController extends Controller
     /**
      * Submit Article View
      */
-    public function submitArticle(Request $request)
+    public function submitArticle(Request $request): View
     {
-        $categories = Cache::remember('all_categories', 86400, fn() => Category::all());
+        $categories = Cache::remember('all_categories', 86400, fn () => Category::all());
         $drafts = Article::with(['category', 'user.role'])
             ->where('user_id', Auth::id())
             ->where('status', 'Draft')
@@ -61,13 +88,13 @@ class CartoonistController extends Controller
     /**
      * Store Article Submission or Draft
      */
-    public function storeArticle(Request $request)
+    public function storeArticle(Request $request): RedirectResponse
     {
         $rules = [
             'title' => 'required|string|max:255',
             'category_id' => 'required|exists:categories,id',
-            'status' => 'required|string', 
-            'article_id' => 'nullable|integer'
+            'status' => 'required|string',
+            'article_id' => 'nullable|integer',
         ];
 
         if ($request->status === 'Pending Review') {
@@ -104,6 +131,7 @@ class CartoonistController extends Controller
                         return redirect()->route('cartoonist.submit-article', ['tab' => 'drafts'])
                             ->with('success', 'Draft saved successfully.');
                     }
+
                     return redirect()->route('cartoonist.dashboard')
                         ->with('success', 'Article submitted successfully.');
                 }
@@ -135,16 +163,16 @@ class CartoonistController extends Controller
                 ->with('success', 'Article submitted successfully to the editorial queue.');
 
         } catch (\Exception $e) {
-            return back()->withInput()->with('error', 'Something went wrong: ' . $e->getMessage());
+            return back()->withInput()->with('error', 'Something went wrong: '.$e->getMessage());
         }
     }
 
     /**
      * Manage My Articles View
      */
-    public function manageArticles()
+    public function manageArticles(): View
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = Auth::user();
         $user?->loadMissing('role');
 
@@ -175,7 +203,7 @@ class CartoonistController extends Controller
     /**
      * Submit Cartoon View
      */
-    public function submitCartoon()
+    public function submitCartoon(): View
     {
         return view('cartoonist.submit-cartoon');
     }
@@ -183,16 +211,62 @@ class CartoonistController extends Controller
     /**
      * Store Cartoon Illustration
      */
-    public function storeCartoon(Request $request)
+    public function storeCartoon(Request $request): RedirectResponse|JsonResponse
     {
         $request->validate([
-            'cartoon_file' => 'nullable|image|mimes:svg,png,jpg,jpeg,webp|max:10240',
+            'cartoon_file' => 'required|file|mimes:svg,png,jpg,jpeg,webp|max:10240',
+            'title' => 'nullable|string|max:255',
+            'category' => 'nullable|string|max:100',
         ]);
 
-        if ($request->hasFile('cartoon_file')) {
-            $file = $request->file('cartoon_file');
-            $path = $file->store('cartoons', 'public');
-            ActivityLog::logAction(Auth::id(), 'submitted illustration');
+        /** @var User $user */
+        $user = Auth::user();
+        $file = $request->file('cartoon_file');
+
+        $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+        $cleanTitle = $request->filled('title')
+            ? (string) $request->input('title')
+            : ucwords(str_replace(['-', '_'], ' ', $originalName));
+
+        $path = $file->store('cartoons', 'public');
+        $imageUrl = asset('storage/'.$path);
+        $fileSize = $this->formatFileSize($file->getSize());
+        $artistName = $user->full_name ?? 'Cartoonist';
+
+        $cartoon = Cartoon::create([
+            'user_id' => $user->id,
+            'title' => $cleanTitle,
+            'category' => (string) $request->input('category', 'Opinion'),
+            'artist' => $artistName,
+            'image_url' => $imageUrl,
+            'file_size' => $fileSize,
+            'status' => 'Pending with Head',
+            'views' => 0,
+            'shares' => 0,
+        ]);
+
+        ActivityLog::logAction($user->id, 'submitted illustration', $cartoon);
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Cartoon illustration submitted successfully to the editorial desk!',
+                'cartoon' => [
+                    'id' => (string) $cartoon->id,
+                    'type' => 'cartoon',
+                    'title' => $cartoon->title,
+                    'category' => $cartoon->category,
+                    'artist' => $cartoon->artist,
+                    'image' => $cartoon->image_url,
+                    'fileSize' => $cartoon->file_size,
+                    'date' => $cartoon->created_at?->format('M d, Y') ?? date('M d, Y'),
+                    'rawDate' => $cartoon->created_at?->format('Y-m-d') ?? date('Y-m-d'),
+                    'status' => $cartoon->status,
+                    'remarks' => $cartoon->remarks ?? '',
+                    'views' => $cartoon->views,
+                    'shares' => $cartoon->shares,
+                ],
+            ]);
         }
 
         return redirect()->route('cartoonist.manage-cartoons')
@@ -202,25 +276,121 @@ class CartoonistController extends Controller
     /**
      * Manage Cartoons View
      */
-    public function manageCartoons()
+    public function manageCartoons(): View
     {
-        $cartoons = [];
+        /** @var User $user */
+        $user = Auth::user();
+        $user?->loadMissing('role');
+        $userId = Auth::id();
+
+        $cartoons = Cartoon::where('user_id', $userId)
+            ->latest()
+            ->get()
+            ->map(fn (Cartoon $cartoon) => [
+                'id' => (string) $cartoon->id,
+                'type' => 'cartoon',
+                'title' => $cartoon->title,
+                'category' => $cartoon->category ?? 'Opinion',
+                'artist' => $cartoon->artist ?? ($user->full_name ?? 'Cartoonist'),
+                'image' => $cartoon->image_url,
+                'fileSize' => $cartoon->file_size ?? 'Standard',
+                'date' => $cartoon->created_at?->format('M d, Y') ?? date('M d, Y'),
+                'rawDate' => $cartoon->created_at?->format('Y-m-d') ?? date('Y-m-d'),
+                'status' => $cartoon->status,
+                'remarks' => $cartoon->remarks ?? '',
+                'connectedArticleId' => '',
+                'connectedArticleTitle' => '',
+                'connectedArticleExcerpt' => '',
+                'connectedArticleAuthor' => '',
+                'connectedArticleCategory' => $cartoon->category ?? 'Opinion',
+                'connectedArticleDate' => $cartoon->created_at?->format('M d, Y') ?? date('M d, Y'),
+                'connectedArticleUrl' => '',
+                'views' => $cartoon->views ?? 0,
+                'readTime' => '1 min read',
+                'shares' => $cartoon->shares ?? 0,
+            ]);
+
         return view('cartoonist.manage-cartoons', compact('cartoons'));
     }
 
     /**
      * Cartoon Desk View (Cartoonist Head Review Queue)
      */
-    public function cartoonDesk()
+    public function cartoonDesk(): View
     {
-        $pendingCartoons = [];
+        $pendingCartoons = Cartoon::with(['user:id,full_name,role_id', 'user.role:id,role_name'])
+            ->where('status', 'Pending with Head')
+            ->latest()
+            ->get()
+            ->map(fn (Cartoon $cartoon) => [
+                'id' => (string) $cartoon->id,
+                'type' => 'cartoon',
+                'title' => $cartoon->title,
+                'category' => $cartoon->category ?? 'Opinion',
+                'artist' => $cartoon->artist ?? ($cartoon->user->full_name ?? 'Staff Cartoonist'),
+                'image' => $cartoon->image_url,
+                'fileSize' => $cartoon->file_size ?? 'Standard',
+                'date' => $cartoon->created_at?->format('M d, Y') ?? date('M d, Y'),
+                'rawDate' => $cartoon->created_at?->format('Y-m-d') ?? date('Y-m-d'),
+                'status' => $cartoon->status,
+                'remarks' => $cartoon->remarks ?? '',
+            ]);
+
         return view('cartoonist.cartoon-desk', compact('pendingCartoons'));
+    }
+
+    /**
+     * Endorse Cartoon to EIC
+     */
+    public function endorseCartoon(int $id): JsonResponse
+    {
+        $cartoon = Cartoon::findOrFail($id);
+        /** @var User $user */
+        $user = Auth::user();
+
+        $cartoon->update([
+            'status' => 'Forwarded to EIC',
+            'endorsed_by' => $user->full_name ?? 'Cartoonist Head',
+        ]);
+
+        ActivityLog::logAction($user->id, 'endorsed illustration to EIC', $cartoon);
+
+        return response()->json([
+            'success' => true,
+            'message' => "\"{$cartoon->title}\" successfully endorsed to Editor-in-Chief.",
+        ]);
+    }
+
+    /**
+     * Return Cartoon to Cartoonist for Revision
+     */
+    public function returnCartoon(Request $request, int $id): JsonResponse
+    {
+        $request->validate([
+            'remarks' => 'required|string|max:1000',
+        ]);
+
+        $cartoon = Cartoon::findOrFail($id);
+        /** @var User $user */
+        $user = Auth::user();
+
+        $cartoon->update([
+            'status' => 'Returned for Revision',
+            'remarks' => (string) $request->input('remarks'),
+        ]);
+
+        ActivityLog::logAction($user->id, 'returned cartoon for revision', $cartoon);
+
+        return response()->json([
+            'success' => true,
+            'message' => "\"{$cartoon->title}\" returned to {$cartoon->artist} with revision remarks.",
+        ]);
     }
 
     /**
      * Profile Settings View
      */
-    public function profileSettings()
+    public function profileSettings(): View
     {
         return view('cartoonist.profile-settings');
     }
@@ -228,7 +398,7 @@ class CartoonistController extends Controller
     /**
      * Delete Draft
      */
-    public function destroyDraft($id)
+    public function destroyDraft(int $id): RedirectResponse
     {
         $article = Article::where('user_id', Auth::id())
             ->where('status', 'Draft')
@@ -244,14 +414,14 @@ class CartoonistController extends Controller
     /**
      * Clear editorial caches
      */
-    private function clearCaches($categoryId = null)
+    private function clearCaches(?int $categoryId = null): void
     {
         Cache::forget('eic_dashboard_stats');
         Cache::forget('eic_review_articles_newest');
         Cache::forget('eic_review_articles_oldest');
         if ($categoryId) {
-            Cache::forget('exec_review_articles_' . $categoryId . '_newest');
-            Cache::forget('exec_review_articles_' . $categoryId . '_oldest');
+            Cache::forget('exec_review_articles_'.$categoryId.'_newest');
+            Cache::forget('exec_review_articles_'.$categoryId.'_oldest');
         }
         Cache::forget('exec_review_articles_all_newest');
         Cache::forget('exec_review_articles_all_oldest');
@@ -260,10 +430,29 @@ class CartoonistController extends Controller
     /**
      * Basic sanitization helper
      */
-    private function sanitizeArticleContent($content)
+    private function sanitizeArticleContent(?string $content): string
     {
-        if (!$content) return '';
+        if (! $content) {
+            return '';
+        }
+
         return strip_tags($content, '<p><br><b><strong><i><em><u><s><h2><h3><blockquote><ul><ol><li><a><hr>');
     }
-}
 
+    /**
+     * Human-readable file size formatter
+     */
+    private function formatFileSize(int $bytes): string
+    {
+        if ($bytes < 1024) {
+            return "{$bytes} B";
+        }
+        $kb = $bytes / 1024;
+        if ($kb < 1024) {
+            return round($kb).' KB';
+        }
+        $mb = $kb / 1024;
+
+        return number_format($mb, 1).' MB';
+    }
+}

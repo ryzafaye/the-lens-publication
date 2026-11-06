@@ -116,6 +116,12 @@
                     <i class="fa-solid fa-palette"></i>
                     <span>Manage Cartoons</span>
                 </a>
+                @if(in_array(Auth::user()?->role?->role_name, ['Cartoonist Head', 'Associate Cartoonist Head', 'Chief Cartoonist']))
+                    <a href="{{ route('cartoonist.cartoon-desk') }}" class="mobile-nav-link {{ request()->routeIs('cartoonist.cartoon-desk*') ? 'active' : '' }}">
+                        <i class="fa-solid fa-table-cells-large"></i>
+                        <span>Cartoon Desk</span>
+                    </a>
+                @endif
             </div>
 
             <div class="mobile-nav-footer">

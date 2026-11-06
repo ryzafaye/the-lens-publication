@@ -93,37 +93,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // Also merge pending Media and Cartoons awaiting EIC review from articleCoverReviewQueue_v1
-        try {
-            const rawQ = localStorage.getItem('articleCoverReviewQueue_v1');
-            if (rawQ) {
-                const parsedQ = JSON.parse(rawQ);
-                if (Array.isArray(parsedQ)) {
-                    parsedQ.forEach(cov => {
-                        const s = (cov.status || '').toLowerCase().trim();
-                        if (s === 'pending eic review' || s === 'forwarded to eic') {
-                            const isCartoon = (cov.type === 'cartoon');
-                            if (!list.some(existing => existing.id === cov.id)) {
-                                list.push({
-                                    id: cov.id,
-                                    title: cov.title || (isCartoon ? 'Editorial Cartoon' : 'Media Publication Material'),
-                                    author: cov.artist || (isCartoon ? 'Staff Cartoonist' : 'Media Team'),
-                                    category: isCartoon ? 'Cartoon' : 'Media',
-                                    content: cov.image ? `<div style="text-align:center; padding: 20px;"><img src="${cov.image}" alt="${escapeHTML(cov.title)}" style="max-width: 100%; max-height: 520px; border-radius: 8px; object-fit: contain; box-shadow: 0 4px 12px rgba(0,0,0,0.1);"></div>` : '<p>Visual submission preview.</p>',
-                                    excerpt: cov.caption || cov.targetArticle || (isCartoon ? 'Editorial Cartoon Submission' : 'Media Asset Submission'),
-                                    image: cov.image,
-                                    date: cov.date || 'Recent',
-                                    isMediaOrCartoon: true,
-                                    mediaType: cov.type || (isCartoon ? 'cartoon' : 'pubmat'),
-                                    endorsedBy: cov.approvedBy || (isCartoon ? 'Cartoonist Head' : 'Media & Public Communications Head')
-                                });
-                            }
-                        }
-                    });
-                }
-            }
-        } catch (e) {}
-
         return list;
     }
 
@@ -279,8 +248,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const featuresCount = reviewList.filter(i => matchesCategory(i.category, 'Features')).length;
         const scitechCount = reviewList.filter(i => matchesCategory(i.category, 'Science and Technology')).length;
         const litCount = reviewList.filter(i => matchesCategory(i.category, 'Literature')).length;
-        const mediaCount = reviewList.filter(i => matchesCategory(i.category, 'Media')).length;
-        const cartoonCount = reviewList.filter(i => matchesCategory(i.category, 'Cartoon')).length;
 
         const bAll = document.getElementById('badge-review-all');
         const bNews = document.getElementById('badge-review-news');
@@ -288,8 +255,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const bFeatures = document.getElementById('badge-review-features');
         const bScitech = document.getElementById('badge-review-scitech');
         const bLit = document.getElementById('badge-review-literature');
-        const bMedia = document.getElementById('badge-review-media');
-        const bCartoon = document.getElementById('badge-review-cartoon');
 
         if (bAll) bAll.textContent = allCount;
         if (bNews) bNews.textContent = newsCount;
@@ -297,8 +262,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (bFeatures) bFeatures.textContent = featuresCount;
         if (bScitech) bScitech.textContent = scitechCount;
         if (bLit) bLit.textContent = litCount;
-        if (bMedia) bMedia.textContent = mediaCount;
-        if (bCartoon) bCartoon.textContent = cartoonCount;
     }
 
     // Category Tabs Event Listeners

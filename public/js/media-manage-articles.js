@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 0. ACTIVE MEDIA OFFICER DETAILS & DOM REFERENCES
     // =========================================================================
     const activeRole = localStorage.getItem('mediaRole') || localStorage.getItem('userRole') || 'Media & Communication';
-    const mediaName = localStorage.getItem('mediaName') || localStorage.getItem('userName') || 'Alyssa Marie Dizon';
+    const mediaName = window.LARAVEL_USER_NAME || localStorage.getItem('mediaName') || localStorage.getItem('userName') || 'Media Team Member';
 
     // DOM Elements - Personal Analytics Header Pill
     const statTotalViews = document.getElementById('stat-total-views');

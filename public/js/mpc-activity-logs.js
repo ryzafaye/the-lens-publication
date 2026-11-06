@@ -61,7 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
             else dayGroup = 'Earlier this Week';
         }
 
-        const formattedDate = raw.formattedDate || `${itemDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} ΓÇó ${itemDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`;
+        const formattedDate = raw.formattedDate || `${itemDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} • ${itemDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`;
 
         // Causer
         let causer = raw.causer || raw.user || raw.author || raw.name || userName;
@@ -259,7 +259,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <!-- Under it: Role and time only, no IDs -->
                                 <div class="activity-subrow">
                                     <span class="activity-role-text">${escapeHTML(item.causerRole)}</span>
-                                    <span class="activity-subrow-dot">ΓÇó</span>
+                                    <span class="activity-subrow-dot">•</span>
                                     <span class="activity-exact-time">${escapeHTML(item.formattedDate)}</span>
                                 </div>
                             </div>

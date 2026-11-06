@@ -525,6 +525,27 @@
     color: #0f172a;
 }
 
+.btn-cover-post {
+    background-color: var(--sidebar-maroon, #5c0a18);
+    border: 1px solid var(--sidebar-maroon, #5c0a18);
+    color: #ffffff;
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 7px 14px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.btn-cover-post:hover {
+    background-color: #7a1223;
+    border-color: #7a1223;
+    color: #ffffff;
+}
+
 /* --------------------------------------------------------------------------
    THEATER ARTWORK INSPECTION MODAL
    -------------------------------------------------------------------------- */

@@ -1115,7 +1115,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     timestampText: 'Just now',
                     isoDate: new Date().toISOString(),
                     dateKey: currentIsoDate,
-                    formattedDate: `${currentDate} ΓÇó Just now`,
+                    formattedDate: `${currentDate} • Just now`,
                     dayGroup: 'Today'
                 });
                 localStorage.setItem('mpcActivityLogs_v1', JSON.stringify(logs.slice(0, 30)));

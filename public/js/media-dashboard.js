@@ -135,10 +135,15 @@ document.addEventListener('DOMContentLoaded', () => {
             return `
                 <div class="manage-media-card" data-id="${item.id}">
                     <div class="media-card-preview-box" data-action="inspect" data-id="${item.id}">
-                        <img src="${escapeHTML(item.image || 'images/covers/election-guidelines.svg')}" 
-                             alt="${escapeHTML(item.title || 'Graphic Asset')}" 
-                             class="media-card-img" 
-                             onerror="this.onerror=null; this.src='images/covers/portal-pubmat.svg'">
+                        ${item.image ? `
+                            <img src="${escapeHTML(item.image)}" 
+                                 alt="${escapeHTML(item.title || 'Graphic Asset')}" 
+                                 class="media-card-img">
+                        ` : `
+                            <div class="media-card-placeholder" style="display: flex; align-items: center; justify-content: center; height: 100%; min-height: 180px; background: #f8fafc; color: #94a3b8;">
+                                <i class="fa-solid fa-palette" style="font-size: 2.2rem;"></i>
+                            </div>
+                        `}
                         <div class="media-card-badge-layer">
                             <span class="media-status-pill ${statusCfg.cssClass}">
                                 ${statusCfg.icon} ${statusCfg.label}
@@ -180,12 +185,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const statusCfg = getStatusConfig(item.status);
 
         if (modalImg) {
-            modalImg.onerror = function() {
-                this.onerror = null;
-                this.src = 'images/covers/portal-pubmat.svg';
-            };
-            modalImg.src = item.image || 'images/covers/election-guidelines.svg';
-            modalImg.alt = item.title || 'Graphic Preview';
+            modalImg.onerror = null;
+            if (item.image) {
+                modalImg.src = item.image;
+                modalImg.alt = item.title || 'Graphic Preview';
+                modalImg.style.display = '';
+            } else {
+                modalImg.src = '';
+                modalImg.alt = '';
+                modalImg.style.display = 'none';
+            }
         }
         if (modalCategory) {
             modalCategory.style.display = 'none';
@@ -195,7 +204,7 @@ document.addEventListener('DOMContentLoaded', () => {
             modalStatus.innerHTML = `${statusCfg.icon} ${statusCfg.label}`;
         }
         if (modalDate) {
-            modalDate.textContent = item.date || 'Oct 24, 2026';
+            modalDate.textContent = item.date || '';
         }
 
         // Revision remarks (only shown when inspecting)

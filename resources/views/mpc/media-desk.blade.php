@@ -101,11 +101,11 @@
             <div class="inspect-footer-buttons">
                 <button type="button" id="inspect-return-btn" class="btn-inspect-return">
                     <i class="fa-solid fa-rotate-left"></i>
-                    <span>Return to Head</span>
+                    <span>Return to Media Team</span>
                 </button>
                 <button type="button" id="inspect-approve-btn" class="btn-inspect-approve">
-                    <i class="fa-solid fa-check"></i>
-                    <span>Approve for Library</span>
+                    <i class="fa-solid fa-paper-plane"></i>
+                    <span>Submit to EIC</span>
                 </button>
             </div>
         </div>

@@ -1,6 +1,6 @@
 /**
  * ============================================================================
- * THE LENS ΓÇö MEDIA & PUBLIC COMMUNICATIONS (M&PC) PUBLISH ARTICLE CONTROLLER
+ * THE LENS — MEDIA & PUBLIC COMMUNICATIONS (M&PC) PUBLISH ARTICLE CONTROLLER
  * Handles article cover assignment and releasing approved manuscripts to the public website
  * ============================================================================
  */
@@ -9,6 +9,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const STORAGE_KEY_ARTICLES = 'mpc_publish_articles_v2';
     const STORAGE_KEY_COVERS = 'mpc_approved_covers_v1';
+
+    // -------------------------------------------------------------------------
+    // 0. CLEAN WORKFLOW PURGE (Zero mock / hardcoded covers or manuscripts)
+    // -------------------------------------------------------------------------
+    try {
+        const PURGE_FLAG = 'theLens_clean_workflow_zero_mock_v20';
+        if (localStorage.getItem(PURGE_FLAG) !== 'true') {
+            localStorage.removeItem(STORAGE_KEY_COVERS);
+            localStorage.removeItem('mpcApprovedCoversPool_v1');
+            localStorage.setItem(STORAGE_KEY_COVERS, JSON.stringify([]));
+            localStorage.setItem('mpcApprovedCoversPool_v1', JSON.stringify([]));
+            // Also clean assigned covers from stored articles
+            const rawA = localStorage.getItem(STORAGE_KEY_ARTICLES);
+            if (rawA) {
+                try {
+                    const parsedA = JSON.parse(rawA);
+                    if (Array.isArray(parsedA)) {
+                        const cleanedA = parsedA.map(a => ({ ...a, assignedCoverId: '', image: '', banner: '', coverImage: '' }));
+                        localStorage.setItem(STORAGE_KEY_ARTICLES, JSON.stringify(cleanedA));
+                    }
+                } catch (err) {}
+            }
+            localStorage.setItem(PURGE_FLAG, 'true');
+        }
+    } catch (e) {}
 
     // -------------------------------------------------------------------------
     // 1. DATASETS (Clean Workflow: Zero Hardcoded Manuscripts & Covers)
@@ -147,8 +172,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let rawDate = item.rawDate || item.updated_at || item.created_at || new Date().toISOString();
 
-        // Body / Content
-        let body = formatCleanArticleContent(item.body || item.content || '<p>Manuscript content approved.</p>');
+        // Body / Content (Check item, then fallback to theLensWriterArticles_v3 for complete manuscript)
+        let bodyText = item.body || item.content || '';
+        if (!bodyText || bodyText === '<p>Manuscript content approved.</p>') {
+            try {
+                const rawWriter = localStorage.getItem('theLensWriterArticles_v3');
+                if (rawWriter) {
+                    const writerList = JSON.parse(rawWriter);
+                    if (Array.isArray(writerList)) {
+                        const match = writerList.find(w => String(w.id) === String(item.id) || (w.title && item.title && w.title.trim().toLowerCase() === item.title.trim().toLowerCase()));
+                        if (match && (match.body || match.content)) {
+                            bodyText = match.body || match.content;
+                        }
+                    }
+                }
+            } catch (e) {}
+        }
+        let body = formatCleanArticleContent(bodyText || '<p>Manuscript content approved.</p>');
 
         return {
             id: item.id,
@@ -224,51 +264,165 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function loadCovers() {
-        if (window.INITIAL_COVERS && Array.isArray(window.INITIAL_COVERS) && window.INITIAL_COVERS.length > 0) {
-            return window.INITIAL_COVERS;
-        }
-        if (window.INITIAL_DATA && Array.isArray(window.INITIAL_DATA.covers) && window.INITIAL_DATA.covers.length > 0) {
-            return window.INITIAL_DATA.covers;
-        }
-        let list = [];
-        try {
-            const raw = localStorage.getItem(STORAGE_KEY_COVERS);
-            if (raw) {
-                const parsed = JSON.parse(raw);
-                if (Array.isArray(parsed)) list = parsed;
-            }
-        } catch (e) {}
+    function cleanArtistName(name) {
+        if (!name) return '';
+        return String(name).replace(/\s*\([^)]*\)/g, '').trim();
+    }
 
-        // Also merge any approved cartoons/pubmats from articleCoverReviewQueue_v1
+    function loadCovers() {
+        let covers = [];
+        const seenIds = new Set();
+
+        function addCover(item) {
+            if (!item || !item.id || !item.image) return;
+
+            // Strictly require EIC approval or Published status
+            const s = (item.status || '').toLowerCase().trim();
+            if (s !== 'eic approved' && s !== 'approved' && s !== 'approved_for_mpc' && s !== 'published') {
+                return;
+            }
+
+            // Reject any hardcoded or mock image paths
+            if (typeof item.image === 'string') {
+                const img = item.image.trim();
+                if (img.includes('images/') || img.includes('covers/') || img.includes('maroon.jpg') || img.includes('portal-pubmat') || img.includes('election-guidelines') || img.includes('faculty-overload') || img.includes('press-freedom')) {
+                    return;
+                }
+                if (!img.startsWith('data:image/') && !img.startsWith('/storage/') && !img.startsWith('http')) {
+                    return;
+                }
+            }
+
+            const idStr = String(item.id);
+            if (idStr.includes('mock') || idStr.includes('sample') || idStr.includes('seed') || idStr.includes('default')) {
+                return;
+            }
+
+            if (seenIds.has(idStr)) {
+                const existing = covers.find(c => String(c.id) === idStr);
+                if (existing) {
+                    if (!existing.image && item.image) existing.image = item.image;
+                    if (!existing.artist && item.artist) existing.artist = cleanArtistName(item.artist);
+                    if (!existing.approvedBy && (item.approvedBy || item.endorsedBy)) {
+                        existing.approvedBy = item.approvedBy || item.endorsedBy;
+                    }
+                    if (!existing.type && item.type) existing.type = item.type.toLowerCase();
+                }
+                return;
+            }
+            seenIds.add(idStr);
+            covers.push({
+                id: idStr,
+                type: (item.type || 'pubmat').toLowerCase(),
+                title: item.title || 'Approved Visual Asset',
+                artist: cleanArtistName(item.artist || 'Media Team Member'),
+                approvedBy: item.approvedBy || item.endorsedBy || 'Editor-in-Chief (EIC)',
+                image: item.image,
+                date: item.date || 'Recent',
+                status: item.status || 'EIC Approved'
+            });
+        }
+
+        // 1. Live Article Review Queue (where M&PC and EIC review and approve media)
         try {
             const rawReview = localStorage.getItem('articleCoverReviewQueue_v1');
             if (rawReview) {
                 const parsedReview = JSON.parse(rawReview);
                 if (Array.isArray(parsedReview)) {
                     parsedReview.forEach(r => {
-                        if (r.status === 'approved' || r.status === 'approved_for_mpc' || r.status === 'Published' || r.status === 'EIC Approved') {
-                            if (!list.some(c => c.id === r.id)) {
-                                list.push({
-                                    id: r.id,
-                                    type: r.type || 'cartoon',
-                                    artist: r.artist || 'Staff Artist',
-                                    approvedBy: r.approvedBy || r.endorsedBy || 'Editorial Head',
-                                    image: r.image || '',
-                                    date: r.date || 'Recent'
-                                });
-                            }
+                        const s = (r.status || '').toLowerCase().trim();
+                        if (s === 'eic approved' || s === 'approved' || s === 'approved_for_mpc' || s === 'published') {
+                            addCover(r);
                         }
                     });
                 }
             }
         } catch (e) {}
 
-        return list;
+        // 2. M&PC Approved Covers Storage (only genuine EIC approved covers)
+        try {
+            const raw = localStorage.getItem(STORAGE_KEY_COVERS);
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                if (Array.isArray(parsed)) {
+                    parsed.forEach(c => {
+                        const s = (c.status || '').toLowerCase().trim();
+                        if (s === 'eic approved' || s === 'approved' || s === 'approved_for_mpc' || s === 'published') {
+                            addCover(c);
+                        }
+                    });
+                }
+            }
+        } catch (e) {}
+
+        // 3. M&PC Approved Covers Pool (only genuine EIC approved covers)
+        try {
+            const rawPool = localStorage.getItem('mpcApprovedCoversPool_v1');
+            if (rawPool) {
+                const parsed = JSON.parse(rawPool);
+                if (Array.isArray(parsed)) {
+                    parsed.forEach(p => {
+                        const s = (p.status || '').toLowerCase().trim();
+                        if (s === 'eic approved' || s === 'approved' || s === 'approved_for_mpc' || s === 'published') {
+                            addCover(p);
+                        }
+                    });
+                }
+            }
+        } catch (e) {}
+
+        // 4. Media Team Submissions (Approved / Published)
+        try {
+            const rawMedia = localStorage.getItem('mediaTeamSubmissions_v2');
+            if (rawMedia) {
+                const parsed = JSON.parse(rawMedia);
+                if (Array.isArray(parsed)) {
+                    parsed.forEach(m => {
+                        const s = (m.status || '').toLowerCase().trim();
+                        if (s === 'eic approved' || s === 'published') {
+                            addCover(m);
+                        }
+                    });
+                }
+            }
+        } catch (e) {}
+
+        // 5. Cartoonist Submissions (Approved / Published)
+        try {
+            const rawCart = localStorage.getItem('cartoonistSubmissions_v1');
+            if (rawCart) {
+                const parsed = JSON.parse(rawCart);
+                if (Array.isArray(parsed)) {
+                    parsed.forEach(c => {
+                        const s = (c.status || '').toLowerCase().trim();
+                        if (s === 'eic approved' || s === 'published') {
+                            addCover(c);
+                        }
+                    });
+                }
+            }
+        } catch (e) {}
+
+        // 6. Window initial covers
+        if (window.INITIAL_COVERS && Array.isArray(window.INITIAL_COVERS)) {
+            window.INITIAL_COVERS.forEach(addCover);
+        }
+
+        return covers;
     }
 
-    let articlesList = loadArticles();
     let coversList = loadCovers();
+    let articlesList = loadArticles();
+
+    // Validate assigned covers: clear any phantom or non-existent cover references
+    articlesList.forEach(a => {
+        if (a.assignedCoverId && !coversList.some(c => String(c.id) === String(a.assignedCoverId))) {
+            a.assignedCoverId = '';
+            a.image = '';
+            a.coverImage = '';
+            a.banner = '';
+        }
+    });
 
     let activeView = 'ready'; // 'ready' | 'published' | 'unpublished' | 'covers'
     let activeCategory = 'all'; // 'all' | 'news' | 'opinion' | 'features' | 'scitech' | 'literature'
@@ -299,11 +453,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const readerModal = document.getElementById('manuscript-viewer-modal');
     const closeReaderBtn = document.getElementById('close-reader-btn');
+    const closeReaderFooterBtn = document.getElementById('close-reader-footer-btn');
     const readerCategory = document.getElementById('reader-category');
     const readerTitle = document.getElementById('reader-title');
     const readerAuthor = document.getElementById('reader-author');
+    const readerAuthorAvatar = document.getElementById('reader-author-avatar');
     const readerDate = document.getElementById('reader-date');
+    const readerReadTime = document.getElementById('reader-read-time');
+    const readerEndorsements = document.getElementById('reader-endorsements');
+    const readerExcerpt = document.getElementById('reader-excerpt');
+    const readerCoverWrap = document.getElementById('reader-cover-wrap');
+    const readerCoverImg = document.getElementById('reader-cover-img');
+    const readerCoverBadge = document.getElementById('reader-cover-badge');
     const readerBody = document.getElementById('reader-body');
+    const readerAssignBtn = document.getElementById('reader-action-assign');
+    const readerAssignLabel = document.getElementById('reader-assign-label');
+    const readerPublishBtn = document.getElementById('reader-action-publish');
+    const readerPublishLabel = document.getElementById('reader-publish-label');
 
     const toastContainer = document.getElementById('toast-container');
 
@@ -400,6 +566,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 6. CARD RENDERING
     // -------------------------------------------------------------------------
     function render() {
+        coversList = loadCovers();
         updateStats();
 
         // 1. If viewing the Covers Library
@@ -467,7 +634,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         articlesGrid.innerHTML = list.map(item => {
-            const assignedCover = coversList.find(c => c.id === item.assignedCoverId);
+            const assignedCover = coversList.find(c => String(c.id) === String(item.assignedCoverId)) || (item.image ? { image: item.image, artist: item.coverArtist || 'Media Team Member', type: item.coverType || 'pubmat' } : null);
 
             return `
                 <div class="mpc-publish-card" id="card-${item.id}" data-id="${item.id}">
@@ -507,7 +674,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <span style="color: #667085; font-weight: 500;"><i class="fa-regular fa-calendar"></i> Approved: ${escapeHTML(item.dateApproved)}</span>
                             </div>
 
-                            <h2 class="mpc-article-headline">${escapeHTML(item.title)}</h2>
+                            <h2 class="mpc-article-headline" data-action="read" data-id="${item.id}" style="cursor: pointer;" title="Click to read manuscript">${escapeHTML(item.title)}</h2>
 
                             <div class="mpc-byline-row">
                                 <i class="fa-solid fa-pen-nib"></i>
@@ -551,19 +718,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
                         <div class="mpc-footer-actions">
                             ${item.status === 'published' ? `
+                                <button type="button" class="btn-mpc-read" data-action="read" data-id="${item.id}">
+                                    <i class="fa-regular fa-file-lines"></i>
+                                    <span>Read Article</span>
+                                </button>
                                 <button type="button" class="btn-mpc-unpublish" data-action="unpublish" data-id="${item.id}">
                                     <i class="fa-solid fa-arrow-rotate-left"></i>
                                     <span>Unpublish</span>
                                 </button>
-                            ` : `
+                            ` : item.status === 'unpublished' ? `
+                                <button type="button" class="btn-mpc-read" data-action="read" data-id="${item.id}">
+                                    <i class="fa-regular fa-file-lines"></i>
+                                    <span>Read Article</span>
+                                </button>
                                 <button type="button" class="btn-mpc-assign" data-action="assign-cover" data-id="${item.id}">
                                     <i class="fa-solid fa-palette"></i>
                                     <span>${assignedCover ? 'Change Cover' : 'Assign Cover'}</span>
                                 </button>
-
+                                <button type="button" class="btn-mpc-publish" data-action="publish" data-id="${item.id}">
+                                    <i class="fa-solid fa-globe"></i>
+                                    <span>Republish</span>
+                                </button>
+                            ` : `
                                 <button type="button" class="btn-mpc-read" data-action="read" data-id="${item.id}">
                                     <i class="fa-regular fa-file-lines"></i>
                                     <span>Read Article</span>
+                                </button>
+
+                                <button type="button" class="btn-mpc-assign" data-action="assign-cover" data-id="${item.id}">
+                                    <i class="fa-solid fa-palette"></i>
+                                    <span>${assignedCover ? 'Change Cover' : 'Assign Cover'}</span>
                                 </button>
 
                                 <button type="button" class="btn-mpc-return" data-action="return-revision" data-id="${item.id}" style="padding: 7px 14px; font-size: 0.8rem; font-weight: 600; border-radius: 8px; border: 1px solid #fecdca; background: #fff5f5; color: #b42318; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
@@ -628,11 +812,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // 8. COVER SELECTION MODAL LOGIC
     // -------------------------------------------------------------------------
     function openCoverModal(articleId) {
-        const article = articlesList.find(a => a.id === articleId);
+        coversList = loadCovers();
+        updateStats();
+
+        const article = articlesList.find(a => String(a.id) === String(articleId));
         if (!article) return;
 
         targetAssignArticleId = articleId;
-        selectedCoverIdInModal = article.assignedCoverId || null;
+        selectedCoverIdInModal = article.assignedCoverId ? String(article.assignedCoverId) : null;
 
         if (modalTargetArticleTitle) {
             modalTargetArticleTitle.textContent = article.title;
@@ -660,7 +847,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let filtered = coversList;
         if (activeCoverFilterInModal !== 'all') {
-            filtered = filtered.filter(c => c.type === activeCoverFilterInModal);
+            if (activeCoverFilterInModal === 'cartoon') {
+                filtered = filtered.filter(c => c.type === 'cartoon' || c.type === 'cartoons');
+            } else if (activeCoverFilterInModal === 'photo') {
+                filtered = filtered.filter(c => c.type === 'photo' || c.type === 'photos' || c.type === 'pubmat');
+            } else if (activeCoverFilterInModal === 'pubmat') {
+                filtered = filtered.filter(c => c.type === 'pubmat' || c.type === 'photo' || c.type === 'photos');
+            } else {
+                filtered = filtered.filter(c => c.type === activeCoverFilterInModal);
+            }
         }
 
         if (!filtered || filtered.length === 0) {
@@ -674,12 +869,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         modalCoverGallery.innerHTML = filtered.map(cover => {
-            const isSelected = (cover.id === selectedCoverIdInModal);
+            const isSelected = (String(cover.id) === String(selectedCoverIdInModal));
             return `
                 <div class="mpc-gallery-item ${isSelected ? 'selected' : ''}" data-cover-id="${cover.id}">
                     <div class="mpc-gallery-thumb-wrap">
                         <img src="${escapeHTML(cover.image)}" alt="Cover Asset" class="mpc-gallery-thumb-img">
-                        <span class="mpc-cover-meta-badge">${escapeHTML(cover.type.toUpperCase())}</span>
+                        <span class="mpc-cover-meta-badge">${escapeHTML((cover.type || 'pubmat').toUpperCase())}</span>
                     </div>
                     <div class="mpc-gallery-item-body">
                         <div class="mpc-gallery-artist">
@@ -706,12 +901,12 @@ document.addEventListener('DOMContentLoaded', () => {
             selectedCoverIdInModal = coverId;
 
             modalCoverGallery.querySelectorAll('.mpc-gallery-item').forEach(el => {
-                el.classList.toggle('selected', el.dataset.coverId === coverId);
+                el.classList.toggle('selected', String(el.dataset.coverId) === String(coverId));
             });
         });
     }
 
-    // Modal type filter pills (All / PUBMAT / CARTOON)
+    // Modal type filter pills (All / PUBMAT / PHOTOS / CARTOON)
     const modalPills = document.querySelectorAll('.mpc-modal-pill[data-cover-type]');
     modalPills.forEach(pill => {
         pill.addEventListener('click', () => {
@@ -729,13 +924,28 @@ document.addEventListener('DOMContentLoaded', () => {
         confirmCoverModalBtn.addEventListener('click', () => {
             if (!targetAssignArticleId) return;
 
-            const article = articlesList.find(a => a.id === targetAssignArticleId);
+            const article = articlesList.find(a => String(a.id) === String(targetAssignArticleId));
             if (!article) return;
 
-            article.assignedCoverId = selectedCoverIdInModal;
-            saveArticles(articlesList);
+            const chosenCover = coversList.find(c => String(c.id) === String(selectedCoverIdInModal));
 
-            const chosenCover = coversList.find(c => c.id === selectedCoverIdInModal);
+            if (chosenCover) {
+                article.assignedCoverId = String(chosenCover.id);
+                article.image = chosenCover.image;
+                article.coverImage = chosenCover.image;
+                article.banner = chosenCover.image;
+                article.coverArtist = chosenCover.artist;
+                article.coverType = chosenCover.type;
+            } else {
+                article.assignedCoverId = '';
+                article.image = '';
+                article.coverImage = '';
+                article.banner = '';
+                article.coverArtist = '';
+                article.coverType = '';
+            }
+
+            saveArticles(articlesList);
             closeCoverModal();
             render();
 
@@ -754,18 +964,18 @@ document.addEventListener('DOMContentLoaded', () => {
                         causerRole: window.LARAVEL_USER_ROLE || localStorage.getItem('mpcRole') || 'M&PC Head',
                         causerAvatar: window.LARAVEL_USER_AVATAR || 'images/member-placeholder.svg',
                         action: 'assigned',
-                        subjectType: `Cover ${chosenCover.type.toUpperCase()} to Article`,
+                        subjectType: `Cover ${(chosenCover.type || 'pubmat').toUpperCase()} to Article`,
                         subjectName: article.title,
                         timestampText: 'Just now',
                         isoDate: now.toISOString(),
                         dateKey: now.toISOString().split('T')[0],
-                        formattedDate: `${dateStr} ΓÇó ${timeStr}`,
+                        formattedDate: `${dateStr} • ${timeStr}`,
                         dayGroup: 'Today'
                     });
                     localStorage.setItem('mpcActivityLogs_v1', JSON.stringify(logs.slice(0, 40)));
                 } catch (e) {}
 
-                showToast(`Attached ${chosenCover.type.toUpperCase()} by ${chosenCover.artist} to "${article.title.substring(0, 36)}...".`, 'success');
+                showToast(`Attached ${(chosenCover.type || 'pubmat').toUpperCase()} by ${chosenCover.artist} to "${article.title.substring(0, 36)}...".`, 'success');
             } else {
                 showToast(`Cover removed from "${article.title.substring(0, 36)}...".`, 'warning');
             }
@@ -776,7 +986,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 9. PUBLISH & UNPUBLISH WORKFLOWS
     // -------------------------------------------------------------------------
     function publishArticle(articleId) {
-        const article = articlesList.find(a => a.id === articleId);
+        const article = articlesList.find(a => String(a.id) === String(articleId));
         if (!article) return;
 
         // Validation: If covers exist in the library, require one to be assigned before publishing
@@ -803,10 +1013,13 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             // Attach actual cover image from coversList
-            const chosenCover = coversList.find(c => c.id === article.assignedCoverId);
+            const chosenCover = coversList.find(c => String(c.id) === String(article.assignedCoverId));
             if (chosenCover && chosenCover.image) {
                 article.image = chosenCover.image;
                 article.coverImage = chosenCover.image;
+                article.banner = chosenCover.image;
+                article.coverArtist = chosenCover.artist;
+                article.coverType = chosenCover.type;
             }
 
             // Sync to theLensPublishedArticles so public site immediately displays it!
@@ -867,7 +1080,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     timestampText: 'Just now',
                     isoDate: now.toISOString(),
                     dateKey: now.toISOString().split('T')[0],
-                    formattedDate: `${dateStr} ΓÇó ${timeStr}`,
+                    formattedDate: `${dateStr} • ${timeStr}`,
                     dayGroup: 'Today'
                 });
                 localStorage.setItem('mpcActivityLogs_v1', JSON.stringify(logs.slice(0, 40)));
@@ -959,7 +1172,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 timestampText: 'Just now',
                 isoDate: now.toISOString(),
                 dateKey: now.toISOString().split('T')[0],
-                formattedDate: `${dateStr} ΓÇó ${timeStr}`,
+                formattedDate: `${dateStr} • ${timeStr}`,
                 dayGroup: 'Today'
             });
             localStorage.setItem('mpcActivityLogs_v1', JSON.stringify(logs.slice(0, 40)));
@@ -988,15 +1201,77 @@ document.addEventListener('DOMContentLoaded', () => {
     // -------------------------------------------------------------------------
     // 10. MANUSCRIPT VIEWER MODAL
     // -------------------------------------------------------------------------
+    let activeReadingArticleId = null;
+
     function openManuscriptModal(articleId) {
-        const article = articlesList.find(a => a.id === articleId);
+        const article = articlesList.find(a => String(a.id) === String(articleId));
         if (!article) return;
 
-        if (readerCategory) readerCategory.textContent = article.category.toUpperCase();
-        if (readerTitle) readerTitle.textContent = article.title;
-        if (readerAuthor) readerAuthor.textContent = article.author;
-        if (readerDate) readerDate.textContent = `Approved: ${article.dateApproved}`;
-        if (readerBody) readerBody.innerHTML = formatCleanArticleContent(article.body || article.content);
+        activeReadingArticleId = String(article.id);
+
+        if (readerCategory) readerCategory.textContent = (article.category || 'General').toUpperCase();
+        if (readerTitle) readerTitle.textContent = article.title || 'Untitled Manuscript';
+        if (readerAuthor) readerAuthor.textContent = article.author || 'Staff Writer';
+        if (readerDate) readerDate.textContent = `Approved: ${article.dateApproved || 'Recently'}`;
+        if (readerReadTime) readerReadTime.textContent = article.readTime || '3 min read';
+
+        if (readerEndorsements) {
+            readerEndorsements.textContent = `${article.sectionHead || 'Approved by Section Head'} • ${article.eicApprover || 'Approved by EIC'}`;
+        }
+
+        // Excerpt
+        if (readerExcerpt) {
+            if (article.excerpt && article.excerpt.trim()) {
+                readerExcerpt.textContent = article.excerpt;
+                readerExcerpt.style.display = 'block';
+            } else {
+                readerExcerpt.style.display = 'none';
+            }
+        }
+
+        // Assigned cover preview
+        coversList = loadCovers();
+        const assignedCover = coversList.find(c => String(c.id) === String(article.assignedCoverId)) || 
+                             (article.image ? { image: article.image, artist: article.coverArtist || 'Media Team Member', type: article.coverType || 'pubmat' } : null);
+
+        if (readerCoverWrap && readerCoverImg) {
+            if (assignedCover && assignedCover.image) {
+                readerCoverImg.src = assignedCover.image;
+                if (readerCoverBadge) {
+                    readerCoverBadge.textContent = `${(assignedCover.type || 'pubmat').toUpperCase()} BY ${assignedCover.artist || 'Media Team'}`;
+                }
+                readerCoverWrap.style.display = 'block';
+            } else {
+                readerCoverWrap.style.display = 'none';
+            }
+        }
+
+        // Clean manuscript body
+        if (readerBody) {
+            readerBody.innerHTML = formatCleanArticleContent(article.body || article.content);
+        }
+
+        // Update button states
+        if (readerAssignBtn && readerAssignLabel) {
+            readerAssignLabel.textContent = assignedCover ? 'Change Cover' : 'Assign Cover';
+            readerAssignBtn.style.display = (article.status === 'published') ? 'none' : 'inline-flex';
+        }
+
+        if (readerPublishBtn && readerPublishLabel) {
+            if (article.status === 'published') {
+                readerPublishLabel.textContent = 'Unpublish Article';
+                readerPublishBtn.className = 'btn-mpc-unpublish';
+                readerPublishBtn.innerHTML = '<i class="fa-solid fa-arrow-rotate-left"></i> <span>Unpublish Article</span>';
+            } else if (article.status === 'unpublished') {
+                readerPublishLabel.textContent = 'Republish to Website';
+                readerPublishBtn.className = 'btn-mpc-publish';
+                readerPublishBtn.innerHTML = '<i class="fa-solid fa-globe"></i> <span>Republish to Website</span>';
+            } else {
+                readerPublishLabel.textContent = 'Publish to Website';
+                readerPublishBtn.className = 'btn-mpc-publish';
+                readerPublishBtn.innerHTML = '<i class="fa-solid fa-globe"></i> <span>Publish to Website</span>';
+            }
+        }
 
         if (readerModal) {
             readerModal.classList.remove('hidden');
@@ -1009,17 +1284,56 @@ document.addEventListener('DOMContentLoaded', () => {
             readerModal.classList.add('hidden');
             document.body.style.overflow = '';
         }
+        activeReadingArticleId = null;
     }
 
-    const closeReaderFooterBtn = document.getElementById('close-reader-footer-btn');
     if (closeReaderBtn) closeReaderBtn.addEventListener('click', closeManuscriptModal);
     if (closeReaderFooterBtn) closeReaderFooterBtn.addEventListener('click', closeManuscriptModal);
+
+    if (readerModal) {
+        readerModal.addEventListener('click', (e) => {
+            if (e.target === readerModal) closeManuscriptModal();
+        });
+    }
+
+    if (coverModal) {
+        coverModal.addEventListener('click', (e) => {
+            if (e.target === coverModal) closeCoverModal();
+        });
+    }
+
+    if (readerAssignBtn) {
+        readerAssignBtn.addEventListener('click', () => {
+            if (!activeReadingArticleId) return;
+            const targetId = activeReadingArticleId;
+            closeManuscriptModal();
+            openCoverModal(targetId);
+        });
+    }
+
+    if (readerPublishBtn) {
+        readerPublishBtn.addEventListener('click', () => {
+            if (!activeReadingArticleId) return;
+            const targetId = activeReadingArticleId;
+            const article = articlesList.find(a => String(a.id) === String(targetId));
+            if (!article) return;
+
+            closeManuscriptModal();
+
+            if (article.status === 'published') {
+                unpublishArticle(targetId);
+            } else {
+                publishArticle(targetId);
+            }
+        });
+    }
 
     // Escape listener
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             if (coverModal && !coverModal.classList.contains('hidden')) closeCoverModal();
             if (readerModal && !readerModal.classList.contains('hidden')) closeManuscriptModal();
+            if (returnArticleModal && !returnArticleModal.classList.contains('hidden')) closeReturnArticleModal();
         }
     });
 
@@ -1137,8 +1451,8 @@ document.addEventListener('DOMContentLoaded', () => {
             saveArticles(articlesList);
 
             closeReturnArticleModal();
-            updateCounters();
-            renderArticlesGrid();
+            updateStats();
+            render();
             showToast(`Article "${targetArticle ? targetArticle.title : 'Story'}" returned to Editor-in-Chief with remarks.`, 'warning');
         });
     }

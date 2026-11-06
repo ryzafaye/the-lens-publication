@@ -109,7 +109,7 @@
 
         <div class="modal-body" style="padding: 20px; overflow-y: auto;">
             <div class="media-inspect-preview-container">
-                <img id="modal-inspect-img" src="" alt="Full Preview" class="media-inspect-img" onerror="this.onerror=null; this.src='{{ asset('images/covers/portal-pubmat.svg') }}'">
+                <img id="modal-inspect-img" src="" alt="Full Preview" class="media-inspect-img">
             </div>
 
             <div style="margin-top: 14px;">

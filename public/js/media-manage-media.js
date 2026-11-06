@@ -254,25 +254,28 @@ document.addEventListener('DOMContentLoaded', () => {
                 const articleHeadline = item.connectedArticleTitle || item.title;
                 const articleExcerpt = item.connectedArticleExcerpt || item.title;
                 const articleCategory = item.connectedArticleCategory || item.category || 'News';
-                const articleAuthor = item.connectedArticleAuthor || 'Mara Villanueva';
-                const articleDate = item.connectedArticleDate || item.date || 'Oct 12, 2026';
+                const articleAuthor = item.connectedArticleAuthor || 'Staff Writer';
+                const articleDate = item.connectedArticleDate || item.date || '';
                 const articleViews = item.views !== undefined ? item.views : 2150;
                 const articleReadTime = item.readTime || '2 min read';
                 const articleShares = item.shares !== undefined ? item.shares : 0;
-                const safeImage = (item.image && !item.image.includes('maroon.jpg'))
-                    ? item.image
-                    : 'images/covers/portal-pubmat.svg';
+                const safeImage = item.image || '';
 
                 return `
                     <article class="archive-item">
                         <button type="button" class="archive-image-trigger" data-action="inspect" data-id="${item.id}" aria-label="Inspect graphic: ${escapeHTML(item.title)}" title="Click to inspect graphic">
                             <div class="archive-image" style="--image-color: #571525;">
-                                <img 
-                                    src="${escapeHTML(safeImage)}" 
-                                    alt="${escapeHTML(item.title)}" 
-                                    loading="lazy" 
-                                    onerror="this.onerror=null; this.src='images/covers/portal-pubmat.svg'"
-                                >
+                                ${safeImage ? `
+                                    <img 
+                                        src="${escapeHTML(safeImage)}" 
+                                        alt="${escapeHTML(item.title)}" 
+                                        loading="lazy" 
+                                    >
+                                ` : `
+                                    <div class="media-card-placeholder" style="display: flex; align-items: center; justify-content: center; height: 100%; color: #cbd5e1;">
+                                        <i class="fa-solid fa-palette" style="font-size: 2rem;"></i>
+                                    </div>
+                                `}
                             </div>
                         </button>
                         <div class="archive-item-copy">
@@ -318,12 +321,17 @@ document.addEventListener('DOMContentLoaded', () => {
             return `
                 <div class="manage-media-card" data-id="${item.id}">
                     <div class="media-card-preview-box" data-action="inspect" data-id="${item.id}">
-                        <img 
-                            src="${escapeHTML(item.image)}" 
-                            alt="${escapeHTML(item.title)}" 
-                            class="media-card-img" 
-                            onerror="this.onerror=null; this.src='images/covers/portal-pubmat.svg'"
-                        >
+                        ${item.image ? `
+                            <img 
+                                src="${escapeHTML(item.image)}" 
+                                alt="${escapeHTML(item.title)}" 
+                                class="media-card-img" 
+                            >
+                        ` : `
+                            <div class="media-card-placeholder" style="display: flex; align-items: center; justify-content: center; height: 100%; min-height: 180px; background: #f8fafc; color: #94a3b8;">
+                                <i class="fa-solid fa-palette" style="font-size: 2.2rem;"></i>
+                            </div>
+                        `}
                         <div class="media-card-badge-layer">
                             <span class="media-status-pill ${statusCfg.cssClass}">
                                 ${statusCfg.icon} ${statusCfg.label}
@@ -336,7 +344,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="media-card-meta">
                             <span><i class="fa-regular fa-calendar"></i> ${escapeHTML(item.date)}</span>
                             <span>&bull;</span>
-                            <span><i class="fa-solid fa-palette"></i> ${escapeHTML(item.artist || 'Alyssa Marie Dizon')}</span>
+                            <span><i class="fa-solid fa-palette"></i> ${escapeHTML(item.artist || 'Media Team Member')}</span>
                             <span>&bull;</span>
                             <span>${escapeHTML(item.fileSize || 'Standard')}</span>
                         </div>
@@ -377,12 +385,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const statusCfg = getStatusConfig(item.status);
 
         if (modalImg) {
-            modalImg.onerror = function() {
-                this.onerror = null;
-                this.src = 'images/covers/portal-pubmat.svg';
-            };
-            modalImg.src = item.image || 'images/covers/election-guidelines.svg';
-            modalImg.alt = item.title || 'Graphic Preview';
+            modalImg.onerror = null;
+            if (item.image) {
+                modalImg.src = item.image;
+                modalImg.alt = item.title || 'Graphic Preview';
+                modalImg.style.display = '';
+            } else {
+                modalImg.src = '';
+                modalImg.alt = '';
+                modalImg.style.display = 'none';
+            }
         }
         if (modalTitle) modalTitle.textContent = item.title;
         if (modalCategory) {
@@ -392,7 +404,7 @@ document.addEventListener('DOMContentLoaded', () => {
             modalStatus.className = `media-status-pill ${statusCfg.cssClass}`;
             modalStatus.innerHTML = `${statusCfg.icon} ${statusCfg.label}`;
         }
-        if (modalDate) modalDate.textContent = item.date || 'Oct 24, 2026';
+        if (modalDate) modalDate.textContent = item.date || '';
         if (modalFilesize) modalFilesize.textContent = item.fileSize || 'Standard';
         if (modalCaption) {
             modalCaption.textContent = item.connectedArticleTitle || item.targetArticle || item.caption || 'Publication Material Asset';

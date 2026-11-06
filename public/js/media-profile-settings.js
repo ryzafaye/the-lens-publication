@@ -2,7 +2,7 @@
  * ============================================================================
  * THE LENS — MEDIA & COMMUNICATION PROFILE SETTINGS CONTROLLER
  * Full Executive & M&PC Parity: Member Info, Avatar Photo & Security Password
- * Persona: Alyssa Marie Dizon (Media & Communication Desk)
+ * Media & Communication Desk Profile Controller
  * ============================================================================
  */
 
@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 1. AUTHENTICATION & ROLE VERIFICATION
     // =========================================================================
     const userRole = localStorage.getItem('mediaRole') || localStorage.getItem('userRole') || 'Media & Communication';
-    let userName = localStorage.getItem('mediaName') || localStorage.getItem('userName') || 'Alyssa Marie Dizon';
+    let userName = window.LARAVEL_USER_NAME || localStorage.getItem('mediaName') || localStorage.getItem('userName') || 'Media Team Member';
     let studentNumber = localStorage.getItem('mediaStudentNumber') || localStorage.getItem('studentNumber') || '2024-00080-BN-0';
     let userAvatar = localStorage.getItem('mediaAvatar') || localStorage.getItem('userAvatar') || 'images/member-placeholder.svg';
 

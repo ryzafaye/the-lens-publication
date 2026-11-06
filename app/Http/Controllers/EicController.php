@@ -401,6 +401,14 @@ class EicController extends Controller
         return redirect()->back()->with('warning', 'Article returned to writer with revision remarks.');
     }
 
+    /**
+     * Media Desk View (PUBMAT, Photos, Cartoons, and Library Review)
+     */
+    public function mediaDesk()
+    {
+        return view('eic.media-desk');
+    }
+
     public function submitArticle(Request $request)
     {
         $categories = Cache::remember('all_categories', 86400, fn() => Category::all());

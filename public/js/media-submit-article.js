@@ -1,4 +1,4 @@
-﻿/**
+/**
  * ============================================================================
  * THE LENS — SUBMIT ARTICLE LOGIC (MEDIA & COMMUNICATION TEAM PORTAL)
  * Notion / Medium Style Writing Interface with Exact Executive & M&PC Parity
@@ -61,7 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 2. AUTHOR BYLINE & ROLE INITIALIZATION
     // =========================================================================
     const currentUserRole = localStorage.getItem('mediaRole') || localStorage.getItem('userRole') || 'Media & Communication';
-    const currentUserName = localStorage.getItem('mediaName') || localStorage.getItem('userName') || 'Alyssa Marie Dizon';
+    const currentUserName = window.LARAVEL_USER_NAME || localStorage.getItem('mediaName') || localStorage.getItem('userName') || 'Media Team Member';
 
     if (authorNameDisplay) {
         authorNameDisplay.textContent = currentUserName;
@@ -896,7 +896,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const newSubmission = {
             id: newSubmissionId,
-            writerId: 'alyssa-dizon',
+            writerId: window.LARAVEL_USER_ID ? String(window.LARAVEL_USER_ID) : 'media-officer',
             author: authorName,
             title: headline,
             category: category,

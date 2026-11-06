@@ -314,26 +314,7 @@ document.addEventListener('DOMContentLoaded', () => {
         saveCartoons();
         logActivity('endorsed', 'Editorial Cartoon to EIC', item.title);
 
-        // Also push approved artwork to mpc_approved_covers_v1 and articleCoverReviewQueue_v1
-        try {
-            let covers = [];
-            const rawCovers = localStorage.getItem('mpc_approved_covers_v1');
-            if (rawCovers) {
-                const parsed = JSON.parse(rawCovers);
-                if (Array.isArray(parsed)) covers = parsed;
-            }
-            covers = covers.filter(c => c.id !== item.id);
-            covers.unshift({
-                id: item.id,
-                type: 'cartoon',
-                artist: item.artist || 'Staff Cartoonist',
-                approvedBy: `${currentHeadName} (Cartoonist Head)`,
-                image: item.image,
-                date: item.endorsedDate || item.date || 'Recent'
-            });
-            localStorage.setItem('mpc_approved_covers_v1', JSON.stringify(covers));
-        } catch (e) {}
-
+        // Push to review queue for EIC review (does NOT go to MPC covers until EIC approves)
         try {
             let queue = [];
             const rawQ = localStorage.getItem('articleCoverReviewQueue_v1');
@@ -342,7 +323,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (Array.isArray(parsedQ)) queue = parsedQ;
             }
             const existingIdx = queue.findIndex(q => q.id === item.id);
+            const queueItem = {
+                id: item.id,
+                type: 'cartoon',
+                title: item.title,
+                targetArticle: item.title,
+                artist: item.artist || 'Staff Cartoonist',
+                endorsedBy: `${currentHeadName} (Cartoonist Head)`,
+                image: item.image,
+                date: item.endorsedDate || item.date || 'Recent',
+                status: 'Pending EIC Review'
+            };
             if (existingIdx !== -1) {
+                queue[existingIdx] = queueItem;
+            } else {
+                queue.unshift(queueItem);
+            }
+            localStorage.setItem('articleCoverReviewQueue_v1', JSON.stringify(queue));
+        } catch (e) {}
                 queue[existingIdx] = {
                     ...queue[existingIdx],
                     status: 'approved_for_mpc',

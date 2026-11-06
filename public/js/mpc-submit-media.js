@@ -87,7 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (fileInfoBar && fileNameEl) {
             fileNameEl.textContent = name;
-            if (fileSizeEl) fileSizeEl.textContent = size ? `ΓÇó ${size}` : '';
+            if (fileSizeEl) fileSizeEl.textContent = size ? `• ${size}` : '';
             fileInfoBar.style.display = 'flex';
         }
     }
@@ -248,7 +248,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     timestampText: 'Just now',
                     isoDate: now.toISOString(),
                     dateKey: rawDateStr,
-                    formattedDate: `${dateStr} ΓÇó ${timeStr}`,
+                    formattedDate: `${dateStr} • ${timeStr}`,
                     dayGroup: 'Today'
                 });
                 localStorage.setItem(ACTIVITY_LOG_KEY, JSON.stringify(logs.slice(0, 40)));

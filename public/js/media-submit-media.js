@@ -14,25 +14,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================================================================
     const form = document.getElementById('media-submission-form');
 
-    // Media Type Selector
-    const typeCards = document.querySelectorAll('.media-type-card');
-    const selectedTypeInput = document.getElementById('selected-media-type');
-    let selectedMediaType = 'pubmat';
-
-    typeCards.forEach(card => {
-        card.addEventListener('click', () => {
-            typeCards.forEach(c => c.classList.remove('selected'));
-            card.classList.add('selected');
-            selectedMediaType = card.getAttribute('data-type') || 'pubmat';
-            if (selectedTypeInput) selectedTypeInput.value = selectedMediaType;
-        });
-        card.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                card.click();
-            }
-        });
-    });
+    // Media Type Default
+    const selectedMediaType = 'pubmat';
 
     // File Upload & Preview
     const dropzone = document.getElementById('media-dropzone');
@@ -222,7 +205,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 image: currentImageDataUrl,
                 date: dateStr,
                 rawDate: rawDateStr,
-                fileSize: currentFileSize || '380 KB',
+                fileSize: currentFileSize || '',
                 status: 'Pending with Head',
                 remarks: ''
             };

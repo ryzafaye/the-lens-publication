@@ -56,14 +56,6 @@
             <span>Literature</span>
             <span id="badge-review-literature" class="review-tab-badge">0</span>
         </button>
-        <button type="button" class="review-tab-btn" data-category="Media" role="tab" aria-selected="false">
-            <span>Media</span>
-            <span id="badge-review-media" class="review-tab-badge">0</span>
-        </button>
-        <button type="button" class="review-tab-btn" data-category="Cartoon" role="tab" aria-selected="false">
-            <span>Cartoons</span>
-            <span id="badge-review-cartoon" class="review-tab-badge">0</span>
-        </button>
     </div>
 
     <!-- Responsive Horizontal List Card Container directly under header -->

@@ -101,12 +101,12 @@
 
         <div class="modal-body" style="padding: 20px; overflow-y: auto;">
             <div class="media-inspect-preview-container">
-                <img id="modal-inspect-img" src="" alt="Full Graphic Preview" class="media-inspect-img" onerror="this.onerror=null; this.src='{{ asset('images/covers/portal-pubmat.svg') }}'">
+                <img id="modal-inspect-img" src="" alt="Full Graphic Preview" class="media-inspect-img">
             </div>
 
             <div style="margin-top: 14px;">
                 <div style="display: flex; gap: 12px; font-size: 0.82rem; color: #64748b; flex-wrap: wrap;">
-                    <span><i class="fa-regular fa-calendar"></i> <span id="modal-inspect-date">Oct 24, 2026</span></span>
+                    <span><i class="fa-regular fa-calendar"></i> <span id="modal-inspect-date">{{ date('M d, Y') }}</span></span>
                 </div>
 
                 <div id="modal-inspect-remarks-box" class="media-review-note-box" style="display: none; margin-top: 14px;">

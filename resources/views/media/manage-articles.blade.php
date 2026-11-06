@@ -154,7 +154,7 @@
             <p id="viewer-excerpt" class="viewer-excerpt" style="display: none;"></p>
 
             <div id="viewer-banner-wrap" class="viewer-banner" style="display: none;">
-                <img id="viewer-banner-img" src="{{ asset('images/maroon.jpg') }}" alt="Article banner">
+                <img id="viewer-banner-img" src="" alt="Article banner">
             </div>
 
             <!-- Clean Story Content Paragraphs -->

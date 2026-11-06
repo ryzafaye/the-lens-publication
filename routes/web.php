@@ -123,6 +123,7 @@ Route::middleware(['auth', 'role:Editor-in-Chief,Associate Editor-in-Chief'])
         Route::match(['put', 'post'], '/review-articles/{id}', [EicController::class, 'updateReviewArticle'])->name('update-review-article');
         Route::post('/review-articles/{id}/approve', [EicController::class, 'approveArticle'])->name('approve-article');
         Route::post('/review-articles/{id}/revision', [EicController::class, 'returnForRevision'])->name('return-for-revision');
+        Route::get('/media-desk', [EicController::class, 'mediaDesk'])->name('media-desk');
         Route::get('/submit-article', [EicController::class, 'submitArticle'])->name('submit-article');
         Route::post('/submit-article', [EicController::class, 'storeArticle'])->name('store-article');
         Route::get('/manage-accounts', [EicController::class, 'manageAccounts'])->name('manage-accounts');

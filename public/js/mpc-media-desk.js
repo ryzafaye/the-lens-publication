@@ -1,6 +1,6 @@
 /**
  * ============================================================================
- * THE LENS ΓÇö MEDIA DESK (MEDIA & PUBLIC COMMUNICATIONS / M&PC PORTAL)
+ * THE LENS — MEDIA DESK (MEDIA & PUBLIC COMMUNICATIONS / M&PC PORTAL)
  * Handles review and endorsement of PUBMAT and CARTOON publication assets
  * Features:
  * - PUBMAT & CARTOON tabs with dynamic live badge counts
@@ -18,6 +18,17 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!name) return '';
         return name.replace(/\s*\([^)]*\)/g, '').trim();
     }
+
+    // Clean workflow purge to guarantee zero hardcoded / mock uploaded images
+    try {
+        const PURGE_FLAG = 'theLens_clean_workflow_zero_mock_v20';
+        if (localStorage.getItem(PURGE_FLAG) !== 'true') {
+            localStorage.removeItem('articleCoverReviewQueue_v1');
+            localStorage.removeItem('mpc_approved_covers_v1');
+            localStorage.removeItem('mpcApprovedCoversPool_v1');
+            localStorage.setItem(PURGE_FLAG, 'true');
+        }
+    } catch (e) {}
 
     // =========================================================================
     // 1. DEFAULT DATASET (Publication Materials & Cartoons)
@@ -53,6 +64,19 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!list.some(existing => String(existing.id) === String(item.id))) {
                 list.push(item);
             }
+        });
+
+        // Filter out any mock/hardcoded items
+        list = list.filter(item => {
+            if (!item || !item.image) return false;
+            const img = String(item.image).trim();
+            if (img.includes('images/') || img.includes('covers/') || img.includes('maroon.jpg') || img.includes('portal-pubmat') || img.includes('election-guidelines') || img.includes('faculty-overload') || img.includes('press-freedom')) {
+                return false;
+            }
+            if (String(item.id).includes('mock') || String(item.id).includes('sample') || String(item.id).includes('seed') || String(item.id).includes('default')) {
+                return false;
+            }
+            return img.startsWith('data:image/') || img.startsWith('/storage/') || img.startsWith('http');
         });
 
         return list;
@@ -152,10 +176,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateBadges() {
-        const pubmatCount = coverList.filter(item => getItemType(item) === 'pubmat' && isItemPending(item)).length;
-        const photoCount = coverList.filter(item => getItemType(item) === 'photo' && isItemPending(item)).length;
+        const pubmatCount = coverList.filter(item => (getItemType(item) === 'pubmat' || getItemType(item) === 'photo') && isItemPending(item)).length;
+        const photoCount = coverList.filter(item => (getItemType(item) === 'photo' || getItemType(item) === 'pubmat') && isItemPending(item)).length;
         const cartoonCount = coverList.filter(item => getItemType(item) === 'cartoon' && isItemPending(item)).length;
-        const libraryCount = coverList.filter(item => item.status === 'approved_for_mpc' || item.status === 'approved' || item.status === 'EIC Approved').length;
+        const libraryCount = coverList.filter(item => item.status === 'approved_for_mpc' || item.status === 'approved' || item.status === 'EIC Approved' || item.status === 'Published').length;
 
         if (badgePubmat) badgePubmat.textContent = pubmatCount;
         if (badgePhoto) badgePhoto.textContent = photoCount;
@@ -183,9 +207,11 @@ document.addEventListener('DOMContentLoaded', () => {
     function getFilteredList() {
         let filtered = [];
         if (currentTab === 'library') {
-            filtered = coverList.filter(item => item.status === 'approved_for_mpc' || item.status === 'approved' || item.status === 'EIC Approved');
+            filtered = coverList.filter(item => item.status === 'approved_for_mpc' || item.status === 'approved' || item.status === 'EIC Approved' || item.status === 'Published');
+        } else if (currentTab === 'cartoon') {
+            filtered = coverList.filter(item => getItemType(item) === 'cartoon' && isItemPending(item));
         } else {
-            filtered = coverList.filter(item => getItemType(item) === currentTab && isItemPending(item));
+            filtered = coverList.filter(item => (getItemType(item) === 'pubmat' || getItemType(item) === 'photo') && isItemPending(item));
         }
 
         return filtered.sort((a, b) => {
@@ -253,8 +279,19 @@ document.addEventListener('DOMContentLoaded', () => {
         if (emptyState) emptyState.style.display = 'none';
 
         cardsGrid.innerHTML = filtered.map(item => {
-            const isApproved = (item.status === 'approved_for_mpc' || item.status === 'approved' || item.status === 'EIC Approved');
+            const isApproved = (item.status === 'approved_for_mpc' || item.status === 'approved' || item.status === 'EIC Approved' || item.status === 'Published');
+            const isPublished = (item.status === 'Published');
+            const isEicApproved = (item.status === 'EIC Approved');
             const itemType = getItemType(item);
+
+            let statusBadgeHtml = '';
+            if (isPublished) {
+                statusBadgeHtml = '<span class="cover-status-tag published" style="background: #059669; color: #fff;"><i class="fa-solid fa-globe"></i> PUBLISHED</span>';
+            } else if (isEicApproved) {
+                statusBadgeHtml = '<span class="cover-status-tag approved" style="background: #1e3a8a; color: #fff;"><i class="fa-solid fa-shield-halved"></i> EIC APPROVED</span>';
+            } else if (isApproved) {
+                statusBadgeHtml = '<span class="cover-status-tag approved"><i class="fa-solid fa-circle-check"></i> APPROVED</span>';
+            }
 
             return `
             <div class="cover-card" id="card-${item.id}" data-id="${item.id}">
@@ -269,7 +306,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     <div class="cover-thumb-badge-group">
                         <span class="cover-type-tag ${itemType}">${escapeHTML(itemType.toUpperCase())}</span>
-                        ${isApproved ? '<span class="cover-status-tag approved"><i class="fa-solid fa-circle-check"></i> APPROVED</span>' : ''}
+                        ${statusBadgeHtml}
                     </div>
 
                     <span class="cover-thumb-date">
@@ -290,17 +327,44 @@ document.addEventListener('DOMContentLoaded', () => {
                             <i class="fa-solid fa-circle-check"></i>
                             <span>Approved by: <strong>${escapeHTML(item.approvedBy)}</strong></span>
                         </div>
+                        ` : (item.endorsedBy ? `
+                        <div class="cover-head-row">
+                            <i class="fa-solid fa-circle-check"></i>
+                            <span>Endorsed by: <strong>${escapeHTML(item.endorsedBy)}</strong></span>
+                        </div>
                         ` : `
                         <div class="cover-head-row" style="color: #64748b;">
                             <i class="fa-regular fa-clock"></i>
                             <span>Queue: <strong>Pending Approval</strong></span>
                         </div>
-                        `}
+                        `)}
                     </div>
                 </div>
 
                 <!-- Footer Actions -->
-                ${isApproved ? `
+                ${isPublished ? `
+                <div class="cover-card-footer library-card-footer" style="display: flex; justify-content: space-between; align-items: center;">
+                    <div class="library-card-status" style="color: #059669; font-weight: 600; font-size: 0.82rem; display: flex; align-items: center; gap: 6px;">
+                        <i class="fa-solid fa-circle-check"></i>
+                        <span>Live on Publication</span>
+                    </div>
+                    <button type="button" class="btn-library-inspect" data-action="inspect" data-id="${item.id}" title="Inspect full size artwork">
+                        <i class="fa-solid fa-eye"></i>
+                        <span>Inspect</span>
+                    </button>
+                </div>
+                ` : (isEicApproved ? `
+                <div class="cover-card-footer library-card-footer" style="display: flex; gap: 8px; justify-content: space-between; align-items: center;">
+                    <button type="button" class="btn-library-inspect" data-action="inspect" data-id="${item.id}" title="Inspect full size artwork" style="flex: 1;">
+                        <i class="fa-solid fa-eye"></i>
+                        <span>Inspect</span>
+                    </button>
+                    <button type="button" class="btn-cover-post" data-action="post-image" data-id="${item.id}" title="Post Image to Publication Website" style="flex: 1.2; background: var(--sidebar-maroon, #5c0a18); color: #fff; border: none; padding: 7px 12px; border-radius: 6px; font-weight: 600; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer;">
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                        <span>Post Image</span>
+                    </button>
+                </div>
+                ` : (isApproved ? `
                 <div class="cover-card-footer library-card-footer">
                     <div class="library-card-status">
                         <i class="fa-solid fa-box-archive"></i>
@@ -322,7 +386,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <span>Endorse to EIC</span>
                     </button>
                 </div>
-                `}
+                `))}
             </div>
             `;
         }).join('');
@@ -332,31 +396,72 @@ document.addEventListener('DOMContentLoaded', () => {
     // 7. INSPECTION MODAL (Theater Mode)
     // =========================================================================
     function openInspectModal(id) {
-        const item = coverList.find(c => c.id === id);
+        const item = coverList.find(c => String(c.id) === String(id));
         if (!item || !inspectModal) return;
 
         activeInspectionId = id;
 
-        if (inspectArtist) inspectArtist.textContent = cleanArtistName(item.artist);
-        if (inspectHead) inspectHead.textContent = item.approvedBy;
+        if (inspectArtist) inspectArtist.textContent = cleanArtistName(item.artist || 'Media Team Member');
+        if (inspectHead) inspectHead.textContent = item.approvedBy || item.endorsedBy || 'M&PC Head';
         if (inspectImage) {
             inspectImage.src = item.image;
-            inspectImage.alt = `${item.type.toUpperCase()} by ${cleanArtistName(item.artist)}`;
+            inspectImage.alt = `${(item.type || 'Media').toUpperCase()} by ${cleanArtistName(item.artist || '')}`;
         }
 
         if (inspectTypeTag) {
-            inspectTypeTag.className = `cover-type-tag ${item.type}`;
-            inspectTypeTag.textContent = item.type.toUpperCase();
+            inspectTypeTag.className = `cover-type-tag ${item.type || 'pubmat'}`;
+            inspectTypeTag.textContent = (item.type || 'pubmat').toUpperCase();
         }
 
-        const isApproved = (item.status === 'approved_for_mpc' || item.status === 'approved');
+        const isApproved = (item.status === 'approved_for_mpc' || item.status === 'approved' || item.status === 'EIC Approved' || item.status === 'Published');
+        const isPublished = (item.status === 'Published');
+        const isEicApproved = (item.status === 'EIC Approved');
         const footerBtnGroup = document.querySelector('.inspect-footer-buttons');
         if (footerBtnGroup) {
-            if (isApproved) {
+            if (isPublished) {
+                footerBtnGroup.innerHTML = `
+                    <div class="inspect-library-status" style="color: #059669; font-weight: 600;">
+                        <i class="fa-solid fa-circle-check"></i>
+                        <span>Live on Publication Website</span>
+                    </div>
+                    <button type="button" class="btn-inspect-close-lib" id="btn-lib-done">
+                        <i class="fa-solid fa-check"></i>
+                        <span>Done</span>
+                    </button>
+                `;
+                const doneBtn = document.getElementById('btn-lib-done');
+                if (doneBtn) doneBtn.addEventListener('click', closeInspectModal);
+            } else if (isEicApproved) {
+                footerBtnGroup.innerHTML = `
+                    <div class="inspect-library-status" style="color: #1e3a8a; font-weight: 600;">
+                        <i class="fa-solid fa-shield-halved"></i>
+                        <span>Approved by EIC — Ready to Post</span>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button type="button" class="btn-modal-cancel" id="btn-lib-done" style="padding: 8px 16px; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; cursor: pointer;">
+                            <span>Close</span>
+                        </button>
+                        <button type="button" class="btn-inspect-approve" id="btn-inspect-post" style="background: var(--sidebar-maroon, #5c0a18); color: #fff; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                            <i class="fa-solid fa-cloud-arrow-up"></i>
+                            <span>Post Image</span>
+                        </button>
+                    </div>
+                `;
+                const doneBtn = document.getElementById('btn-lib-done');
+                if (doneBtn) doneBtn.addEventListener('click', closeInspectModal);
+                const postBtn = document.getElementById('btn-inspect-post');
+                if (postBtn) {
+                    postBtn.addEventListener('click', () => {
+                        const targetId = activeInspectionId;
+                        closeInspectModal();
+                        if (targetId) handlePostImage(targetId);
+                    });
+                }
+            } else if (isApproved) {
                 footerBtnGroup.innerHTML = `
                     <div class="inspect-library-status">
                         <i class="fa-solid fa-circle-check"></i>
-                        <span>In Media Library ΓÇö Ready for Publishing</span>
+                        <span>In Media Library — Ready for Publishing</span>
                     </div>
                     <button type="button" class="btn-inspect-close-lib" id="btn-lib-done">
                         <i class="fa-solid fa-check"></i>
@@ -530,7 +635,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         timestampText: 'Just now',
                         isoDate: now.toISOString(),
                         dateKey: now.toISOString().split('T')[0],
-                        formattedDate: `${dateStr} ΓÇó ${timeStr}`,
+                        formattedDate: `${dateStr} • ${timeStr}`,
                         dayGroup: 'Today'
                     });
                     localStorage.setItem('mpcActivityLogs_v1', JSON.stringify(logs.slice(0, 40)));
@@ -579,32 +684,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } catch (e) {}
 
-        // Add to Approved Pool and Sync with Publish Article Covers
-        try {
-            const rawPool = localStorage.getItem('mpcApprovedCoversPool_v1');
-            let pool = rawPool ? JSON.parse(rawPool) : [];
-            if (!Array.isArray(pool)) pool = [];
-            
-            const existingIdx = pool.findIndex(p => p.id === target.id);
-            if (existingIdx > -1) {
-                pool[existingIdx] = target;
-            } else {
-                pool.unshift(target);
-            }
-            localStorage.setItem('mpcApprovedCoversPool_v1', JSON.stringify(pool));
-
-            // Sync with mpc_approved_covers_v1
-            const rawCovers = localStorage.getItem('mpc_approved_covers_v1');
-            let mpcCovers = rawCovers ? JSON.parse(rawCovers) : [];
-            if (Array.isArray(mpcCovers)) {
-                if (!mpcCovers.some(c => c.id === target.id)) {
-                    mpcCovers.unshift(target);
-                    localStorage.setItem('mpc_approved_covers_v1', JSON.stringify(mpcCovers));
-                }
-            }
-        } catch (e) {
-            console.warn(e);
-        }
+        // Note: Item is endorsed to EIC and will ONLY enter Approved Covers Library after EIC approves it.
 
         // Log to Activity Log (Executive sentence parity)
         try {
@@ -620,12 +700,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 causerRole: window.LARAVEL_USER_ROLE || localStorage.getItem('mpcRole') || 'M&PC Head',
                 causerAvatar: window.LARAVEL_USER_AVATAR || 'images/member-placeholder.svg',
                 action: 'approved',
-                subjectType: `${target.type.toUpperCase()} Artwork`,
-                subjectName: target.title || `${target.type.toUpperCase()} Asset`,
+                subjectType: `${(target.type || 'Media').toUpperCase()} Artwork`,
+                subjectName: target.title || `${(target.type || 'Media').toUpperCase()} Asset`,
                 timestampText: 'Just now',
                 isoDate: now.toISOString(),
                 dateKey: now.toISOString().split('T')[0],
-                formattedDate: `${dateStr} ΓÇó ${timeStr}`,
+                formattedDate: `${dateStr} • ${timeStr}`,
                 dayGroup: 'Today'
             });
             localStorage.setItem('mpcActivityLogs_v1', JSON.stringify(logs.slice(0, 40)));
@@ -647,7 +727,112 @@ document.addEventListener('DOMContentLoaded', () => {
             renderCards();
         }
 
-        showToast(`${target.type.toUpperCase()} endorsed and forwarded to Editor-in-Chief.`, 'success');
+        showToast(`${(target.type || 'Media').toUpperCase()} endorsed and forwarded to Editor-in-Chief.`, 'success');
+    }
+
+    // =========================================================================
+    // 9.5 POST IMAGE ACTION (M&PC Head posts EIC Approved Media)
+    // =========================================================================
+    function handlePostImage(id) {
+        const itemIndex = coverList.findIndex(c => String(c.id) === String(id));
+        if (itemIndex === -1) return;
+
+        const target = coverList[itemIndex];
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+        const mpcOfficer = cleanArtistName(window.LARAVEL_USER_NAME || localStorage.getItem('mpcName') || 'M&PC Head');
+
+        target.status = 'Published';
+        target.publishedAt = dateStr;
+        target.postedBy = mpcOfficer;
+
+        saveCoverQueue(coverList);
+
+        // Sync status to Media Team Submissions (moves to Published tab in /media/manage-media)
+        try {
+            const rawSub = localStorage.getItem('mediaTeamSubmissions_v2');
+            if (rawSub) {
+                let subs = JSON.parse(rawSub);
+                if (Array.isArray(subs)) {
+                    subs = subs.map(s => (String(s.id) === String(target.id) ? { 
+                        ...s, 
+                        status: 'Published', 
+                        publishedAt: dateStr,
+                        postedBy: mpcOfficer,
+                        views: s.views || 150, 
+                        shares: s.shares || 12 
+                    } : s));
+                    localStorage.setItem('mediaTeamSubmissions_v2', JSON.stringify(subs));
+                }
+            }
+        } catch (e) {}
+
+        // If cartoon, sync to cartoonistSubmissions_v1
+        try {
+            const rawCart = localStorage.getItem('cartoonistSubmissions_v1');
+            if (rawCart) {
+                let carts = JSON.parse(rawCart);
+                if (Array.isArray(carts)) {
+                    carts = carts.map(s => (String(s.id) === String(target.id) ? { 
+                        ...s, 
+                        status: 'Published', 
+                        publishedAt: dateStr,
+                        postedBy: mpcOfficer
+                    } : s));
+                    localStorage.setItem('cartoonistSubmissions_v1', JSON.stringify(carts));
+                }
+            }
+        } catch (e) {}
+
+        // Sync to theLensPublishedArticles
+        try {
+            let pubList = [];
+            const rawPub = localStorage.getItem('theLensPublishedArticles');
+            if (rawPub) pubList = JSON.parse(rawPub);
+            if (!Array.isArray(pubList)) pubList = [];
+            if (!pubList.some(p => String(p.id) === String(target.id))) {
+                pubList.unshift({
+                    id: target.id,
+                    title: target.title || 'Publication Graphic Asset',
+                    category: target.type === 'cartoon' ? 'Editorial Cartoon' : 'Graphic & Photography',
+                    author: cleanArtistName(target.artist || 'Media Team Member'),
+                    image: target.image,
+                    date: target.date || dateStr,
+                    publishedAt: dateStr,
+                    status: 'Published',
+                    views: 150,
+                    shares: 12,
+                    type: target.type || 'pubmat'
+                });
+                localStorage.setItem('theLensPublishedArticles', JSON.stringify(pubList));
+            }
+        } catch (e) {}
+
+        // Log to Activity Log
+        try {
+            const rawLogs = localStorage.getItem('mpcActivityLogs_v1');
+            let logs = rawLogs ? JSON.parse(rawLogs) : [];
+            if (!Array.isArray(logs)) logs = [];
+            logs.unshift({
+                id: 'mpc-act-' + Date.now(),
+                causer: mpcOfficer,
+                causerRole: window.LARAVEL_USER_ROLE || localStorage.getItem('mpcRole') || 'M&PC Head',
+                causerAvatar: window.LARAVEL_USER_AVATAR || 'images/member-placeholder.svg',
+                action: 'posted',
+                subjectType: `${(target.type || 'Media').toUpperCase()} Artwork`,
+                subjectName: target.title || 'Publication Asset',
+                timestampText: 'Just now',
+                isoDate: now.toISOString(),
+                dateKey: now.toISOString().split('T')[0],
+                formattedDate: `${dateStr} • ${timeStr}`,
+                dayGroup: 'Today'
+            });
+            localStorage.setItem('mpcActivityLogs_v1', JSON.stringify(logs.slice(0, 40)));
+        } catch (e) {}
+
+        renderCards();
+        showToast('Image successfully posted to the publication website!', 'success');
     }
 
     // =========================================================================
@@ -675,6 +860,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (approveBtn) {
             const id = approveBtn.getAttribute('data-id');
             if (id) handleApprove(id);
+            return;
+        }
+
+        // Post Image Click
+        const postBtn = e.target.closest('[data-action="post-image"]');
+        if (postBtn) {
+            const id = postBtn.getAttribute('data-id');
+            if (id) handlePostImage(id);
             return;
         }
     });

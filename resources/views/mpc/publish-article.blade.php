@@ -93,14 +93,18 @@
                     <span class="category-badge">{{ is_array($article) ? ($article['category'] ?? 'General') : ($article->category->name ?? 'General') }}</span>
                     <span class="date-text">{{ is_array($article) ? ($article['dateApproved'] ?? '') : ($article->created_at?->format('M d, Y')) }}</span>
                 </div>
-                <h3 class="article-card-title">{{ is_array($article) ? ($article['title'] ?? '') : $article->title }}</h3>
+                <h3 class="article-card-title" data-action="read" data-id="{{ is_array($article) ? ($article['id'] ?? '') : $article->id }}" style="cursor: pointer;" title="Click to read manuscript">{{ is_array($article) ? ($article['title'] ?? '') : $article->title }}</h3>
                 <p class="article-card-excerpt">{{ is_array($article) ? ($article['excerpt'] ?? '') : ($article->excerpt ?? Str::limit(strip_tags($article->content), 120)) }}</p>
                 <div class="article-card-byline">
                     <i class="fa-solid fa-pen-nib author-pen-icon" style="color: #7b1113; margin-right: 6px;"></i>
                     <span>{{ is_array($article) ? ($article['author'] ?? 'Author') : ($article->user->full_name ?? 'Author') }}</span>
                 </div>
-                <div class="article-card-actions" style="margin-top: 14px;">
+                <div class="article-card-actions" style="margin-top: 14px; display: flex; align-items: center; justify-content: space-between;">
                     <span class="status-pill status-pill-pending">Ready to Publish</span>
+                    <button type="button" class="btn-mpc-read" data-action="read" data-id="{{ is_array($article) ? ($article['id'] ?? '') : $article->id }}">
+                        <i class="fa-regular fa-file-lines"></i>
+                        <span>Read Article</span>
+                    </button>
                 </div>
             </div>
         @empty
@@ -145,6 +149,7 @@
                 <div class="mpc-modal-pills">
                     <button type="button" class="mpc-modal-pill active" data-cover-type="all">All Formats</button>
                     <button type="button" class="mpc-modal-pill" data-cover-type="pubmat">PUBMAT</button>
+                    <button type="button" class="mpc-modal-pill" data-cover-type="photo">PHOTOS</button>
                     <button type="button" class="mpc-modal-pill" data-cover-type="cartoon">CARTOON</button>
                 </div>
                 <span style="font-size: 0.76rem; color: #667085;">Click an artwork to select</span>
@@ -174,6 +179,7 @@
                 <span id="reader-date" class="viewer-date">Approved Date</span>
             </div>
             <div class="viewer-header-right">
+                <span class="viewer-reading-time"><i class="fa-regular fa-clock"></i> <span id="reader-read-time">3 min read</span></span>
                 <button type="button" id="close-reader-btn" class="viewer-close-btn" aria-label="Close reader">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
@@ -182,11 +188,42 @@
 
         <div class="viewer-modal-body">
             <h1 id="reader-title" class="viewer-title">Article Title</h1>
+            
             <div class="viewer-byline-row">
-                <i class="fa-solid fa-pen-nib" style="color: #7a1f2e; font-size: 0.85rem;"></i>
-                <span style="font-size: 0.85rem; color: #475467;">By: <strong id="reader-author" style="color: #101828;">{{ Auth::user()?->full_name ?? 'Author' }}</strong></span>
+                <div class="viewer-author-avatar">
+                    <img id="reader-author-avatar" src="{{ asset('images/member-placeholder.svg') }}" alt="Author avatar">
+                </div>
+                <div class="viewer-byline-text">
+                    <span class="viewer-by">By <strong id="reader-author">Author Name</strong></span>
+                    <span id="reader-endorsements" style="font-size: 0.78rem; color: #667085; margin-top: 2px;"></span>
+                </div>
             </div>
-            <div id="reader-body" class="manuscript-prose" style="font-size: 0.95rem; line-height: 1.7; color: #344054;"></div>
+
+            <!-- Assigned cover preview banner -->
+            <div id="reader-cover-wrap" class="viewer-banner" style="display: none; position: relative;">
+                <img id="reader-cover-img" src="" alt="Assigned cover">
+                <div id="reader-cover-badge" style="position: absolute; bottom: 12px; left: 14px; background: rgba(16, 24, 40, 0.85); color: #fff; padding: 4px 10px; border-radius: 6px; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; backdrop-filter: blur(4px);">COVER</div>
+            </div>
+
+            <p id="reader-excerpt" class="viewer-excerpt" style="display: none;"></p>
+
+            <div id="reader-body" class="manuscript-prose"></div>
+        </div>
+
+        <div class="viewer-modal-footer">
+            <button type="button" id="close-reader-footer-btn" class="btn-modal-cancel">
+                <span>Close</span>
+            </button>
+            <div style="display: inline-flex; align-items: center; gap: 8px;">
+                <button type="button" id="reader-action-assign" class="btn-mpc-assign">
+                    <i class="fa-solid fa-palette"></i>
+                    <span id="reader-assign-label">Assign Cover</span>
+                </button>
+                <button type="button" id="reader-action-publish" class="btn-mpc-publish">
+                    <i class="fa-solid fa-globe"></i>
+                    <span id="reader-publish-label">Publish to Website</span>
+                </button>
+            </div>
         </div>
     </div>
 </div>

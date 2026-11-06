@@ -11,13 +11,22 @@
  */
 
 const MEDIA_ARTICLES_STORAGE_KEY = 'theLensMediaArticles_v1';
-const MEDIA_SUBMISSIONS_STORAGE_KEY = 'mediaTeamSubmissions_v2'; // Bumped version for clean 4-status migration
+const MEDIA_SUBMISSIONS_STORAGE_KEY = 'mediaTeamSubmissions_v2';
 const REVIEW_QUEUE_KEY = 'articleCoverReviewQueue_v1';
 
-// Seed Articles for Alyssa Marie Dizon
-const DEFAULT_MEDIA_ARTICLES = [];
+// Clean workflow purge to guarantee zero hardcoded / mock uploaded images
+try {
+    const MEDIA_PURGE_FLAG = 'theLens_clean_workflow_zero_mock_v20';
+    if (localStorage.getItem(MEDIA_PURGE_FLAG) !== 'true') {
+        localStorage.removeItem(MEDIA_SUBMISSIONS_STORAGE_KEY);
+        localStorage.removeItem('mediaTeamSubmissions_v1');
+        localStorage.setItem(MEDIA_SUBMISSIONS_STORAGE_KEY, JSON.stringify([]));
+        localStorage.setItem(MEDIA_PURGE_FLAG, 'true');
+    }
+} catch (e) {}
 
-// Seed Media Submissions for Alyssa Marie Dizon (Covering all 4 official statuses)
+// Zero hardcoded seed datasets
+const DEFAULT_MEDIA_ARTICLES = [];
 const DEFAULT_MEDIA_SUBMISSIONS = [];
 
 /**
@@ -116,6 +125,19 @@ function getMediaSubmissions() {
         }
 
         if (!Array.isArray(list)) list = [];
+
+        // Exclude any legacy mock or hardcoded items (must be genuine user upload)
+        list = list.filter(item => {
+            if (!item || !item.image) return false;
+            const img = String(item.image).trim();
+            if (img.includes('images/') || img.includes('covers/') || img.includes('maroon.jpg') || img.includes('portal-pubmat') || img.includes('election-guidelines') || img.includes('faculty-overload') || img.includes('press-freedom')) {
+                return false;
+            }
+            if (String(item.id).includes('mock') || String(item.id).includes('sample') || String(item.id).includes('seed') || String(item.id).includes('default')) {
+                return false;
+            }
+            return img.startsWith('data:image/') || img.startsWith('/storage/') || img.startsWith('http');
+        });
 
         // Check if any item in review queue was approved or returned by M&PC Head
         const reviewRaw = localStorage.getItem(REVIEW_QUEUE_KEY);

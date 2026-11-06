@@ -46,6 +46,11 @@
                 <span>Review Article</span>
             </a>
 
+            <a href="{{ route('eic.media-desk') }}" class="sidebar-nav-item {{ request()->routeIs('eic.media-desk*') ? 'active active-manual' : '' }}" data-page="eic-media-desk.html">
+                <i class="fa-regular fa-image"></i>
+                <span>Media Desk</span>
+            </a>
+
             <a href="{{ route('eic.submit-article') }}" class="sidebar-nav-item {{ request()->routeIs('eic.submit-article*') ? 'active active-manual' : '' }}" data-page="eic-submit-article.html">
                 <i class="fa-solid fa-feather-pointed"></i>
                 <span>Submit article</span>

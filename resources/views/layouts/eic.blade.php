@@ -121,6 +121,10 @@
                     <i class="fa-solid fa-clipboard-check"></i>
                     <span>Review Article</span>
                 </a>
+                <a href="{{ route('eic.media-desk') }}" class="mobile-nav-link {{ request()->routeIs('eic.media-desk*') ? 'active' : '' }}">
+                    <i class="fa-regular fa-image"></i>
+                    <span>Media Desk</span>
+                </a>
                 <a href="{{ route('eic.submit-article') }}" class="mobile-nav-link {{ request()->routeIs('eic.submit-article*') ? 'active' : '' }}">
                     <i class="fa-solid fa-feather-pointed"></i>
                     <span>Submit article</span>

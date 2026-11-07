@@ -149,6 +149,14 @@
             </section>
 
             <main class="lg:w-1/2 flex flex-col justify-center p-6 sm:p-10 lg:p-16 bg-[#ffffff] relative">
+                <!-- Back to Site Link -->
+                <div class="absolute top-4 right-4 sm:top-8 sm:right-8 z-30">
+                    <a href="{{ route('public.home') }}" class="group inline-flex items-center gap-2 text-xs sm:text-sm font-medium text-stone-500 hover:text-wine transition-colors duration-200 py-1.5 px-3 rounded-lg hover:bg-stone-100" aria-label="Back to public site">
+                        <i class="fa-solid fa-arrow-left text-xs transition-transform group-hover:-translate-x-1" aria-hidden="true"></i>
+                        <span>Back to site</span>
+                    </a>
+                </div>
+
                 <div class="right-page-spine-shadow pointer-events-none absolute left-0 top-0 bottom-0 w-10 hidden lg:block z-20"></div>
                 <div class="pointer-events-none absolute inset-4 sm:inset-6 rounded-2xl border border-stone-200/60 hidden sm:block"></div>
 

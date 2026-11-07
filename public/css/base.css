@@ -1,0 +1,100 @@
+/* =====================================================
+   THE LENS - CUSTOM STYLESHEET
+   HTML uses Tailwind CSS for basic layout and utilities.
+   This file handles the publication's custom appearance.
+   ===================================================== */
+
+/* 1. THEME COLORS
+   Change these values to update the colors across the site. */
+:root {
+    --wine: #571525;
+    --burgundy: #741b31;
+    --dark-wine: #350614;
+    --brown: #592014;
+    --text: #21191b;
+    --muted: #776b6d;
+    --light-pink: #f8f0f2;
+    --border: #ded4d5;
+
+    --heading-font: "Playfair Display", Georgia, serif;
+    --body-font: "DM Sans", Arial, sans-serif;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 20px;
+}
+
+body {
+    margin: 0;
+    color: var(--text);
+    font-family: var(--body-font);
+    background: #fff;
+}
+
+button,
+input,
+textarea,
+select {
+    font: inherit;
+}
+
+button {
+    cursor: pointer;
+}
+
+a {
+    text-decoration: none;
+}
+
+/* =====================================================
+   THE LENS — MAROON & WHITE THEME
+   Add this at the VERY BOTTOM of css/style.css
+   ===================================================== */
+
+/* 1. GLOBAL COLORS */
+:root {
+    --maroon: #700f2b;
+    --maroon-dark: #4a091b;
+    --maroon-light: #8d1b3d;
+    --maroon-pale: #f8edf0;
+    --white: #ffffff;
+    --off-white: #fcfafb;
+    --text-dark: #292126;
+    --text-muted: #756a70;
+    --border-color: #e6d8dd;
+    --card-shadow: 0 10px 24px rgba(48, 11, 24, .055);
+}
+
+/* Global page appearance */
+body {
+    background-color: var(--white);
+    color: var(--text-dark);
+    font-family: 'DM Sans', Arial, sans-serif;
+    line-height: 1.6;
+}
+
+/* Headings: strong newspaper typography */
+h1,
+h2,
+h3,
+h4,
+.featured-title,
+.latest-title,
+.story-card-title {
+    color: var(--maroon);
+    font-family: 'Playfair Display', Georgia, serif;
+    font-weight: 1000;
+    line-height: 1.25;
+}
+
+/* Main publication title */
+header h1 {
+    color: var(--maroon);
+    font-weight: 800;
+    letter-spacing: -1px;
+}

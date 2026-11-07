@@ -14,10 +14,12 @@ class Article extends Model
     protected $fillable = [
         'user_id',
         'title',
+        'slug',
         'category_id',
         'excerpt',
         'content',
         'status',
+        'is_archived',
         'views',
         'shares',
         'remarks',
@@ -26,7 +28,24 @@ class Article extends Model
 
     protected $casts = [
         'published_at' => 'datetime',
+        'is_archived' => 'boolean',
     ];
+
+    protected static function booted(): void
+    {
+        static::saving(function (Article $article) {
+            if (empty($article->slug) && !empty($article->title)) {
+                $baseSlug = \Illuminate\Support\Str::slug($article->title) ?: 'article';
+                $slug = $baseSlug;
+                $count = 1;
+                while (static::where('slug', $slug)->where('id', '!=', $article->id)->exists()) {
+                    $slug = "{$baseSlug}-{$count}";
+                    $count++;
+                }
+                $article->slug = $slug;
+            }
+        });
+    }
 
     protected $appends = ['date', 'endorser', 'cover_url', 'cover_artist'];
 

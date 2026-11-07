@@ -10,9 +10,28 @@ use App\Http\Controllers\EicController;
 use App\Http\Controllers\MpcController;
 use App\Http\Controllers\CartoonistController;
 use App\Http\Controllers\MediaController;
+use App\Http\Controllers\PublicController;
 
-Route::get('/', function () {
-    return redirect('/login');
+// Public Reader Website Routes (No Auth Required)
+Route::controller(PublicController::class)->group(function () {
+    Route::get('/', 'index')->name('public.home');
+    Route::get('/category/{category_slug}', 'category')->name('public.category');
+    Route::get('/article/{article_slug}', 'article')->name('public.article');
+    Route::post('/article/{id}/share', 'share')->name('public.article.share');
+    Route::get('/archives', 'archives')->name('public.archives');
+    Route::get('/author/{author_id}', 'author')->name('public.author');
+    Route::get('/about', 'about')->name('public.about');
+    Route::get('/feedback', 'feedback')->name('public.feedback');
+    Route::post('/feedback', 'submitFeedback')->name('public.feedback.post');
+    Route::get('/members', 'members')->name('public.members');
+
+    // Convenience redirects for legacy static links
+    Route::get('/latest', fn () => redirect()->route('public.category', ['category_slug' => 'latest']));
+    Route::get('/news', fn () => redirect()->route('public.category', ['category_slug' => 'news']));
+    Route::get('/features', fn () => redirect()->route('public.category', ['category_slug' => 'feature']));
+    Route::get('/opinion', fn () => redirect()->route('public.category', ['category_slug' => 'opinion']));
+    Route::get('/science', fn () => redirect()->route('public.category', ['category_slug' => 'science-technology']));
+    Route::get('/literature', fn () => redirect()->route('public.category', ['category_slug' => 'literature']));
 });
 
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');

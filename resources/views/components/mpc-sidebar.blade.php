@@ -46,6 +46,11 @@
                 <span>Submit Media</span>
             </a>
 
+            <a href="{{ route('mpc.manage-media') }}" class="sidebar-nav-item {{ request()->routeIs('mpc.manage-media*') ? 'active' : '' }}">
+                <i class="fa-solid fa-images"></i>
+                <span>Manage Media</span>
+            </a>
+
             <a href="{{ route('mpc.manage-my-articles') }}" class="sidebar-nav-item {{ request()->routeIs('mpc.manage-my-articles*') || request()->routeIs('mpc.my-articles*') ? 'active' : '' }}">
                 <i class="fa-solid fa-file-pen"></i>
                 <span>Manage My Articles</span>

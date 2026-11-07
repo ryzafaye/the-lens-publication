@@ -12,12 +12,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================================================================
     // 1. DOM REFERENCES
     // =========================================================================
+    // Form & Upload Elements
     const form = document.getElementById('media-submission-form');
-
-    // Media Type Default
-    const selectedMediaType = 'pubmat';
-
-    // File Upload & Preview
     const dropzone = document.getElementById('media-dropzone');
     const fileInput = document.getElementById('media-file-input');
     const previewContainer = document.getElementById('media-preview-container');
@@ -140,22 +136,58 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function handleFile(file) {
-        if (!file.type.match(/^image\//)) {
-            showToast('Please select a valid image file (SVG, PNG, JPG, WEBP).', 'error');
-            return;
-        }
-        if (file.size > 10 * 1024 * 1024) {
-            showToast('File size exceeds the 10MB limit.', 'error');
+    function compressImageFile(file, callback) {
+        if (file.type === 'image/svg+xml') {
+            const reader = new FileReader();
+            reader.onload = (e) => callback(e.target.result);
+            reader.readAsDataURL(file);
             return;
         }
 
         const reader = new FileReader();
         reader.onload = (e) => {
-            setPreviewImage(e.target.result, file.name, formatFileSize(file.size));
-            showToast(`Loaded ${file.name}`);
+            const img = new Image();
+            img.onload = () => {
+                const maxDim = 1200;
+                let width = img.width;
+                let height = img.height;
+                if (width > maxDim || height > maxDim) {
+                    if (width > height) {
+                        height = Math.round((height * maxDim) / width);
+                        width = maxDim;
+                    } else {
+                        width = Math.round((width * maxDim) / height);
+                        height = maxDim;
+                    }
+                }
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.82);
+                callback(compressedDataUrl);
+            };
+            img.onerror = () => callback(e.target.result);
+            img.src = e.target.result;
         };
         reader.readAsDataURL(file);
+    }
+
+    function handleFile(file) {
+        if (!file.type.match(/^image\//)) {
+            showToast('Please select a valid image file (SVG, PNG, JPG, WEBP).', 'error');
+            return;
+        }
+        if (file.size > 15 * 1024 * 1024) {
+            showToast('File size exceeds the 15MB limit.', 'error');
+            return;
+        }
+
+        compressImageFile(file, (compressedDataUrl) => {
+            setPreviewImage(compressedDataUrl, file.name, formatFileSize(file.size));
+            showToast(`Loaded ${file.name}`);
+        });
     }
 
     if (removePreviewBtn) {
@@ -178,8 +210,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
+            // Prevent duplicate clicks
+            const submitBtn = document.getElementById('btn-submit-media');
+            if (submitBtn) {
+                if (submitBtn.disabled) return;
+                submitBtn.disabled = true;
+                submitBtn.style.opacity = '0.7';
+                submitBtn.style.pointerEvents = 'none';
+                submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>Submitting Photo...</span>';
+            }
+
+            // Media Team submissions are strictly for photos
+            const selectedType = 'photo';
+
             // Derive clean title from file name
-            let cleanTitle = 'Publication Material Artwork';
+            let cleanTitle = 'Photojournalism Capture';
             if (currentFileName) {
                 cleanTitle = currentFileName
                     .replace(/\.[^/.]+$/, '')
@@ -193,14 +238,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const authorName = window.LARAVEL_USER_NAME || localStorage.getItem('mediaName') || localStorage.getItem('userName') || 'Media Team Member';
             const userRole = window.LARAVEL_USER_ROLE || localStorage.getItem('mediaRole') || 'Media & Communication';
+            const userId = window.LARAVEL_USER_ID || localStorage.getItem('mediaUserId') || localStorage.getItem('userId') || '';
+            const studentNum = window.LARAVEL_STUDENT_NUMBER || localStorage.getItem('mediaStudentNumber') || localStorage.getItem('studentNumber') || '';
 
             const newId = 'cov-' + Date.now();
-            const newPubmatItem = {
+            const newMediaItem = {
                 id: newId,
-                type: selectedMediaType || 'pubmat',
+                type: 'photo',
                 title: cleanTitle,
                 targetArticle: cleanTitle,
+                category: 'Photo',
                 artist: authorName,
+                author: authorName,
+                userId: String(userId || '').trim(),
+                userStudentNumber: String(studentNum || '').trim(),
+                studentNumber: String(studentNum || '').trim(),
                 uploaderRole: userRole,
                 image: currentImageDataUrl,
                 date: dateStr,
@@ -210,25 +262,28 @@ document.addEventListener('DOMContentLoaded', () => {
                 remarks: ''
             };
 
-            // A. Push to Media Desk Review Queue
+            // A. Push to Media Desk Review Queue (immediately available in M&PC Media Desk -> PHOTOS tab)
             try {
                 let queue = [];
                 const rawQueue = localStorage.getItem(QUEUE_KEY);
                 if (rawQueue) queue = JSON.parse(rawQueue);
-                queue.unshift(newPubmatItem);
+                if (!Array.isArray(queue)) queue = [];
+                queue = queue.filter(item => String(item.id) !== String(newMediaItem.id));
+                queue.unshift(newMediaItem);
                 localStorage.setItem(QUEUE_KEY, JSON.stringify(queue));
             } catch (err) {
                 console.warn('Queue storage warning:', err);
             }
 
-            // B. Push to Personal Media Submissions
+            // B. Push to Personal Media Submissions (available in Manage Media)
             try {
-                let submissions = (typeof getMediaSubmissions === 'function') ? getMediaSubmissions() : [];
-                submissions.unshift(newPubmatItem);
+                let userSubs = (typeof getMediaSubmissions === 'function') ? getMediaSubmissions(true) : [];
+                userSubs = userSubs.filter(item => String(item.id) !== String(newMediaItem.id));
+                userSubs.unshift(newMediaItem);
                 if (typeof saveMediaSubmissions === 'function') {
-                    saveMediaSubmissions(submissions);
+                    saveMediaSubmissions(userSubs);
                 } else {
-                    localStorage.setItem(SUBMISSIONS_KEY, JSON.stringify(submissions));
+                    localStorage.setItem(SUBMISSIONS_KEY, JSON.stringify(userSubs));
                 }
             } catch (err) {
                 console.warn('Submissions storage warning:', err);
@@ -239,12 +294,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 let logs = [];
                 const rawLogs = localStorage.getItem(ACTLOG_KEY);
                 if (rawLogs) logs = JSON.parse(rawLogs);
+                if (!Array.isArray(logs)) logs = [];
                 logs.unshift({
                     id: 'act-' + Date.now(),
                     causer: authorName,
                     causerRole: userRole,
                     action: 'submitted',
-                    subjectType: 'Publication Material',
+                    subjectType: 'Photo',
                     subjectName: cleanTitle,
                     timestampText: 'Just now',
                     formattedDate: dateStr,
@@ -256,11 +312,46 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.warn('Log activity error:', err);
             }
 
-            // D. Show success toast and redirect
-            showToast('Media submitted successfully to Media Desk!', 'success');
-            setTimeout(() => {
-                window.location.href = window.MEDIA_MANAGE_ROUTE || '/media/manage-media';
-            }, 1000);
+            // Backend sync to persist ArticleImage in database
+            const formData = new FormData();
+            if (fileInput && fileInput.files && fileInput.files[0]) {
+                formData.append('media_file', fileInput.files[0]);
+            }
+            formData.append('image', currentImageDataUrl);
+            formData.append('title', cleanTitle);
+            formData.append('type', 'photo');
+
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+                || document.querySelector('input[name="_token"]')?.value;
+
+            const dispatchBackend = async () => {
+                try {
+                    if (csrfToken) {
+                        const res = await fetch('/media/submit-media', {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': csrfToken,
+                                'Accept': 'application/json'
+                            },
+                            body: formData
+                        });
+                        const data = await res.json();
+                        if (data && data.media && data.media.id) {
+                            newMediaItem.id = String(data.media.id);
+                            if (data.media.image) newMediaItem.image = data.media.image;
+                        }
+                    }
+                } catch (err) {
+                    console.warn('Backend media sync warning:', err);
+                } finally {
+                    showToast('Photo submitted successfully to Media Desk!', 'success');
+                    setTimeout(() => {
+                        window.location.href = window.MEDIA_MANAGE_ROUTE || '/media/manage-media';
+                    }, 800);
+                }
+            };
+
+            dispatchBackend();
         });
     }
 

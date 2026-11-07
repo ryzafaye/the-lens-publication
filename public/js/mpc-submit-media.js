@@ -1,8 +1,9 @@
 /**
  * ============================================================================
- * THE LENS ΓÇö SUBMIT MEDIA CONTROLLER (M&PC PORTAL)
+ * THE LENS — SUBMIT MEDIA CONTROLLER (M&PC PORTAL)
  * Clean, distraction-free upload studio for publication materials.
- * Handles file drag & drop, snug preview, and queue dispatch.
+ * Handles file drag & drop, snug preview, canvas compression,
+ * and immediate dispatch to EIC / AEIC Media Desk for review.
  * ============================================================================
  */
 
@@ -31,6 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentFileSize = '';
 
     const MEDIA_DESK_QUEUE_KEY = 'articleCoverReviewQueue_v1';
+    const MEDIA_SUBMISSIONS_KEY = 'mediaTeamSubmissions_v2';
     const MY_SUBMISSIONS_KEY = 'mpcUserPubmatSubmissions_v1';
     const ACTIVITY_LOG_KEY = 'mpcActivityLogs_v1';
 
@@ -74,7 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // =========================================================================
-    // 3. FILE UPLOAD & PREVIEW LOGIC
+    // 3. FILE UPLOAD & PREVIEW LOGIC (WITH CANVAS COMPRESSION)
     // =========================================================================
     function setPreviewImage(src, name = 'Media Artwork Asset', size = '') {
         currentImageDataUrl = src;
@@ -102,6 +104,60 @@ document.addEventListener('DOMContentLoaded', () => {
         if (previewContainer) previewContainer.style.display = 'none';
         if (fileInfoBar) fileInfoBar.style.display = 'none';
         if (dropzone) dropzone.style.display = 'flex';
+    }
+
+    function compressImageFile(file, callback) {
+        if (file.type === 'image/svg+xml') {
+            const reader = new FileReader();
+            reader.onload = (e) => callback(e.target.result);
+            reader.readAsDataURL(file);
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                const maxDim = 1200;
+                let width = img.width;
+                let height = img.height;
+                if (width > maxDim || height > maxDim) {
+                    if (width > height) {
+                        height = Math.round((height * maxDim) / width);
+                        width = maxDim;
+                    } else {
+                        width = Math.round((width * maxDim) / height);
+                        height = maxDim;
+                    }
+                }
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.82);
+                callback(compressedDataUrl);
+            };
+            img.onerror = () => callback(e.target.result);
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function handleFile(file) {
+        if (!file.type.match(/^image\//)) {
+            showToast('Please select a valid image file (SVG, PNG, JPG, WEBP).', 'error');
+            return;
+        }
+        if (file.size > 15 * 1024 * 1024) {
+            showToast('File size exceeds the 15MB limit.', 'error');
+            return;
+        }
+
+        compressImageFile(file, (compressedDataUrl) => {
+            setPreviewImage(compressedDataUrl, file.name, formatFileSize(file.size));
+            showToast(`Loaded ${file.name}`);
+        });
     }
 
     if (dropzone && fileInput) {
@@ -138,24 +194,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function handleFile(file) {
-        if (!file.type.match(/^image\//)) {
-            showToast('Please select a valid image file (SVG, PNG, JPG, WEBP).', 'error');
-            return;
-        }
-        if (file.size > 10 * 1024 * 1024) {
-            showToast('File size exceeds the 10MB limit.', 'error');
-            return;
-        }
-
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            setPreviewImage(e.target.result, file.name, formatFileSize(file.size));
-            showToast(`Loaded ${file.name}`);
-        };
-        reader.readAsDataURL(file);
-    }
-
     if (removePreviewBtn) {
         removePreviewBtn.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -164,7 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // =========================================================================
-    // 4. FORM SUBMISSION -> DISPATCH TO MEDIA DESK QUEUE
+    // 4. FORM SUBMISSION -> DISPATCH TO EIC / AEIC MEDIA DESK QUEUE
     // =========================================================================
     if (form) {
         form.addEventListener('submit', (e) => {
@@ -176,8 +214,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // Derive title cleanly from the uploaded file name
-            let cleanTitle = 'Publication Material Artwork';
+            // Prevent duplicate clicks
+            const submitBtn = document.getElementById('btn-submit-media');
+            if (submitBtn) {
+                if (submitBtn.disabled) return;
+                submitBtn.disabled = true;
+                submitBtn.style.opacity = '0.7';
+                submitBtn.style.pointerEvents = 'none';
+                submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>Submitting to EIC...</span>';
+            }
+
+            // Clean title derived from uploaded file name
+            let cleanTitle = 'Photojournalism Capture';
             if (currentFileName) {
                 cleanTitle = currentFileName
                     .replace(/\.[^/.]+$/, '')
@@ -189,52 +237,78 @@ document.addEventListener('DOMContentLoaded', () => {
             const dateStr = formatDateDisplay(now);
             const rawDateStr = now.toISOString().split('T')[0];
 
-            const userRole = window.LARAVEL_USER_ROLE || localStorage.getItem('mpcRole') || localStorage.getItem('userRole') || 'M&PC Head';
-            const authorName = window.LARAVEL_USER_NAME || localStorage.getItem('mpcName') || localStorage.getItem('userName') || 'Author';
+            const userRole = window.LARAVEL_USER_ROLE || localStorage.getItem('mpcRole') || localStorage.getItem('userRole') || 'Media and Public Communications Head';
+            const authorName = window.LARAVEL_USER_NAME || localStorage.getItem('mpcName') || localStorage.getItem('userName') || 'M&PC Head';
+            const userId = window.LARAVEL_USER_ID || localStorage.getItem('userId') || '';
+            const studentNum = window.LARAVEL_STUDENT_NUMBER || localStorage.getItem('studentNumber') || '';
 
             const newId = 'cov-' + Date.now();
-            const newPubmatItem = {
+            const newMediaItem = {
                 id: newId,
-                type: 'pubmat',
+                type: 'photo',
                 title: cleanTitle,
                 targetArticle: cleanTitle,
-                category: 'Features',
+                category: 'Photo',
                 artist: authorName,
+                author: authorName,
+                userId: String(userId || '').trim(),
+                userStudentNumber: String(studentNum || '').trim(),
+                studentNumber: String(studentNum || '').trim(),
                 uploaderRole: userRole,
+                endorsedBy: authorName,
+                approvedBy: authorName,
                 image: currentImageDataUrl,
                 date: dateStr,
                 rawDate: rawDateStr,
-                fileSize: currentFileSize || '380 KB',
-                status: 'pending',
+                fileSize: currentFileSize || 'Standard',
+                status: 'Pending EIC Review',
                 remarks: ''
             };
 
-            // 1. Prepend to Media Desk review queue
+            // 1. Dispatch directly to EIC / AEIC Media Desk queue (shows under PHOTOS tab with pending badge)
             try {
+                let queue = [];
                 const rawQueue = localStorage.getItem(MEDIA_DESK_QUEUE_KEY);
-                let queue = rawQueue ? JSON.parse(rawQueue) : [];
+                if (rawQueue) queue = JSON.parse(rawQueue);
                 if (!Array.isArray(queue)) queue = [];
-                queue.unshift(newPubmatItem);
+                queue = queue.filter(item => String(item.id) !== String(newMediaItem.id));
+                queue.unshift(newMediaItem);
                 localStorage.setItem(MEDIA_DESK_QUEUE_KEY, JSON.stringify(queue));
             } catch (err) {
-                console.warn('Failed saving to Media Desk queue', err);
+                console.warn('Cover review queue storage warning:', err);
             }
 
-            // 2. Add to user's submissions
+            // 2. Dispatch to Media Submissions (for M&PC Manage Media view)
             try {
+                let userSubs = [];
+                const rawSubs = localStorage.getItem(MEDIA_SUBMISSIONS_KEY);
+                if (rawSubs) userSubs = JSON.parse(rawSubs);
+                if (!Array.isArray(userSubs)) userSubs = [];
+                userSubs = userSubs.filter(item => String(item.id) !== String(newMediaItem.id));
+                userSubs.unshift(newMediaItem);
+                localStorage.setItem(MEDIA_SUBMISSIONS_KEY, JSON.stringify(userSubs));
+            } catch (err) {
+                console.warn('Submissions storage warning:', err);
+            }
+
+            // 3. User's personal publication material submissions backup
+            try {
+                let mine = [];
                 const rawMine = localStorage.getItem(MY_SUBMISSIONS_KEY);
-                let mine = rawMine ? JSON.parse(rawMine) : [];
+                if (rawMine) mine = JSON.parse(rawMine);
                 if (!Array.isArray(mine)) mine = [];
-                mine.unshift(newPubmatItem);
+                mine = mine.filter(item => String(item.id) !== String(newMediaItem.id));
+                mine.unshift(newMediaItem);
                 localStorage.setItem(MY_SUBMISSIONS_KEY, JSON.stringify(mine));
             } catch (err) {
-                console.warn('Failed saving user submission', err);
+                console.warn('User pubmat storage warning:', err);
             }
 
-            // 3. Log to Activity Logs
+            // 4. Log Activity in Executive sentence format
             try {
+                let logs = [];
                 const rawLogs = localStorage.getItem(ACTIVITY_LOG_KEY);
-                let logs = rawLogs ? JSON.parse(rawLogs) : [];
+                if (rawLogs) logs = JSON.parse(rawLogs);
                 if (!Array.isArray(logs)) logs = [];
                 const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
                 logs.unshift({
@@ -243,7 +317,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     causerRole: userRole,
                     causerAvatar: 'images/member-placeholder.svg',
                     action: 'submitted',
-                    subjectType: 'Publication Material',
+                    subjectType: 'Photo',
                     subjectName: cleanTitle,
                     timestampText: 'Just now',
                     isoDate: now.toISOString(),
@@ -253,13 +327,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
                 localStorage.setItem(ACTIVITY_LOG_KEY, JSON.stringify(logs.slice(0, 40)));
             } catch (err) {
-                console.warn('Failed logging activity', err);
+                console.warn('Log activity error:', err);
             }
 
-            // Reset form and preview
+            // 5. Success toast and redirect to Manage Media
             clearPreviewImage();
+            showToast('Photo submitted successfully! Forwarded to EIC for review.', 'success');
 
-            showToast('Media submitted successfully to Media Desk!', 'success');
+            setTimeout(() => {
+                window.location.href = window.MPC_MANAGE_ROUTE || '/mpc/manage-media';
+            }, 800);
         });
     }
 

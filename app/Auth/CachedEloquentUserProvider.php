@@ -20,13 +20,19 @@ class CachedEloquentUserProvider extends EloquentUserProvider
             return null;
         }
 
-        return Cache::remember('auth_user_' . $identifier, 120, function () use ($identifier) {
+        $user = Cache::remember('auth_user_' . $identifier, 120, function () use ($identifier) {
             $user = parent::retrieveById($identifier);
             if ($user) {
                 $user->loadMissing('role');
             }
             return $user;
         });
+
+        if ($user && !$user->relationLoaded('role')) {
+            $user->loadMissing('role');
+        }
+
+        return $user;
     }
 
     /**

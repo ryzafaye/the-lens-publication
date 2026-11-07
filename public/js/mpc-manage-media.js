@@ -1,0 +1,483 @@
+/**
+ * ============================================================================
+ * THE LENS — MEDIA & PUBLIC COMMUNICATIONS (M&PC) MANAGE MEDIA CONTROLLER
+ * Full Parity with Executive Architecture & Media Team Manage Media
+ * Allows M&PC Head & Officers to manage their submitted publication photos,
+ * view EIC approval status, inspect high-res assets, and review feedback.
+ * ============================================================================
+ */
+
+document.addEventListener('DOMContentLoaded', () => {
+    'use strict';
+
+    // 1. DOM References
+    const gridEl = document.getElementById('manage-media-grid');
+    const tabButtons = document.querySelectorAll('.manage-tab-btn');
+    const searchInput = document.getElementById('media-search-input');
+    const clearSearchBtn = document.getElementById('clear-search-btn');
+    const sortSelect = document.getElementById('media-sort-select');
+
+    // Tab Count Badges
+    const pillAll = document.getElementById('pill-count-all');
+    const pillPending = document.getElementById('pill-count-pending');
+    const pillReturned = document.getElementById('pill-count-returned');
+    const pillEic = document.getElementById('pill-count-eic');
+    const pillPublished = document.getElementById('pill-count-published');
+
+    // Inspect Modal
+    const inspectModal = document.getElementById('media-inspect-modal');
+    const modalImg = document.getElementById('modal-inspect-img');
+    const modalStatus = document.getElementById('modal-inspect-status');
+    const modalDate = document.getElementById('modal-inspect-date');
+    const modalRemarksBox = document.getElementById('modal-inspect-remarks-box');
+    const modalRemarksText = document.getElementById('modal-inspect-remarks-text');
+    const closeInspectBtn = document.getElementById('close-inspect-modal-btn');
+    const btnModalClose = document.getElementById('btn-modal-close');
+
+    // Toast Container
+    const toastContainer = document.getElementById('toast-container');
+
+    // Active State
+    let currentFilter = 'all';
+    let searchQuery = '';
+    let currentSort = 'newest';
+    let mediaItems = [];
+
+    // 2. Formatting & Escape System
+    function escapeHTML(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    function formatNumber(num) {
+        if (num >= 1000) return Number(num).toLocaleString('en-US');
+        return String(num || 0);
+    }
+
+    function showToast(message, type = 'success') {
+        if (!toastContainer) return;
+        const existingToasts = toastContainer.querySelectorAll('.toast-message');
+        existingToasts.forEach(t => t.remove());
+
+        const toast = document.createElement('div');
+        const resolvedType = type === 'error' ? 'danger' : type;
+        toast.className = `toast-message ${resolvedType}`;
+        toast.innerHTML = `<span class="toast-bullet-dot"></span><span>${escapeHTML(message)}</span>`;
+        toastContainer.appendChild(toast);
+
+        setTimeout(() => {
+            toast.classList.add('toast-dismissing');
+            setTimeout(() => toast.remove(), 260);
+        }, 3200);
+    }
+
+    // 3. Status Configuration Helper
+    function getStatusConfig(status) {
+        const s = (status || '').toLowerCase().trim();
+        if (s === 'published') {
+            return {
+                cssClass: 'published',
+                label: 'Published',
+                icon: '<i class="fa-solid fa-globe"></i>'
+            };
+        }
+        if (s === 'eic approved' || s === 'approved' || s === 'approved_for_mpc') {
+            return {
+                cssClass: 'eic-approved',
+                label: 'EIC Approved',
+                icon: '<i class="fa-solid fa-shield-halved"></i>'
+            };
+        }
+        if (s === 'pending eic review' || s === 'pending eic' || s === 'forwarded to eic') {
+            return {
+                cssClass: 'pending-eic-review',
+                label: 'Pending EIC Review',
+                icon: '<i class="fa-solid fa-clock"></i>'
+            };
+        }
+        if (s === 'returned for revision' || s === 'returned' || s === 'needs_revision' || s === 'for revision') {
+            return {
+                cssClass: 'returned-for-revision',
+                label: 'Returned for Revision',
+                icon: '<i class="fa-solid fa-triangle-exclamation"></i>'
+            };
+        }
+        return {
+            cssClass: 'pending-with-head',
+            label: 'Pending Approval',
+            icon: '<i class="fa-regular fa-clock"></i>'
+        };
+    }
+
+    // 4. Data Loading & Counters (Scoped to Current M&PC User)
+    function loadMedia() {
+        const raw = (typeof getMediaSubmissions === 'function') ? getMediaSubmissions(true) : [];
+        const seen = new Set();
+        mediaItems = [];
+        raw.forEach(item => {
+            if (!item || !item.id) return;
+            const strId = String(item.id);
+            if (!seen.has(strId)) {
+                seen.add(strId);
+                mediaItems.push(item);
+            }
+        });
+        updateCounters();
+        renderGrid();
+    }
+
+    function updateCounters() {
+        const queueCount = mediaItems.filter(m => m.status !== 'Published').length;
+        const pending = mediaItems.filter(m => (m.status || '').toLowerCase().includes('pending')).length;
+        const returned = mediaItems.filter(m => (m.status || '').toLowerCase().includes('return') || (m.status || '').toLowerCase().includes('revision')).length;
+        const eic = mediaItems.filter(m => (m.status || '').toLowerCase().includes('eic approved') || (m.status || '').toLowerCase() === 'approved').length;
+        const published = mediaItems.filter(m => (m.status || '').toLowerCase() === 'published').length;
+
+        if (pillAll) pillAll.textContent = String(queueCount);
+        if (pillPending) pillPending.textContent = String(pending);
+        if (pillReturned) pillReturned.textContent = String(returned);
+        if (pillEic) pillEic.textContent = String(eic);
+        if (pillPublished) pillPublished.textContent = String(published);
+    }
+
+    // 5. Filtering & Sorting Pipeline
+    function getFilteredAndSortedMedia() {
+        let filtered = mediaItems.filter(item => {
+            const statusLower = (item.status || '').toLowerCase().trim();
+
+            // "All" tab: exclude published items per system convention
+            if (currentFilter === 'all' && statusLower === 'published') return false;
+
+            if (currentFilter === 'pending' && !statusLower.includes('pending')) return false;
+            if (currentFilter === 'returned' && !statusLower.includes('return') && !statusLower.includes('revision')) return false;
+            if (currentFilter === 'eic_approved' && statusLower !== 'eic approved' && statusLower !== 'approved') return false;
+            if (currentFilter === 'published' && statusLower !== 'published') return false;
+
+            // Search query filtering
+            if (searchQuery) {
+                const q = searchQuery.toLowerCase();
+                const matchTitle = (item.title || '').toLowerCase().includes(q);
+                const matchCategory = (item.category || '').toLowerCase().includes(q);
+                const matchRemarks = (item.remarks || '').toLowerCase().includes(q);
+                const matchArticleTitle = (item.connectedArticleTitle || '').toLowerCase().includes(q);
+                const matchArticleExcerpt = (item.connectedArticleExcerpt || '').toLowerCase().includes(q);
+                const matchAuthor = (item.connectedArticleAuthor || '').toLowerCase().includes(q);
+                const matchArtist = (item.artist || '').toLowerCase().includes(q);
+
+                if (!matchTitle && !matchCategory && !matchRemarks && !matchArticleTitle && !matchArticleExcerpt && !matchAuthor && !matchArtist) {
+                    return false;
+                }
+            }
+
+            return true;
+        });
+
+        // Sorting
+        filtered.sort((a, b) => {
+            if (currentSort === 'az') {
+                const titleA = a.connectedArticleTitle || a.title || '';
+                const titleB = b.connectedArticleTitle || b.title || '';
+                return titleA.localeCompare(titleB);
+            }
+            const dateA = new Date(a.rawDate || a.date || 0);
+            const dateB = new Date(b.rawDate || b.date || 0);
+            return currentSort === 'newest' ? (dateB - dateA) : (dateA - dateB);
+        });
+
+        return filtered;
+    }
+
+    // 6. Grid Rendering
+    function renderGrid() {
+        if (!gridEl) return;
+
+        updateCounters();
+        const filtered = getFilteredAndSortedMedia();
+
+        const isPublishedTab = (currentFilter === 'published');
+        if (isPublishedTab) {
+            gridEl.classList.add('published-archive-layout');
+        } else {
+            gridEl.classList.remove('published-archive-layout');
+        }
+
+        if (filtered.length === 0) {
+            const isSearching = searchQuery && searchQuery.trim().length > 0;
+            let iconClass = 'fa-solid fa-images';
+            let titleText = 'No media yet';
+
+            if (isSearching) {
+                iconClass = 'fa-solid fa-magnifying-glass';
+                titleText = 'No media found';
+            } else {
+                if (currentFilter === 'published') {
+                    iconClass = 'fa-solid fa-globe';
+                    titleText = 'No published media yet';
+                } else if (currentFilter === 'pending') {
+                    iconClass = 'fa-regular fa-clock';
+                    titleText = 'No pending media';
+                } else if (currentFilter === 'returned') {
+                    iconClass = 'fa-solid fa-triangle-exclamation';
+                    titleText = 'No media for revision';
+                } else if (currentFilter === 'eic_approved') {
+                    iconClass = 'fa-solid fa-shield-halved';
+                    titleText = 'No EIC approved media';
+                } else {
+                    iconClass = 'fa-solid fa-images';
+                    titleText = 'No media yet';
+                }
+            }
+
+            gridEl.innerHTML = `
+                <div class="media-empty-state" style="grid-column: 1 / -1;">
+                    <i class="${iconClass}"></i>
+                    <h3>${titleText}</h3>
+                </div>
+            `;
+            return;
+        }
+
+        // Render Cards
+        gridEl.innerHTML = filtered.map(item => {
+            // Public Site Archive Box layout for Published tab
+            if (isPublishedTab) {
+                const articleUrl = item.connectedArticleUrl || `/article?id=${encodeURIComponent(item.connectedArticleId || '1')}`;
+                const articleHeadline = item.connectedArticleTitle || item.title;
+                const articleExcerpt = item.connectedArticleExcerpt || item.title;
+                const articleCategory = item.connectedArticleCategory || item.category || 'Features';
+                const articleAuthor = item.connectedArticleAuthor || 'Staff Writer';
+                const articleDate = item.connectedArticleDate || item.date || '';
+                const articleViews = item.views !== undefined ? item.views : 0;
+                const articleReadTime = item.readTime || '2 min read';
+                const articleShares = item.shares !== undefined ? item.shares : 0;
+                const safeImage = item.image || '';
+
+                return `
+                    <article class="archive-item">
+                        <button type="button" class="archive-image-trigger" data-action="inspect" data-id="${item.id}" aria-label="Inspect graphic: ${escapeHTML(item.title)}" title="Click to inspect graphic">
+                            <div class="archive-image" style="--image-color: #571525;">
+                                ${safeImage ? `
+                                    <img 
+                                        src="${escapeHTML(safeImage)}" 
+                                        alt="${escapeHTML(item.title)}" 
+                                        loading="lazy" 
+                                    >
+                                ` : `
+                                    <div class="media-card-placeholder" style="display: flex; align-items: center; justify-content: center; height: 100%; color: #cbd5e1;">
+                                        <i class="fa-solid fa-camera" style="font-size: 2rem;"></i>
+                                    </div>
+                                `}
+                            </div>
+                        </button>
+                        <div class="archive-item-copy">
+                            <div class="article-meta">
+                                <span class="article-category-label">${escapeHTML(articleCategory)}</span>
+                                <span class="article-meta-separator" aria-hidden="true">&middot;</span>
+                                <time>${escapeHTML(articleDate)}</time>
+                            </div>
+                            <h3>
+                                <a href="${escapeHTML(articleUrl)}" target="_blank" class="archive-title-link" title="Open live story">
+                                    ${escapeHTML(articleHeadline)}
+                                </a>
+                            </h3>
+                            <p class="archive-excerpt">${escapeHTML(articleExcerpt)}</p>
+                            <p class="article-byline">
+                                <i class="fa-solid fa-pen-nib" aria-hidden="true"></i>
+                                <span>By <a href="${escapeHTML(articleUrl)}" target="_blank" class="author-profile-link">${escapeHTML(articleAuthor)}</a></span>
+                            </p>
+                            <div class="article-stats" aria-label="Article engagement and reading time">
+                                <span class="article-view-count" title="Views">
+                                    <i class="fa-regular fa-eye" aria-hidden="true"></i>
+                                    <span>${formatNumber(articleViews)}</span> <span class="stat-label">views</span>
+                                </span>
+                                <span class="article-read-time" title="Estimated reading time">
+                                    <i class="fa-regular fa-clock" aria-hidden="true"></i>
+                                    <span>${escapeHTML(articleReadTime)}</span>
+                                </span>
+                                <button type="button" class="article-share-button" title="Share count">
+                                    <i class="fa-solid fa-share-nodes" aria-hidden="true"></i>
+                                    <span>Share</span>
+                                    <span class="share-count">${articleShares}</span>
+                                </button>
+                            </div>
+                        </div>
+                    </article>
+                `;
+            }
+
+            // Clean Card for Queue Items
+            const statusCfg = getStatusConfig(item.status);
+            const isReturned = (item.status || '').toLowerCase().includes('return') || (item.status || '').toLowerCase().includes('revision');
+
+            return `
+                <div class="manage-media-card" data-id="${item.id}">
+                    <div class="media-card-preview-box" data-action="inspect" data-id="${item.id}">
+                        ${item.image ? `
+                            <img 
+                                src="${escapeHTML(item.image)}" 
+                                alt="${escapeHTML(item.title)}" 
+                                class="media-card-img" 
+                            >
+                        ` : `
+                            <div class="media-card-placeholder" style="display: flex; align-items: center; justify-content: center; height: 100%; min-height: 180px; background: #f8fafc; color: #94a3b8;">
+                                <i class="fa-solid fa-camera" style="font-size: 2.2rem;"></i>
+                            </div>
+                        `}
+                        <div class="media-card-badge-layer" style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%; padding: 10px;">
+                            <span class="cover-type-tag photo" style="font-size: 0.68rem; font-weight: 700; padding: 3px 8px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.04em; background: rgba(15, 23, 42, 0.90); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3);">
+                                <i class="fa-solid fa-camera"></i> PHOTO
+                            </span>
+                            <span class="media-status-pill ${statusCfg.cssClass}">
+                                ${statusCfg.icon} ${statusCfg.label}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="media-card-body">
+                        <h3 class="media-card-title">${escapeHTML(item.title)}</h3>
+                        <div class="media-card-meta">
+                            <span><i class="fa-regular fa-calendar"></i> ${escapeHTML(item.date)}</span>
+                            <span>&bull;</span>
+                            <span><i class="fa-solid fa-camera"></i> ${escapeHTML(item.artist || 'M&PC')}</span>
+                            <span>&bull;</span>
+                            <span>${escapeHTML(item.fileSize || 'Standard')}</span>
+                        </div>
+
+                        <div class="media-card-actions">
+                            <button type="button" class="btn-media-inspect" data-action="inspect" data-id="${item.id}">
+                                <i class="fa-regular fa-eye"></i>
+                                <span>Inspect Photo</span>
+                            </button>
+
+                            ${(isReturned && item.remarks) ? `
+                                <button type="button" class="btn-media-remarks" data-action="remarks" data-id="${item.id}" title="View Editorial Feedback">
+                                    <i class="fa-solid fa-comment-dots"></i>
+                                    <span>View Remarks</span>
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        // Event Listeners for Inspect & Remarks
+        gridEl.querySelectorAll('[data-action="inspect"], [data-action="remarks"]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const id = btn.getAttribute('data-id');
+                const item = mediaItems.find(m => String(m.id) === String(id));
+                if (item) openInspectModal(item);
+            });
+        });
+    }
+
+    // 7. Inspect Modal Handlers
+    function openInspectModal(item) {
+        if (!inspectModal) return;
+
+        const statusCfg = getStatusConfig(item.status);
+
+        if (modalImg) {
+            modalImg.onerror = null;
+            if (item.image) {
+                modalImg.src = item.image;
+                modalImg.alt = item.title || 'Photo Preview';
+                modalImg.style.display = '';
+            } else {
+                modalImg.src = '';
+                modalImg.alt = '';
+                modalImg.style.display = 'none';
+            }
+        }
+        if (modalStatus) {
+            modalStatus.className = `media-status-pill ${statusCfg.cssClass}`;
+            modalStatus.innerHTML = `${statusCfg.icon} ${statusCfg.label}`;
+        }
+        if (modalDate) modalDate.textContent = item.date || '';
+
+        // Remarks Feedback Display
+        const isReturned = (item.status || '').toLowerCase().includes('return') || (item.status || '').toLowerCase().includes('revision');
+        if (isReturned && item.remarks) {
+            if (modalRemarksText) modalRemarksText.textContent = item.remarks;
+            if (modalRemarksBox) modalRemarksBox.style.display = 'block';
+        } else {
+            if (modalRemarksBox) modalRemarksBox.style.display = 'none';
+        }
+
+        inspectModal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeInspectModal() {
+        if (!inspectModal) return;
+        inspectModal.classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+
+    if (closeInspectBtn) closeInspectBtn.addEventListener('click', closeInspectModal);
+    if (btnModalClose) btnModalClose.addEventListener('click', closeInspectModal);
+
+    if (inspectModal) {
+        inspectModal.addEventListener('click', (e) => {
+            if (e.target === inspectModal) closeInspectModal();
+        });
+    }
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && inspectModal && !inspectModal.classList.contains('hidden')) {
+            closeInspectModal();
+        }
+    });
+
+    // 8. Tab Filtering Handlers
+    tabButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            tabButtons.forEach(b => {
+                b.classList.remove('active');
+                b.setAttribute('aria-selected', 'false');
+            });
+            btn.classList.add('active');
+            btn.setAttribute('aria-selected', 'true');
+
+            currentFilter = btn.getAttribute('data-filter') || 'all';
+            renderGrid();
+        });
+    });
+
+    // 9. Search & Sort Handlers
+    if (searchInput) {
+        searchInput.addEventListener('input', () => {
+            searchQuery = searchInput.value.trim();
+            if (clearSearchBtn) {
+                clearSearchBtn.classList.toggle('hidden', searchQuery.length === 0);
+            }
+            renderGrid();
+        });
+    }
+
+    if (clearSearchBtn) {
+        clearSearchBtn.addEventListener('click', () => {
+            if (searchInput) searchInput.value = '';
+            searchQuery = '';
+            clearSearchBtn.classList.add('hidden');
+            renderGrid();
+            if (searchInput) searchInput.focus();
+        });
+    }
+
+    if (sortSelect) {
+        sortSelect.addEventListener('change', () => {
+            currentSort = sortSelect.value || 'newest';
+            renderGrid();
+        });
+    }
+
+    // 10. Initial Boot
+    loadMedia();
+});

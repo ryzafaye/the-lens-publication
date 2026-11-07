@@ -124,6 +124,8 @@ Route::middleware(['auth', 'role:Editor-in-Chief,Associate Editor-in-Chief'])
         Route::post('/review-articles/{id}/approve', [EicController::class, 'approveArticle'])->name('approve-article');
         Route::post('/review-articles/{id}/revision', [EicController::class, 'returnForRevision'])->name('return-for-revision');
         Route::get('/media-desk', [EicController::class, 'mediaDesk'])->name('media-desk');
+        Route::post('/media/{id}/approve', [EicController::class, 'approveMedia'])->name('approve-media');
+        Route::post('/media/{id}/revision', [EicController::class, 'returnMediaForRevision'])->name('return-media');
         Route::get('/submit-article', [EicController::class, 'submitArticle'])->name('submit-article');
         Route::post('/submit-article', [EicController::class, 'storeArticle'])->name('store-article');
         Route::get('/manage-accounts', [EicController::class, 'manageAccounts'])->name('manage-accounts');
@@ -143,6 +145,17 @@ Route::middleware(['auth', 'role:Editor-in-Chief,Associate Editor-in-Chief'])
         Route::delete('/drafts/{id}', [EicController::class, 'destroyDraft'])->name('destroyDraft');
     });
 
+// Convenience redirects for AEIC / AIEC routes pointing to EIC portal
+Route::middleware('auth')->group(function () {
+    Route::get('/aeic/{any?}', function ($any = null) {
+        return redirect('/eic/' . ($any ?: 'dashboard'));
+    })->where('any', '.*');
+
+    Route::get('/aiec/{any?}', function ($any = null) {
+        return redirect('/eic/' . ($any ?: 'dashboard'));
+    })->where('any', '.*');
+});
+
 // Media and Public Communications (M&PC) Routes
 Route::middleware(['auth', 'role:Media and Public Communications Head,Associate Media and Public Communications Head,M&PC Head,Associate M&PC Head'])
     ->prefix('mpc')
@@ -152,10 +165,12 @@ Route::middleware(['auth', 'role:Media and Public Communications Head,Associate 
         Route::get('/publish-article', [MpcController::class, 'publishArticle'])->name('publish-article');
         Route::post('/articles/{id}/publish', [MpcController::class, 'publishArticleRelease'])->name('publishArticleRelease');
         Route::post('/articles/{id}/unpublish', [MpcController::class, 'unpublishArticleRelease'])->name('unpublishArticleRelease');
+        Route::post('/articles/{id}/assign-cover', [MpcController::class, 'assignCover'])->name('assign-cover');
         Route::post('/articles/{id}/revision', [MpcController::class, 'returnArticleForRevision'])->name('returnArticleForRevision');
         Route::get('/media-desk', [MpcController::class, 'mediaDesk'])->name('media-desk');
         Route::get('/submit-media', [MpcController::class, 'submitMedia'])->name('submit-media');
         Route::post('/submit-media', [MpcController::class, 'storeMedia'])->name('store-media');
+        Route::get('/manage-media', [MpcController::class, 'manageMedia'])->name('manage-media');
         Route::get('/manage-my-articles', [MpcController::class, 'manageMyArticles'])->name('manage-my-articles');
         Route::get('/my-articles', function () {
             return redirect()->route('mpc.manage-my-articles');
@@ -188,6 +203,8 @@ Route::middleware(['auth', 'role:Cartoonist,Cartoonist Head,Associate Cartoonist
         Route::post('/submit-cartoon', [CartoonistController::class, 'storeCartoon'])->name('store-cartoon');
         Route::get('/manage-cartoons', [CartoonistController::class, 'manageCartoons'])->name('manage-cartoons');
         Route::get('/cartoon-desk', [CartoonistController::class, 'cartoonDesk'])->name('cartoon-desk');
+        Route::post('/cartoons/{id}/endorse', [CartoonistController::class, 'endorseCartoon'])->name('endorse-cartoon');
+        Route::post('/cartoons/{id}/revision', [CartoonistController::class, 'returnCartoonForRevision'])->name('return-cartoon');
         Route::get('/profile-settings', [CartoonistController::class, 'profileSettings'])->name('profile-settings');
         Route::get('/settings', function () {
             return redirect()->route('cartoonist.profile-settings');
@@ -196,7 +213,7 @@ Route::middleware(['auth', 'role:Cartoonist,Cartoonist Head,Associate Cartoonist
     });
 
 // Media & Communication Portal Routes
-Route::middleware(['auth', 'role:Media Team,Media and Public Communications Head,Associate Media and Public Communications Head,Media & Communication'])
+Route::middleware(['auth', 'role:Media Team,Media and Public Communications Head,Associate Media and Public Communications Head,Media & Communication,Photojournalist Head,Photojournalist'])
     ->prefix('media')
     ->name('media.')
     ->group(function () {
@@ -211,6 +228,8 @@ Route::middleware(['auth', 'role:Media Team,Media and Public Communications Head
         Route::get('/submit-media', [MediaController::class, 'submitMedia'])->name('submit-media');
         Route::post('/submit-media', [MediaController::class, 'storeMedia'])->name('store-media');
         Route::get('/manage-media', [MediaController::class, 'manageMedia'])->name('manage-media');
+        Route::post('/media/{id}/endorse', [MediaController::class, 'endorseMedia'])->name('endorse-media');
+        Route::post('/media/{id}/revision', [MediaController::class, 'returnMediaForRevision'])->name('return-media');
         Route::get('/profile-settings', [MediaController::class, 'profileSettings'])->name('profile-settings');
         Route::get('/settings', function () {
             return redirect()->route('media.profile-settings');

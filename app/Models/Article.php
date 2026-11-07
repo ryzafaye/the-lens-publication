@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Article extends Model
 {
@@ -26,7 +28,17 @@ class Article extends Model
         'published_at' => 'datetime',
     ];
 
-    protected $appends = ['date', 'endorser'];
+    protected $appends = ['date', 'endorser', 'cover_url', 'cover_artist'];
+
+    public function getCoverUrlAttribute(): ?string
+    {
+        return $this->coverImage?->file_url;
+    }
+
+    public function getCoverArtistAttribute(): ?string
+    {
+        return $this->coverImage?->artist_name;
+    }
 
     public function getDateAttribute()
     {
@@ -121,5 +133,15 @@ class Article extends Model
     public function category()
     {
         return $this->belongsTo(Category::class);
+    }
+
+    public function images(): HasMany
+    {
+        return $this->hasMany(ArticleImage::class);
+    }
+
+    public function coverImage(): HasOne
+    {
+        return $this->hasOne(ArticleImage::class)->where('is_cover', true);
     }
 }

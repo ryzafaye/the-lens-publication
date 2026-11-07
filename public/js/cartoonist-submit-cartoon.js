@@ -2,6 +2,7 @@
  * ============================================================================
  * THE LENS — CARTOONIST SUBMIT CARTOON LOGIC
  * Clean Upload Studio for Editorial Cartoons
+ * Handles drag-drop, canvas compression, and queue dispatch.
  * Pushes to Cartoonist Submissions & Review Queue (Status: 'Pending with Head')
  * ============================================================================
  */
@@ -12,6 +13,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // 1. User & Persona Details (Hydrated dynamically from Auth)
     const cartoonistName = window.LARAVEL_USER_NAME || localStorage.getItem('cartoonistName') || localStorage.getItem('userName') || 'Cartoonist';
     const cartoonistRole = window.LARAVEL_USER_ROLE || localStorage.getItem('cartoonistRole') || 'Cartoonist';
+    const cartoonistUserId = window.LARAVEL_USER_ID || localStorage.getItem('cartoonistUserId') || localStorage.getItem('userId') || '';
+    const cartoonistStudentNum = window.LARAVEL_STUDENT_NUMBER || localStorage.getItem('cartoonistStudentNumber') || localStorage.getItem('studentNumber') || '';
 
     // 2. DOM Elements
     const form = document.getElementById('cartoon-submission-form');
@@ -63,15 +66,56 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function formatFileSize(bytes) {
-        if (bytes < 1024) return `${bytes} B`;
-        const kb = bytes / 1024;
-        if (kb < 1024) return `${Math.round(kb)} KB`;
-        const mb = kb / 1024;
-        return `${mb.toFixed(1)} MB`;
+        if (!bytes || bytes === 0) return '0 KB';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
     }
 
     // =========================================================================
-    // 4. DRAG AND DROP & FILE SELECTION
+    // 4. IMAGE CANVAS COMPRESSION
+    // =========================================================================
+    function compressImageFile(file, callback) {
+        if (file.type === 'image/svg+xml') {
+            const reader = new FileReader();
+            reader.onload = (e) => callback(e.target.result);
+            reader.readAsDataURL(file);
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                const maxDim = 1200;
+                let width = img.width;
+                let height = img.height;
+                if (width > maxDim || height > maxDim) {
+                    if (width > height) {
+                        height = Math.round((height * maxDim) / width);
+                        width = maxDim;
+                    } else {
+                        width = Math.round((width * maxDim) / height);
+                        height = maxDim;
+                    }
+                }
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.82);
+                callback(compressedDataUrl);
+            };
+            img.onerror = () => callback(e.target.result);
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // =========================================================================
+    // 5. DRAG AND DROP & FILE SELECTION
     // =========================================================================
     if (dropzone && fileInput) {
         dropzone.addEventListener('click', () => fileInput.click());
@@ -116,27 +160,24 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleFileChosen(file) {
         if (!file) return;
 
-        // Supported formats
         const validTypes = ['image/svg+xml', 'image/png', 'image/jpeg', 'image/webp'];
         if (!validTypes.includes(file.type) && !file.name.match(/\.(svg|png|jpe?g|webp)$/i)) {
             showToast('Unsupported format. Please upload SVG, PNG, JPG, or WEBP illustration.', 'error');
             return;
         }
 
-        // 10MB limit
-        if (file.size > 10 * 1024 * 1024) {
-            showToast('File size exceeds the 10MB limit. Please upload a smaller graphic.', 'error');
+        if (file.size > 15 * 1024 * 1024) {
+            showToast('File size exceeds 15MB limit.', 'error');
             return;
         }
 
         selectedFile = file;
 
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            selectedImageDataUrl = e.target.result;
+        compressImageFile(file, (compressedDataUrl) => {
+            selectedImageDataUrl = compressedDataUrl;
             showFilePreview(file.name, file.size, selectedImageDataUrl);
-        };
-        reader.readAsDataURL(file);
+            showToast(`Loaded ${file.name}`);
+        });
     }
 
     function showFilePreview(fileName, fileSize, dataUrl) {
@@ -169,7 +210,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // =========================================================================
-    // 5. FORM SUBMISSION
+    // 6. FORM SUBMISSION
     // =========================================================================
     if (form) {
         form.addEventListener('submit', (e) => {
@@ -178,6 +219,15 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!selectedFile || !selectedImageDataUrl) {
                 showToast('Please select or drag an editorial cartoon graphic first.', 'error');
                 return;
+            }
+
+            // Prevent double submission
+            if (btnSubmit) {
+                if (btnSubmit.disabled) return;
+                btnSubmit.disabled = true;
+                btnSubmit.style.opacity = '0.7';
+                btnSubmit.style.pointerEvents = 'none';
+                btnSubmit.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> <span>Submitting Cartoon...</span>`;
             }
 
             // Generate clean title from filename
@@ -194,24 +244,32 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             const rawDateStr = now.toISOString().split('T')[0];
 
+            const isSectionHead = ['Cartoonist Head', 'Associate Cartoonist Head', 'Chief Cartoonist'].includes(cartoonistRole);
+
             const newCartoon = {
                 id: 'cart-' + Date.now(),
                 type: 'cartoon',
                 title: cleanTitle,
-                category: 'Opinion',
+                category: '',
                 artist: cartoonistName,
+                author: cartoonistName,
+                userId: String(cartoonistUserId || '').trim(),
+                userStudentNumber: String(cartoonistStudentNum || '').trim(),
+                studentNumber: String(cartoonistStudentNum || '').trim(),
                 uploaderRole: cartoonistRole,
                 image: selectedImageDataUrl,
                 date: dateStr,
                 rawDate: rawDateStr,
                 fileSize: formatFileSize(selectedFile.size),
-                status: 'Pending with Head',
+                status: isSectionHead ? 'Pending EIC Review' : 'Pending with Head',
+                endorsedBy: isSectionHead ? `${cartoonistName} (${cartoonistRole})` : '',
+                endorsedDate: isSectionHead ? dateStr : '',
                 remarks: '',
                 connectedArticleId: '',
                 connectedArticleTitle: '',
                 connectedArticleExcerpt: '',
                 connectedArticleAuthor: '',
-                connectedArticleCategory: 'Opinion',
+                connectedArticleCategory: '',
                 connectedArticleDate: dateStr,
                 connectedArticleUrl: '',
                 views: 0,
@@ -220,54 +278,106 @@ document.addEventListener('DOMContentLoaded', () => {
             };
 
             // Save to cartoonistSubmissions_v1
-            let submissions = (typeof getCartoonSubmissions === 'function') ? getCartoonSubmissions() : [];
-            submissions.unshift(newCartoon);
-            if (typeof saveCartoonSubmissions === 'function') {
-                saveCartoonSubmissions(submissions);
-            } else {
-                localStorage.setItem('cartoonistSubmissions_v1', JSON.stringify(submissions));
-            }
-
-            // Also push to review queue (articleCoverReviewQueue_v1)
             try {
-                let queue = [];
-                const rawQueue = localStorage.getItem('articleCoverReviewQueue_v1');
-                if (rawQueue) {
-                    const parsed = JSON.parse(rawQueue);
-                    if (Array.isArray(parsed)) queue = parsed;
+                let submissions = (typeof getAllRawCartoonSubmissions === 'function') 
+                    ? getAllRawCartoonSubmissions() 
+                    : [];
+                if (submissions.length === 0) {
+                    const raw = localStorage.getItem('cartoonistSubmissions_v1');
+                    if (raw) {
+                        try { submissions = JSON.parse(raw); } catch (err) {}
+                    }
                 }
-                queue.unshift({
-                    id: newCartoon.id,
-                    type: 'cartoon',
-                    title: newCartoon.title,
-                    category: newCartoon.category,
-                    artist: cartoonistName,
-                    uploaderRole: cartoonistRole,
-                    image: newCartoon.image,
-                    date: dateStr,
-                    rawDate: rawDateStr,
-                    fileSize: newCartoon.fileSize,
-                    status: 'submitted_to_mpc',
-                    remarks: ''
-                });
-                localStorage.setItem('articleCoverReviewQueue_v1', JSON.stringify(queue));
+                submissions = submissions.filter(item => String(item.id) !== String(newCartoon.id));
+                submissions.unshift(newCartoon);
+                localStorage.setItem('cartoonistSubmissions_v1', JSON.stringify(submissions));
             } catch (err) {
-                console.warn('Error syncing to review queue:', err);
+                console.warn('Error saving to cartoonistSubmissions_v1', err);
             }
 
-            // Disable submit button and provide feedback
-            if (btnSubmit) {
-                btnSubmit.disabled = true;
-                btnSubmit.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Submitting...`;
+            // When submitted by Section Head, dispatch directly to EIC review queue
+            if (isSectionHead) {
+                try {
+                    let queue = [];
+                    const rawQueue = localStorage.getItem('articleCoverReviewQueue_v1');
+                    if (rawQueue) {
+                        const parsed = JSON.parse(rawQueue);
+                        if (Array.isArray(parsed)) queue = parsed;
+                    }
+                    queue = queue.filter(item => String(item.id) !== String(newCartoon.id));
+                    queue.unshift({
+                        id: newCartoon.id,
+                        type: 'cartoon',
+                        title: newCartoon.title,
+                        artist: cartoonistName,
+                        author: cartoonistName,
+                        userId: newCartoon.userId,
+                        userStudentNumber: newCartoon.userStudentNumber,
+                        uploaderRole: cartoonistRole,
+                        endorsedBy: `${cartoonistName} (${cartoonistRole})`,
+                        image: newCartoon.image,
+                        date: dateStr,
+                        rawDate: rawDateStr,
+                        fileSize: newCartoon.fileSize,
+                        status: 'Pending EIC Review',
+                        remarks: ''
+                    });
+                    localStorage.setItem('articleCoverReviewQueue_v1', JSON.stringify(queue));
+                } catch (err) {
+                    console.warn('Error syncing to EIC review queue:', err);
+                }
             }
 
-            showToast('Cartoon illustration submitted successfully to the editorial desk!', 'success');
+            // Backend sync to persist ArticleImage in database
+            const formData = new FormData();
+            if (selectedFile) {
+                formData.append('cartoon_file', selectedFile);
+            }
+            formData.append('image', selectedImageDataUrl);
+            formData.append('title', cleanTitle);
 
-            setTimeout(() => {
-                window.location.href = window.CARTOONIST_MANAGE_CARTOONS_ROUTE || 'manage-cartoons';
-            }, 1200);
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+                || document.querySelector('input[name="_token"]')?.value;
+
+            const dispatchBackend = async () => {
+                try {
+                    if (csrfToken) {
+                        const res = await fetch('/cartoonist/submit-cartoon', {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': csrfToken,
+                                'Accept': 'application/json'
+                            },
+                            body: formData
+                        });
+                        const data = await res.json();
+                        if (data && data.cartoon && data.cartoon.id) {
+                            newCartoon.id = String(data.cartoon.id);
+                            if (data.cartoon.image) newCartoon.image = data.cartoon.image;
+                            try {
+                                let subs = JSON.parse(localStorage.getItem('cartoonistSubmissions_v1') || '[]');
+                                subs = subs.map(s => s.id === ('cart-' + Date.now()) ? newCartoon : s);
+                                localStorage.setItem('cartoonistSubmissions_v1', JSON.stringify(subs));
+                            } catch (e) {}
+                        }
+                    }
+                } catch (err) {
+                    console.warn('Backend cartoon sync warning:', err);
+                } finally {
+                    const successMsg = isSectionHead
+                        ? 'Cartoon illustration submitted successfully! Forwarded directly to Editor-in-Chief.'
+                        : 'Cartoon illustration submitted successfully to the Cartoonist Head!';
+
+                    showToast(successMsg, 'success');
+
+                    setTimeout(() => {
+                        window.location.href = window.CARTOONIST_MANAGE_CARTOONS_ROUTE || '/cartoonist/manage-cartoons';
+                    }, 800);
+                }
+            };
+
+            dispatchBackend();
         });
     }
 
 });
-

@@ -1,22 +1,30 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use App\Models\Article;
+use App\Models\ArticleImage;
 use App\Models\Category;
 use App\Models\User;
 use App\Models\Role;
 use App\Models\Feedback;
 use App\Models\ActivityLog;
+use App\Services\ArticleImageService;
 use App\Traits\LogsActivity;
 use Illuminate\Support\Facades\Hash;
 
 class EicController extends Controller
 {
     use LogsActivity;
+
+    public function __construct(
+        protected ArticleImageService $imageService
+    ) {}
     public function dashboard()
     {
         /** @var \App\Models\User $user */
@@ -140,26 +148,25 @@ class EicController extends Controller
      */
     protected function getCategoryHeadsMap(): array
     {
-        return Cache::remember('category_section_heads_map_v4', 3600, function () {
-            // Default mapping using generic titles, dynamically filled by actual users below
+        return Cache::remember('category_section_heads_map_v5', 3600, function () {
+            // Default mapping with confirmed Section Heads from database
             $map = [
-                'News' => 'News Head',
-                'Literature' => 'Literary Head',
-                'Literary' => 'Literary Head',
-                'Feature' => 'Feature Head',
-                'Features' => 'Feature Head',
-                'Science & Technology' => 'SciTech Head',
-                'Science and Technology' => 'SciTech Head',
-                'SciTech' => 'SciTech Head',
-                'Opinion' => 'Opinion Head',
-                'Opinions' => 'Opinion Head',
+                'News' => 'Arquero (News Head)',
+                'Literature' => 'Llandelar (Literary Head)',
+                'Literary' => 'Llandelar (Literary Head)',
+                'Feature' => 'Dela Cruz (Feature Head)',
+                'Features' => 'Dela Cruz (Feature Head)',
+                'Science & Technology' => 'Apilado (SciTech Head)',
+                'Science and Technology' => 'Apilado (SciTech Head)',
+                'SciTech' => 'Apilado (SciTech Head)',
+                'Opinion' => 'Direct Submission (Opinion)',
+                'Opinions' => 'Direct Submission (Opinion)',
             ];
 
             try {
                 $headUsers = User::with('role')
                     ->whereHas('role', function ($q) {
-                        $q->where('role_name', 'like', '%Head%')
-                          ->orWhere('role_name', 'like', '%Editor%');
+                        $q->where('role_name', 'like', '%Head%');
                     })
                     ->get();
 
@@ -179,16 +186,8 @@ class EicController extends Controller
                         $map['Science & Technology'] = "{$lastName} (SciTech Head)";
                         $map['Science and Technology'] = "{$lastName} (SciTech Head)";
                         $map['SciTech'] = "{$lastName} (SciTech Head)";
-                    } elseif (stripos($roleName, 'Opinion') !== false) {
-                        $map['Opinion'] = "{$lastName} (Opinion Head)";
-                        $map['Opinions'] = "{$lastName} (Opinion Head)";
-                    } elseif (stripos($roleName, 'Associate Editor-in-Chief') !== false && !isset($map['Opinion'])) {
-                        // Skip Fax who is Associate Editor-in-Chief, use other Associate Editor (Briones)
-                        if (stripos($user->full_name, 'Fax') === false) {
-                            $map['Opinion'] = "{$lastName} (Opinion Head)";
-                            $map['Opinions'] = "{$lastName} (Opinion Head)";
-                        }
                     }
+                    // Note: No Opinion Head exists in publication organization
                 }
             } catch (\Throwable $e) {
                 // If database query is unavailable, fallback map is used
@@ -228,7 +227,12 @@ class EicController extends Controller
     {
         $categoryName = $article->category->name ?? '';
 
-        // 1. Strictly resolve the Section Head based on the submitted article's category
+        // 1. For Opinion articles, there is no Opinion Head -> Direct Submission
+        if (!empty($categoryName) && stripos($categoryName, 'opinion') !== false) {
+            return 'Direct Submission (Opinion)';
+        }
+
+        // 2. Strictly resolve the Section Head based on the submitted article's category
         if (!empty($categoryName)) {
             if (isset($categoryHeadsMap[$categoryName])) {
                 return $categoryHeadsMap[$categoryName];
@@ -240,7 +244,7 @@ class EicController extends Controller
             }
         }
 
-        // 2. Fallback: check remarks if category was not set
+        // 3. Fallback: check remarks if category was not set
         if (!empty($article->remarks)) {
             if (preg_match('/(?:Endorsed to EIC by|Approved by(?: Section Head)?:?)\s*([^\r\n]+)/i', $article->remarks, $matches)) {
                 $matched = trim($matches[1]);
@@ -248,6 +252,13 @@ class EicController extends Controller
                     return $matched;
                 }
             }
+        }
+
+        // 4. Fallback if category was not set: check if author themselves is a Section Head
+        $authorRole = $article->user->role->role_name ?? '';
+        if (stripos($authorRole, 'Head') !== false) {
+            $lastName = $this->extractLastName($article->user->full_name ?? '');
+            return "{$lastName} ({$authorRole})";
         }
 
         return $article->endorser ?? 'Section Head';
@@ -406,7 +417,72 @@ class EicController extends Controller
      */
     public function mediaDesk()
     {
-        return view('eic.media-desk');
+        $pending = ArticleImage::pendingEic()
+            ->with(['uploader.role', 'headApprover.role'])
+            ->latest()
+            ->get();
+
+        $approved = ArticleImage::approved()
+            ->with(['uploader.role', 'headApprover.role', 'eicApprover.role', 'article'])
+            ->latest()
+            ->get();
+
+        $coverList = $pending->merge($approved)
+            ->map(fn($item) => $this->imageService->formatForView($item))
+            ->values()
+            ->all();
+
+        return view('eic.media-desk', compact('coverList'));
+    }
+
+    /**
+     * Approve visual artwork into publication library
+     */
+    public function approveMedia(int|string $id, Request $request)
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        $image = ArticleImage::findOrFail($id);
+
+        $this->imageService->approveByEic($image, $user);
+        ActivityLog::logAction($user->id, 'approved visual artwork');
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Visual asset approved into publication library.',
+                'cover' => $this->imageService->formatForView($image),
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Visual asset approved into publication library.');
+    }
+
+    /**
+     * Return visual artwork to section head / artist for revision
+     */
+    public function returnMediaForRevision(int|string $id, Request $request)
+    {
+        $request->validate([
+            'remarks' => 'required|string',
+        ]);
+
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        $image = ArticleImage::findOrFail($id);
+
+        $this->imageService->returnForRevision($image, $user, (string) $request->remarks);
+        ActivityLog::logAction($user->id, 'returned visual asset for revision');
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Visual asset returned for revision.',
+                'cover' => $this->imageService->formatForView($image),
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Visual asset returned for revision.');
     }
 
     public function submitArticle(Request $request)
@@ -439,7 +515,7 @@ class EicController extends Controller
             'article_id' => 'nullable|integer'
         ];
 
-        if ($request->status === 'Pending Review') {
+        if ($request->status === 'Pending Review' || $request->status === 'Pending EIC Review') {
             $rules['excerpt'] = 'required|string|max:255';
             $rules['content'] = 'required|string';
         } else {
@@ -450,6 +526,7 @@ class EicController extends Controller
         $request->validate($rules);
 
         $cleanContent = $this->sanitizeArticleContent($request->content);
+        $targetStatus = $request->status === 'Draft' ? 'Draft' : 'Pending EIC Review';
 
         try {
             if ($request->filled('article_id')) {
@@ -460,10 +537,11 @@ class EicController extends Controller
                         'title' => $request->title,
                         'excerpt' => $request->excerpt,
                         'content' => $cleanContent,
-                        'status' => $request->status,
+                        'status' => $targetStatus,
+                        'remarks' => null,
                     ]);
 
-                    if ($request->status === 'Pending Review') {
+                    if ($targetStatus === 'Pending EIC Review') {
                         ActivityLog::logAction(Auth::id(), 'submitted', $article);
                     }
 
@@ -471,13 +549,18 @@ class EicController extends Controller
                     Cache::forget('eic_dashboard_pending_articles');
                     Cache::forget('eic_review_articles_newest');
                     Cache::forget('eic_review_articles_oldest');
+                    Cache::forget('exec_dashboard_pending_pres_vp');
+                    Cache::forget('exec_review_articles_' . $request->category_id . '_newest');
+                    Cache::forget('exec_review_articles_' . $request->category_id . '_oldest');
+                    Cache::forget('exec_review_articles_all_newest');
+                    Cache::forget('exec_review_articles_all_oldest');
 
-                    if ($request->status === 'Draft') {
+                    if ($targetStatus === 'Draft') {
                         return redirect()->route('eic.submit-article', ['tab' => 'drafts'])
                             ->with('success', 'Draft saved successfully.');
                     }
                     return redirect()->route('eic.dashboard')
-                        ->with('success', 'Article submitted successfully.');
+                        ->with('success', 'Article submitted and forwarded to review queue.');
                 }
             }
 
@@ -487,12 +570,12 @@ class EicController extends Controller
                 'title' => $request->title,
                 'excerpt' => $request->excerpt,
                 'content' => $cleanContent,
-                'status' => $request->status,
+                'status' => $targetStatus,
                 'views' => 0,
                 'shares' => 0,
             ]);
 
-            if ($request->status === 'Pending Review') {
+            if ($targetStatus === 'Pending EIC Review') {
                 ActivityLog::logAction(Auth::id(), 'submitted', $article);
             }
 
@@ -500,14 +583,19 @@ class EicController extends Controller
             Cache::forget('eic_dashboard_pending_articles');
             Cache::forget('eic_review_articles_newest');
             Cache::forget('eic_review_articles_oldest');
+            Cache::forget('exec_dashboard_pending_pres_vp');
+            Cache::forget('exec_review_articles_' . $request->category_id . '_newest');
+            Cache::forget('exec_review_articles_' . $request->category_id . '_oldest');
+            Cache::forget('exec_review_articles_all_newest');
+            Cache::forget('exec_review_articles_all_oldest');
 
-            if ($request->status === 'Draft') {
+            if ($targetStatus === 'Draft') {
                 return redirect()->route('eic.submit-article', ['tab' => 'drafts'])
                     ->with('success', 'Draft saved successfully.');
             }
 
             return redirect()->route('eic.dashboard')
-                ->with('success', 'Article submitted successfully.');
+                ->with('success', 'Article submitted and forwarded to review queue.');
 
         } catch (\Exception $e) {
             return back()->withErrors(['system_error' => 'Database Error: ' . $e->getMessage()])->withInput();

@@ -2,12 +2,14 @@
  * ============================================================================
  * THE LENS — CARTOONIST MANAGE CARTOONS CONTROLLER
  * Full parity with Media Management:
+ *   - Scoped to current cartoonist user account
  *   - "All Cartoons" tab excludes published items (dedicated queue)
+ *   - "Pending with Head" / "Pending Approval" includes pending reviews
+ *   - "Returned for Revision" shows remarks feedback
+ *   - "EIC Approved" shows endorsed & approved cartoons
  *   - "Published" tab renders in public site archive "boxes style"
  *   - Frame-fitted images (never cut off)
  *   - Author in signature maroon (#5c0a18, bold)
- *   - Exact public archive stats design (views, read time, share pill)
- *   - Removed Reset Filters button
  * ============================================================================
  */
 
@@ -85,47 +87,54 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 3. Status Configuration Helper
     function getStatusConfig(status) {
-        switch (status) {
-            case 'Published':
-                return {
-                    cssClass: 'published',
-                    label: 'Published',
-                    icon: '<i class="fa-solid fa-globe"></i>'
-                };
-            case 'EIC Approved':
-                return {
-                    cssClass: 'eic-approved',
-                    label: 'EIC Approved',
-                    icon: '<i class="fa-solid fa-shield-halved"></i>'
-                };
-            case 'Returned for Revision':
-                return {
-                    cssClass: 'returned-for-revision',
-                    label: 'Returned for Revision',
-                    icon: '<i class="fa-solid fa-triangle-exclamation"></i>'
-                };
-            case 'Pending with Head':
-            default:
-                return {
-                    cssClass: 'pending-with-head',
-                    label: 'Pending with Head',
-                    icon: '<i class="fa-regular fa-clock"></i>'
-                };
+        const s = (status || '').toLowerCase().trim();
+        if (s === 'published') {
+            return {
+                cssClass: 'published',
+                label: 'Published',
+                icon: '<i class="fa-solid fa-globe"></i>'
+            };
         }
+        if (s === 'eic approved' || s === 'approved' || s === 'approved_for_mpc') {
+            return {
+                cssClass: 'eic-approved',
+                label: 'EIC Approved',
+                icon: '<i class="fa-solid fa-shield-halved"></i>'
+            };
+        }
+        if (s === 'pending eic review' || s === 'forwarded to eic' || s === 'submitted_to_eic') {
+            return {
+                cssClass: 'pending-eic-review',
+                label: 'Pending EIC Review',
+                icon: '<i class="fa-solid fa-clock"></i>'
+            };
+        }
+        if (s.includes('return') || s.includes('revision')) {
+            return {
+                cssClass: 'returned-for-revision',
+                label: 'Returned for Revision',
+                icon: '<i class="fa-solid fa-triangle-exclamation"></i>'
+            };
+        }
+        return {
+            cssClass: 'pending-with-head',
+            label: 'Pending with Head',
+            icon: '<i class="fa-regular fa-clock"></i>'
+        };
     }
 
-    const currentAuthorName = window.LARAVEL_USER_NAME || localStorage.getItem('cartoonistName') || localStorage.getItem('userName') || 'Cartoonist';
+    const userRole = window.LARAVEL_USER_ROLE || localStorage.getItem('cartoonistHeadRole') || localStorage.getItem('cartoonistRole') || localStorage.getItem('userRole') || 'Cartoonist';
+    const isSectionHead = ['Cartoonist Head', 'Associate Cartoonist Head', 'Chief Cartoonist'].includes(userRole);
+    const currentAuthorName = window.LARAVEL_USER_NAME || localStorage.getItem('cartoonistHeadName') || localStorage.getItem('cartoonistName') || localStorage.getItem('userName') || 'Cartoonist';
 
-    // 4. Data Loading & Counters (Backend Data Transition)
-    // Fetches data injected via controller (window.INITIAL_DATA or window.INITIAL_CARTOONS)
-    // with graceful fallback to localStorage for backward compatibility.
+    // 4. Data Loading & Counters (Scoped to current Cartoonist)
     function loadCartoons() {
-        if (window.INITIAL_CARTOONS && Array.isArray(window.INITIAL_CARTOONS)) {
+        if (typeof getCartoonSubmissions === 'function') {
+            cartoonItems = getCartoonSubmissions(true);
+        } else if (window.INITIAL_CARTOONS && Array.isArray(window.INITIAL_CARTOONS) && window.INITIAL_CARTOONS.length > 0) {
             cartoonItems = window.INITIAL_CARTOONS;
-        } else if (window.INITIAL_DATA && Array.isArray(window.INITIAL_DATA)) {
+        } else if (window.INITIAL_DATA && Array.isArray(window.INITIAL_DATA) && window.INITIAL_DATA.length > 0) {
             cartoonItems = window.INITIAL_DATA;
-        } else if (typeof getCartoonSubmissions === 'function') {
-            cartoonItems = getCartoonSubmissions();
         } else {
             try {
                 const raw = localStorage.getItem('cartoonistSubmissions_v1');
@@ -134,17 +143,39 @@ document.addEventListener('DOMContentLoaded', () => {
                 cartoonItems = [];
             }
         }
+
+        // Deduplicate by ID
+        const seen = new Set();
+        const deduped = [];
+        (cartoonItems || []).forEach(item => {
+            if (!item || !item.id) return;
+            const strId = String(item.id);
+            if (!seen.has(strId)) {
+                seen.add(strId);
+                deduped.push(item);
+            }
+        });
+        cartoonItems = deduped;
+
         updateCounters();
         renderGrid();
     }
 
     function updateCounters() {
-        // "All Cartoons" tab excludes published items per user request
-        const queueCount = cartoonItems.filter(m => m.status !== 'Published').length;
-        const pending = cartoonItems.filter(m => m.status === 'Pending with Head').length;
-        const returned = cartoonItems.filter(m => m.status === 'Returned for Revision').length;
-        const eic = cartoonItems.filter(m => m.status === 'EIC Approved').length;
-        const published = cartoonItems.filter(m => m.status === 'Published').length;
+        const queueCount = cartoonItems.filter(m => (m.status || '').toLowerCase() !== 'published').length;
+        const pending = cartoonItems.filter(m => {
+            const s = (m.status || '').toLowerCase();
+            return s.includes('pending') || s.includes('forwarded') || s.includes('submitted');
+        }).length;
+        const returned = cartoonItems.filter(m => {
+            const s = (m.status || '').toLowerCase();
+            return s.includes('return') || s.includes('revision');
+        }).length;
+        const eic = cartoonItems.filter(m => {
+            const s = (m.status || '').toLowerCase();
+            return s === 'eic approved' || s === 'approved' || s === 'approved_for_mpc';
+        }).length;
+        const published = cartoonItems.filter(m => (m.status || '').toLowerCase() === 'published').length;
 
         if (pillAll) pillAll.textContent = String(queueCount);
         if (pillPending) pillPending.textContent = String(pending);
@@ -156,20 +187,22 @@ document.addEventListener('DOMContentLoaded', () => {
     // 5. Filtering & Sorting Pipeline
     function getFilteredAndSortedCartoons() {
         let filtered = cartoonItems.filter(item => {
-            // "All Cartoons" tab displays queue items only, excluding Published
-            if (currentFilter === 'all' && item.status === 'Published') {
+            const statusLower = (item.status || '').toLowerCase().trim();
+
+            // "All Cartoons" tab excludes published items
+            if (currentFilter === 'all' && statusLower === 'published') {
                 return false;
             }
-            if (currentFilter === 'pending' && item.status !== 'Pending with Head') {
+            if (currentFilter === 'pending' && !statusLower.includes('pending') && !statusLower.includes('forwarded') && !statusLower.includes('submitted')) {
                 return false;
             }
-            if (currentFilter === 'returned' && item.status !== 'Returned for Revision') {
+            if (currentFilter === 'returned' && !statusLower.includes('return') && !statusLower.includes('revision')) {
                 return false;
             }
-            if (currentFilter === 'eic_approved' && item.status !== 'EIC Approved') {
+            if (currentFilter === 'eic_approved' && statusLower !== 'eic approved' && statusLower !== 'approved' && statusLower !== 'approved_for_mpc') {
                 return false;
             }
-            if (currentFilter === 'published' && item.status !== 'Published') {
+            if (currentFilter === 'published' && statusLower !== 'published') {
                 return false;
             }
 
@@ -179,9 +212,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 const matchTitle = (item.title || '').toLowerCase().includes(q);
                 const matchCat = (item.category || '').toLowerCase().includes(q);
                 const matchArtist = (item.artist || '').toLowerCase().includes(q);
+                const matchRemarks = (item.remarks || '').toLowerCase().includes(q);
                 const matchArt = (item.connectedArticleTitle || '').toLowerCase().includes(q);
                 const matchAuthor = (item.connectedArticleAuthor || '').toLowerCase().includes(q);
-                if (!matchTitle && !matchCat && !matchArtist && !matchArt && !matchAuthor) {
+                if (!matchTitle && !matchCat && !matchArtist && !matchRemarks && !matchArt && !matchAuthor) {
                     return false;
                 }
             }
@@ -223,11 +257,9 @@ document.addEventListener('DOMContentLoaded', () => {
             let titleText = 'No cartoons yet';
 
             if (isSearching) {
-                // When searching: "No cartoons found" (no subtitles)
                 iconClass = 'fa-solid fa-magnifying-glass';
                 titleText = 'No cartoons found';
             } else {
-                // When tab is empty: contextual empty message per tab (no subtitles)
                 if (currentFilter === 'published') {
                     iconClass = 'fa-solid fa-globe';
                     titleText = 'No published cartoons yet';
@@ -259,29 +291,33 @@ document.addEventListener('DOMContentLoaded', () => {
         gridEl.innerHTML = filtered.map(item => {
             // EXACT PUBLIC SITE ARCHIVE STYLE FOR PUBLISHED TAB
             if (isPublishedTab) {
-                const articleUrl = item.connectedArticleUrl || `article.html?id=${encodeURIComponent(item.connectedArticleId || '1')}`;
-                const articleHeadline = item.connectedArticleTitle || item.title;
-                const articleExcerpt = item.connectedArticleExcerpt || item.title;
+                const articleUrl = item.connectedArticleUrl || `/article?id=${encodeURIComponent(item.connectedArticleId || '1')}`;
+                const cleanFallback = (item.title && !item.title.match(/\.(png|jpe?g|svg|webp|gif)$/i)) ? item.title : 'Editorial Cartoon';
+                const articleHeadline = item.connectedArticleTitle || cleanFallback;
+                const articleExcerpt = item.connectedArticleExcerpt || cleanFallback;
                 const articleCategory = item.connectedArticleCategory || item.category || 'Opinion';
                 const articleAuthor = item.connectedArticleAuthor || currentAuthorName;
-                const articleDate = item.connectedArticleDate || item.date || 'Oct 12, 2026';
-                const articleViews = item.views !== undefined ? item.views : 2150;
+                const articleDate = item.connectedArticleDate || item.date || '';
+                const articleViews = item.views !== undefined ? item.views : 0;
                 const articleReadTime = item.readTime || '2 min read';
                 const articleShares = item.shares !== undefined ? item.shares : 0;
-                const safeImage = (item.image && !item.image.includes('maroon.jpg'))
-                    ? item.image
-                    : 'images/covers/faculty-overload-cartoon.svg';
+                const safeImage = item.image || '';
 
                 return `
                     <article class="archive-item">
                         <button type="button" class="archive-image-trigger" data-action="inspect" data-id="${item.id}" aria-label="Inspect cartoon: ${escapeHTML(item.title)}" title="Click to inspect cartoon">
                             <div class="archive-image" style="--image-color: #571525;">
-                                <img 
-                                    src="${escapeHTML(safeImage)}" 
-                                    alt="${escapeHTML(item.title)}" 
-                                    loading="lazy" 
-                                    onerror="this.onerror=null; this.src='images/covers/faculty-overload-cartoon.svg'"
-                                >
+                                ${safeImage ? `
+                                    <img 
+                                        src="${escapeHTML(safeImage)}" 
+                                        alt="${escapeHTML(item.title)}" 
+                                        loading="lazy" 
+                                    >
+                                ` : `
+                                    <div class="media-card-placeholder" style="display: flex; align-items: center; justify-content: center; height: 100%; color: #cbd5e1;">
+                                        <i class="fa-solid fa-palette" style="font-size: 2rem;"></i>
+                                    </div>
+                                `}
                             </div>
                         </button>
                         <div class="archive-item-copy">
@@ -322,23 +358,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // CLEAN CARD FOR QUEUE ITEMS (Pending with Head, Returned for Revision, EIC Approved)
             const statusCfg = getStatusConfig(item.status);
-            const isReturned = (item.status === 'Returned for Revision');
-            const safeImage = (item.image && !item.image.includes('maroon.jpg'))
-                ? item.image
-                : 'images/covers/faculty-overload-cartoon.svg';
+            const isReturned = (item.status || '').toLowerCase().includes('return') || (item.status || '').toLowerCase().includes('revision');
+            const safeImage = item.image || '';
 
             return `
                 <div class="manage-media-card" data-id="${item.id}">
                     <div class="media-card-preview-box" data-action="inspect" data-id="${item.id}">
-                        <img 
-                            src="${escapeHTML(safeImage)}" 
-                            alt="${escapeHTML(item.title)}" 
-                            class="media-card-img" 
-                            onerror="this.onerror=null; this.src='images/covers/faculty-overload-cartoon.svg'"
-                        >
-                        <div class="media-card-badge-layer">
-                            <span class="media-card-category-chip maroon-category">
-                                <i class="fa-solid fa-tag"></i> ${escapeHTML(item.category || 'Opinion')}
+                        ${safeImage ? `
+                            <img 
+                                src="${escapeHTML(safeImage)}" 
+                                alt="${escapeHTML(item.title)}" 
+                                class="media-card-img" 
+                            >
+                        ` : `
+                            <div class="media-card-placeholder" style="display: flex; align-items: center; justify-content: center; height: 100%; min-height: 180px; background: #f8fafc; color: #94a3b8;">
+                                <i class="fa-solid fa-palette" style="font-size: 2.2rem;"></i>
+                            </div>
+                        `}
+                        <div class="media-card-badge-layer" style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%; padding: 10px;">
+                            <span class="cover-type-tag cartoon" style="font-size: 0.68rem; font-weight: 700; padding: 3px 8px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.04em; background: rgba(15, 23, 42, 0.90); color: #f472b6; border: 1px solid rgba(244, 114, 182, 0.3);">
+                                <i class="fa-solid fa-palette"></i> CARTOON
                             </span>
                             <span class="media-status-pill ${statusCfg.cssClass}">
                                 ${statusCfg.icon} ${statusCfg.label}
@@ -346,14 +385,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     </div>
 
-                    <div class="media-card-body">
-                        <h3 class="media-card-title">${escapeHTML(item.title)}</h3>
-                        <div class="media-card-meta">
-                            <span><i class="fa-regular fa-calendar"></i> ${escapeHTML(item.date)}</span>
+                    <div class="media-card-body" style="padding: 14px 16px;">
+                        <div class="media-card-meta" style="display: flex; align-items: center; gap: 8px; font-size: 0.82rem; color: #64748b; margin-bottom: 12px;">
+                            <span><i class="fa-regular fa-calendar"></i> ${escapeHTML(item.date || 'Recent')}</span>
                             <span>&bull;</span>
-                            <span><i class="fa-solid fa-palette"></i> ${escapeHTML(item.artist || currentAuthorName)}</span>
-                            <span>&bull;</span>
-                            <span>${escapeHTML(item.fileSize || 'Standard')}</span>
+                            <span><i class="fa-solid fa-palette"></i> <strong>${escapeHTML(item.artist || currentAuthorName)}</strong></span>
                         </div>
 
                         <div class="media-card-actions">
@@ -379,7 +415,7 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const id = btn.getAttribute('data-id');
-                const item = cartoonItems.find(m => m.id === id);
+                const item = cartoonItems.find(m => String(m.id) === String(id));
                 if (item) openInspectModal(item);
             });
         });
@@ -390,27 +426,30 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!inspectModal) return;
 
         const statusCfg = getStatusConfig(item.status);
-        const safeImage = (item.image && !item.image.includes('maroon.jpg'))
-            ? item.image
-            : 'images/covers/faculty-overload-cartoon.svg';
 
-        if (modalImg) modalImg.src = safeImage;
+        if (modalImg) {
+            modalImg.onerror = null;
+            if (item.image) {
+                modalImg.src = item.image;
+                modalImg.alt = item.title || 'Cartoon Preview';
+                modalImg.style.display = '';
+            } else {
+                modalImg.src = '';
+                modalImg.style.display = 'none';
+            }
+        }
         if (modalCategory) {
-            modalCategory.innerHTML = `<i class="fa-solid fa-tag"></i> ${escapeHTML(item.category || 'Opinion')}`;
+            modalCategory.style.display = 'none';
         }
         if (modalStatus) {
             modalStatus.className = `media-status-pill ${statusCfg.cssClass}`;
             modalStatus.innerHTML = `${statusCfg.icon} ${statusCfg.label}`;
         }
-        if (modalDate) modalDate.textContent = item.date;
-        if (modalFilesize) modalFilesize.textContent = item.fileSize || 'Standard Asset';
-
-        if (modalCaption) {
-            modalCaption.textContent = item.connectedArticleTitle ? `Connected Story: "${item.connectedArticleTitle}"` : (item.title || '');
-        }
+        if (modalDate) modalDate.textContent = item.date || '';
 
         if (modalRemarksBox && modalRemarksText) {
-            if (item.status === 'Returned for Revision' && item.remarks) {
+            const isReturned = (item.status || '').toLowerCase().includes('return') || (item.status || '').toLowerCase().includes('revision');
+            if (isReturned && item.remarks) {
                 modalRemarksText.textContent = item.remarks;
                 modalRemarksBox.style.display = 'block';
             } else {
@@ -442,7 +481,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // 9. Tabs Filter Binding
+    // 8. Tabs Filter Binding
     tabButtons.forEach(btn => {
         btn.addEventListener('click', () => {
             tabButtons.forEach(b => {
@@ -456,7 +495,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // 10. Search Input Binding
+    // 9. Search Input Binding
     if (searchInput) {
         searchInput.addEventListener('input', (e) => {
             searchQuery = e.target.value.trim();
@@ -479,7 +518,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 11. Sort Select Binding
+    // 10. Sort Select Binding
     if (sortSelect) {
         sortSelect.addEventListener('change', (e) => {
             currentSort = e.target.value;
@@ -490,4 +529,3 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initial load
     loadCartoons();
 });
-

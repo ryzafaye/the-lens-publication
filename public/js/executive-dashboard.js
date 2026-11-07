@@ -354,7 +354,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <td><span class="status-badge status-review">Pending</span></td>
                         <td class="hide-on-mobile"><span class="table-date">${escapeHTML(art.date)}</span></td>
                         <td class="text-right">
-                            <a href="${window.REVIEW_ARTICLES_URL || '/executive/review-articles'}" class="table-manage-btn" title="Review Article">
+                            <a href="${(window.REVIEW_ARTICLES_URL || (window.location.pathname.includes('section-head') ? '/section-head/review-articles' : '/executive/review-articles')) + (art.id ? `?id=${encodeURIComponent(art.id)}` : '')}" class="table-manage-btn" title="Review Article">
                                 Manage
                             </a>
                         </td>
@@ -456,6 +456,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const viewerContent = document.getElementById('viewer-content');
     const viewerViews = document.getElementById('viewer-views');
     const viewerShares = document.getElementById('viewer-shares');
+    const viewerStatsBar = document.getElementById('viewer-stats-bar');
+    const viewerActionClose = document.getElementById('viewer-action-close');
+    const viewerActionManage = document.getElementById('viewer-action-manage');
     const viewerActionEdit = document.getElementById('viewer-action-edit');
     const viewerActionArchive = document.getElementById('viewer-action-archive');
     const viewerArchiveLabel = document.getElementById('viewer-archive-label');
@@ -506,9 +509,32 @@ document.addEventListener('DOMContentLoaded', () => {
         if (viewerShares) viewerShares.textContent = article.shares !== undefined ? Number(article.shares).toLocaleString() : '—';
 
         const isPublishedStory = articles.some(a => String(a.id) === String(article.id));
+        const isPendingArticle = !isPublishedStory || (article.status && /pending/i.test(article.status));
+
+        // In Pending Approval when previewing an article:
+        // 1. Remove views and share icon
+        if (viewerStatsBar) {
+            viewerStatsBar.style.display = isPendingArticle ? 'none' : 'flex';
+        }
+
+        // 2. Remove close button at the bottom
+        if (viewerActionClose) {
+            viewerActionClose.style.display = isPendingArticle ? 'none' : 'inline-flex';
+        }
+
+        // 3. Replace edit article button with manage that will direct to review articles
+        if (viewerActionEdit) {
+            viewerActionEdit.style.display = isPendingArticle ? 'none' : 'inline-flex';
+        }
+
+        if (viewerActionManage) {
+            viewerActionManage.style.display = isPendingArticle ? 'inline-flex' : 'none';
+            const baseReviewUrl = window.REVIEW_ARTICLES_URL || (window.location.pathname.includes('section-head') ? '/section-head/review-articles' : '/executive/review-articles');
+            viewerActionManage.href = article.id ? `${baseReviewUrl}?id=${encodeURIComponent(article.id)}` : baseReviewUrl;
+        }
 
         if (viewerArchiveLabel) {
-            if (isPublishedStory) {
+            if (isPublishedStory && !isPendingArticle) {
                 viewerArchiveLabel.textContent = article.isArchived ? 'Restore Article' : 'Move to Archive';
                 if (viewerActionArchive) viewerActionArchive.style.display = 'inline-flex';
             } else {
@@ -517,7 +543,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (viewerActionDelete) {
-            viewerActionDelete.style.display = isPublishedStory ? 'inline-flex' : 'none';
+            viewerActionDelete.style.display = (isPublishedStory && !isPendingArticle) ? 'inline-flex' : 'none';
         }
 
         // Paragraphs
@@ -615,8 +641,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // -------------------------------------------------------------------------
-    // Viewer Bottom Actions: Edit, Move to Archive/Restore, Emergency Delete
+    // Viewer Bottom Actions: Manage, Edit, Move to Archive/Restore, Emergency Delete
     // -------------------------------------------------------------------------
+    if (viewerActionManage) {
+        viewerActionManage.addEventListener('click', (e) => {
+            e.preventDefault();
+            const baseReviewUrl = window.REVIEW_ARTICLES_URL || (window.location.pathname.includes('section-head') ? '/section-head/review-articles' : '/executive/review-articles');
+            const targetUrl = currentViewingArticleId ? `${baseReviewUrl}?id=${encodeURIComponent(currentViewingArticleId)}` : baseReviewUrl;
+            window.location.href = targetUrl;
+        });
+    }
+
     if (viewerActionEdit) {
         viewerActionEdit.addEventListener('click', () => {
             if (currentViewingArticleId) {

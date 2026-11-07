@@ -91,7 +91,7 @@
                                     <td><span class="status-badge status-review">Pending</span></td>
                                     <td class="hide-on-mobile"><span class="table-date">{{ $art['date'] ?? '' }}</span></td>
                                     <td class="text-right">
-                                        <a href="{{ request()->is('section-head*') ? route('section-head.review-articles') : route('executive.review-articles') }}" class="table-manage-btn" title="Review Article">
+                                        <a href="{{ request()->is('section-head*') ? route('section-head.review-articles', ['id' => $art['id']]) : route('executive.review-articles', ['id' => $art['id']]) }}" class="table-manage-btn" title="Review Article">
                                             Manage
                                         </a>
                                     </td>
@@ -224,16 +224,19 @@
                 <!-- Paragraphs populated dynamically -->
             </div>
 
-            <div class="viewer-stats-bar">
+            <div id="viewer-stats-bar" class="viewer-stats-bar">
                 <span class="stat-pill"><i class="fa-regular fa-eye"></i> <span id="viewer-views">0</span></span>
                 <span class="stat-pill"><i class="fa-solid fa-share-nodes"></i> <span id="viewer-shares">0</span></span>
             </div>
         </div>
 
         <div class="viewer-modal-footer">
-            <button type="button" class="modal-btn modal-btn-cancel" onclick="document.getElementById('article-viewer-modal').classList.add('hidden')">
+            <button type="button" id="viewer-action-close" class="modal-btn modal-btn-cancel" onclick="document.getElementById('article-viewer-modal').classList.add('hidden')">
                 Close
             </button>
+            <a href="{{ request()->is('section-head*') ? route('section-head.review-articles') : route('executive.review-articles') }}" id="viewer-action-manage" class="modal-btn modal-btn-confirm-primary" style="display: none; text-decoration: none;">
+                <i class="fa-solid fa-file-signature"></i> <span>Manage</span>
+            </a>
             <button type="button" id="viewer-action-edit" class="modal-btn modal-btn-secondary">
                 <i class="fa-regular fa-pen-to-square"></i> Edit Article
             </button>

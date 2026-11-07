@@ -147,8 +147,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return window.INITIAL_DATA.published;
         }
         if (window.INITIAL_DATA && Array.isArray(window.INITIAL_DATA)) {
-            const filtered = window.INITIAL_DATA.filter(a => a.status === 'published' || a.status === 'Published');
-            if (filtered.length > 0) return filtered;
+            return window.INITIAL_DATA.filter(a => a.status === 'published' || a.status === 'Published');
         }
         try {
             const raw = localStorage.getItem('mpc_publish_articles_v2') || localStorage.getItem('theLensPublishedArticles');

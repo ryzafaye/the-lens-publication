@@ -512,11 +512,18 @@
 .modal-btn-confirm-primary {
     background-color: var(--sidebar-maroon);
     border: 1px solid var(--sidebar-maroon);
-    color: #ffffff;
+    color: #ffffff !important;
+    text-decoration: none !important;
+}
+
+.modal-btn-confirm-primary i {
+    color: #ffffff !important;
 }
 
 .modal-btn-confirm-primary:hover {
     background-color: var(--sidebar-maroon-hover);
+    color: #ffffff !important;
+    text-decoration: none !important;
 }
 
 /* 8. Toast Notifications (Default Style: Dark Pill with Green Bullet Dot) */

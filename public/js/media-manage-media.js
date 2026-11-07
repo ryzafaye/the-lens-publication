@@ -123,13 +123,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 4. Data Loading & Counters
     function loadMedia() {
-        if (window.INITIAL_MEDIA && Array.isArray(window.INITIAL_MEDIA) && window.INITIAL_MEDIA.length > 0) {
-            mediaItems = window.INITIAL_MEDIA;
-        } else if (window.INITIAL_DATA && Array.isArray(window.INITIAL_DATA) && window.INITIAL_DATA.length > 0) {
-            mediaItems = window.INITIAL_DATA;
-        } else {
-            mediaItems = (typeof getMediaSubmissions === 'function') ? getMediaSubmissions() : [];
-        }
+        const raw = (typeof getMediaSubmissions === 'function') ? getMediaSubmissions() : [];
+        const seen = new Set();
+        mediaItems = [];
+        raw.forEach(item => {
+            if (!item || !item.id) return;
+            const strId = String(item.id);
+            if (!seen.has(strId)) {
+                seen.add(strId);
+                mediaItems.push(item);
+            }
+        });
         updateCounters();
         renderGrid();
     }
@@ -317,6 +321,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // CLEAN CARD FOR QUEUE ITEMS (Pending with Head, Returned for Revision, EIC Approved)
             const statusCfg = getStatusConfig(item.status);
             const isReturned = (item.status === 'Returned for Revision');
+            const isPhoto = true; // Media Team submissions are photos
 
             return `
                 <div class="manage-media-card" data-id="${item.id}">
@@ -329,10 +334,13 @@ document.addEventListener('DOMContentLoaded', () => {
                             >
                         ` : `
                             <div class="media-card-placeholder" style="display: flex; align-items: center; justify-content: center; height: 100%; min-height: 180px; background: #f8fafc; color: #94a3b8;">
-                                <i class="fa-solid fa-palette" style="font-size: 2.2rem;"></i>
+                                <i class="fa-solid fa-camera" style="font-size: 2.2rem;"></i>
                             </div>
                         `}
-                        <div class="media-card-badge-layer">
+                        <div class="media-card-badge-layer" style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%; padding: 10px;">
+                            <span class="cover-type-tag photo" style="font-size: 0.68rem; font-weight: 700; padding: 3px 8px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.04em; background: rgba(15, 23, 42, 0.90); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3);">
+                                <i class="fa-solid fa-camera"></i> PHOTO
+                            </span>
                             <span class="media-status-pill ${statusCfg.cssClass}">
                                 ${statusCfg.icon} ${statusCfg.label}
                             </span>
@@ -344,7 +352,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="media-card-meta">
                             <span><i class="fa-regular fa-calendar"></i> ${escapeHTML(item.date)}</span>
                             <span>&bull;</span>
-                            <span><i class="fa-solid fa-palette"></i> ${escapeHTML(item.artist || 'Media Team Member')}</span>
+                            <span><i class="fa-solid fa-camera"></i> ${escapeHTML(item.artist || 'Media Team Member')}</span>
                             <span>&bull;</span>
                             <span>${escapeHTML(item.fileSize || 'Standard')}</span>
                         </div>
@@ -352,7 +360,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="media-card-actions">
                             <button type="button" class="btn-media-inspect" data-action="inspect" data-id="${item.id}">
                                 <i class="fa-regular fa-eye"></i>
-                                <span>Inspect Graphic</span>
+                                <span>Inspect Photo</span>
                             </button>
 
                             ${(isReturned && item.remarks) ? `
@@ -407,7 +415,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (modalDate) modalDate.textContent = item.date || '';
         if (modalFilesize) modalFilesize.textContent = item.fileSize || 'Standard';
         if (modalCaption) {
-            modalCaption.textContent = item.connectedArticleTitle || item.targetArticle || item.caption || 'Publication Material Asset';
+            const defaultLabel = 'Photojournalism Capture';
+            modalCaption.textContent = item.connectedArticleTitle || item.targetArticle || item.caption || defaultLabel;
         }
 
         // Remarks Feedback Display

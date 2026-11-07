@@ -1,3 +1,29 @@
+// One-time automatic workflow purge of media team pics per user request
+try {
+    const PURGE_MEDIA_PICS_FLAG = 'theLens_purge_all_media_pics_v20261107_final';
+    if (localStorage.getItem(PURGE_MEDIA_PICS_FLAG) !== 'true') {
+        localStorage.removeItem('mediaTeamSubmissions_v2');
+        localStorage.removeItem('mediaTeamSubmissions_v1');
+        const rawQueue = localStorage.getItem('articleCoverReviewQueue_v1');
+        if (rawQueue) {
+            try {
+                let queue = JSON.parse(rawQueue);
+                if (Array.isArray(queue)) {
+                    queue = queue.filter(item => {
+                        if (!item) return false;
+                        const t = (item.type || '').toLowerCase();
+                        const cat = (item.category || '').toLowerCase();
+                        const role = (item.uploaderRole || '').toLowerCase();
+                        return t !== 'photo' && cat !== 'photo' && !role.includes('media') && !role.includes('photojournalist');
+                    });
+                    localStorage.setItem('articleCoverReviewQueue_v1', JSON.stringify(queue));
+                }
+            } catch (err) {}
+        }
+        localStorage.setItem(PURGE_MEDIA_PICS_FLAG, 'true');
+    }
+} catch (e) {}
+
 // One-time automatic workflow purge to guarantee zero-mock state for testing
 try {
     const CLEAR_FLAG = 'theLens_clean_workflow_zero_mock_v20';
@@ -252,9 +278,11 @@ try {
                     localStorage.removeItem('userRole');
                     localStorage.removeItem('userName');
                     localStorage.removeItem('studentNumber');
+                    localStorage.removeItem('userId');
                     localStorage.removeItem('mediaRole');
                     localStorage.removeItem('mediaName');
                     localStorage.removeItem('mediaStudentNumber');
+                    localStorage.removeItem('mediaUserId');
                 } catch (err) {}
                 const form = document.querySelector('form[action*="logout"]');
                 if (form) {

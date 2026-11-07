@@ -18,8 +18,8 @@
     </div>
 
     @if(session('success'))
-        <div style="background-color: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; padding: 14px 18px; border-radius: 8px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
-            <i class="fa-solid fa-circle-check" style="font-size: 1.1rem;"></i>
+        <div style="background-color: #fdf2f4; border: 1px solid #fbcfe8; color: var(--sidebar-maroon, #5c0a18); padding: 14px 18px; border-radius: 8px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+            <i class="fa-solid fa-circle-check" style="font-size: 1.1rem; color: var(--sidebar-maroon, #5c0a18);"></i>
             <span>{{ session('success') }}</span>
         </div>
     @endif
@@ -80,10 +80,13 @@
                     </div>
 
                     <!-- Action Bar: Just the Submit Button -->
+                    @php
+                        $isSectionHead = in_array(Auth::user()?->role?->role_name, ['Cartoonist Head', 'Associate Cartoonist Head', 'Chief Cartoonist']);
+                    @endphp
                     <div class="media-action-footer" style="margin-top: 28px; padding-top: 20px; border-top: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: flex-end;">
                         <button type="submit" id="btn-submit-cartoon" class="btn-media-submit">
                             <i class="fa-solid fa-paper-plane"></i>
-                            <span>Submit Cartoon to Desk</span>
+                            <span>{{ $isSectionHead ? 'Submit Cartoon to EIC' : 'Submit Cartoon to Desk' }}</span>
                         </button>
                     </div>
 
@@ -100,6 +103,10 @@
 @endsection
 
 @section('extra-js')
+<script>
+    window.CARTOONIST_MANAGE_CARTOONS_ROUTE = "{{ route('cartoonist.manage-cartoons') }}";
+</script>
+<script src="{{ asset('js/cartoon-data.js') }}"></script>
 <script src="{{ asset('js/cartoonist-submit-cartoon.js') }}"></script>
 @endsection
 

@@ -530,9 +530,9 @@ textarea.media-text-input {
     border-radius: 12px;
     font-size: 0.72rem;
     font-weight: 700;
-    background: #ecfdf3;
-    color: #027a48;
-    border: 1px solid #abefc6;
+    background: #fdf2f4;
+    color: var(--sidebar-maroon, #5c0a18);
+    border: 1px solid #fecdd3;
 }
 
 /* Action Footer & Buttons */

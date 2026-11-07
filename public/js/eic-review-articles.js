@@ -21,10 +21,24 @@ document.addEventListener('DOMContentLoaded', () => {
     // Helper to resolve the correct Section Head who approved the story based on category of submitted article
     function resolveEndorser(item) {
         if (!item) return 'Section Head';
+
         const cat = (item.category || '').trim();
         const catLower = cat.toLowerCase();
 
-        // 1. Strictly resolve Section Head based on the submitted article's category
+        // 1. For Opinion, there is no Opinion Head -> Direct Submission
+        if (catLower.includes('opinion')) {
+            return 'Direct Submission (Opinion)';
+        }
+
+        // 2. Prefer item.endorsedBy if set by backend or submit payload (and not generic 'Section Head')
+        if (item.endorsedBy && item.endorsedBy !== 'Section Head' && !item.endorsedBy.toLowerCase().includes('section editorial')) {
+            if (item.endorsedBy.toLowerCase().includes('opinion') || item.endorsedBy.toLowerCase().includes('direct')) {
+                return 'Direct Submission (Opinion)';
+            }
+            return item.endorsedBy;
+        }
+
+        // 3. Strictly resolve Section Head based on the submitted article's category
         const heads = window.__CATEGORY_HEADS__ || {};
         for (const [key, val] of Object.entries(heads)) {
             if (catLower.includes(key.toLowerCase()) || key.toLowerCase().includes(catLower)) {
@@ -32,32 +46,32 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
         const fallbackMap = {
-            'news': 'News Head',
-            'opinions': 'Opinion Head',
-            'opinion': 'Opinion Head',
-            'features': 'Feature Head',
-            'feature': 'Feature Head',
-            'science and technology': 'SciTech Head',
-            'scitech': 'SciTech Head',
-            'science & technology': 'SciTech Head',
-            'literature': 'Literary Head',
-            'literary': 'Literary Head'
+            'news': 'Arquero (News Head)',
+            'opinions': 'Direct Submission (Opinion)',
+            'opinion': 'Direct Submission (Opinion)',
+            'features': 'Dela Cruz (Feature Head)',
+            'feature': 'Dela Cruz (Feature Head)',
+            'science and technology': 'Apilado (SciTech Head)',
+            'scitech': 'Apilado (SciTech Head)',
+            'science & technology': 'Apilado (SciTech Head)',
+            'literature': 'Llandelar (Literary Head)',
+            'literary': 'Llandelar (Literary Head)'
         };
-        if (fallbackMap[catLower]) {
-            return fallbackMap[catLower];
-        }
         for (const [fKey, fVal] of Object.entries(fallbackMap)) {
             if (catLower.includes(fKey) || fKey.includes(catLower)) {
                 return fVal;
             }
         }
 
-        // 2. Fallback to item.endorsedBy if category could not be resolved
-        if (item.endorsedBy && item.endorsedBy !== 'Section Head') {
-            return item.endorsedBy;
-        }
-
         return 'Section Head';
+    }
+
+    function renderEndorsementBadge(item) {
+        const endorser = resolveEndorser(item);
+        if (endorser.toLowerCase().includes('direct') || endorser.toLowerCase().includes('opinion')) {
+            return `<span class="review-box-endorsed"><i class="fa-solid fa-feather-pointed" aria-hidden="true"></i> Direct Submission (Opinion)</span>`;
+        }
+        return `<span class="review-box-endorsed"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Approved by <strong>${escapeHTML(endorser)}</strong></span>`;
     }
 
     // LocalStorage & Server Queue Management
@@ -352,7 +366,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="review-box-meta">
                         <span class="review-box-category">${escapeHTML(item.category)}</span>
                         <span class="review-box-date"><i class="fa-regular fa-calendar" aria-hidden="true"></i> ${escapeHTML(item.date)}</span>
-                        <span class="review-box-endorsed"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Approved by <strong>${escapeHTML(resolveEndorser(item))}</strong></span>
+                        ${renderEndorsementBadge(item)}
                     </div>
 
                     <button type="button" class="review-box-title" data-action="edit" data-id="${item.id}" title="${escapeHTML(item.title)}">
@@ -652,8 +666,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (modalSection) modalSection.textContent = item.category;
         if (modalDate) modalDate.textContent = item.date;
         if (modalWriter) modalWriter.textContent = item.author;
-        const modalEndorser = document.getElementById('modal-endorser');
-        if (modalEndorser) modalEndorser.textContent = resolveEndorser(item);
+        const modalEndorserWrap = document.querySelector('.manuscript-byline-endorser');
+        const resolvedEndorser = resolveEndorser(item);
+        if (modalEndorserWrap) {
+            if (resolvedEndorser.toLowerCase().includes('direct') || resolvedEndorser.toLowerCase().includes('opinion')) {
+                modalEndorserWrap.innerHTML = `<i class="fa-solid fa-feather-pointed" aria-hidden="true"></i> <span>Direct Submission (Opinion)</span>`;
+            } else {
+                modalEndorserWrap.innerHTML = `<i class="fa-solid fa-circle-check" aria-hidden="true"></i> <span>Approved by <strong id="modal-endorser">${escapeHTML(resolvedEndorser)}</strong></span>`;
+            }
+        }
 
         const modalExcerpt = document.getElementById('modal-excerpt');
         if (modalExcerpt) {
@@ -910,5 +931,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initial render
     renderReviewBoxes();
+
+    // Check URL parameters for direct manuscript auto-opening (e.g. ?id=...)
+    const urlParams = new URLSearchParams(window.location.search);
+    const directId = urlParams.get('id');
+    if (directId) {
+        openManuscript(directId, { focusRemarks: false });
+    }
 });
 

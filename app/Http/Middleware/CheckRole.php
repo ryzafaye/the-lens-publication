@@ -58,6 +58,22 @@ class CheckRole
             }
         }
 
+        // Broad check for Media Team, Photojournalist, and Photojournalist Head roles
+        if (
+            in_array('Media Team', $roles) ||
+            in_array('media team', $rolesLower) ||
+            in_array('Photojournalist', $roles) ||
+            in_array('photojournalist', $rolesLower) ||
+            in_array('Photojournalist Head', $roles) ||
+            in_array('photojournalist head', $rolesLower) ||
+            in_array('Media & Communication', $roles) ||
+            in_array('media & communication', $rolesLower)
+        ) {
+            if (str_contains($userRoleLower, 'media') || str_contains($userRoleLower, 'photojournalist')) {
+                return $next($request);
+            }
+        }
+
         // If unauthorized, abort 403 if authenticated, or redirect to login
         if (Auth::check()) {
             abort(403, 'Access Denied: Your account role does not have permission to access this page.');

@@ -5,6 +5,7 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -67,6 +68,21 @@ class User extends Authenticatable
     public function activityLogs()
     {
         return $this->hasMany(ActivityLog::class);
+    }
+
+    public function uploadedImages(): HasMany
+    {
+        return $this->hasMany(ArticleImage::class, 'uploader_id');
+    }
+
+    public function headApprovedImages(): HasMany
+    {
+        return $this->hasMany(ArticleImage::class, 'head_approved_by');
+    }
+
+    public function eicApprovedImages(): HasMany
+    {
+        return $this->hasMany(ArticleImage::class, 'eic_approved_by');
     }
 
     public function getAvatarAttribute()

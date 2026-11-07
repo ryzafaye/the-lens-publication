@@ -19,8 +19,8 @@
 
         <div class="writer-header-right">
             <a href="{{ route('media.submit-media') }}" class="btn-primary-action">
-                <i class="fa-solid fa-cloud-arrow-up"></i>
-                <span>Submit Media</span>
+                <i class="fa-solid fa-camera"></i>
+                <span>Submit Photo</span>
             </a>
         </div>
     </div>
@@ -124,11 +124,10 @@
             </div>
         </div>
 
-        <div class="modal-footer" style="padding: 14px 20px; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 10px;">
-            <a href="{{ route('media.submit-media') }}" class="btn-maroon-action" style="font-size: 0.82rem; padding: 8px 16px;">
-                <i class="fa-solid fa-cloud-arrow-up"></i>
-                <span>Submit Media</span>
-            </a>
+        <div class="modal-footer" style="padding: 12px 20px; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end;">
+            <button type="button" id="btn-modal-close" class="btn-modal-cancel" style="padding: 7px 18px; border: 1px solid #cbd5e1; border-radius: 6px; background: #ffffff; color: #475467; font-weight: 600; font-size: 0.84rem; cursor: pointer;">
+                <span>Close</span>
+            </button>
         </div>
     </div>
 </div>

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
@@ -7,15 +9,21 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use App\Models\Article;
+use App\Models\ArticleImage;
 use App\Models\Category;
 use App\Models\User;
 use App\Models\Role;
 use App\Models\ActivityLog;
+use App\Services\ArticleImageService;
 use App\Traits\LogsActivity;
 
 class MpcController extends Controller
 {
     use LogsActivity;
+
+    public function __construct(
+        protected ArticleImageService $imageService
+    ) {}
     public function dashboard()
     {
         /** @var \App\Models\User $user */
@@ -95,7 +103,7 @@ class MpcController extends Controller
 
     public function publishArticle()
     {
-        $articles = Article::with(['user.role', 'category'])
+        $articles = Article::with(['user.role', 'category', 'coverImage.uploader'])
             ->whereIn('status', ['Approved', 'Ready to Publish', 'Published', 'Unpublished'])
             ->latest('updated_at')
             ->get()
@@ -124,7 +132,7 @@ class MpcController extends Controller
                 }
 
                 $authorName = $article->user->full_name ?? 'Staff Writer';
-                $endorserName = $article->endorser ? ('Approved by ' . $article->endorser) : 'Endorsed by Section Head';
+                $endorserName = $this->resolveEndorserName($article);
 
                 return [
                     'id' => $article->id,
@@ -139,7 +147,11 @@ class MpcController extends Controller
                     'rawDate' => $article->updated_at ? $article->updated_at->toIso8601String() : ($article->created_at ? $article->created_at->toIso8601String() : now()->toIso8601String()),
                     'status' => $statusSlug,
                     'db_status' => $article->status,
-                    'assignedCoverId' => '',
+                    'assignedCoverId' => $article->coverImage ? (string) $article->coverImage->id : '',
+                    'coverImage' => $article->coverImage?->file_url ?? '',
+                    'image' => $article->coverImage?->file_url ?? '',
+                    'coverArtist' => $article->coverImage?->artist_name ?? '',
+                    'coverType' => $article->coverImage?->image_type ?? '',
                     'excerpt' => $article->excerpt ?: Str::limit(strip_tags($article->content ?? ''), 120),
                     'body' => $article->content ? (str_contains($article->content, '<p>') ? $article->content : collect(preg_split('/\n\n+/', trim($article->content)))->map(fn($p) => '<p>' . htmlspecialchars(trim($p)) . '</p>')->implode('')) : '<p>Manuscript content approved.</p>',
                     'publishedAt' => $article->published_at ? $article->published_at->format('M d, Y') : null,
@@ -149,12 +161,27 @@ class MpcController extends Controller
         $readyCount = $articles->where('status', 'ready')->count();
         $publishedCount = $articles->where('status', 'published')->count();
         $unpublishedCount = $articles->where('status', 'unpublished')->count();
-        $coversCount = 0;
+
+        // Fetch genuine approved visual assets from ArticleImage
+        $approvedCoverModels = ArticleImage::approved()
+            ->with(['uploader.role', 'headApprover.role', 'eicApprover.role', 'article'])
+            ->latest()
+            ->get();
+        $coversCount = $approvedCoverModels->count();
+        $approvedCovers = $approvedCoverModels->map(fn($item) => $this->imageService->formatForView($item))->values()->all();
 
         // Also alias $approvedArticles for full view compatibility
         $approvedArticles = $articles;
 
-        return view('mpc.publish-article', compact('articles', 'approvedArticles', 'readyCount', 'publishedCount', 'unpublishedCount', 'coversCount'));
+        return view('mpc.publish-article', compact(
+            'articles',
+            'approvedArticles',
+            'approvedCovers',
+            'readyCount',
+            'publishedCount',
+            'unpublishedCount',
+            'coversCount'
+        ));
     }
 
     public function mediaDesk()
@@ -169,7 +196,48 @@ class MpcController extends Controller
 
     public function storeMedia(Request $request)
     {
-        return redirect()->route('mpc.media-desk')->with('success', 'Media submitted successfully.');
+        $request->validate([
+            'media_file' => 'nullable|image|mimes:svg,png,jpg,jpeg,webp|max:10240',
+            'image' => 'nullable|string',
+            'title' => 'nullable|string|max:255',
+            'caption' => 'nullable|string',
+            'type' => 'nullable|string|in:photo,graphic',
+        ]);
+
+        $fileOrData = null;
+        if ($request->hasFile('media_file')) {
+            $fileOrData = $request->file('media_file');
+        } elseif ($request->filled('image')) {
+            $fileOrData = $request->input('image');
+        }
+
+        if ($fileOrData) {
+            /** @var \App\Models\User $user */
+            $user = Auth::user();
+            $this->imageService->storeImage(
+                $user,
+                $fileOrData,
+                $request->input('type') ?: 'photo',
+                $request->input('title'),
+                $request->input('caption')
+            );
+            ActivityLog::logAction($user->id, 'submitted media');
+        }
+
+        return redirect()->route('mpc.manage-media')->with('success', 'Media submitted successfully.');
+    }
+
+    public function manageMedia()
+    {
+        $mediaItems = ArticleImage::whereIn('image_type', ['photo', 'graphic'])
+            ->with(['uploader.role', 'headApprover.role', 'eicApprover.role', 'article'])
+            ->latest()
+            ->get()
+            ->map(fn($item) => $this->imageService->formatForView($item))
+            ->values()
+            ->all();
+
+        return view('mpc.manage-media', compact('mediaItems'));
     }
 
     public function manageMyArticles()
@@ -310,9 +378,36 @@ class MpcController extends Controller
         return view('mpc.transparency');
     }
 
+    public function assignCover(Request $request, $id)
+    {
+        $request->validate([
+            'cover_id' => 'required|exists:article_images,id',
+        ]);
+
+        $article = Article::findOrFail($id);
+        $image = $this->imageService->assignCoverToArticle($article, $request->cover_id);
+
+        ActivityLog::logAction(Auth::id(), 'assigned cover to', $article);
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Cover attached successfully.',
+                'cover' => $this->imageService->formatForView($image),
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Cover attached successfully.');
+    }
+
     public function publishArticleRelease(Request $request, $id)
     {
         $article = Article::findOrFail($id);
+
+        if ($request->filled('cover_id')) {
+            $this->imageService->assignCoverToArticle($article, $request->cover_id);
+        }
+
         $article->update([
             'status' => 'Published',
             'published_at' => now(),
@@ -386,6 +481,94 @@ class MpcController extends Controller
     public function profileSettings()
     {
         return view('mpc.profile-settings');
+    }
+
+    protected function getCategoryHeadsMap(): array
+    {
+        return Cache::remember('category_section_heads_map_v5', 3600, function () {
+            $map = [
+                'News' => 'Arquero (News Head)',
+                'Literature' => 'Llandelar (Literary Head)',
+                'Literary' => 'Llandelar (Literary Head)',
+                'Feature' => 'Dela Cruz (Feature Head)',
+                'Features' => 'Dela Cruz (Feature Head)',
+                'Science & Technology' => 'Apilado (SciTech Head)',
+                'Science and Technology' => 'Apilado (SciTech Head)',
+                'SciTech' => 'Apilado (SciTech Head)',
+                'Opinion' => 'Direct Submission (Opinion)',
+                'Opinions' => 'Direct Submission (Opinion)',
+            ];
+
+            try {
+                $headUsers = User::with('role')
+                    ->whereHas('role', function ($q) {
+                        $q->where('role_name', 'like', '%Head%');
+                    })
+                    ->get();
+
+                foreach ($headUsers as $user) {
+                    $roleName = $user->role->role_name ?? '';
+                    $lastName = $this->extractLastName($user->full_name);
+
+                    if (stripos($roleName, 'News') !== false) {
+                        $map['News'] = "{$lastName} (News Head)";
+                    } elseif (stripos($roleName, 'Literary') !== false || stripos($roleName, 'Literature') !== false) {
+                        $map['Literature'] = "{$lastName} (Literary Head)";
+                        $map['Literary'] = "{$lastName} (Literary Head)";
+                    } elseif (stripos($roleName, 'Feature') !== false) {
+                        $map['Feature'] = "{$lastName} (Feature Head)";
+                        $map['Features'] = "{$lastName} (Feature Head)";
+                    } elseif (stripos($roleName, 'Science') !== false) {
+                        $map['Science & Technology'] = "{$lastName} (SciTech Head)";
+                        $map['Science and Technology'] = "{$lastName} (SciTech Head)";
+                        $map['SciTech'] = "{$lastName} (SciTech Head)";
+                    }
+                }
+            } catch (\Throwable $e) {}
+
+            return $map;
+        });
+    }
+
+    protected function extractLastName(?string $fullName): string
+    {
+        if (empty($fullName)) return '';
+        $parts = preg_split('/\s+/', trim($fullName));
+        if (count($parts) === 1) return $parts[0];
+
+        $last = array_pop($parts);
+        $prev = end($parts);
+        if ($prev && in_array(strtolower($prev), ['de', 'dela', 'del', 'delos', 'san'])) {
+            return $prev . ' ' . $last;
+        }
+
+        return $last;
+    }
+
+    protected function resolveEndorserName($article): string
+    {
+        $catName = $article->category->name ?? '';
+        if (!empty($catName) && stripos($catName, 'opinion') !== false) {
+            return 'Direct Submission (Opinion)';
+        }
+
+        $headsMap = $this->getCategoryHeadsMap();
+        if (!empty($catName)) {
+            if (isset($headsMap[$catName])) {
+                return 'Approved by ' . $headsMap[$catName];
+            }
+            foreach ($headsMap as $catKey => $headVal) {
+                if (stripos($catName, $catKey) !== false || stripos($catKey, $catName) !== false) {
+                    return 'Approved by ' . $headVal;
+                }
+            }
+        }
+
+        if (!empty($article->endorser)) {
+            return 'Approved by ' . $article->endorser;
+        }
+
+        return 'Approved by Section Head';
     }
 }
 

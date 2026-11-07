@@ -103,7 +103,7 @@
                 @if(!request()->is('section-head*'))
                 <div class="manuscript-byline-endorser">
                     <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
-                    <span>Approved by Section Head: <strong id="modal-endorser">Elena Ramos (News Head)</strong></span>
+                    <span>Approved by <strong id="modal-endorser">Section Head</strong></span>
                 </div>
                 @endif
             </div>
@@ -160,6 +160,7 @@
         window.INITIAL_DATA = window.INITIAL_PENDING;
         window.__PENDING_ARTICLES__ = window.INITIAL_PENDING;
         window.__SECTION_CATEGORY__ = @json($category?->name ?? null);
+        window.__CATEGORY_HEADS__ = @json($categoryHeads ?? []);
         window.__UPDATE_URL__ = "{{ url(request()->is('section-head*') ? '/section-head/review-articles' : '/executive/review-articles') }}";
         window.__APPROVE_URL__ = "{{ url(request()->is('section-head*') ? '/section-head/review-articles' : '/executive/review-articles') }}";
         window.__REVISION_URL__ = "{{ url(request()->is('section-head*') ? '/section-head/review-articles' : '/executive/review-articles') }}";

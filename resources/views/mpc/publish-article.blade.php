@@ -101,10 +101,6 @@
                 </div>
                 <div class="article-card-actions" style="margin-top: 14px; display: flex; align-items: center; justify-content: space-between;">
                     <span class="status-pill status-pill-pending">Ready to Publish</span>
-                    <button type="button" class="btn-mpc-read" data-action="read" data-id="{{ is_array($article) ? ($article['id'] ?? '') : $article->id }}">
-                        <i class="fa-regular fa-file-lines"></i>
-                        <span>Read Article</span>
-                    </button>
                 </div>
             </div>
         @empty
@@ -148,9 +144,8 @@
             <div class="mpc-modal-filter-row">
                 <div class="mpc-modal-pills">
                     <button type="button" class="mpc-modal-pill active" data-cover-type="all">All Formats</button>
-                    <button type="button" class="mpc-modal-pill" data-cover-type="pubmat">PUBMAT</button>
-                    <button type="button" class="mpc-modal-pill" data-cover-type="photo">PHOTOS</button>
-                    <button type="button" class="mpc-modal-pill" data-cover-type="cartoon">CARTOON</button>
+                    <button type="button" class="mpc-modal-pill" data-cover-type="photo"><i class="fa-solid fa-camera"></i> PHOTOS</button>
+                    <button type="button" class="mpc-modal-pill" data-cover-type="cartoon"><i class="fa-solid fa-palette"></i> CARTOON</button>
                 </div>
                 <span style="font-size: 0.76rem; color: #667085;">Click an artwork to select</span>
             </div>
@@ -195,25 +190,22 @@
                 </div>
                 <div class="viewer-byline-text">
                     <span class="viewer-by">By <strong id="reader-author">Author Name</strong></span>
-                    <span id="reader-endorsements" style="font-size: 0.78rem; color: #667085; margin-top: 2px;"></span>
                 </div>
             </div>
+
+            <!-- Excerpt First -->
+            <p id="reader-excerpt" class="viewer-excerpt" style="display: none;"></p>
 
             <!-- Assigned cover preview banner -->
             <div id="reader-cover-wrap" class="viewer-banner" style="display: none; position: relative;">
                 <img id="reader-cover-img" src="" alt="Assigned cover">
-                <div id="reader-cover-badge" style="position: absolute; bottom: 12px; left: 14px; background: rgba(16, 24, 40, 0.85); color: #fff; padding: 4px 10px; border-radius: 6px; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; backdrop-filter: blur(4px);">COVER</div>
+                <div id="reader-cover-badge" style="position: absolute; bottom: 12px; left: 14px; background: rgba(16, 24, 40, 0.85); color: #fff; padding: 4px 10px; border-radius: 6px; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.5px; backdrop-filter: blur(4px); display: inline-flex; align-items: center; gap: 6px;"></div>
             </div>
-
-            <p id="reader-excerpt" class="viewer-excerpt" style="display: none;"></p>
 
             <div id="reader-body" class="manuscript-prose"></div>
         </div>
 
-        <div class="viewer-modal-footer">
-            <button type="button" id="close-reader-footer-btn" class="btn-modal-cancel">
-                <span>Close</span>
-            </button>
+        <div class="viewer-modal-footer" style="justify-content: flex-end;">
             <div style="display: inline-flex; align-items: center; gap: 8px;">
                 <button type="button" id="reader-action-assign" class="btn-mpc-assign">
                     <i class="fa-solid fa-palette"></i>
@@ -267,11 +259,37 @@
         </div>
     </div>
 </div>
+
+<!-- Modal 4: Inspect Approved Cover Modal -->
+<div id="cover-inspect-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="inspect-artist">
+    <div class="modal-card cover-inspect-modal-card">
+        <div class="cover-inspect-header">
+            <div class="cover-inspect-header-left">
+                <span id="inspect-type-tag" class="cover-type-tag photo">
+                    <i id="inspect-type-icon" class="fa-solid fa-camera"></i> <span id="inspect-type-text">PHOTO</span>
+                </span>
+                <div class="cover-inspect-artist-row">
+                    <span id="inspect-artist-label">Photojournalist: <strong id="inspect-artist">Artist Name</strong></span>
+                </div>
+            </div>
+            <div class="cover-inspect-header-right">
+                <button type="button" id="close-inspect-btn" class="cover-modal-close-btn" aria-label="Close artwork inspector" style="background: transparent; border: none; font-size: 1.25rem; color: #667085; cursor: pointer;">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="cover-inspect-theater">
+            <img id="inspect-image" src="" alt="Publication Artwork Full View" class="cover-inspect-image-fullscreen">
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
     <script>
         window.INITIAL_DATA = @json($articles ?? $approvedArticles ?? []);
+        window.INITIAL_COVERS = @json($approvedCovers ?? []);
     </script>
     <script src="{{ asset('js/mpc-publish-article.js') }}"></script>
 @endpush

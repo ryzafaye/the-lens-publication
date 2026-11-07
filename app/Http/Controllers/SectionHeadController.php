@@ -94,6 +94,62 @@ class SectionHeadController extends ExecutiveController
         return view('executive.review-articles', compact('pendingArticles', 'category', 'sort'));
     }
 
+    public function approveArticle(Request $request, $id)
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        $user?->loadMissing('role');
+
+        $article = Article::findOrFail($id);
+
+        if ($request->filled('title') && $request->filled('content')) {
+            $cleanContent = $this->sanitizeArticleContent($request->content);
+            $article->update([
+                'title' => $request->title,
+                'excerpt' => $request->excerpt ?: \Illuminate\Support\Str::limit(strip_tags($cleanContent), 160),
+                'content' => $cleanContent,
+            ]);
+        }
+
+        // Section Head approval endorses story to EIC, AEIC, President, and VP
+        $article->update([
+            'status' => 'Pending EIC Review',
+        ]);
+
+        ActivityLog::logAction(Auth::id(), 'approved', $article);
+
+        $this->clearAllRelatedCaches($article->category_id);
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['success' => true, 'message' => 'Article approved and forwarded to Editor-in-Chief and Executive Desk.']);
+        }
+
+        return redirect()->back()->with('success', 'Article approved and forwarded to Editor-in-Chief and Executive Desk.');
+    }
+
+    public function returnForRevision(Request $request, $id)
+    {
+        $request->validate([
+            'remarks' => 'required|string',
+        ]);
+
+        $article = Article::findOrFail($id);
+        $article->update([
+            'status' => 'For Revision',
+            'remarks' => $request->remarks,
+        ]);
+
+        ActivityLog::logAction(Auth::id(), 'returned for revision', $article);
+
+        $this->clearAllRelatedCaches($article->category_id);
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['success' => true, 'message' => 'Article returned to author with revision remarks.']);
+        }
+
+        return redirect()->back()->with('warning', 'Article returned to author with revision remarks.');
+    }
+
     public function submitArticle(Request $request)
     {
         $categories = Category::all();
@@ -204,11 +260,18 @@ class SectionHeadController extends ExecutiveController
         Cache::forget("section_head_recent_articles_{$userId}");
         Cache::forget("executive_dashboard_stats_{$userId}");
         Cache::forget("executive_dashboard_stats_all");
+        Cache::forget("executive_dashboard_stats_pres_vp");
+        Cache::forget("exec_dashboard_pending_all");
+        Cache::forget("exec_dashboard_pending_pres_vp");
         Cache::forget("eic_dashboard_stats");
         Cache::forget("eic_dashboard_pending_articles");
         Cache::forget("eic_review_articles_newest");
         Cache::forget("eic_review_articles_oldest");
+        Cache::forget("exec_review_articles_all_newest");
+        Cache::forget("exec_review_articles_all_oldest");
         if ($categoryId) {
+            Cache::forget("exec_dashboard_pending_{$categoryId}");
+            Cache::forget("executive_dashboard_stats_{$categoryId}");
             Cache::forget("exec_review_articles_{$categoryId}_newest");
             Cache::forget("exec_review_articles_{$categoryId}_oldest");
             Cache::forget("section_head_review_articles_{$userId}_{$categoryId}_newest");

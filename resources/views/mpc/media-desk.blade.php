@@ -33,27 +33,17 @@
             </div>
         </div>
 
-        <!-- Media Desk Tabs: PUBMAT, PHOTOS, CARTOON, and LIBRARY -->
+        <!-- Media Desk Tabs: PHOTOS and CARTOON -->
         <div class="cover-tabs-container manage-tabs-container" role="tablist" aria-label="Media Desk Tabs">
-            <button type="button" class="review-tab-btn manage-tab-btn active" data-tab="pubmat" id="tab-cover-pubmat" role="tab" aria-selected="true">
-                <i class="fa-solid fa-palette"></i>
-                <span>PUBMAT</span>
-                <span id="badge-cover-pubmat" class="review-tab-badge tab-count-badge">0</span>
-            </button>
-            <button type="button" class="review-tab-btn manage-tab-btn" data-tab="photo" id="tab-cover-photo" role="tab" aria-selected="false">
+            <button type="button" class="review-tab-btn manage-tab-btn active" data-tab="photo" id="tab-cover-photo" role="tab" aria-selected="true">
                 <i class="fa-solid fa-camera"></i>
                 <span>PHOTOS</span>
                 <span id="badge-cover-photo" class="review-tab-badge tab-count-badge">0</span>
             </button>
             <button type="button" class="review-tab-btn manage-tab-btn" data-tab="cartoon" id="tab-cover-cartoon" role="tab" aria-selected="false">
-                <i class="fa-solid fa-pen-nib"></i>
+                <i class="fa-solid fa-palette"></i>
                 <span>CARTOON</span>
                 <span id="badge-cover-cartoon" class="review-tab-badge tab-count-badge">0</span>
-            </button>
-            <button type="button" class="review-tab-btn manage-tab-btn" data-tab="library" id="tab-cover-library" role="tab" aria-selected="false">
-                <i class="fa-solid fa-photo-film"></i>
-                <span>LIBRARY</span>
-                <span id="badge-cover-library" class="review-tab-badge tab-count-badge">0</span>
             </button>
         </div>
     </div>
@@ -64,9 +54,9 @@
     <!-- Empty Queue State -->
     <div id="cover-empty-state" class="cover-empty-state mpc-tab-empty-state" style="display: none;">
         <div class="empty-state-icon-circle">
-            <i class="fa-solid fa-palette" id="cover-empty-icon"></i>
+            <i class="fa-solid fa-camera" id="cover-empty-icon"></i>
         </div>
-        <h3 id="cover-empty-title">All Caught Up on PUBMAT Reviews</h3>
+        <h3 id="cover-empty-title">All Caught Up on Photojournalism Captures</h3>
     </div>
 
 </main>
@@ -76,7 +66,7 @@
     <div class="modal-card cover-inspect-modal-card">
         <div class="cover-inspect-header">
             <div class="cover-inspect-header-left">
-                <span id="inspect-type-tag" class="cover-type-tag pubmat">PUBMAT</span>
+                <span id="inspect-type-tag" class="cover-type-tag photo">PHOTO</span>
                 <div class="cover-inspect-artist-row">
                     <i class="fa-solid fa-paintbrush" aria-hidden="true"></i>
                     <span>Artist: <strong id="inspect-artist">Artist Name</strong></span>
@@ -93,11 +83,7 @@
             <img id="inspect-image" src="" alt="Publication Artwork Full View" class="cover-inspect-image-fullscreen">
         </div>
 
-        <div class="cover-inspect-footer-bar">
-            <div class="inspect-endorsement-note">
-                <i class="fa-solid fa-circle-check"></i>
-                <span>Approved by: <strong id="inspect-head">Section Head</strong></span>
-            </div>
+        <div class="cover-inspect-footer-bar" style="justify-content: flex-end;">
             <div class="inspect-footer-buttons">
                 <button type="button" id="inspect-return-btn" class="btn-inspect-return">
                     <i class="fa-solid fa-rotate-left"></i>
@@ -132,7 +118,7 @@
                 <label for="return-remarks-input" class="form-label" style="font-weight: 600; font-size: 0.85rem; color: #344054;">
                     Instructions / Notes for Revision:
                 </label>
-                <textarea id="return-remarks-input" class="form-textarea" rows="4" placeholder="Detail any requested adjustments (e.g., color corrections, typography adjustments, resolution issues)..." style="width: 100%; border: 1px solid #d0d5dd; border-radius: 8px; padding: 10px 12px; font-family: inherit; font-size: 0.85rem;"></textarea>
+                <textarea id="return-remarks-input" class="form-textarea" rows="4" placeholder="Detail any requested adjustments." style="width: 100%; border: 1px solid #d0d5dd; border-radius: 8px; padding: 10px 12px; font-family: inherit; font-size: 0.85rem;"></textarea>
                 <div id="return-remarks-error" class="form-error-msg hidden" style="color: #d92d20; font-size: 0.78rem; margin-top: 6px;">Please provide instructions for the artist/head before returning.</div>
             </div>
         </div>

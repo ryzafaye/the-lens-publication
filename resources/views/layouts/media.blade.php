@@ -21,20 +21,27 @@
 
     <script>
         @auth
-            const rawRole = "{!! Auth::user()->role->role_name ?? 'Media Team' !!}";
-            const userName = "{!! Auth::user()->full_name ?? 'Media Team' !!}";
-            const studentNum = "{!! Auth::user()->student_number ?? '' !!}";
-            const userAvatar = "{!! Auth::user()->avatar_url ?? asset('images/member-placeholder.svg') !!}";
+            const rawRole = @json(Auth::user()?->role?->role_name ?? 'Media Team');
+            const userName = @json(Auth::user()?->full_name ?? 'Media Team');
+            const studentNum = @json(Auth::user()?->student_number ?? '');
+            const userId = @json((string) (Auth::id() ?? ''));
+            const userAvatar = @json(Auth::user()?->avatar_url ?? (Auth::user()?->avatar ? asset(Auth::user()->avatar) : asset('images/member-placeholder.svg')));
 
             window.LARAVEL_USER_ROLE = rawRole;
             window.LARAVEL_USER_NAME = userName;
+            window.LARAVEL_USER_ID = userId;
+            window.LARAVEL_STUDENT_NUMBER = studentNum;
             window.LARAVEL_USER_AVATAR = userAvatar;
+            window.__AUTH_USER_ID__ = userId;
+            window.__AUTH_USER_NAME__ = userName;
 
             try {
+                localStorage.setItem('userId', userId);
                 localStorage.setItem('userRole', rawRole);
                 localStorage.setItem('userName', userName);
                 localStorage.setItem('studentNumber', studentNum);
                 localStorage.setItem('userAvatar', userAvatar);
+                localStorage.setItem('mediaUserId', userId);
                 localStorage.setItem('mediaRole', rawRole);
                 localStorage.setItem('mediaName', userName);
                 localStorage.setItem('mediaStudentNumber', studentNum);

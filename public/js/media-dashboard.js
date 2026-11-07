@@ -57,7 +57,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================================================================
     // 3. LOAD DATA & CALCULATE METRICS (EXECUTIVE DESIGN)
     // =========================================================================
-    const mediaList = (typeof getMediaSubmissions === 'function') ? getMediaSubmissions() : [];
+    const rawMedia = (typeof getMediaSubmissions === 'function') ? getMediaSubmissions() : [];
+    const seenMedia = new Set();
+    const mediaList = [];
+    rawMedia.forEach(item => {
+        if (!item || !item.id) return;
+        const strId = String(item.id);
+        if (!seenMedia.has(strId)) {
+            seenMedia.add(strId);
+            mediaList.push(item);
+        }
+    });
 
     // Official 4 Status Metric Counters:
     // 1. Total PUBMATs Published: status === 'Published'
@@ -121,9 +131,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (top3Media.length === 0) {
             mediaRecentGrid.innerHTML = `
                 <div class="media-empty-state" style="grid-column: 1 / -1;">
-                    <i class="fa-solid fa-palette"></i>
-                    <h3>No Media Assets Uploaded Yet</h3>
-                    <p>Click "Submit PUBMAT" above to upload your first graphic material.</p>
+                    <i class="fa-solid fa-camera"></i>
+                    <h3>No Photos Uploaded Yet</h3>
+                    <p>Click "Submit Photo" above to upload your first photojournalism capture.</p>
                 </div>
             `;
             return;
@@ -137,11 +147,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="media-card-preview-box" data-action="inspect" data-id="${item.id}">
                         ${item.image ? `
                             <img src="${escapeHTML(item.image)}" 
-                                 alt="${escapeHTML(item.title || 'Graphic Asset')}" 
+                                 alt="${escapeHTML(item.title || 'Photo Asset')}" 
                                  class="media-card-img">
                         ` : `
                             <div class="media-card-placeholder" style="display: flex; align-items: center; justify-content: center; height: 100%; min-height: 180px; background: #f8fafc; color: #94a3b8;">
-                                <i class="fa-solid fa-palette" style="font-size: 2.2rem;"></i>
+                                <i class="fa-solid fa-camera" style="font-size: 2.2rem;"></i>
                             </div>
                         `}
                         <div class="media-card-badge-layer">
@@ -157,7 +167,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="media-card-actions">
                             <button type="button" class="btn-media-inspect" data-action="inspect" data-id="${item.id}" style="width: 100%; justify-content: center;">
                                 <i class="fa-regular fa-eye"></i>
-                                <span>Inspect Graphic</span>
+                                <span>Inspect Photo</span>
                             </button>
                         </div>
                     </div>

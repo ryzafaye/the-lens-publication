@@ -771,7 +771,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const excerpt = excerptInput ? excerptInput.value.trim() : '';
         const contentText = editorContent ? editorContent.innerText.trim() : '';
 
-        if (status === 'Pending Review') {
+        if (status === 'Pending Review' || status === 'Pending EIC Review') {
             let hasError = false;
             if (!headline) {
                 if (headlineWrapper) headlineWrapper.classList.add('input-invalid');
@@ -810,6 +810,19 @@ document.addEventListener('DOMContentLoaded', () => {
         // Clean and sanitize the editor content before sending to Laravel
         const cleanContent = sanitizeArticleContent(editorContent.innerHTML);
 
+        // Detect selected category and check if it's Opinion
+        const selectedOption = categorySelect ? categorySelect.options[categorySelect.selectedIndex] : null;
+        const categoryName = selectedOption ? selectedOption.text.trim() : '';
+        const isOpinion = categoryName.toLowerCase().includes('opinion');
+
+        // Detect if the user is a Section Head
+        const isSectionHead = window.location.pathname.includes('/section-head') 
+            || (window.LARAVEL_USER_ROLE && window.LARAVEL_USER_ROLE.toLowerCase().includes('head'))
+            || (localStorage.getItem('userRole') && localStorage.getItem('userRole').toLowerCase().includes('head'));
+
+        // Section Head submissions or Opinion submissions bypass section review and go directly to EIC/AEIC review
+        const targetStatus = ((isSectionHead || isOpinion) && status !== 'Draft') ? 'Pending EIC Review' : status;
+
         // Make sure hidden inputs actually exist before assigning
         if (!hiddenContent) {
             const hc = document.createElement('input');
@@ -823,25 +836,26 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!hiddenStatus) {
             const hs = document.createElement('input');
             hs.type = 'hidden'; hs.name = 'status'; hs.id = 'hidden-status';
-            hs.value = status;
+            hs.value = targetStatus;
             activeForm.appendChild(hs);
         } else {
-            hiddenStatus.value = status;
+            hiddenStatus.value = targetStatus;
         }
 
         // Sync with review queues in localStorage as client-side fallback
-        if (status === 'Pending Review' || status === 'Pending EIC Review') {
+        if (targetStatus === 'Pending Review' || targetStatus === 'Pending EIC Review') {
             try {
-                const selectedOption = categorySelect ? categorySelect.options[categorySelect.selectedIndex] : null;
-                const categoryName = selectedOption ? selectedOption.text.trim() : '';
                 const authorName = (document.getElementById('mobile-user-name')?.textContent?.trim()) 
                     || window.LARAVEL_USER_NAME 
                     || localStorage.getItem('userName') 
                     || 'Staff Writer';
 
-                const isSectionHead = window.location.pathname.includes('/section-head') 
-                    || (window.LARAVEL_USER_ROLE && window.LARAVEL_USER_ROLE.toLowerCase().includes('head'))
-                    || (localStorage.getItem('userRole') && localStorage.getItem('userRole').toLowerCase().includes('head'));
+                let endorsedBy = 'Section Head';
+                if (isOpinion) {
+                    endorsedBy = 'Direct Submission (Opinion)';
+                } else if (isSectionHead) {
+                    endorsedBy = `${authorName} (${window.LARAVEL_USER_ROLE || 'Section Head'})`;
+                }
 
                 const queueItem = {
                     id: Date.now(),
@@ -852,11 +866,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     rawDate: new Date().toISOString(),
                     excerpt: excerpt,
                     content: cleanContent,
-                    status: isSectionHead ? 'Pending EIC Review' : 'Pending Review'
+                    status: targetStatus,
+                    endorsedBy: endorsedBy
                 };
 
-                if (isSectionHead) {
-                    // Section Head submissions bypass section head review and go directly to EIC/AEIC review
+                if (isSectionHead || targetStatus === 'Pending EIC Review') {
+                    // Section Head or Opinion submissions bypass section head review and go directly to EIC/AEIC review
                     let eicQ = [];
                     const rawEic = localStorage.getItem('eicPendingReviewQueue');
                     if (rawEic) {
@@ -865,9 +880,17 @@ document.addEventListener('DOMContentLoaded', () => {
                             if (Array.isArray(parsed)) eicQ = parsed;
                         } catch (e) {}
                     }
+                    eicQ = eicQ.filter(item => item.id !== queueItem.id && item.title !== queueItem.title);
                     eicQ.unshift(queueItem);
                     localStorage.setItem('eicPendingReviewQueue', JSON.stringify(eicQ));
                     localStorage.setItem('executivePendingReviewQueue', JSON.stringify(eicQ));
+
+                    // Remove from Section Head review queue so it does NOT appear there
+                    try {
+                        let secQ = JSON.parse(localStorage.getItem('sectionHeadReviewQueue_v1') || '[]');
+                        secQ = secQ.filter(item => item.id !== queueItem.id && item.title !== queueItem.title);
+                        localStorage.setItem('sectionHeadReviewQueue_v1', JSON.stringify(secQ));
+                    } catch (e) {}
                 } else {
                     let q = [];
                     const rawQ = localStorage.getItem('sectionHeadReviewQueue_v1');
@@ -877,6 +900,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             if (Array.isArray(parsed)) q = parsed;
                         } catch (e) {}
                     }
+                    q = q.filter(item => item.id !== queueItem.id && item.title !== queueItem.title);
                     q.unshift(queueItem);
                     localStorage.setItem('sectionHeadReviewQueue_v1', JSON.stringify(q));
                 }
@@ -898,7 +922,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (submitArticleBtn) {
         submitArticleBtn.addEventListener('click', (e) => {
             e.preventDefault();
-            handleFormSubmit('Pending Review');
+            const selectedOption = categorySelect ? categorySelect.options[categorySelect.selectedIndex] : null;
+            const categoryName = selectedOption ? selectedOption.text.trim().toLowerCase() : '';
+            const isOpinion = categoryName.includes('opinion');
+            const isSectionHead = window.location.pathname.includes('/section-head') 
+                || (window.LARAVEL_USER_ROLE && window.LARAVEL_USER_ROLE.toLowerCase().includes('head'))
+                || (localStorage.getItem('userRole') && localStorage.getItem('userRole').toLowerCase().includes('head'));
+            handleFormSubmit((isSectionHead || isOpinion) ? 'Pending EIC Review' : 'Pending Review');
         });
     }
 

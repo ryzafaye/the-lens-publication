@@ -41,7 +41,7 @@
                 <span id="badge-cover-photo" class="review-tab-badge tab-count-badge">0</span>
             </button>
             <button type="button" class="review-tab-btn manage-tab-btn" data-tab="cartoon" id="tab-cover-cartoon" role="tab" aria-selected="false">
-                <i class="fa-solid fa-pen-nib"></i>
+                <i class="fa-solid fa-palette"></i>
                 <span>CARTOON</span>
                 <span id="badge-cover-cartoon" class="review-tab-badge tab-count-badge">0</span>
             </button>
@@ -83,11 +83,7 @@
             <img id="inspect-image" src="" alt="Publication Artwork Full View" class="cover-inspect-image-fullscreen">
         </div>
 
-        <div class="cover-inspect-footer-bar">
-            <div class="inspect-endorsement-note">
-                <i class="fa-solid fa-circle-check"></i>
-                <span>Endorsed by: <strong id="inspect-head">Section Head</strong></span>
-            </div>
+        <div class="cover-inspect-footer-bar" style="justify-content: flex-end;">
             <div class="inspect-footer-buttons">
                 <button type="button" id="inspect-return-btn" class="btn-inspect-return">
                     <i class="fa-solid fa-rotate-left"></i>
@@ -95,7 +91,7 @@
                 </button>
                 <button type="button" id="inspect-approve-btn" class="btn-inspect-approve">
                     <i class="fa-solid fa-check"></i>
-                    <span>Approve Artwork</span>
+                    <span>Approve Pubmat</span>
                 </button>
             </div>
         </div>
@@ -122,7 +118,7 @@
                 <label for="return-remarks-input" class="form-label" style="font-weight: 600; font-size: 0.85rem; color: #344054;">
                     Instructions / Notes for Revision:
                 </label>
-                <textarea id="return-remarks-input" class="form-textarea" rows="4" placeholder="Detail any requested adjustments (e.g., color corrections, typography adjustments, resolution issues)..." style="width: 100%; border: 1px solid #d0d5dd; border-radius: 8px; padding: 10px 12px; font-family: inherit; font-size: 0.85rem;"></textarea>
+                <textarea id="return-remarks-input" class="form-textarea" rows="4" placeholder="Detail any requested adjustments" style="width: 100%; border: 1px solid #d0d5dd; border-radius: 8px; padding: 10px 12px; font-family: inherit; font-size: 0.85rem;"></textarea>
                 <div id="return-remarks-error" class="form-error-msg hidden" style="color: #d92d20; font-size: 0.78rem; margin-top: 6px;">Please provide instructions for the artist/head before returning.</div>
             </div>
         </div>

@@ -47,11 +47,19 @@ class ActivityLog extends Model
      */
     public static function logAction($userId, string $action, ?Model $entity = null): self
     {
+        $entityType = $entity ? get_class($entity) : null;
+        if ($entityType === 'App\\Models\\Cartoon') {
+            $entityType = null;
+            $entityId = null;
+        } else {
+            $entityId = $entity ? $entity->getKey() : null;
+        }
+
         return static::create([
             'user_id' => $userId,
             'action' => $action,
-            'entity_type' => $entity ? get_class($entity) : null,
-            'entity_id' => $entity ? $entity->getKey() : null,
+            'entity_type' => $entityType,
+            'entity_id' => $entityId,
         ]);
     }
 

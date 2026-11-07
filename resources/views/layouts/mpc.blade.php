@@ -25,15 +25,19 @@
             const userName = "{!! Auth::user()->full_name ?? 'M&PC Head' !!}";
             const studentNum = "{!! Auth::user()->student_number ?? '' !!}";
             const userAvatar = "{!! Auth::user()->avatar_url ?? asset('images/member-placeholder.svg') !!}";
+            const userId = "{!! Auth::id() !!}";
 
             window.LARAVEL_USER_ROLE = rawRole;
             window.LARAVEL_USER_NAME = userName;
             window.LARAVEL_USER_AVATAR = userAvatar;
+            window.LARAVEL_USER_ID = userId;
+            window.LARAVEL_STUDENT_NUMBER = studentNum;
 
             localStorage.setItem('userRole', rawRole);
             localStorage.setItem('userName', userName);
             localStorage.setItem('studentNumber', studentNum);
             localStorage.setItem('userAvatar', userAvatar);
+            localStorage.setItem('userId', userId);
             localStorage.setItem('mpcRole', rawRole);
             localStorage.setItem('mpcName', userName);
         @endauth
@@ -111,6 +115,10 @@
                 <a href="{{ route('mpc.submit-media') }}" class="mobile-nav-link {{ request()->routeIs('mpc.submit-media*') ? 'active' : '' }}">
                     <i class="fa-solid fa-cloud-arrow-up"></i>
                     <span>Submit Media</span>
+                </a>
+                <a href="{{ route('mpc.manage-media') }}" class="mobile-nav-link {{ request()->routeIs('mpc.manage-media*') ? 'active' : '' }}">
+                    <i class="fa-solid fa-images"></i>
+                    <span>Manage Media</span>
                 </a>
                 <a href="{{ route('mpc.manage-my-articles') }}" class="mobile-nav-link {{ request()->routeIs('mpc.manage-my-articles*') || request()->routeIs('mpc.my-articles*') ? 'active' : '' }}">
                     <i class="fa-solid fa-file-pen"></i>

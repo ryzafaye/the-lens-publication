@@ -25,17 +25,23 @@
             const userName = "{!! Auth::user()->full_name ?? 'Cartoonist' !!}";
             const studentNum = "{!! Auth::user()->student_number ?? '' !!}";
             const userAvatar = "{!! Auth::user()->avatar_url ?? asset('images/member-placeholder.svg') !!}";
+            const userId = "{!! Auth::id() !!}";
 
             window.LARAVEL_USER_ROLE = rawRole;
             window.LARAVEL_USER_NAME = userName;
             window.LARAVEL_USER_AVATAR = userAvatar;
+            window.LARAVEL_USER_ID = userId;
+            window.LARAVEL_STUDENT_NUMBER = studentNum;
 
             localStorage.setItem('userRole', rawRole);
             localStorage.setItem('userName', userName);
             localStorage.setItem('studentNumber', studentNum);
             localStorage.setItem('userAvatar', userAvatar);
+            localStorage.setItem('userId', userId);
             localStorage.setItem('cartoonistRole', rawRole);
             localStorage.setItem('cartoonistName', userName);
+            localStorage.setItem('cartoonistUserId', userId);
+            localStorage.setItem('cartoonistStudentNumber', studentNum);
         @endauth
     </script>
 </head>

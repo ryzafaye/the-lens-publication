@@ -78,7 +78,7 @@
                     <div class="media-action-footer" style="margin-top: 28px; padding-top: 20px; border-top: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: flex-end;">
                         <button type="submit" id="btn-submit-media" class="btn-media-submit">
                             <i class="fa-solid fa-paper-plane"></i>
-                            <span>Submit to Media Desk</span>
+                            <span>Submit to EIC</span>
                         </button>
                     </div>
 
@@ -93,6 +93,9 @@
 @endsection
 
 @push('scripts')
+    <script>
+        window.MPC_MANAGE_ROUTE = "{{ route('mpc.manage-media') }}";
+    </script>
     <script src="{{ asset('js/mpc-submit-media.js') }}"></script>
 @endpush
 

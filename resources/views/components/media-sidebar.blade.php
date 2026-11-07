@@ -42,8 +42,8 @@
             </a>
 
             <a href="{{ route('media.submit-media') }}" class="sidebar-nav-item {{ request()->routeIs('media.submit-media*') ? 'active' : '' }}">
-                <i class="fa-solid fa-cloud-arrow-up"></i>
-                <span>Submit Media</span>
+                <i class="fa-solid fa-camera"></i>
+                <span>Submit Photo</span>
             </a>
 
             <a href="{{ route('media.manage-media') }}" class="sidebar-nav-item {{ request()->routeIs('media.manage-media*') ? 'active' : '' }}">

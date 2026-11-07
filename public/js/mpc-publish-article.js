@@ -11,28 +11,27 @@ document.addEventListener('DOMContentLoaded', () => {
     const STORAGE_KEY_COVERS = 'mpc_approved_covers_v1';
 
     // -------------------------------------------------------------------------
-    // 0. CLEAN WORKFLOW PURGE (Zero mock / hardcoded covers or manuscripts)
+    // 0. CLEAN WORKFLOW PURGE (Remove all non-database articles and mock covers)
     // -------------------------------------------------------------------------
     try {
-        const PURGE_FLAG = 'theLens_clean_workflow_zero_mock_v20';
-        if (localStorage.getItem(PURGE_FLAG) !== 'true') {
-            localStorage.removeItem(STORAGE_KEY_COVERS);
-            localStorage.removeItem('mpcApprovedCoversPool_v1');
-            localStorage.setItem(STORAGE_KEY_COVERS, JSON.stringify([]));
-            localStorage.setItem('mpcApprovedCoversPool_v1', JSON.stringify([]));
-            // Also clean assigned covers from stored articles
-            const rawA = localStorage.getItem(STORAGE_KEY_ARTICLES);
-            if (rawA) {
-                try {
-                    const parsedA = JSON.parse(rawA);
-                    if (Array.isArray(parsedA)) {
-                        const cleanedA = parsedA.map(a => ({ ...a, assignedCoverId: '', image: '', banner: '', coverImage: '' }));
-                        localStorage.setItem(STORAGE_KEY_ARTICLES, JSON.stringify(cleanedA));
-                    }
-                } catch (err) {}
-            }
-            localStorage.setItem(PURGE_FLAG, 'true');
+        const dbArticles = (window.INITIAL_DATA && Array.isArray(window.INITIAL_DATA)) ? window.INITIAL_DATA : [];
+        const validDbArticleIds = new Set(dbArticles.map(a => String(a.id)));
+
+        // Remove any stored articles that are NOT in the database
+        const rawA = localStorage.getItem(STORAGE_KEY_ARTICLES);
+        if (rawA) {
+            try {
+                const parsedA = JSON.parse(rawA);
+                if (Array.isArray(parsedA)) {
+                    const cleanedA = parsedA.filter(a => a && a.id && validDbArticleIds.has(String(a.id)));
+                    localStorage.setItem(STORAGE_KEY_ARTICLES, JSON.stringify(cleanedA));
+                }
+            } catch (err) {}
         }
+
+        // Purge mock cover pools
+        localStorage.removeItem(STORAGE_KEY_COVERS);
+        localStorage.removeItem('mpcApprovedCoversPool_v1');
     } catch (e) {}
 
     // -------------------------------------------------------------------------
@@ -234,20 +233,28 @@ document.addEventListener('DOMContentLoaded', () => {
             sourceList = window.LARAVEL_ARTICLES;
         }
 
-        if (sourceList && sourceList.length > 0) {
+        // 1. Strictly populate articles from database sourceList
+        if (sourceList && Array.isArray(sourceList)) {
             list = sourceList.map(normalizeArticle).filter(Boolean);
         }
 
-        // Merge with localStorage articles (from EIC review or prior local actions)
+        const validDbIds = new Set(list.map(a => String(a.id)));
+
+        // 2. Only sync local session assignment fields for articles that actually exist in the DB
         try {
             const raw = localStorage.getItem(STORAGE_KEY_ARTICLES);
             if (raw) {
                 const parsed = JSON.parse(raw);
                 if (Array.isArray(parsed)) {
                     parsed.forEach(stored => {
-                        const normalizedStored = normalizeArticle(stored);
-                        if (!normalizedStored) return;
-                        const existingIdx = list.findIndex(a => String(a.id) === String(normalizedStored.id));
+                        if (!stored || !stored.id) return;
+                        const idStr = String(stored.id);
+                        // STRICT RULE: If the article is not in the database, do NOT load it!
+                        if (!validDbIds.has(idStr)) {
+                            return;
+                        }
+
+                        const existingIdx = list.findIndex(a => String(a.id) === idStr);
                         if (existingIdx >= 0) {
                             if (stored.assignedCoverId && !list[existingIdx].assignedCoverId) {
                                 list[existingIdx].assignedCoverId = stored.assignedCoverId;
@@ -256,10 +263,12 @@ document.addEventListener('DOMContentLoaded', () => {
                                 list[existingIdx].status = stored.status;
                                 list[existingIdx].publishedAt = stored.publishedAt;
                             }
-                        } else {
-                            list.push(normalizedStored);
                         }
                     });
+
+                    // Keep storage clean: prune non-DB articles
+                    const cleaned = parsed.filter(p => p && p.id && validDbIds.has(String(p.id)));
+                    localStorage.setItem(STORAGE_KEY_ARTICLES, JSON.stringify(cleaned));
                 }
             }
         } catch (e) {
@@ -271,7 +280,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function saveArticles(list) {
         try {
-            localStorage.setItem(STORAGE_KEY_ARTICLES, JSON.stringify(list));
+            const validDbIds = window.INITIAL_DATA && Array.isArray(window.INITIAL_DATA)
+                ? new Set(window.INITIAL_DATA.map(a => String(a.id)))
+                : null;
+            const sanitized = validDbIds
+                ? list.filter(a => a && a.id && validDbIds.has(String(a.id)))
+                : list;
+            localStorage.setItem(STORAGE_KEY_ARTICLES, JSON.stringify(sanitized));
         } catch (e) {
             console.warn('Storage write failed', e);
         }
@@ -312,15 +327,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (seenIds.has(idStr)) {
-                const existing = covers.find(c => String(c.id) === idStr);
-                if (existing) {
-                    if (!existing.image && item.image) existing.image = item.image;
-                    if (!existing.artist && item.artist) existing.artist = cleanArtistName(item.artist);
-                    if (!existing.approvedBy && (item.approvedBy || item.endorsedBy)) {
-                        existing.approvedBy = item.approvedBy || item.endorsedBy;
-                    }
-                    if (!existing.type && item.type) existing.type = item.type.toLowerCase();
-                }
                 return;
             }
             seenIds.add(idStr);
@@ -336,87 +342,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        // 1. Live Article Review Queue (where M&PC and EIC review and approve media)
-        try {
-            const rawReview = localStorage.getItem('articleCoverReviewQueue_v1');
-            if (rawReview) {
-                const parsedReview = JSON.parse(rawReview);
-                if (Array.isArray(parsedReview)) {
-                    parsedReview.forEach(r => {
-                        const s = (r.status || '').toLowerCase().trim();
-                        if (s === 'eic approved' || s === 'approved' || s === 'approved_for_mpc' || s === 'published') {
-                            addCover(r);
-                        }
-                    });
-                }
-            }
-        } catch (e) {}
-
-        // 2. M&PC Approved Covers Storage (only genuine EIC approved covers)
-        try {
-            const raw = localStorage.getItem(STORAGE_KEY_COVERS);
-            if (raw) {
-                const parsed = JSON.parse(raw);
-                if (Array.isArray(parsed)) {
-                    parsed.forEach(c => {
-                        const s = (c.status || '').toLowerCase().trim();
-                        if (s === 'eic approved' || s === 'approved' || s === 'approved_for_mpc' || s === 'published') {
-                            addCover(c);
-                        }
-                    });
-                }
-            }
-        } catch (e) {}
-
-        // 3. M&PC Approved Covers Pool (only genuine EIC approved covers)
-        try {
-            const rawPool = localStorage.getItem('mpcApprovedCoversPool_v1');
-            if (rawPool) {
-                const parsed = JSON.parse(rawPool);
-                if (Array.isArray(parsed)) {
-                    parsed.forEach(p => {
-                        const s = (p.status || '').toLowerCase().trim();
-                        if (s === 'eic approved' || s === 'approved' || s === 'approved_for_mpc' || s === 'published') {
-                            addCover(p);
-                        }
-                    });
-                }
-            }
-        } catch (e) {}
-
-        // 4. Media Team Submissions (Approved / Published)
-        try {
-            const rawMedia = localStorage.getItem('mediaTeamSubmissions_v2');
-            if (rawMedia) {
-                const parsed = JSON.parse(rawMedia);
-                if (Array.isArray(parsed)) {
-                    parsed.forEach(m => {
-                        const s = (m.status || '').toLowerCase().trim();
-                        if (s === 'eic approved' || s === 'published') {
-                            addCover(m);
-                        }
-                    });
-                }
-            }
-        } catch (e) {}
-
-        // 5. Cartoonist Submissions (Approved / Published)
-        try {
-            const rawCart = localStorage.getItem('cartoonistSubmissions_v1');
-            if (rawCart) {
-                const parsed = JSON.parse(rawCart);
-                if (Array.isArray(parsed)) {
-                    parsed.forEach(c => {
-                        const s = (c.status || '').toLowerCase().trim();
-                        if (s === 'eic approved' || s === 'published') {
-                            addCover(c);
-                        }
-                    });
-                }
-            }
-        } catch (e) {}
-
-        // 6. Window initial covers
+        // Strictly load genuine approved visual assets from database
         if (window.INITIAL_COVERS && Array.isArray(window.INITIAL_COVERS)) {
             window.INITIAL_COVERS.forEach(addCover);
         }
@@ -647,7 +573,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         articlesGrid.innerHTML = list.map(item => {
-            const assignedCover = coversList.find(c => String(c.id) === String(item.assignedCoverId)) || (item.image ? { image: item.image, artist: item.coverArtist || 'Media Team Member', type: item.coverType || 'pubmat' } : null);
+            const assignedCover = coversList.find(c => String(c.id) === String(item.assignedCoverId)) || (item.image ? { image: item.image, artist: item.coverArtist || 'Media Team Member', type: item.coverType || 'photo' } : null);
+            const coverType = assignedCover ? getNormalizedCoverType(assignedCover.type) : 'photo';
+            const isPhotoCover = (coverType === 'photo');
 
             return `
                 <div class="mpc-publish-card" id="card-${item.id}" data-id="${item.id}">
@@ -658,7 +586,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             <div class="mpc-cover-preview-box" data-action="assign-cover" data-id="${item.id}" title="Click to assign or change cover">
                                 ${assignedCover ? `
                                     <img src="${escapeHTML(assignedCover.image)}" alt="Cover Preview" class="mpc-cover-preview-img">
-                                    <span class="mpc-cover-meta-badge">${escapeHTML(assignedCover.type.toUpperCase())}</span>
+                                    <span class="mpc-cover-meta-badge ${coverType}"><i class="fa-solid fa-${isPhotoCover ? 'camera' : 'palette'}"></i> ${escapeHTML(coverType.toUpperCase())}</span>
                                 ` : `
                                     <div class="mpc-cover-empty">
                                         <i class="fa-regular fa-image"></i>
@@ -668,8 +596,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             </div>
                             ${assignedCover ? `
                                 <div class="mpc-cover-artist-note">
-                                    <i class="fa-solid fa-paintbrush"></i>
-                                    <span>Cover by: <strong>${escapeHTML(assignedCover.artist)}</strong></span>
+                                    <i class="fa-solid fa-${isPhotoCover ? 'camera' : 'palette'}" style="color: var(--sidebar-maroon, #5c0a18);"></i>
+                                    <span>${escapeHTML(cleanArtistName(assignedCover.artist))}</span>
                                 </div>
                             ` : `
                                 <div class="mpc-cover-artist-note" style="color: #b54708;">
@@ -697,7 +625,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             <!-- Endorsement History -->
                             <div class="mpc-endorsements-bar">
                                 <span class="mpc-endorsement-badge">
-                                    <i class="fa-solid fa-circle-check"></i>
+                                    <i class="fa-solid fa-${item.sectionHead && item.sectionHead.toLowerCase().includes('direct') ? 'feather-pointed' : 'circle-check'}"></i>
                                     <span>${escapeHTML(item.sectionHead)}</span>
                                 </span>
                                 <span class="mpc-endorsement-badge eic">
@@ -753,19 +681,9 @@ document.addEventListener('DOMContentLoaded', () => {
                                     <span>Republish</span>
                                 </button>
                             ` : `
-                                <button type="button" class="btn-mpc-read" data-action="read" data-id="${item.id}">
-                                    <i class="fa-regular fa-file-lines"></i>
-                                    <span>Read Article</span>
-                                </button>
-
                                 <button type="button" class="btn-mpc-assign" data-action="assign-cover" data-id="${item.id}">
                                     <i class="fa-solid fa-palette"></i>
                                     <span>${assignedCover ? 'Change Cover' : 'Assign Cover'}</span>
-                                </button>
-
-                                <button type="button" class="btn-mpc-return" data-action="return-revision" data-id="${item.id}" style="padding: 7px 14px; font-size: 0.8rem; font-weight: 600; border-radius: 8px; border: 1px solid #fecdca; background: #fff5f5; color: #b42318; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
-                                    <i class="fa-solid fa-rotate-left"></i>
-                                    <span>For Revision</span>
                                 </button>
 
                                 <button type="button" class="btn-mpc-publish" data-action="publish" data-id="${item.id}">
@@ -783,6 +701,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // -------------------------------------------------------------------------
     // 7. COVERS LIBRARY VIEW RENDERING
     // -------------------------------------------------------------------------
+    function getNormalizedCoverType(type) {
+        const t = String(type || '').toLowerCase().trim();
+        if (t === 'cartoon' || t === 'cartoons') return 'cartoon';
+        return 'photo';
+    }
+
     function renderCoversLibrary() {
         if (!coversLibraryGrid) return;
 
@@ -798,27 +722,107 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        coversLibraryGrid.innerHTML = coversList.map(cover => `
-            <div class="mpc-gallery-item" style="cursor: default;">
+        coversLibraryGrid.innerHTML = coversList.map(cover => {
+            const coverType = getNormalizedCoverType(cover.type);
+            const isPhoto = (coverType === 'photo');
+            const iconClass = isPhoto ? 'fa-camera' : 'fa-palette';
+            const roleLabel = isPhoto ? 'Photojournalist' : 'Cartoonist';
+            const typeLabel = isPhoto ? 'PHOTO' : 'CARTOON';
+
+            return `
+            <div class="mpc-gallery-item inspectable" data-action="inspect-cover" data-id="${cover.id}" style="cursor: pointer;" title="Click to inspect full size artwork">
                 <div class="mpc-gallery-thumb-wrap">
                     <img src="${escapeHTML(cover.image)}" alt="Artwork Cover" class="mpc-gallery-thumb-img">
-                    <span class="mpc-cover-meta-badge">${escapeHTML(cover.type.toUpperCase())}</span>
+                    <span class="mpc-cover-meta-badge ${coverType}"><i class="fa-solid ${iconClass}"></i> ${escapeHTML(typeLabel)}</span>
+                    <div class="mpc-gallery-inspect-overlay">
+                        <i class="fa-solid fa-magnifying-glass-plus"></i>
+                        <span>Inspect Artwork</span>
+                    </div>
                 </div>
                 <div class="mpc-gallery-item-body">
                     <div class="mpc-gallery-artist">
-                        <i class="fa-solid fa-paintbrush"></i>
-                        <span>${escapeHTML(cover.artist)}</span>
-                    </div>
-                    <div class="mpc-gallery-head">
-                        <i class="fa-solid fa-circle-check"></i>
-                        <span>${escapeHTML(cover.approvedBy)}</span>
+                        <i class="fa-solid ${iconClass}" style="color: var(--sidebar-maroon, #5c0a18);"></i>
+                        <span>${roleLabel}: <strong>${escapeHTML(cover.artist)}</strong></span>
                     </div>
                     <div style="font-size: 0.70rem; color: #667085; margin-top: 2px;">
                         <i class="fa-regular fa-calendar"></i> Approved: ${escapeHTML(cover.date)}
                     </div>
                 </div>
             </div>
-        `).join('');
+            `;
+        }).join('');
+    }
+
+    // -------------------------------------------------------------------------
+    // 7.5 ARTWORK FULL INSPECTION MODAL LOGIC
+    // -------------------------------------------------------------------------
+    function openInspectCoverModal(coverId) {
+        const cover = coversList.find(c => String(c.id) === String(coverId));
+        if (!cover) return;
+
+        const inspectModal = document.getElementById('cover-inspect-modal');
+        const inspectImage = document.getElementById('inspect-image');
+        const inspectArtist = document.getElementById('inspect-artist');
+        const inspectArtistIcon = document.getElementById('inspect-artist-icon');
+        const inspectArtistLabel = document.getElementById('inspect-artist-label');
+        const inspectTypeTag = document.getElementById('inspect-type-tag');
+
+        const coverType = getNormalizedCoverType(cover.type);
+        const isPhoto = (coverType === 'photo');
+
+        if (inspectImage) {
+            inspectImage.src = cover.image;
+            inspectImage.alt = `${coverType.toUpperCase()} by ${cover.artist}`;
+        }
+        if (inspectArtist) {
+            inspectArtist.textContent = cleanArtistName(cover.artist);
+        }
+        if (inspectArtistIcon) {
+            inspectArtistIcon.className = `fa-solid ${isPhoto ? 'fa-camera' : 'fa-palette'}`;
+            inspectArtistIcon.style.color = 'var(--sidebar-maroon, #5c0a18)';
+        }
+        if (inspectArtistLabel) {
+            inspectArtistLabel.innerHTML = `${isPhoto ? 'Photojournalist' : 'Cartoonist'}: <strong id="inspect-artist">${escapeHTML(cleanArtistName(cover.artist))}</strong>`;
+        }
+        if (inspectTypeTag) {
+            inspectTypeTag.className = `cover-type-tag ${coverType}`;
+            const icon = isPhoto ? 'fa-camera' : 'fa-palette';
+            inspectTypeTag.innerHTML = `<i class="fa-solid ${icon}"></i> ${coverType.toUpperCase()}`;
+        }
+
+        if (inspectModal) {
+            inspectModal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+    }
+
+    function closeInspectCoverModal() {
+        const inspectModal = document.getElementById('cover-inspect-modal');
+        if (inspectModal) {
+            inspectModal.classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+    }
+
+    const closeInspectBtn = document.getElementById('close-inspect-btn');
+    const inspectCloseBtn = document.getElementById('inspect-close-btn');
+    const inspectCoverModal = document.getElementById('cover-inspect-modal');
+
+    if (closeInspectBtn) closeInspectBtn.addEventListener('click', closeInspectCoverModal);
+    if (inspectCloseBtn) inspectCloseBtn.addEventListener('click', closeInspectCoverModal);
+    if (inspectCoverModal) {
+        inspectCoverModal.addEventListener('click', (e) => {
+            if (e.target === inspectCoverModal) closeInspectCoverModal();
+        });
+    }
+
+    if (coversLibraryGrid) {
+        coversLibraryGrid.addEventListener('click', (e) => {
+            const item = e.target.closest('[data-action="inspect-cover"]');
+            if (item && item.dataset.id) {
+                openInspectCoverModal(item.dataset.id);
+            }
+        });
     }
 
     // -------------------------------------------------------------------------
@@ -883,20 +887,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
         modalCoverGallery.innerHTML = filtered.map(cover => {
             const isSelected = (String(cover.id) === String(selectedCoverIdInModal));
+            const coverType = getNormalizedCoverType(cover.type);
+            const isPhoto = (coverType === 'photo');
+            const iconClass = isPhoto ? 'fa-camera' : 'fa-palette';
+            const roleLabel = isPhoto ? 'Photojournalist' : 'Cartoonist';
+            const typeLabel = isPhoto ? 'PHOTO' : 'CARTOON';
+
             return `
                 <div class="mpc-gallery-item ${isSelected ? 'selected' : ''}" data-cover-id="${cover.id}">
                     <div class="mpc-gallery-thumb-wrap">
                         <img src="${escapeHTML(cover.image)}" alt="Cover Asset" class="mpc-gallery-thumb-img">
-                        <span class="mpc-cover-meta-badge">${escapeHTML((cover.type || 'pubmat').toUpperCase())}</span>
+                        <span class="mpc-cover-meta-badge ${coverType}"><i class="fa-solid ${iconClass}"></i> ${escapeHTML(typeLabel)}</span>
                     </div>
                     <div class="mpc-gallery-item-body">
                         <div class="mpc-gallery-artist">
-                            <i class="fa-solid fa-paintbrush"></i>
-                            <span>${escapeHTML(cover.artist)}</span>
-                        </div>
-                        <div class="mpc-gallery-head">
-                            <i class="fa-solid fa-circle-check"></i>
-                            <span>${escapeHTML(cover.approvedBy)}</span>
+                            <i class="fa-solid ${iconClass}" style="color: var(--sidebar-maroon, #5c0a18);"></i>
+                            <span>${roleLabel}: <strong>${escapeHTML(cover.artist)}</strong></span>
                         </div>
                     </div>
                 </div>
@@ -963,6 +969,26 @@ document.addEventListener('DOMContentLoaded', () => {
             render();
 
             if (chosenCover) {
+                // Backend sync to persist cover assignment in database
+                if (article.id) {
+                    try {
+                        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                        if (csrfToken) {
+                            fetch(`/mpc/articles/${article.id}/assign-cover`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': csrfToken,
+                                    'Accept': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    cover_id: chosenCover.id
+                                })
+                            }).catch(err => console.warn('Backend assign cover sync failed:', err));
+                        }
+                    } catch (e) {}
+                }
+
                 // Log activity (Executive sentence parity)
                 try {
                     const rawLogs = localStorage.getItem('mpcActivityLogs_v1');
@@ -1229,7 +1255,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (readerReadTime) readerReadTime.textContent = article.readTime || '3 min read';
 
         if (readerEndorsements) {
-            readerEndorsements.textContent = `${article.sectionHead || 'Approved by Section Head'} • ${article.eicApprover || 'Approved by EIC'}`;
+            readerEndorsements.textContent = '';
         }
 
         // Excerpt
@@ -1245,13 +1271,15 @@ document.addEventListener('DOMContentLoaded', () => {
         // Assigned cover preview
         coversList = loadCovers();
         const assignedCover = coversList.find(c => String(c.id) === String(article.assignedCoverId)) || 
-                             (article.image ? { image: article.image, artist: article.coverArtist || 'Media Team Member', type: article.coverType || 'pubmat' } : null);
+                             (article.image ? { image: article.image, artist: article.coverArtist || 'Media Team Member', type: article.coverType || 'photo' } : null);
 
         if (readerCoverWrap && readerCoverImg) {
             if (assignedCover && assignedCover.image) {
                 readerCoverImg.src = assignedCover.image;
                 if (readerCoverBadge) {
-                    readerCoverBadge.textContent = `${(assignedCover.type || 'pubmat').toUpperCase()} BY ${assignedCover.artist || 'Media Team'}`;
+                    const cType = getNormalizedCoverType(assignedCover.type);
+                    const isPhoto = (cType === 'photo');
+                    readerCoverBadge.innerHTML = `<i class="fa-solid ${isPhoto ? 'fa-camera' : 'fa-palette'}"></i> <span>${escapeHTML(cleanArtistName(assignedCover.artist || 'Media Team Member'))}</span>`;
                 }
                 readerCoverWrap.style.display = 'block';
             } else {

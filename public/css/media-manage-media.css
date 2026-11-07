@@ -333,9 +333,9 @@
 
 .media-status-pill.published,
 .media-status-pill.approved {
-    background: #ecfdf5;
-    color: #047857;
-    border: 1px solid #a7f3d0;
+    background: #fdf2f4;
+    color: var(--sidebar-maroon, #5c0a18);
+    border: 1px solid #fbcfe8;
 }
 
 .media-status-pill.draft {
@@ -464,7 +464,7 @@
 }
 
 .media-dashboard-stat-card.card-published::before {
-    background: #10b981;
+    background: var(--sidebar-maroon, #5c0a18);
 }
 
 .media-dashboard-stat-card.card-pending::before {
@@ -504,9 +504,9 @@
 }
 
 .stat-card-icon-bubble.published {
-    background: #ecfdf5;
-    color: #059669;
-    border: 1px solid #a7f3d0;
+    background: #fdf2f4;
+    color: var(--sidebar-maroon, #5c0a18);
+    border: 1px solid #fbcfe8;
 }
 
 .stat-card-icon-bubble.pending {

@@ -29,14 +29,29 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================================================================
     const STORAGE_KEY = 'articleCoverReviewQueue_v1';
 
-    // Clean workflow purge check
+    // One-time purge of all pics submitted by media team per user request
     try {
-        const PURGE_FLAG = 'theLens_clean_workflow_zero_mock_v20';
-        if (localStorage.getItem(PURGE_FLAG) !== 'true') {
-            localStorage.removeItem(STORAGE_KEY);
-            localStorage.removeItem('mpc_approved_covers_v1');
-            localStorage.removeItem('mpcApprovedCoversPool_v1');
-            localStorage.setItem(PURGE_FLAG, 'true');
+        const PURGE_MEDIA_PICS_FLAG = 'theLens_purge_all_media_pics_v20261107_final';
+        if (localStorage.getItem(PURGE_MEDIA_PICS_FLAG) !== 'true') {
+            localStorage.removeItem('mediaTeamSubmissions_v2');
+            localStorage.removeItem('mediaTeamSubmissions_v1');
+            const rawQueue = localStorage.getItem(STORAGE_KEY);
+            if (rawQueue) {
+                try {
+                    let queue = JSON.parse(rawQueue);
+                    if (Array.isArray(queue)) {
+                        queue = queue.filter(item => {
+                            if (!item) return false;
+                            const t = (item.type || '').toLowerCase();
+                            const cat = (item.category || '').toLowerCase();
+                            const role = (item.uploaderRole || '').toLowerCase();
+                            return t !== 'photo' && cat !== 'photo' && !role.includes('media') && !role.includes('photojournalist');
+                        });
+                        localStorage.setItem(STORAGE_KEY, JSON.stringify(queue));
+                    }
+                } catch (err) {}
+            }
+            localStorage.setItem(PURGE_MEDIA_PICS_FLAG, 'true');
         }
     } catch (e) {}
 
@@ -63,6 +78,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 list.push(item);
             }
         });
+
+        // Also sync genuine submissions from Media Team submissions
+        try {
+            const rawSubs = localStorage.getItem('mediaTeamSubmissions_v2');
+            if (rawSubs) {
+                const subs = JSON.parse(rawSubs);
+                if (Array.isArray(subs)) {
+                    subs.forEach(sub => {
+                        const existing = list.find(item => String(item.id) === String(sub.id));
+                        if (existing) {
+                            if (sub.status && !existing.status) existing.status = sub.status;
+                            if (sub.remarks && !existing.remarks) existing.remarks = sub.remarks;
+                        } else if (sub && sub.image) {
+                            list.push(sub);
+                        }
+                    });
+                }
+            }
+        } catch (e) {}
 
         // Filter out any mock/hardcoded items
         list = list.filter(item => {
@@ -238,7 +272,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 if (emptyIcon) {
                     if (currentTab === 'cartoon') {
-                        emptyIcon.className = 'fa-solid fa-pen-nib';
+                        emptyIcon.className = 'fa-solid fa-palette';
                     } else {
                         emptyIcon.className = 'fa-solid fa-camera';
                     }
@@ -279,25 +313,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="cover-card-body">
                     <div class="cover-provenance-box">
                         <div class="cover-artist-row">
-                            <i class="fa-solid fa-${itemType === 'photo' ? 'camera' : (itemType === 'cartoon' ? 'pen-nib' : 'palette')}"></i>
-                            <span>${itemType === 'photo' ? 'Photojournalist' : (itemType === 'cartoon' ? 'Cartoonist' : 'Creator')}: <strong>${escapeHTML(cleanArtistName(item.artist || 'Media Team Member'))}</strong></span>
+                            <i class="fa-solid fa-${itemType === 'photo' ? 'camera' : 'palette'}"></i>
+                            <span>${itemType === 'photo' ? 'Photojournalist' : 'Cartoonist'}: <strong>${escapeHTML(cleanArtistName(item.artist || 'Media Team Member'))}</strong></span>
                         </div>
-                        ${item.approvedBy ? `
-                        <div class="cover-head-row">
-                            <i class="fa-solid fa-circle-check"></i>
-                            <span>Approved by: <strong>${escapeHTML(item.approvedBy)}</strong></span>
-                        </div>
-                        ` : (item.endorsedBy ? `
-                        <div class="cover-head-row">
-                            <i class="fa-solid fa-circle-check"></i>
-                            <span>Endorsed by: <strong>${escapeHTML(item.endorsedBy)}</strong></span>
-                        </div>
-                        ` : `
-                        <div class="cover-head-row" style="color: #64748b;">
-                            <i class="fa-regular fa-clock"></i>
-                            <span>Queue: <strong>Pending Editorial Decision</strong></span>
-                        </div>
-                        `)}
                     </div>
                 </div>
 
@@ -309,7 +327,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </button>
                     <button type="button" class="btn-cover-approve" data-action="approve" data-id="${item.id}" title="Approve Artwork">
                         <i class="fa-solid fa-check"></i>
-                        <span>Approve Artwork</span>
+                        <span>Approve Pubmat</span>
                     </button>
                 </div>
             </div>
@@ -495,6 +513,22 @@ document.addEventListener('DOMContentLoaded', () => {
             closeReturnModal();
             renderCards();
             showToast('Artwork returned for revision with feedback.', 'warning');
+
+            // Backend sync if running on Laravel
+            try {
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                if (csrfToken && target.id) {
+                    fetch(`/eic/media/${target.id}/revision`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({ remarks: remarks })
+                    }).catch(err => console.warn('Backend EIC return sync failed:', err));
+                }
+            } catch (e) {}
         });
     }
 
@@ -574,6 +608,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 dayGroup: 'Today'
             });
             localStorage.setItem('eicActivityLogs_v1', JSON.stringify(logs.slice(0, 40)));
+        } catch (e) {}
+
+        // Backend sync if running on Laravel
+        try {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            if (csrfToken && target.id) {
+                fetch(`/eic/media/${target.id}/approve`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json'
+                    }
+                }).catch(err => console.warn('Backend EIC approve sync failed:', err));
+            }
         } catch (e) {}
 
         const cardEl = document.getElementById(`card-${id}`);

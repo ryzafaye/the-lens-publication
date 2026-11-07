@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
@@ -120,7 +122,7 @@ class WriterController extends Controller
         ];
 
         // Conditional validation for the rest
-        if ($request->status === 'Pending Review') {
+        if ($request->status === 'Pending Review' || $request->status === 'Pending EIC Review') {
             $rules['excerpt'] = 'required|string|max:255';
             $rules['content'] = 'required|string';
         } else {
@@ -131,6 +133,14 @@ class WriterController extends Controller
         $request->validate($rules);
 
         $cleanContent = $this->sanitizeArticleContent($request->content);
+
+        // Opinion articles have no section head; submissions go directly to EIC/AEIC and President/VP
+        $category = Category::find($request->category_id);
+        $isOpinion = $category && stripos($category->name, 'opinion') !== false;
+
+        $targetStatus = $request->status === 'Draft'
+            ? 'Draft'
+            : ($isOpinion || $request->status === 'Pending EIC Review' ? 'Pending EIC Review' : 'Pending Review');
 
         // 2. ERROR CATCHING BLOCK
         try {
@@ -143,30 +153,37 @@ class WriterController extends Controller
                         'title' => $request->title,
                         'excerpt' => $request->excerpt,
                         'content' => $cleanContent,
-                        'status' => $request->status,
+                        'status' => $targetStatus,
+                        'remarks' => null,
                     ]);
 
-                    if ($request->status === 'Pending Review') {
+                    if ($targetStatus === 'Pending Review' || $targetStatus === 'Pending EIC Review') {
                         ActivityLog::logAction(Auth::id(), 'submitted', $article);
                     }
 
                     Cache::forget('writer_dashboard_stats_' . Auth::id());
-            Cache::forget('writer_recent_articles_' . Auth::id());
                     Cache::forget('writer_recent_articles_' . Auth::id());
                     Cache::forget('eic_dashboard_stats');
+                    Cache::forget('eic_dashboard_pending_articles');
                     Cache::forget('eic_review_articles_newest');
                     Cache::forget('eic_review_articles_oldest');
+                    Cache::forget('exec_dashboard_pending_pres_vp');
+                    Cache::forget('exec_dashboard_pending_' . $request->category_id);
+                    Cache::forget('exec_dashboard_pending_all');
                     Cache::forget('exec_review_articles_' . $request->category_id . '_newest');
                     Cache::forget('exec_review_articles_' . $request->category_id . '_oldest');
                     Cache::forget('exec_review_articles_all_newest');
                     Cache::forget('exec_review_articles_all_oldest');
 
-                    if ($request->status === 'Draft') {
+                    if ($targetStatus === 'Draft') {
                         return redirect()->route('writer.submit-article', ['tab' => 'drafts'])
                             ->with('success', 'Draft saved successfully.');
                     }
+                    $msg = $isOpinion
+                        ? 'Opinion submitted and forwarded directly to Editor-in-Chief review.'
+                        : 'Article submitted successfully.';
                     return redirect()->route('writer.dashboard')
-                        ->with('success', 'Article submitted successfully.');
+                        ->with('success', $msg);
                 }
             }
 
@@ -177,32 +194,39 @@ class WriterController extends Controller
                 'title' => $request->title,
                 'excerpt' => $request->excerpt,
                 'content' => $cleanContent,
-                'status' => $request->status,
+                'status' => $targetStatus,
                 'views' => 0,
                 'shares' => 0,
             ]);
 
-            if ($request->status === 'Pending Review') {
+            if ($targetStatus === 'Pending Review' || $targetStatus === 'Pending EIC Review') {
                 ActivityLog::logAction(Auth::id(), 'submitted', $article);
             }
 
             Cache::forget('writer_dashboard_stats_' . Auth::id());
             Cache::forget('writer_recent_articles_' . Auth::id());
             Cache::forget('eic_dashboard_stats');
+            Cache::forget('eic_dashboard_pending_articles');
             Cache::forget('eic_review_articles_newest');
             Cache::forget('eic_review_articles_oldest');
+            Cache::forget('exec_dashboard_pending_pres_vp');
+            Cache::forget('exec_dashboard_pending_' . $request->category_id);
+            Cache::forget('exec_dashboard_pending_all');
             Cache::forget('exec_review_articles_' . $request->category_id . '_newest');
             Cache::forget('exec_review_articles_' . $request->category_id . '_oldest');
             Cache::forget('exec_review_articles_all_newest');
             Cache::forget('exec_review_articles_all_oldest');
 
-            if ($request->status === 'Draft') {
+            if ($targetStatus === 'Draft') {
                 return redirect()->route('writer.submit-article', ['tab' => 'drafts'])
                     ->with('success', 'Draft saved successfully.');
             }
             
+            $msg = $isOpinion
+                ? 'Opinion submitted and forwarded directly to Editor-in-Chief review.'
+                : 'Article submitted successfully.';
             return redirect()->route('writer.dashboard')
-                ->with('success', 'Article submitted successfully.');
+                ->with('success', $msg);
 
         } catch (\Exception $e) {
             // If a database error occurs, return the error message with input

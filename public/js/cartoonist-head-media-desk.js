@@ -50,6 +50,25 @@ document.addEventListener('DOMContentLoaded', () => {
         console.warn('Could not read stored cartoons', e);
     }
 
+    // Also sync genuine cartoons from review queue
+    try {
+        const rawQueue = localStorage.getItem('articleCoverReviewQueue_v1');
+        if (rawQueue) {
+            const parsedQ = JSON.parse(rawQueue);
+            if (Array.isArray(parsedQ)) {
+                parsedQ.forEach(q => {
+                    if (!q || !q.id) return;
+                    const t = (q.type || '').toLowerCase();
+                    if (t === 'cartoon' || t === 'cartoons') {
+                        if (!cartoons.some(c => String(c.id) === String(q.id))) {
+                            cartoons.push(q);
+                        }
+                    }
+                });
+            }
+        }
+    } catch (e) {}
+
     function saveCartoons() {
         try {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(cartoons));
@@ -145,7 +164,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Strictly filter cartoons awaiting Cartoonist Head approval
         const pendingCartoons = cartoons.filter(c => {
             const s = (c.status || '').toLowerCase();
-            return s.includes('pending') || s === 'pending with head';
+            return (s.includes('pending') && !s.includes('eic')) || s === 'pending with head' || s === 'submitted_to_mpc';
         });
 
         // Apply Sorting
@@ -169,11 +188,11 @@ document.addEventListener('DOMContentLoaded', () => {
         cardsGrid.innerHTML = pendingCartoons.map(item => `
             <div class="cover-card" id="card-${item.id}" data-id="${item.id}">
                 
-                <!-- Clickable Artwork Thumbnail with Inspect Overlay & Upper-Left Status -->
+                <!-- Clickable Artwork Thumbnail with Inspect Overlay -->
                 <div class="cover-thumb-container" data-action="inspect" data-id="${item.id}" title="Click to view artwork full size">
                     <img 
                         src="${escapeHTML(item.image || 'images/covers/press-freedom-cartoon.svg')}" 
-                        alt="${escapeHTML(item.title)}" 
+                        alt="${escapeHTML(item.title || 'Cartoon Artwork')}" 
                         class="cover-thumb-img" 
                         loading="lazy" 
                         onerror="this.src='images/covers/press-freedom-cartoon.svg';"
@@ -184,40 +203,37 @@ document.addEventListener('DOMContentLoaded', () => {
                         <span>Inspect Artwork</span>
                     </div>
 
-                    <!-- Status pinned in Upper-Left of the Picture -->
-                    <div class="cover-thumb-badge-group">
-                        <span class="cover-status-tag pending">
-                            <i class="fa-regular fa-clock"></i> ${escapeHTML(item.status || 'Pending with Head')}
+                    <!-- Type Tag on Top-Left of the Picture -->
+                    <div class="cover-thumb-badge-group" style="position: absolute; top: 10px; left: 10px; z-index: 2;">
+                        <span class="cover-type-tag cartoon" style="font-size: 0.68rem; font-weight: 700; padding: 3px 8px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.04em; background: rgba(15, 23, 42, 0.90); color: #f472b6; border: 1px solid rgba(244, 114, 182, 0.3); display: inline-flex; align-items: center; gap: 4px;">
+                            <i class="fa-solid fa-palette"></i> CARTOON
                         </span>
                     </div>
 
-                    <span class="cover-thumb-date">
-                        <i class="fa-regular fa-calendar"></i>
-                        <span>${escapeHTML(item.date || 'Recent')}</span>
-                    </span>
-                </div>
-
-                <!-- Card Body: Provenance Box matching M&PC Media Desk -->
-                <div class="cover-card-body">
-                    <div class="cover-provenance-box">
-                        <div class="cover-artist-row">
-                            <i class="fa-solid fa-palette"></i>
-                            <span>Cartoonist: <strong>${escapeHTML(item.artist || 'Staff Cartoonist')}</strong></span>
-                        </div>
-                        <div class="cover-head-row">
-                            <i class="fa-solid fa-pen-nib"></i>
-                            <span>Title: <strong>${escapeHTML(item.title)}</strong></span>
-                        </div>
+                    <!-- Status pinned on Top-Right of the Picture (Pending Approval) -->
+                    <div class="cover-thumb-status-badge" style="position: absolute; top: 10px; right: 10px; z-index: 2;">
+                        <span class="cover-status-tag pending" style="background: #ffedd5; color: #c2410c; border: 1px solid #fed7aa; font-size: 0.68rem; font-weight: 700; padding: 3px 8px; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px; letter-spacing: 0.04em; text-transform: uppercase;">
+                            <i class="fa-regular fa-clock" style="color: #c2410c;"></i> PENDING APPROVAL
+                        </span>
                     </div>
                 </div>
 
-                <!-- Footer Actions: Return to Cartoonist & Endorse to EIC -->
-                <div class="cover-card-footer">
-                    <button type="button" class="btn-cover-return" data-action="return" data-id="${item.id}" title="Return to Cartoonist for visual revisions">
+                <!-- Below the pic: Date, Icon then Name only (No file name, no size) -->
+                <div class="cover-card-body" style="padding: 14px 16px;">
+                    <div class="media-card-meta" style="display: flex; align-items: center; gap: 8px; font-size: 0.82rem; color: #64748b; margin: 0;">
+                        <span><i class="fa-regular fa-calendar"></i> ${escapeHTML(item.date || 'Recent')}</span>
+                        <span>&bull;</span>
+                        <span><i class="fa-solid fa-palette"></i> <strong>${escapeHTML(item.artist || 'Staff Cartoonist')}</strong></span>
+                    </div>
+                </div>
+
+                <!-- Footer Actions: Balanced Padding (Not too long and short) -->
+                <div class="cover-card-footer" style="padding: 12px 16px; display: flex; align-items: center; gap: 8px;">
+                    <button type="button" class="btn-cover-return" data-action="return" data-id="${item.id}" title="Return to Cartoonist for visual revisions" style="flex: 1; padding: 7px 12px; font-size: 0.80rem; font-weight: 600; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; white-space: nowrap;">
                         <i class="fa-solid fa-rotate-left"></i>
-                        <span>Return to Cartoonist</span>
+                        <span>Return for Revision</span>
                     </button>
-                    <button type="button" class="btn-cover-approve" data-action="approve" data-id="${item.id}" title="Endorse to Editor-in-Chief for checking">
+                    <button type="button" class="btn-cover-approve" data-action="approve" data-id="${item.id}" title="Endorse to Editor-in-Chief for checking" style="flex: 1; padding: 7px 14px; font-size: 0.80rem; font-weight: 600; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; white-space: nowrap; background: var(--sidebar-maroon, #5c0a18); border-color: var(--sidebar-maroon, #5c0a18); color: #ffffff;">
                         <i class="fa-solid fa-check"></i>
                         <span>Endorse to EIC</span>
                     </button>
@@ -264,7 +280,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (inspectArtist) inspectArtist.textContent = item.artist || 'Staff Cartoonist';
         if (inspectTitle) inspectTitle.textContent = item.title;
-        if (inspectTypeTag) inspectTypeTag.textContent = (item.type || 'CARTOON').toUpperCase();
+        if (inspectTypeTag) {
+            inspectTypeTag.className = 'cover-type-tag cartoon';
+            const typeLabel = escapeHTML((item.type || 'CARTOON').toUpperCase());
+            inspectTypeTag.innerHTML = `<i class="fa-solid fa-palette"></i> ${typeLabel}`;
+        }
 
         inspectModal.classList.remove('hidden');
         document.body.style.overflow = 'hidden';
@@ -314,6 +334,21 @@ document.addEventListener('DOMContentLoaded', () => {
         saveCartoons();
         logActivity('endorsed', 'Editorial Cartoon to EIC', item.title);
 
+        // Backend sync if running on Laravel
+        try {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            if (csrfToken && id) {
+                fetch(`/cartoonist/cartoons/${id}/endorse`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json'
+                    }
+                }).catch(err => console.warn('Backend endorse sync failed:', err));
+            }
+        } catch (e) {}
+
         // Push to review queue for EIC review (does NOT go to MPC covers until EIC approves)
         try {
             let queue = [];
@@ -338,27 +373,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 queue[existingIdx] = queueItem;
             } else {
                 queue.unshift(queueItem);
-            }
-            localStorage.setItem('articleCoverReviewQueue_v1', JSON.stringify(queue));
-        } catch (e) {}
-                queue[existingIdx] = {
-                    ...queue[existingIdx],
-                    status: 'approved_for_mpc',
-                    approvedBy: `${currentHeadName} (Cartoonist Head)`
-                };
-            } else {
-                queue.unshift({
-                    id: item.id,
-                    type: 'cartoon',
-                    title: item.title,
-                    category: item.category || 'Opinion',
-                    artist: item.artist || 'Staff Cartoonist',
-                    approvedBy: `${currentHeadName} (Cartoonist Head)`,
-                    image: item.image,
-                    date: item.endorsedDate || item.date || 'Recent',
-                    status: 'approved_for_mpc',
-                    remarks: ''
-                });
             }
             localStorage.setItem('articleCoverReviewQueue_v1', JSON.stringify(queue));
         } catch (e) {}
@@ -429,6 +443,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 saveCartoons();
                 logActivity('returned', 'Cartoon for Revision', item.title);
+
+                // Backend sync if running on Laravel
+                try {
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                    if (csrfToken && item.id) {
+                        fetch(`/cartoonist/cartoons/${item.id}/revision`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': csrfToken,
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({ remarks: remarks })
+                        }).catch(err => console.warn('Backend return sync failed:', err));
+                    }
+                } catch (e) {}
 
                 // Sync status to articleCoverReviewQueue_v1
                 try {

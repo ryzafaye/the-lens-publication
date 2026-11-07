@@ -21,8 +21,8 @@
 
         <div class="writer-header-right" style="display: flex; gap: 10px; flex-wrap: wrap;">
             <a href="{{ route('media.submit-media') }}" class="btn-maroon-action">
-                <i class="fa-solid fa-cloud-arrow-up"></i>
-                <span>Submit PUBMAT</span>
+                <i class="fa-solid fa-camera"></i>
+                <span>Submit Photo</span>
             </a>
             <a href="{{ route('media.submit-article') }}" class="btn-maroon-action">
                 <i class="fa-solid fa-feather-pointed"></i>
@@ -35,7 +35,7 @@
     <section class="metrics-grid animate-fade-in delay-2" style="grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); margin-bottom: 28px;" aria-label="Operational metrics">
         <div class="metric-card">
             <div class="metric-header">
-                <span class="metric-label">Total PUBMATs Published</span>
+                <span class="metric-label">Total Photos Published</span>
                 <div class="metric-icon-box">
                     <i class="fa-solid fa-globe"></i>
                 </div>

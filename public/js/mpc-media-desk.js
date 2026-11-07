@@ -19,14 +19,48 @@ document.addEventListener('DOMContentLoaded', () => {
         return name.replace(/\s*\([^)]*\)/g, '').trim();
     }
 
-    // Clean workflow purge to guarantee zero hardcoded / mock uploaded images
+    // One-time purge of all pics submitted by media team per user request
     try {
-        const PURGE_FLAG = 'theLens_clean_workflow_zero_mock_v20';
-        if (localStorage.getItem(PURGE_FLAG) !== 'true') {
-            localStorage.removeItem('articleCoverReviewQueue_v1');
-            localStorage.removeItem('mpc_approved_covers_v1');
-            localStorage.removeItem('mpcApprovedCoversPool_v1');
-            localStorage.setItem(PURGE_FLAG, 'true');
+        const PURGE_MEDIA_PICS_FLAG = 'theLens_purge_all_media_pics_v20261107_final';
+        if (localStorage.getItem(PURGE_MEDIA_PICS_FLAG) !== 'true') {
+            localStorage.removeItem('mediaTeamSubmissions_v2');
+            localStorage.removeItem('mediaTeamSubmissions_v1');
+            const rawQueue = localStorage.getItem('articleCoverReviewQueue_v1');
+            if (rawQueue) {
+                try {
+                    let queue = JSON.parse(rawQueue);
+                    if (Array.isArray(queue)) {
+                        queue = queue.filter(item => {
+                            if (!item) return false;
+                            const t = (item.type || '').toLowerCase();
+                            const cat = (item.category || '').toLowerCase();
+                            const role = (item.uploaderRole || '').toLowerCase();
+                            return t !== 'photo' && cat !== 'photo' && !role.includes('media') && !role.includes('photojournalist');
+                        });
+                        localStorage.setItem('articleCoverReviewQueue_v1', JSON.stringify(queue));
+                    }
+                } catch (err) {}
+            }
+            localStorage.setItem(PURGE_MEDIA_PICS_FLAG, 'true');
+        }
+    } catch (e) {}
+
+    // Purge any unendorsed cartoon submissions from M&PC review queue
+    try {
+        const rawQueue = localStorage.getItem('articleCoverReviewQueue_v1');
+        if (rawQueue) {
+            let queue = JSON.parse(rawQueue);
+            if (Array.isArray(queue)) {
+                const filtered = queue.filter(item => {
+                    if (!item) return false;
+                    const t = (item.type || '').toLowerCase();
+                    const s = (item.status || '').toLowerCase();
+                    return !(t === 'cartoon' && (s === 'submitted_to_mpc' || s === 'pending with head'));
+                });
+                if (filtered.length !== queue.length) {
+                    localStorage.setItem('articleCoverReviewQueue_v1', JSON.stringify(filtered));
+                }
+            }
         }
     } catch (e) {}
 
@@ -66,6 +100,25 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
+        // Also sync genuine submissions from Media Team submissions
+        try {
+            const rawSubs = localStorage.getItem('mediaTeamSubmissions_v2');
+            if (rawSubs) {
+                const subs = JSON.parse(rawSubs);
+                if (Array.isArray(subs)) {
+                    subs.forEach(sub => {
+                        const existing = list.find(item => String(item.id) === String(sub.id));
+                        if (existing) {
+                            if (sub.status && !existing.status) existing.status = sub.status;
+                            if (sub.remarks && !existing.remarks) existing.remarks = sub.remarks;
+                        } else if (sub && sub.image) {
+                            list.push(sub);
+                        }
+                    });
+                }
+            }
+        } catch (e) {}
+
         // Filter out any mock/hardcoded items
         list = list.filter(item => {
             if (!item || !item.image) return false;
@@ -77,6 +130,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 return false;
             }
             return img.startsWith('data:image/') || img.startsWith('/storage/') || img.startsWith('http');
+        });
+
+        // Exclude all cartoons: cartoons submitted by cartoonists belong exclusively to the Cartoonist Head desk
+        list = list.filter(item => {
+            const t = (item.type || '').toLowerCase();
+            const cat = (item.category || '').toLowerCase();
+            const role = (item.uploaderRole || '').toLowerCase();
+            return !(t === 'cartoon' || t === 'cartoons' || cat === 'cartoon' || cat === 'cartoons' || role.includes('cartoon'));
+        });
+
+        // Strict deduplication by ID
+        const seenIds = new Set();
+        list = list.filter(item => {
+            if (!item || !item.id) return false;
+            const strId = String(item.id);
+            if (seenIds.has(strId)) return false;
+            seenIds.add(strId);
+            return true;
         });
 
         return list;
@@ -95,17 +166,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================================================================
     // 3. UI STATE & TOAST SYSTEM
     // =========================================================================
-    let currentTab = 'pubmat';
+    let currentTab = 'photo';
     let currentSort = 'newest';
     let activeInspectionId = null;
     let activeReturnId = null;
 
     const cardsGrid = document.getElementById('cover-cards-grid');
     const emptyState = document.getElementById('cover-empty-state');
-    const badgePubmat = document.getElementById('badge-cover-pubmat');
     const badgePhoto = document.getElementById('badge-cover-photo');
     const badgeCartoon = document.getElementById('badge-cover-cartoon');
-    const badgeLibrary = document.getElementById('badge-cover-library');
     const sortSelect = document.getElementById('cover-sort-select');
 
     // Modals
@@ -170,24 +239,42 @@ document.addEventListener('DOMContentLoaded', () => {
     function getItemType(item) {
         if (!item) return 'pubmat';
         const t = (item.type || '').toLowerCase().trim();
-        if (t === 'photo' || t === 'photos' || t === 'photojournalism') return 'photo';
-        if (t === 'cartoon' || t === 'cartoons') return 'cartoon';
+        const cat = (item.category || '').toLowerCase().trim();
+        const role = (item.uploaderRole || '').toLowerCase().trim();
+
+        if (t === 'photo' || t === 'photos' || t === 'photojournalism' || cat === 'photo' || cat === 'photos' || role.includes('photo') || role.includes('media team')) {
+            return 'photo';
+        }
+        if (t === 'cartoon' || t === 'cartoons' || cat === 'cartoon' || cat === 'cartoons' || role.includes('cartoon')) {
+            return 'cartoon';
+        }
         return 'pubmat';
     }
 
     function updateBadges() {
-        const pubmatCount = coverList.filter(item => (getItemType(item) === 'pubmat' || getItemType(item) === 'photo') && isItemPending(item)).length;
-        const photoCount = coverList.filter(item => (getItemType(item) === 'photo' || getItemType(item) === 'pubmat') && isItemPending(item)).length;
+        const photoCount = coverList.filter(item => getItemType(item) === 'photo' && isItemPending(item)).length;
         const cartoonCount = coverList.filter(item => getItemType(item) === 'cartoon' && isItemPending(item)).length;
-        const libraryCount = coverList.filter(item => item.status === 'approved_for_mpc' || item.status === 'approved' || item.status === 'EIC Approved' || item.status === 'Published').length;
 
-        if (badgePubmat) badgePubmat.textContent = pubmatCount;
         if (badgePhoto) badgePhoto.textContent = photoCount;
         if (badgeCartoon) badgeCartoon.textContent = cartoonCount;
-        if (badgeLibrary) badgeLibrary.textContent = libraryCount;
     }
 
     const tabButtons = document.querySelectorAll('.cover-tabs-container .review-tab-btn');
+
+    // Auto-select tab if present in URL parameter (e.g. ?tab=cartoon)
+    try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const tabParam = urlParams.get('tab');
+        if (tabParam && ['photo', 'cartoon'].includes(tabParam)) {
+            currentTab = tabParam;
+            tabButtons.forEach(b => {
+                const matches = b.getAttribute('data-tab') === currentTab;
+                b.classList.toggle('active', matches);
+                b.setAttribute('aria-selected', matches ? 'true' : 'false');
+            });
+        }
+    } catch (e) {}
+
     tabButtons.forEach(btn => {
         btn.addEventListener('click', () => {
             tabButtons.forEach(b => {
@@ -206,17 +293,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================================================================
     function getFilteredList() {
         let filtered = [];
-        if (currentTab === 'library') {
-            filtered = coverList.filter(item => item.status === 'approved_for_mpc' || item.status === 'approved' || item.status === 'EIC Approved' || item.status === 'Published');
-        } else if (currentTab === 'cartoon') {
+        if (currentTab === 'cartoon') {
             filtered = coverList.filter(item => getItemType(item) === 'cartoon' && isItemPending(item));
         } else {
-            filtered = coverList.filter(item => (getItemType(item) === 'pubmat' || getItemType(item) === 'photo') && isItemPending(item));
+            filtered = coverList.filter(item => getItemType(item) === 'photo' && isItemPending(item));
         }
 
         return filtered.sort((a, b) => {
-            const timeA = new Date(a.rawDate || a.date).getTime();
-            const timeB = new Date(b.rawDate || b.date).getTime();
+            const timeA = new Date(a.rawDate || a.date || 0).getTime() || 0;
+            const timeB = new Date(b.rawDate || b.date || 0).getTime() || 0;
             if (currentSort === 'oldest') {
                 return timeA - timeB;
             }
@@ -251,25 +336,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (emptyDesc) emptyDesc.remove();
 
                 if (emptyTitle) {
-                    if (currentTab === 'pubmat') {
-                        emptyTitle.textContent = 'All Caught Up on PUBMAT Reviews';
-                    } else if (currentTab === 'photo') {
-                        emptyTitle.textContent = 'All Caught Up on Photojournalism Captures';
-                    } else if (currentTab === 'cartoon') {
+                    if (currentTab === 'cartoon') {
                         emptyTitle.textContent = 'All Caught Up on Editorial Cartoons';
                     } else {
-                        emptyTitle.textContent = 'Media Library is Empty';
+                        emptyTitle.textContent = 'All Caught Up on Photojournalism Captures';
                     }
                 }
                 if (emptyIcon) {
-                    if (currentTab === 'pubmat') {
+                    if (currentTab === 'cartoon') {
                         emptyIcon.className = 'fa-solid fa-palette';
-                    } else if (currentTab === 'photo') {
-                        emptyIcon.className = 'fa-solid fa-camera';
-                    } else if (currentTab === 'cartoon') {
-                        emptyIcon.className = 'fa-solid fa-pen-nib';
                     } else {
-                        emptyIcon.className = 'fa-solid fa-photo-film';
+                        emptyIcon.className = 'fa-solid fa-camera';
                     }
                 }
             }
@@ -286,11 +363,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
             let statusBadgeHtml = '';
             if (isPublished) {
-                statusBadgeHtml = '<span class="cover-status-tag published" style="background: #059669; color: #fff;"><i class="fa-solid fa-globe"></i> PUBLISHED</span>';
+                statusBadgeHtml = '<span class="cover-status-tag published" style="background: var(--sidebar-maroon, #5c0a18); color: #fff;"><i class="fa-solid fa-globe"></i> PUBLISHED</span>';
             } else if (isEicApproved) {
                 statusBadgeHtml = '<span class="cover-status-tag approved" style="background: #1e3a8a; color: #fff;"><i class="fa-solid fa-shield-halved"></i> EIC APPROVED</span>';
             } else if (isApproved) {
                 statusBadgeHtml = '<span class="cover-status-tag approved"><i class="fa-solid fa-circle-check"></i> APPROVED</span>';
+            } else {
+                statusBadgeHtml = '<span class="cover-status-tag pending" style="background: #ffedd5; color: #c2410c; border: 1px solid #fed7aa; font-size: 0.68rem; font-weight: 700; padding: 3px 8px; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px; letter-spacing: 0.04em; text-transform: uppercase;"><i class="fa-regular fa-clock" style="color: #c2410c;"></i> PENDING WITH HEAD</span>';
             }
 
             return `
@@ -304,8 +383,13 @@ document.addEventListener('DOMContentLoaded', () => {
                         <span>Inspect Artwork</span>
                     </div>
 
+                    <!-- Type Tag on Top-Left -->
                     <div class="cover-thumb-badge-group">
                         <span class="cover-type-tag ${itemType}">${escapeHTML(itemType.toUpperCase())}</span>
+                    </div>
+
+                    <!-- Status Badge on Top-Right -->
+                    <div class="cover-thumb-status-badge" style="position: absolute; top: 10px; right: 10px; z-index: 2;">
                         ${statusBadgeHtml}
                     </div>
 
@@ -319,32 +403,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="cover-card-body">
                     <div class="cover-provenance-box">
                         <div class="cover-artist-row">
-                            <i class="fa-solid fa-${itemType === 'photo' ? 'camera' : (itemType === 'cartoon' ? 'pen-nib' : 'palette')}"></i>
-                            <span>${itemType === 'photo' ? 'Photojournalist' : (itemType === 'cartoon' ? 'Cartoonist' : 'Creator')}: <strong>${escapeHTML(cleanArtistName(item.artist || 'Media Team Member'))}</strong></span>
+                            <i class="fa-solid fa-${itemType === 'photo' ? 'camera' : 'palette'}"></i>
+                            <span>${itemType === 'photo' ? 'Photojournalist' : 'Cartoonist'}: <strong>${escapeHTML(cleanArtistName(item.artist || 'Media Team Member'))}</strong></span>
                         </div>
-                        ${item.approvedBy ? `
-                        <div class="cover-head-row">
-                            <i class="fa-solid fa-circle-check"></i>
-                            <span>Approved by: <strong>${escapeHTML(item.approvedBy)}</strong></span>
-                        </div>
-                        ` : (item.endorsedBy ? `
-                        <div class="cover-head-row">
-                            <i class="fa-solid fa-circle-check"></i>
-                            <span>Endorsed by: <strong>${escapeHTML(item.endorsedBy)}</strong></span>
-                        </div>
-                        ` : `
-                        <div class="cover-head-row" style="color: #64748b;">
-                            <i class="fa-regular fa-clock"></i>
-                            <span>Queue: <strong>Pending Approval</strong></span>
-                        </div>
-                        `)}
                     </div>
                 </div>
 
                 <!-- Footer Actions -->
                 ${isPublished ? `
                 <div class="cover-card-footer library-card-footer" style="display: flex; justify-content: space-between; align-items: center;">
-                    <div class="library-card-status" style="color: #059669; font-weight: 600; font-size: 0.82rem; display: flex; align-items: center; gap: 6px;">
+                    <div class="library-card-status" style="color: var(--sidebar-maroon, #5c0a18); font-weight: 600; font-size: 0.82rem; display: flex; align-items: center; gap: 6px;">
                         <i class="fa-solid fa-circle-check"></i>
                         <span>Live on Publication</span>
                     </div>
@@ -402,15 +470,16 @@ document.addEventListener('DOMContentLoaded', () => {
         activeInspectionId = id;
 
         if (inspectArtist) inspectArtist.textContent = cleanArtistName(item.artist || 'Media Team Member');
-        if (inspectHead) inspectHead.textContent = item.approvedBy || item.endorsedBy || 'M&PC Head';
+        if (inspectHead) inspectHead.textContent = '';
         if (inspectImage) {
             inspectImage.src = item.image;
             inspectImage.alt = `${(item.type || 'Media').toUpperCase()} by ${cleanArtistName(item.artist || '')}`;
         }
 
         if (inspectTypeTag) {
-            inspectTypeTag.className = `cover-type-tag ${item.type || 'pubmat'}`;
-            inspectTypeTag.textContent = (item.type || 'pubmat').toUpperCase();
+            const resolvedType = getItemType(item);
+            inspectTypeTag.className = `cover-type-tag ${resolvedType}`;
+            inspectTypeTag.textContent = resolvedType.toUpperCase();
         }
 
         const isApproved = (item.status === 'approved_for_mpc' || item.status === 'approved' || item.status === 'EIC Approved' || item.status === 'Published');
@@ -420,7 +489,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (footerBtnGroup) {
             if (isPublished) {
                 footerBtnGroup.innerHTML = `
-                    <div class="inspect-library-status" style="color: #059669; font-weight: 600;">
+                    <div class="inspect-library-status" style="color: var(--sidebar-maroon, #5c0a18); font-weight: 600;">
                         <i class="fa-solid fa-circle-check"></i>
                         <span>Live on Publication Website</span>
                     </div>
@@ -539,7 +608,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 8. MANDATORY RETURN TO HEAD MODAL
     // =========================================================================
     function openReturnModal(id) {
-        const item = coverList.find(c => c.id === id);
+        const item = coverList.find(c => String(c.id) === String(id));
         if (!item || !returnModal) return;
 
         activeReturnId = id;
@@ -588,7 +657,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            const itemIndex = coverList.findIndex(c => c.id === activeReturnId);
+            const itemIndex = coverList.findIndex(c => String(c.id) === String(activeReturnId));
             if (itemIndex > -1) {
                 const target = coverList[itemIndex];
                 target.status = 'Returned for Revision';
@@ -599,7 +668,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (rawSub) {
                         let subs = JSON.parse(rawSub);
                         if (Array.isArray(subs)) {
-                            subs = subs.map(s => (s.id === target.id ? { ...s, status: 'Returned for Revision', remarks: remarks } : s));
+                            subs = subs.map(s => (String(s.id) === String(target.id) ? { ...s, status: 'Returned for Revision', remarks: remarks } : s));
                             localStorage.setItem('mediaTeamSubmissions_v2', JSON.stringify(subs));
                         }
                     }
@@ -610,7 +679,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (rawCart) {
                         let carts = JSON.parse(rawCart);
                         if (Array.isArray(carts)) {
-                            carts = carts.map(s => (s.id === target.id ? { ...s, status: 'Returned for Revision', remarks: remarks } : s));
+                            carts = carts.map(s => (String(s.id) === String(target.id) ? { ...s, status: 'Returned for Revision', remarks: remarks } : s));
                             localStorage.setItem('cartoonistSubmissions_v1', JSON.stringify(carts));
                         }
                     }
@@ -666,7 +735,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 9. APPROVAL ACTION
     // =========================================================================
     function handleApprove(id) {
-        const itemIndex = coverList.findIndex(c => c.id === id);
+        const itemIndex = coverList.findIndex(c => String(c.id) === String(id));
         if (itemIndex === -1) return;
 
         const target = coverList[itemIndex];
@@ -678,7 +747,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (rawSub) {
                 let subs = JSON.parse(rawSub);
                 if (Array.isArray(subs)) {
-                    subs = subs.map(s => (s.id === target.id ? { ...s, status: 'Pending EIC Review', endorsedBy: target.endorsedBy } : s));
+                    subs = subs.map(s => (String(s.id) === String(target.id) ? { ...s, status: 'Pending EIC Review', endorsedBy: target.endorsedBy } : s));
                     localStorage.setItem('mediaTeamSubmissions_v2', JSON.stringify(subs));
                 }
             }
@@ -795,7 +864,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 pubList.unshift({
                     id: target.id,
                     title: target.title || 'Publication Graphic Asset',
-                    category: target.type === 'cartoon' ? 'Editorial Cartoon' : 'Graphic & Photography',
+                    category: target.type === 'cartoon' ? 'Cartoon' : 'Photo',
                     author: cleanArtistName(target.artist || 'Media Team Member'),
                     image: target.image,
                     date: target.date || dateStr,

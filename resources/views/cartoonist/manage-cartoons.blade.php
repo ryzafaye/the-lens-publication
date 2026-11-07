@@ -60,7 +60,7 @@
                 type="search" 
                 id="cartoon-search-input" 
                 class="manage-search-input" 
-                placeholder="Search cartoons by title, connected article, or category..." 
+                placeholder="Search cartoons by title or connected article..." 
                 aria-label="Search cartoon submissions" 
                 autocomplete="off"
             >
@@ -99,7 +99,6 @@
     <div class="modal-card media-inspect-modal-card">
         <div class="viewer-modal-header" style="padding: 14px 20px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between;">
             <div style="display: flex; align-items: center; gap: 8px;">
-                <span id="modal-inspect-category" class="media-card-category-chip maroon-category"><i class="fa-solid fa-tag"></i> Opinion</span>
                 <span id="modal-inspect-status" class="media-status-pill pending-with-head">Pending with Head</span>
             </div>
             <button type="button" id="close-inspect-modal-btn" class="modal-close-icon" aria-label="Close modal">
@@ -115,12 +114,6 @@
             <div style="margin-top: 14px;">
                 <div style="display: flex; gap: 12px; font-size: 0.82rem; color: #64748b; flex-wrap: wrap;">
                     <span><i class="fa-regular fa-calendar"></i> <span id="modal-inspect-date">{{ date('M d, Y') }}</span></span>
-                    <span>&bull;</span>
-                    <span><i class="fa-solid fa-hard-drive"></i> <span id="modal-inspect-filesize">Standard</span></span>
-                </div>
-
-                <div id="modal-inspect-caption" style="margin-top: 8px; font-size: 0.88rem; color: #334155; font-weight: 500;">
-                    <!-- Connected story title or caption -->
                 </div>
 
                 <div id="modal-inspect-remarks-box" class="media-review-note-box" style="display: none; margin-top: 14px;">
@@ -128,12 +121,6 @@
                     <span id="modal-inspect-remarks-text"></span>
                 </div>
             </div>
-        </div>
-
-        <div class="modal-footer" style="padding: 14px 20px; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; align-items: center; gap: 10px;">
-            <button type="button" id="btn-modal-close" class="btn-secondary-action" style="padding: 8px 16px;">
-                <span>Close</span>
-            </button>
         </div>
     </div>
 </div>
@@ -147,6 +134,7 @@
     window.INITIAL_DATA = @json($cartoons ?? []);
     window.INITIAL_CARTOONS = @json($cartoons ?? []);
 </script>
+<script src="{{ asset('js/cartoon-data.js') }}"></script>
 <script src="{{ asset('js/cartoonist-manage-cartoons.js') }}"></script>
 @endsection
 

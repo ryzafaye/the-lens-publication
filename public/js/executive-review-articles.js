@@ -17,56 +17,111 @@ document.addEventListener('DOMContentLoaded', () => {
     // 2. DATASET (Articles Awaiting Executive / EIC Decision)
     // =========================================================================
     // Helper to determine Section Head who endorsed/approved the article
-    function getEndorserForCategory(cat) {
-        if (!cat) return 'Section Editorial Head';
-        const c = cat.toLowerCase();
-        if (c.includes('news')) return 'Elena Ramos (News Head)';
-        if (c.includes('sci') || c.includes('tech')) return 'Dr. Aris Thorne (SciTech Head)';
-        if (c.includes('feat')) return 'Sofia Alcantara (Feature Head)';
-        if (c.includes('op')) return 'Patricia Gomez (Opinion Head)';
-        if (c.includes('lit')) return 'Lucas Gabriel (Literature Head)';
-        return 'Section Editorial Head';
+    function getEndorserForCategory(cat, item = null) {
+        if (!cat) return 'Section Head';
+        const catLower = cat.toLowerCase().trim();
+
+        // 1. For Opinion, there is no Opinion Head -> Direct Submission
+        if (catLower.includes('opinion')) {
+            return 'Direct Submission (Opinion)';
+        }
+
+        // 2. Check if item has backend-provided endorsedBy
+        if (item && item.endorsedBy && item.endorsedBy !== 'Section Head' && !item.endorsedBy.toLowerCase().includes('section editorial')) {
+            return item.endorsedBy;
+        }
+
+        // 3. Strictly resolve based on category
+        const heads = window.__CATEGORY_HEADS__ || {};
+        for (const [key, val] of Object.entries(heads)) {
+            if (catLower.includes(key.toLowerCase()) || key.toLowerCase().includes(catLower)) {
+                return val;
+            }
+        }
+        const fallbackMap = {
+            'news': 'Arquero (News Head)',
+            'opinions': 'Direct Submission (Opinion)',
+            'opinion': 'Direct Submission (Opinion)',
+            'features': 'Dela Cruz (Feature Head)',
+            'feature': 'Dela Cruz (Feature Head)',
+            'science and technology': 'Apilado (SciTech Head)',
+            'scitech': 'Apilado (SciTech Head)',
+            'science & technology': 'Apilado (SciTech Head)',
+            'literature': 'Llandelar (Literary Head)',
+            'literary': 'Llandelar (Literary Head)'
+        };
+        for (const [fKey, fVal] of Object.entries(fallbackMap)) {
+            if (catLower.includes(fKey) || fKey.includes(catLower)) {
+                return fVal;
+            }
+        }
+        return 'Section Head';
+    }
+
+    function renderEndorsementBadge(item, isSectionHead) {
+        if (isSectionHead) return '';
+        const endorser = getEndorserForCategory(item.category, item);
+        if (endorser.toLowerCase().includes('direct') || endorser.toLowerCase().includes('opinion')) {
+            return `<span class="review-box-endorsed"><i class="fa-solid fa-feather-pointed" aria-hidden="true"></i> Direct Submission (Opinion)</span>`;
+        }
+        return `<span class="review-box-endorsed"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Approved by <strong>${escapeHTML(endorser)}</strong></span>`;
     }
 
     const defaultPendingArticles = [];
 
     // LocalStorage Queue Management
     function getStoredPendingQueue() {
-        if (window.INITIAL_PENDING && Array.isArray(window.INITIAL_PENDING)) {
+        const isSectionHead = window.location.pathname.startsWith('/section-head');
+        if (window.INITIAL_PENDING && Array.isArray(window.INITIAL_PENDING) && window.INITIAL_PENDING.length > 0) {
             return window.INITIAL_PENDING.map(item => ({
                 ...item,
                 endorsedBy: item.endorsedBy || getEndorserForCategory(item.category)
             }));
         }
-        if (window.INITIAL_DATA && Array.isArray(window.INITIAL_DATA)) {
+        if (window.INITIAL_DATA && Array.isArray(window.INITIAL_DATA) && window.INITIAL_DATA.length > 0) {
             return window.INITIAL_DATA.map(item => ({
                 ...item,
                 endorsedBy: item.endorsedBy || getEndorserForCategory(item.category)
             }));
         }
         try {
-            const raw = localStorage.getItem('executivePendingReviewQueue') || localStorage.getItem('eicPendingReviewQueue');
-            if (raw) {
-                const parsed = JSON.parse(raw);
-                if (Array.isArray(parsed) && parsed.length > 0) {
-                    return parsed.map(item => ({
-                        ...item,
-                        endorsedBy: item.endorsedBy || getEndorserForCategory(item.category)
-                    }));
+            if (isSectionHead) {
+                const raw = localStorage.getItem('sectionHeadReviewQueue_v1');
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        return parsed;
+                    }
+                }
+            } else {
+                const raw = localStorage.getItem('executivePendingReviewQueue') || localStorage.getItem('eicPendingReviewQueue');
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        return parsed.map(item => ({
+                            ...item,
+                            endorsedBy: item.endorsedBy || getEndorserForCategory(item.category)
+                        }));
+                    }
                 }
             }
         } catch (e) {
-            console.warn('Could not read executivePendingReviewQueue', e);
+            console.warn('Could not read pending review queue', e);
         }
         return [];
     }
 
     function savePendingQueue(list) {
+        const isSectionHead = window.location.pathname.startsWith('/section-head');
         try {
-            localStorage.setItem('executivePendingReviewQueue', JSON.stringify(list));
-            localStorage.setItem('eicPendingReviewQueue', JSON.stringify(list));
+            if (isSectionHead) {
+                localStorage.setItem('sectionHeadReviewQueue_v1', JSON.stringify(list));
+            } else {
+                localStorage.setItem('executivePendingReviewQueue', JSON.stringify(list));
+                localStorage.setItem('eicPendingReviewQueue', JSON.stringify(list));
+            }
         } catch (e) {
-            console.warn('Could not save executivePendingReviewQueue', e);
+            console.warn('Could not save pending review queue', e);
         }
     }
 
@@ -315,7 +370,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="review-box-meta">
                         <span class="review-box-category">${escapeHTML(item.category)}</span>
                         <span class="review-box-date"><i class="fa-regular fa-calendar" aria-hidden="true"></i> ${escapeHTML(item.date)}</span>
-                        ${!isSectionHead ? `<span class="review-box-endorsed"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Approved by <strong>${escapeHTML(item.endorsedBy || getEndorserForCategory(item.category))}</strong></span>` : ''}
+                        ${renderEndorsementBadge(item, isSectionHead)}
                     </div>
 
                     <button type="button" class="review-box-title" data-action="edit" data-id="${item.id}" title="${escapeHTML(item.title)}">
@@ -491,10 +546,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const modalEndorserWrap = document.querySelector('.manuscript-byline-endorser');
         if (modalEndorserWrap) {
             modalEndorserWrap.style.display = isSectionHead ? 'none' : '';
-        }
-        const modalEndorser = document.getElementById('modal-endorser');
-        if (modalEndorser && !isSectionHead) {
-            modalEndorser.textContent = item.endorsedBy || getEndorserForCategory(item.category);
+            if (!isSectionHead) {
+                const endorser = getEndorserForCategory(item.category, item);
+                if (endorser.toLowerCase().includes('direct') || endorser.toLowerCase().includes('opinion')) {
+                    modalEndorserWrap.innerHTML = `<i class="fa-solid fa-feather-pointed" aria-hidden="true"></i> <span>Direct Submission (Opinion)</span>`;
+                } else {
+                    modalEndorserWrap.innerHTML = `<i class="fa-solid fa-circle-check" aria-hidden="true"></i> <span>Approved by <strong id="modal-endorser">${escapeHTML(endorser)}</strong></span>`;
+                }
+            }
         }
 
         const modalExcerpt = document.getElementById('modal-excerpt');
@@ -751,7 +810,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // =========================================================================
-    // 9. REAL-TIME CLOCK (Desktop)
-    // =========================================================================    // Initial render
+    // 9. REAL-TIME CLOCK (Desktop) & DEEP-LINK AUTO-OPEN
+    // =========================================================================
+    // Initial render
     renderReviewBoxes();
+
+    // Auto-open manuscript when navigated from Section Head dashboard with ?id=...
+    try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const targetId = urlParams.get('id') || urlParams.get('article_id');
+        if (targetId) {
+            setTimeout(() => {
+                openManuscript(targetId, { focusRemarks: false });
+            }, 150);
+        }
+    } catch (e) {}
 });

@@ -751,6 +751,14 @@
 /* --------------------------------------------------------------------------
    7. 3-DOTS ACTIONS MENU (Upper Right Corner of Each Card)
    -------------------------------------------------------------------------- */
+.article-box.menu-open {
+    z-index: 100 !important;
+}
+
+.article-box.menu-open .card-menu-anchor {
+    z-index: 105 !important;
+}
+
 .card-menu-anchor {
     position: absolute;
     top: 12px;
@@ -782,14 +790,14 @@
 
 .card-actions-menu {
     position: absolute;
-    top: calc(100% + 4px);
+    top: calc(100% + 6px);
     right: 0;
-    z-index: 50;
-    width: 190px;
+    z-index: 120;
+    width: 200px;
     background: #ffffff;
-    border: 1px solid var(--border-subtle);
+    border: 1px solid #e5e7eb;
     border-radius: 10px;
-    box-shadow: 0 10px 25px rgba(16, 24, 40, 0.12), 0 2px 6px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 10px 25px -3px rgba(16, 24, 40, 0.15), 0 4px 6px -2px rgba(16, 24, 40, 0.05);
     padding: 6px;
     display: flex;
     flex-direction: column;
@@ -812,73 +820,143 @@
     display: none !important;
 }
 
+.card-actions-menu button.action-menu-item,
 .action-menu-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    width: 100%;
-    padding: 8px 12px;
-    border: none;
-    background: transparent;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    text-align: left !important;
+    gap: 12px !important;
+    width: 100% !important;
+    padding: 10px 14px !important;
+    border: none !important;
+    background: transparent !important;
     border-radius: 6px;
     font-family: var(--font-sans);
-    font-size: 0.82rem;
+    font-size: 0.84rem;
     font-weight: 500;
     color: var(--text-primary);
     cursor: pointer;
-    text-align: left;
+    box-sizing: border-box;
+    white-space: nowrap;
     transition: background-color 0.15s ease, color 0.15s ease;
 }
 
+.card-actions-menu button.action-menu-item i,
 .action-menu-item i {
-    width: 16px;
-    font-size: 0.85rem;
-    color: var(--text-muted);
+    width: 18px !important;
+    min-width: 18px !important;
+    height: 18px;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    font-size: 0.9rem;
+    color: #667085;
+    flex-shrink: 0 !important;
+    transition: color 0.15s ease;
+    margin: 0 !important;
 }
 
+.card-actions-menu button.action-menu-item span,
+.action-menu-item span {
+    flex: 1 1 auto !important;
+    text-align: left !important;
+    font-family: inherit;
+    font-size: inherit;
+    line-height: 1.2;
+}
+
+.card-actions-menu button.action-menu-item:hover,
 .action-menu-item:hover {
-    background-color: #f9fafb;
-    color: var(--sidebar-maroon);
+    background-color: #f9fafb !important;
+    color: var(--sidebar-maroon) !important;
 }
 
+.card-actions-menu button.action-menu-item:hover i,
 .action-menu-item:hover i {
-    color: var(--sidebar-maroon);
+    color: var(--sidebar-maroon) !important;
 }
 
+.card-actions-menu button.action-menu-item.danger,
 .action-menu-item.danger {
-    color: #dc2626;
+    color: #dc2626 !important;
 }
 
+.card-actions-menu button.action-menu-item.danger i,
 .action-menu-item.danger i {
-    color: #dc2626;
+    color: #ef4444 !important;
 }
 
+.card-actions-menu button.action-menu-item.danger:hover,
 .action-menu-item.danger:hover {
-    background-color: #fee2e2;
-    color: #b91c1c;
+    background-color: #fee2e2 !important;
+    color: #b91c1c !important;
 }
 
+.card-actions-menu button.action-menu-item.danger:hover i,
 .action-menu-item.danger:hover i {
-    color: #b91c1c;
+    color: #b91c1c !important;
 }
 
+.card-actions-menu button.action-menu-item.restore,
 .action-menu-item.restore {
-    color: #059669;
+    color: #059669 !important;
 }
 
+.card-actions-menu button.action-menu-item.restore i,
 .action-menu-item.restore i {
-    color: #059669;
+    color: #10b981 !important;
 }
 
+.card-actions-menu button.action-menu-item.restore:hover,
 .action-menu-item.restore:hover {
-    background-color: #d1fae5;
-    color: #047857;
+    background-color: #d1fae5 !important;
+    color: #047857 !important;
+}
+
+.card-actions-menu button.action-menu-item.restore:hover i,
+.action-menu-item.restore:hover i {
+    color: #047857 !important;
 }
 
 .menu-divider {
     height: 1px;
     background-color: #f2f4f7;
     margin: 4px 0;
+}
+
+/* Edit Modal Readtime Badge & Body Textarea */
+.form-readtime-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 12px;
+    background: #f8fafc;
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    color: #475467;
+    font-size: 0.84rem;
+    font-weight: 600;
+    user-select: none;
+    cursor: default;
+    height: 38px;
+    box-sizing: border-box;
+}
+
+.form-readtime-badge i {
+    color: var(--sidebar-maroon);
+    font-size: 0.9rem;
+}
+
+.edit-body-textarea {
+    min-height: 200px;
+    max-height: 400px;
+    resize: vertical;
+    line-height: 1.6;
+    font-size: 0.88rem;
+    font-family: var(--font-sans);
 }
 
 /* --------------------------------------------------------------------------

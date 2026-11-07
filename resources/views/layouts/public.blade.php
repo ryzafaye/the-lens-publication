@@ -22,8 +22,9 @@
     <link rel="stylesheet" href="{{ asset('css/main.css') }}">
     @stack('styles')
 </head>
-<body class="bg-white text-stone-900 font-body antialiased min-h-screen flex flex-col">
+<body class="@yield('body_class', 'bg-white text-stone-900 font-body antialiased min-h-screen flex flex-col')">
 
+    @unless(View::hasSection('hide_header_footer'))
     <!-- Header Container -->
     <header id="header-container" class="site-header w-full font-body border-b border-stone-200 shadow-sm bg-white">
         <!-- Top Bar -->
@@ -182,64 +183,69 @@
             </div>
         </nav>
     </header>
+    @endunless
 
-    <!-- Main Content Area -->
-    <main class="flex-grow">
+    @if(View::hasSection('hide_header_footer'))
         @yield('content')
-    </main>
+    @else
+        <!-- Main Content Area -->
+        <main class="flex-grow">
+            @yield('content')
+        </main>
 
-    <!-- Footer Container -->
-    <footer id="footer-container" class="site-footer bg-[#1a050b] text-stone-300">
-        <div class="footer-content max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div class="footer-brand-column">
-                <a href="{{ route('public.home') }}" class="footer-brand-lockup flex items-center gap-3 mb-3">
-                    <img src="{{ asset('images/logo.jpg') }}" alt="The Lens logo" class="footer-brand-logo w-10 h-10 rounded-full border border-rose-900/40">
-                    <span>
-                        <strong class="footer-brand-name block text-white font-serif tracking-wider">THE LENS</strong>
-                        <span class="footer-brand-tagline text-xs text-rose-300 italic">Basta Lente, Abante!</span>
-                    </span>
-                </a>
-                <p class="footer-description text-xs text-white leading-relaxed">
-                    The Official Student Journalism Body of Polytechnic University of the Philippines – Biñan Campus.
-                </p>
-            </div>
-            <div>
-                <h3 class="footer-heading text-sm font-semibold text-white uppercase tracking-wider mb-3">Explore</h3>
-                <div class="flex flex-col space-y-2 text-xs text-stone-400">
-                    <a href="{{ route('public.category', 'news') }}" class="footer-link hover:text-white transition-colors">News</a>
-                    <a href="{{ route('public.category', 'feature') }}" class="footer-link hover:text-white transition-colors">Features</a>
-                    <a href="{{ route('public.category', 'opinion') }}" class="footer-link hover:text-white transition-colors">Opinion</a>
-                    <a href="{{ route('public.category', 'science-technology') }}" class="footer-link hover:text-white transition-colors">Science &amp; Technology</a>
-                    <a href="{{ route('public.category', 'literature') }}" class="footer-link hover:text-white transition-colors">Literature</a>
-                </div>
-            </div>
-            <div>
-                <h3 class="footer-heading text-sm font-semibold text-white uppercase tracking-wider mb-3">The Publication</h3>
-                <div class="flex flex-col space-y-2 text-xs text-stone-400">
-                    <a href="{{ route('public.about') }}" class="footer-link hover:text-white transition-colors">About The Lens</a>
-                    <a href="{{ route('public.members') }}" class="footer-link hover:text-white transition-colors">Our Members</a>
-                    <a href="{{ route('public.about') }}#documents" class="footer-link hover:text-white transition-colors">Financial Records &amp; Documents</a>
-                    <a href="{{ route('public.archives') }}" class="footer-link hover:text-white transition-colors">Article Archives</a>
-                </div>
-            </div>
-            <div id="footer-contact">
-                <h3 class="footer-heading text-sm font-semibold text-white uppercase tracking-wider mb-3">Contact &amp; Socials</h3>
-                <div class="flex flex-col space-y-2 text-xs text-stone-400">
-                    <a href="https://www.facebook.com/profile.php?id=61560889387183" data-publication-link="facebook" target="_blank" rel="noopener noreferrer" class="footer-link hover:text-white transition-colors flex items-center gap-2">
-                        <i class="fa-brands fa-facebook-f text-rose-400" aria-hidden="true"></i>
-                        <span>Facebook Page</span>
+        <!-- Footer Container -->
+        <footer id="footer-container" class="site-footer bg-[#1a050b] text-stone-300">
+            <div class="footer-content max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div class="footer-brand-column">
+                    <a href="{{ route('public.home') }}" class="footer-brand-lockup flex items-center gap-3 mb-3">
+                        <img src="{{ asset('images/logo.jpg') }}" alt="The Lens logo" class="footer-brand-logo w-10 h-10 rounded-full border border-rose-900/40">
+                        <span>
+                            <strong class="footer-brand-name block text-white font-serif tracking-wider">THE LENS</strong>
+                            <span class="footer-brand-tagline text-xs text-rose-300 italic">Basta Lente, Abante!</span>
+                        </span>
                     </a>
-                    <a href="mailto:thelenspublicationpupbc@gmail.com" data-publication-link="email" class="footer-link hover:text-white transition-colors flex items-center gap-2">
-                        <i class="fa-regular fa-envelope text-rose-400" aria-hidden="true"></i>
-                        <span>Email The Lens</span>
-                    </a>
+                    <p class="footer-description text-xs text-white leading-relaxed">
+                        The Official Student Journalism Body of Polytechnic University of the Philippines – Biñan Campus.
+                    </p>
+                </div>
+                <div>
+                    <h3 class="footer-heading text-sm font-semibold text-white uppercase tracking-wider mb-3">Explore</h3>
+                    <div class="flex flex-col space-y-2 text-xs text-stone-400">
+                        <a href="{{ route('public.category', 'news') }}" class="footer-link hover:text-white transition-colors">News</a>
+                        <a href="{{ route('public.category', 'feature') }}" class="footer-link hover:text-white transition-colors">Features</a>
+                        <a href="{{ route('public.category', 'opinion') }}" class="footer-link hover:text-white transition-colors">Opinion</a>
+                        <a href="{{ route('public.category', 'science-technology') }}" class="footer-link hover:text-white transition-colors">Science &amp; Technology</a>
+                        <a href="{{ route('public.category', 'literature') }}" class="footer-link hover:text-white transition-colors">Literature</a>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="footer-heading text-sm font-semibold text-white uppercase tracking-wider mb-3">The Publication</h3>
+                    <div class="flex flex-col space-y-2 text-xs text-stone-400">
+                        <a href="{{ route('public.about') }}" class="footer-link hover:text-white transition-colors">About The Lens</a>
+                        <a href="{{ route('public.members') }}" class="footer-link hover:text-white transition-colors">Our Members</a>
+                        <a href="{{ route('public.about') }}#documents" class="footer-link hover:text-white transition-colors">Financial Records &amp; Documents</a>
+                        <a href="{{ route('public.archives') }}" class="footer-link hover:text-white transition-colors">Article Archives</a>
+                    </div>
+                </div>
+                <div id="footer-contact">
+                    <h3 class="footer-heading text-sm font-semibold text-white uppercase tracking-wider mb-3">Contact &amp; Socials</h3>
+                    <div class="flex flex-col space-y-2 text-xs text-stone-400">
+                        <a href="https://www.facebook.com/profile.php?id=61560889387183" data-publication-link="facebook" target="_blank" rel="noopener noreferrer" class="footer-link hover:text-white transition-colors flex items-center gap-2">
+                            <i class="fa-brands fa-facebook-f text-rose-400" aria-hidden="true"></i>
+                            <span>Facebook Page</span>
+                        </a>
+                        <a href="mailto:thelenspublicationpupbc@gmail.com" data-publication-link="email" class="footer-link hover:text-white transition-colors flex items-center gap-2">
+                            <i class="fa-regular fa-envelope text-rose-400" aria-hidden="true"></i>
+                            <span>Email The Lens</span>
+                        </a>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="footer-bottom border-t border-stone-800 text-center py-4 text-xs text-stone-500">
-            <p>© <span id="copyright-year">{{ date('Y') }}</span> The Lens. All rights reserved.</p>
-        </div>
-    </footer>
+            <div class="footer-bottom border-t border-stone-800 text-center py-4 text-xs text-stone-500">
+                <p>© <span id="copyright-year">{{ date('Y') }}</span> The Lens. All rights reserved.</p>
+            </div>
+        </footer>
+    @endif
 
     <!-- Header Scripts: Navigation & Filter Controls -->
     <script>

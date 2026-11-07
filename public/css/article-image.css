@@ -1,6 +1,6 @@
 /* =====================================================
    THE LENS - ARTICLE IMAGE & COVER FRAMES
-   Responsive, non-cropping cover frames with dark wine
+   Responsive, non-cropping cover frames with rich maroon
    matte containment for pubmats, cartoons, and photography.
    ===================================================== */
 
@@ -10,7 +10,8 @@
     justify-content: center;
     overflow: hidden;
     width: 100%;
-    background: radial-gradient(circle at center, #24060f 0%, #0d0105 100%);
+    background: radial-gradient(circle at center, #7b1113 0%, #571525 100%);
+    background-color: #571525;
     color: white;
     border-radius: 8px;
     position: relative;

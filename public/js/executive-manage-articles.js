@@ -34,22 +34,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // 2. DATA STORE: SHARED ARTICLES DATASET (Connected with public/executive)
     // =========================================================================
     function getStoredArticles() {
-        if (window.INITIAL_ARTICLES && Array.isArray(window.INITIAL_ARTICLES) && window.INITIAL_ARTICLES.length > 0) {
+        if (window.INITIAL_ARTICLES !== undefined && Array.isArray(window.INITIAL_ARTICLES)) {
             return window.INITIAL_ARTICLES;
         }
-        if (window.INITIAL_DATA && Array.isArray(window.INITIAL_DATA) && window.INITIAL_DATA.length > 0) {
+        if (window.INITIAL_DATA !== undefined && Array.isArray(window.INITIAL_DATA)) {
             return window.INITIAL_DATA;
         }
         try {
             const raw = localStorage.getItem('executiveArticles');
             if (raw) {
                 const parsed = JSON.parse(raw);
-                if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-            }
-            const pubRaw = localStorage.getItem('theLensPublishedArticles');
-            if (pubRaw) {
-                const pubParsed = JSON.parse(pubRaw);
-                if (Array.isArray(pubParsed) && pubParsed.length > 0) return pubParsed;
+                if (Array.isArray(parsed)) return parsed;
             }
         } catch (e) {
             console.warn('Could not read executiveArticles from localStorage', e);
@@ -141,10 +136,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const editArticleForm = document.getElementById('edit-article-form');
     const editArticleIdInput = document.getElementById('edit-article-id');
     const editTitleInput = document.getElementById('edit-title-input');
-    const editAuthorInput = document.getElementById('edit-author-input');
     const editCategorySelect = document.getElementById('edit-category-select');
-    const editReadtimeInput = document.getElementById('edit-readtime-input');
+    const editReadtimeText = document.getElementById('edit-readtime-text');
     const editExcerptInput = document.getElementById('edit-excerpt-input');
+    const editBodyInput = document.getElementById('edit-body-input');
 
     const toastContainer = document.getElementById('toast-container');
     let pendingModalAction = null;
@@ -546,13 +541,17 @@ document.addEventListener('DOMContentLoaded', () => {
                             <i class="fa-solid fa-ellipsis-vertical"></i>
                         </button>
                         <div class="card-actions-menu hidden" data-menu-id="${article.id}">
+                            <button type="button" class="action-menu-item" data-action="view" data-id="${article.id}">
+                                <i class="fa-regular fa-eye"></i>
+                                <span>Read Article</span>
+                            </button>
                             <button type="button" class="action-menu-item" data-action="edit" data-id="${article.id}">
                                 <i class="fa-regular fa-pen-to-square"></i>
                                 <span>Edit Article</span>
                             </button>
                             <button type="button" class="action-menu-item ${isArchived ? 'restore' : ''}" data-action="${isArchived ? 'restore' : 'archive'}" data-id="${article.id}">
                                 <i class="${isArchived ? 'fa-solid fa-arrow-rotate-left' : 'fa-solid fa-box-archive'}"></i>
-                                <span>${isArchived ? 'Restore' : 'Move to Archive'}</span>
+                                <span>${isArchived ? 'Restore to Active' : 'Move to Archive'}</span>
                             </button>
                             <div class="menu-divider"></div>
                             <button type="button" class="action-menu-item danger" data-action="delete" data-id="${article.id}">
@@ -620,6 +619,9 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.card-dots-btn').forEach(btn => {
             btn.setAttribute('aria-expanded', 'false');
         });
+        document.querySelectorAll('.article-box.menu-open').forEach(box => {
+            box.classList.remove('menu-open');
+        });
     }
 
     function toggleActionsMenu(articleId, dotsBtn) {
@@ -632,6 +634,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isCurrentlyHidden) {
             menu.classList.remove('hidden');
             dotsBtn.setAttribute('aria-expanded', 'true');
+            dotsBtn.closest('.article-box')?.classList.add('menu-open');
         }
     }
 
@@ -675,7 +678,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 e.preventDefault();
                 e.stopPropagation();
                 const action = actionMenuItem.dataset.action;
-                const id = parseInt(actionMenuItem.dataset.id, 10);
+                const id = actionMenuItem.dataset.id;
                 closeAllActionMenus();
                 handleCardAction(action, id);
                 return;
@@ -686,8 +689,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (shareBtn) {
                 e.preventDefault();
                 e.stopPropagation();
-                const id = parseInt(shareBtn.dataset.shareId, 10);
-                const art = articles.find(a => a.id === id);
+                const id = shareBtn.dataset.shareId;
+                const art = articles.find(a => String(a.id) === String(id));
                 if (art) {
                     art.shares = (art.shares || 0) + 1;
                     saveArticles(articles);
@@ -702,7 +705,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (viewTrigger) {
                 e.preventDefault();
                 e.stopPropagation();
-                const id = parseInt(viewTrigger.dataset.id, 10);
+                const id = viewTrigger.dataset.id;
                 openArticleViewer(id);
                 return;
             }
@@ -710,7 +713,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Clicking card background outside the 3-dots anchor views article
             const card = e.target.closest('.article-box');
             if (card && !e.target.closest('.card-menu-anchor')) {
-                const id = parseInt(card.dataset.articleId, 10);
+                const id = card.dataset.articleId;
                 openArticleViewer(id);
             }
         });
@@ -720,7 +723,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 13. CARD ACTIONS DISPATCHER
     // =========================================================================
     function handleCardAction(action, id) {
-        const article = articles.find(a => a.id === id);
+        const article = articles.find(a => String(a.id) === String(id));
         if (!article) return;
 
         if (action === 'view') {
@@ -731,10 +734,27 @@ document.addEventListener('DOMContentLoaded', () => {
             openActionModal(
                 'warning',
                 'Move Article to Archive',
-                `Are you sure you want to move "${article.title}" to the archived editions? It will no longer appear on the active desk.`,
+                `Are you sure you want to move "${article.title}" to the archived editions? It will no longer appear on active public pages.`,
                 'Move to Archive',
-                () => {
+                async () => {
+                    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                    const baseUrl = window.location.pathname.startsWith('/eic') ? '/eic/manage-articles' : '/executive/manage-articles';
+
+                    try {
+                        await fetch(`${baseUrl}/${id}/archive`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': token || ''
+                            }
+                        });
+                    } catch (err) {
+                        console.warn('Archive sync note', err);
+                    }
+
                     article.isArchived = true;
+                    article.status = 'Archived';
                     saveArticles(articles);
                     renderArticlesGrid();
                     showToast('Article moved to Archive.', 'info');
@@ -744,10 +764,27 @@ document.addEventListener('DOMContentLoaded', () => {
             openActionModal(
                 'info',
                 'Restore Article',
-                `Restore "${article.title}" back to active editorial circulation?`,
+                `Restore "${article.title}" back to active editorial circulation on the public site?`,
                 'Restore Article',
-                () => {
+                async () => {
+                    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                    const baseUrl = window.location.pathname.startsWith('/eic') ? '/eic/manage-articles' : '/executive/manage-articles';
+
+                    try {
+                        await fetch(`${baseUrl}/${id}/restore`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': token || ''
+                            }
+                        });
+                    } catch (err) {
+                        console.warn('Restore sync note', err);
+                    }
+
                     article.isArchived = false;
+                    article.status = 'Published';
                     saveArticles(articles);
                     renderArticlesGrid();
                     showToast('Article restored to Active Articles.', 'success');
@@ -759,8 +796,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 'Emergency Delete Article',
                 `PERMANENT ACTION: Are you sure you want to permanently delete "${article.title}" by ${article.author}? This operation cannot be reversed.`,
                 'Emergency Delete',
-                () => {
-                    articles = articles.filter(a => a.id !== id);
+                async () => {
+                    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                    const baseUrl = window.location.pathname.startsWith('/eic') ? '/eic/manage-articles' : '/executive/manage-articles';
+
+                    try {
+                        await fetch(`${baseUrl}/${id}`, {
+                            method: 'DELETE',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': token || ''
+                            }
+                        });
+                    } catch (err) {
+                        console.warn('Delete sync note', err);
+                    }
+
+                    articles = articles.filter(a => String(a.id) !== String(id));
                     saveArticles(articles);
                     renderArticlesGrid();
                     showToast(`Article permanently deleted.`, 'danger');
@@ -773,7 +826,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 14. ARTICLE VIEWER MODAL (Executive Can Read Full Story)
     // =========================================================================
     function openArticleViewer(id) {
-        const article = articles.find(a => a.id === id);
+        const article = articles.find(a => String(a.id) === String(id));
         if (!article || !viewerModal) return;
 
         currentViewingArticleId = id;
@@ -851,7 +904,7 @@ document.addEventListener('DOMContentLoaded', () => {
         viewerActionArchive.addEventListener('click', () => {
             if (currentViewingArticleId) {
                 const id = currentViewingArticleId;
-                const art = articles.find(a => a.id === id);
+                const art = articles.find(a => String(a.id) === String(id));
                 closeViewerModal();
                 if (art) {
                     handleCardAction(art.isArchived ? 'restore' : 'archive', id);
@@ -871,18 +924,27 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // =========================================================================
-    // 15. EDIT ARTICLE MODAL
+    // 15. EDIT ARTICLE MODAL (Title, Excerpt, Body with System-Computed Read Time)
     // =========================================================================
+    function calculateReadingTime(text) {
+        const clean = String(text || '').replace(/<[^>]*>/g, ' ').trim();
+        const words = clean ? clean.split(/\s+/).filter(Boolean).length : 0;
+        const minutes = Math.max(1, Math.ceil(words / 200));
+        return `${minutes} min read`;
+    }
+
     function openEditModal(id) {
-        const article = articles.find(a => a.id === id);
+        const article = articles.find(a => String(a.id) === String(id));
         if (!article || !editModal) return;
 
         if (editArticleIdInput) editArticleIdInput.value = article.id;
-        if (editTitleInput) editTitleInput.value = article.title;
-        if (editAuthorInput) editAuthorInput.value = article.author;
-        if (editCategorySelect) editCategorySelect.value = article.category;
-        if (editReadtimeInput) editReadtimeInput.value = article.readTime || '2 min read';
+        if (editTitleInput) editTitleInput.value = article.title || '';
+        if (editCategorySelect) editCategorySelect.value = article.category || 'News';
         if (editExcerptInput) editExcerptInput.value = article.excerpt || '';
+        if (editBodyInput) editBodyInput.value = article.content || article.excerpt || '';
+
+        const computedReadTime = calculateReadingTime(editBodyInput ? editBodyInput.value : article.content);
+        if (editReadtimeText) editReadtimeText.textContent = computedReadTime;
 
         editModal.classList.remove('hidden');
     }
@@ -900,18 +962,53 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Live word-count & reading-time computation as user types the article body
+    if (editBodyInput) {
+        editBodyInput.addEventListener('input', () => {
+            if (editReadtimeText) {
+                editReadtimeText.textContent = calculateReadingTime(editBodyInput.value);
+            }
+        });
+    }
+
     if (editArticleForm) {
-        editArticleForm.addEventListener('submit', (e) => {
+        editArticleForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const id = parseInt(editArticleIdInput.value, 10);
-            const article = articles.find(a => a.id === id);
+            const id = editArticleIdInput.value;
+            const article = articles.find(a => String(a.id) === String(id));
             if (!article) return;
 
+            const computedReadTime = calculateReadingTime(editBodyInput ? editBodyInput.value : '');
+
             article.title = editTitleInput.value.trim();
-            article.author = editAuthorInput.value.trim();
             article.category = editCategorySelect.value;
-            article.readTime = editReadtimeInput.value.trim() || '2 min read';
             article.excerpt = editExcerptInput.value.trim();
+            article.content = editBodyInput ? editBodyInput.value.trim() : (article.content || '');
+            article.readTime = computedReadTime;
+
+            const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            const baseUrl = window.location.pathname.startsWith('/eic') ? '/eic/manage-articles' : '/executive/manage-articles';
+
+            try {
+                await fetch(`${baseUrl}/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': token || ''
+                    },
+                    body: JSON.stringify({
+                        title: article.title,
+                        category: article.category,
+                        excerpt: article.excerpt,
+                        content: article.content,
+                        body: article.content,
+                        readTime: computedReadTime
+                    })
+                });
+            } catch (err) {
+                console.warn('Backend update warning', err);
+            }
 
             saveArticles(articles);
             closeEditModal();

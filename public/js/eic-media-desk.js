@@ -102,13 +102,13 @@ document.addEventListener('DOMContentLoaded', () => {
         list = list.filter(item => {
             if (!item || !item.image) return false;
             const img = String(item.image).trim();
-            if (img.includes('images/') || img.includes('covers/') || img.includes('maroon.jpg') || img.includes('portal-pubmat') || img.includes('election-guidelines') || img.includes('faculty-overload') || img.includes('press-freedom')) {
+            if (img.includes('maroon.jpg') || img.includes('portal-pubmat') || img.includes('election-guidelines') || img.includes('faculty-overload') || img.includes('press-freedom')) {
                 return false;
             }
             if (String(item.id).includes('mock') || String(item.id).includes('sample') || String(item.id).includes('seed') || String(item.id).includes('default')) {
                 return false;
             }
-            return img.startsWith('data:image/') || img.startsWith('/storage/') || img.startsWith('http');
+            return img.startsWith('data:image/') || img.startsWith('/storage/') || img.startsWith('http') || img.startsWith('/uploads/') || img.startsWith('uploads/');
         });
 
         return list;
@@ -187,7 +187,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function isItemPending(item) {
         if (!item) return false;
         const s = (item.status || '').toLowerCase().trim();
-        return s === 'pending eic review' || s === 'pending eic' || s === 'forwarded to eic' || s === 'submitted_to_eic';
+        return s === 'pending eic review' || s === 'pending eic' || s === 'forwarded to eic' || s === 'submitted_to_eic' || s === 'pending' || s === 'pending_head' || s === 'pending with head' || s === 'pending review';
     }
 
     function getItemType(item) {

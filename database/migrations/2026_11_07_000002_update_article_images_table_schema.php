@@ -15,7 +15,9 @@ return new class extends Migration
     public function up(): void
     {
         // 1. Allow visual assets (photos, cartoons, infographics) to exist before article assignment
-        DB::statement('ALTER TABLE article_images ALTER COLUMN article_id DROP NOT NULL;');
+        if (DB::getDriverName() === 'pgsql') {
+            DB::statement('ALTER TABLE article_images ALTER COLUMN article_id DROP NOT NULL;');
+        }
 
         // 2. Add optional editorial metadata columns
         Schema::table('article_images', function (Blueprint $table) {
@@ -48,6 +50,8 @@ return new class extends Migration
             }
         });
 
-        DB::statement('ALTER TABLE article_images ALTER COLUMN article_id SET NOT NULL;');
+        if (DB::getDriverName() === 'pgsql') {
+            DB::statement('ALTER TABLE article_images ALTER COLUMN article_id SET NOT NULL;');
+        }
     }
 };

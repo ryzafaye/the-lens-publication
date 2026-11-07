@@ -16,13 +16,22 @@
 .featured-title {
     margin-top: 12px;
     font-size: clamp(28px, 4vw, 44px);
-    font-weight: 1000;
+    font-weight: 800;
     line-height: 1.15;
+    color: #1c1917;
 }
 
-/* Article title buttons should look like headlines */
-.article-title-button {
-    color: black;
+/* Article title links & buttons: Standard near-black default, Maroon + Maroon Underline ONLY on Hover */
+.article-title-button,
+.featured-title a,
+.latest-title a,
+.story-card-title a,
+.category-card-title a,
+.category-list-title a,
+.author-article-title,
+.continue-story-title,
+.archive-item h3 a {
+    color: #1c1917 !important;
     background: transparent;
     border: 0;
     padding: 0;
@@ -31,13 +40,27 @@
     font-weight: 800;
     line-height: inherit;
     cursor: pointer;
+    text-decoration: none !important;
+    transition: color 0.18s ease, text-decoration-color 0.18s ease;
 }
 
-.article-title-button:hover {
-    color: var(--maroon, #700f2b);
-    text-decoration: underline;
-    text-decoration-thickness: 1px;
-    text-underline-offset: 3px;
+.article-title-button:hover,
+.article-title-button:focus-visible,
+.featured-title a:hover,
+.latest-title a:hover,
+.story-card-title a:hover,
+.category-card-title a:hover,
+.category-list-title a:hover,
+.author-article-title:hover,
+.continue-story-title:hover,
+.archive-item h3 a:hover,
+a.article-title-button:hover,
+button.article-title-button:hover {
+    color: #700f2b !important;
+    text-decoration: underline !important;
+    text-decoration-color: #700f2b !important;
+    text-decoration-thickness: 1.5px !important;
+    text-underline-offset: 4px !important;
 }
 
 .latest-title {

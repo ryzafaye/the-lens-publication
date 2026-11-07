@@ -63,9 +63,9 @@
                     $coverUrl = $article->cover_url ?: asset('images/maroon.jpg');
                 @endphp
                 <article class="archive-item flex flex-col sm:flex-row gap-5 p-4 rounded-xl border border-stone-100 hover:border-stone-200 hover:shadow-sm transition-all bg-white" data-article-id="{{ $article->id }}">
-                    <a href="{{ route('public.article', $article->slug) }}" class="archive-image-trigger w-full sm:w-44 h-36 flex-shrink-0 rounded-lg overflow-hidden bg-stone-100" aria-label="Read article: {{ $article->title }}">
-                        <div class="article-image archive-image w-full h-full">
-                            <img src="{{ $coverUrl }}" alt="{{ $article->title }}" class="w-full h-full object-cover hover:scale-105 transition-transform duration-300" loading="lazy">
+                    <a href="{{ route('public.article', $article->slug) }}" class="archive-image-trigger w-full sm:w-44 h-36 flex-shrink-0 rounded-lg overflow-hidden bg-[#571525]" aria-label="Read article: {{ $article->title }}">
+                        <div class="article-image archive-image w-full h-full bg-[#571525]">
+                            <img src="{{ $coverUrl }}" alt="{{ $article->title }}" class="w-full h-full object-contain hover:scale-105 transition-transform duration-300" loading="lazy">
                         </div>
                     </a>
                     <div class="archive-item-copy flex flex-col justify-between flex-grow">
@@ -75,7 +75,7 @@
                                 <span class="article-meta-separator" aria-hidden="true">·</span>
                                 <time>{{ $article->published_at ? $article->published_at->format('M d, Y') : $article->created_at->format('M d, Y') }}</time>
                             </div>
-                            <h3 class="font-display font-bold text-base text-stone-900 line-clamp-2 hover:text-wine transition-colors mb-2">
+                            <h3 class="font-display font-bold text-base text-stone-900 line-clamp-2 mb-2">
                                 <a href="{{ route('public.article', $article->slug) }}" class="article-title-button">
                                     {{ $article->title }}
                                 </a>

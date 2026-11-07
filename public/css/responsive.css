@@ -329,7 +329,7 @@
 }
 .latest-item .latest-image { width: 88px; aspect-ratio: 1 / 1; border-radius: 5px; }
 
-/* Article headlines: near-black / deep maroon text, never a colored title block. */
+/* Article headlines: near-black default text, maroon font + maroon underline strictly on hover */
 .article-title-button,
 .article-title-button:visited {
     display: inline;
@@ -338,13 +338,13 @@
     border: 0 !important;
     border-radius: 0 !important;
     background: transparent !important;
-    color: #210b12 !important;
+    color: #1c1917 !important;
     box-shadow: none !important;
     font: inherit;
     font-weight: 800;
     line-height: inherit;
     text-align: left;
-    text-decoration: none;
+    text-decoration: none !important;
     -webkit-box-decoration-break: initial;
     box-decoration-break: initial;
     transition: color .18s ease, text-decoration-color .18s ease;
@@ -352,14 +352,20 @@
 .article-title-button:hover,
 .article-title-button:focus-visible {
     background: transparent !important;
-    color: #4a091b !important;
+    color: #700f2b !important;
     box-shadow: none !important;
     text-decoration: underline !important;
-    text-decoration-color: #b58a99 !important;
-    text-decoration-thickness: 1px;
-    text-underline-offset: 3px;
+    text-decoration-color: #700f2b !important;
+    text-decoration-thickness: 1.5px !important;
+    text-underline-offset: 4px !important;
 }
-.featured-title .article-title-button { color: #210b12 !important; }
+.featured-title .article-title-button { color: #1c1917 !important; text-decoration: none !important; }
+.featured-title .article-title-button:hover,
+.featured-title .article-title-button:focus-visible {
+    color: #700f2b !important;
+    text-decoration: underline !important;
+    text-decoration-color: #700f2b !important;
+}
 /* Keep borders and hover cards on the other article areas. */
 .story-card,
 .category-card,

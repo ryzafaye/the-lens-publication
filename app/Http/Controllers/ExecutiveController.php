@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use App\Models\Article;
@@ -170,27 +171,34 @@ class ExecutiveController extends Controller
         $this->authorizePresidentOrVp($request);
 
         $articles = Cache::remember('all_articles_for_management', 30, function () {
-            return Article::with(['user.role', 'category'])
-                ->latest()
+            return Article::with(['user.role', 'category', 'coverImage'])
+                ->where(function ($q) {
+                    $q->whereRaw('LOWER(status) = ?', ['published'])
+                      ->orWhereRaw('LOWER(status) = ?', ['archived'])
+                      ->orWhere('is_archived', true);
+                })
+                ->latest('published_at')
                 ->get()
                 ->map(function ($article) {
                     $authorAvatar = $article->user?->avatar_url ?? ($article->user?->avatar ? asset($article->user->avatar) : asset('images/member-placeholder.svg'));
+                    $isArchived = (bool) ($article->is_archived || strtolower((string) $article->status) === 'archived');
                     return [
-                        'id' => (string) $article->id,
+                        'id' => (int) $article->id,
                         'title' => $article->title,
+                        'slug' => $article->slug,
                         'category' => $article->category->name ?? 'General',
                         'excerpt' => $article->excerpt ?? '',
                         'content' => $article->content ?? '',
-                        'status' => $article->status,
-                        'date' => $article->created_at->format('M d, Y'),
-                        'rawDate' => $article->created_at->toIso8601String(),
+                        'status' => $isArchived ? 'Archived' : 'Published',
+                        'date' => $article->published_at ? $article->published_at->format('M d, Y') : $article->created_at->format('M d, Y'),
+                        'rawDate' => ($article->published_at ?? $article->created_at)->toIso8601String(),
                         'views' => (int) ($article->views ?? 0),
                         'shares' => (int) ($article->shares ?? 0),
-                        'readTime' => max(1, ceil(str_word_count(strip_tags($article->content ?? '')) / 200)) . ' min read',
+                        'readTime' => max(1, (int) ceil(str_word_count(strip_tags($article->content ?? '')) / 200)) . ' min read',
                         'author' => $article->user->full_name ?? 'Staff Writer',
                         'authorAvatar' => $authorAvatar,
-                        'isArchived' => ($article->status === 'Archived'),
-                        'image' => asset('images/maroon.jpg'),
+                        'isArchived' => $isArchived,
+                        'image' => $article->cover_url ?: asset('images/maroon.jpg'),
                     ];
                 });
         });
@@ -200,6 +208,90 @@ class ExecutiveController extends Controller
         }
 
         return view('executive.manage-articles', compact('articles'));
+    }
+
+    public function archiveArticle(Request $request, int|string $id): JsonResponse
+    {
+        $this->authorizePresidentOrVp($request);
+        $article = Article::findOrFail($id);
+        $article->is_archived = true;
+        $article->status = 'archived';
+        $article->save();
+
+        Cache::forget('all_articles_for_management');
+        Cache::forget('eic_articles_for_management');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Article moved to archive successfully.',
+        ]);
+    }
+
+    public function restoreArticle(Request $request, int|string $id): JsonResponse
+    {
+        $this->authorizePresidentOrVp($request);
+        $article = Article::findOrFail($id);
+        $article->is_archived = false;
+        $article->status = 'published';
+        $article->save();
+
+        Cache::forget('all_articles_for_management');
+        Cache::forget('eic_articles_for_management');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Article restored to active published articles successfully.',
+        ]);
+    }
+
+    public function updateArticle(Request $request, int|string $id): JsonResponse
+    {
+        $this->authorizePresidentOrVp($request);
+        $article = Article::findOrFail($id);
+
+        if ($request->filled('title')) {
+            $article->title = (string) $request->input('title');
+            $article->slug = \Illuminate\Support\Str::slug((string) $request->input('title'));
+        }
+        if ($request->has('excerpt')) {
+            $article->excerpt = (string) $request->input('excerpt');
+        }
+        if ($request->has('content') || $request->has('body')) {
+            $article->content = (string) ($request->input('content') ?? $request->input('body'));
+        }
+        if ($request->filled('category')) {
+            $cat = Category::where('name', $request->input('category'))
+                ->orWhere('slug', \Illuminate\Support\Str::slug((string) $request->input('category')))
+                ->first();
+            if ($cat) {
+                $article->category_id = $cat->id;
+            }
+        }
+        $article->save();
+
+        Cache::forget('all_articles_for_management');
+        Cache::forget('eic_articles_for_management');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Article updated successfully.',
+            'article' => $article,
+        ]);
+    }
+
+    public function destroyArticle(Request $request, int|string $id): JsonResponse
+    {
+        $this->authorizePresidentOrVp($request);
+        $article = Article::findOrFail($id);
+        $article->delete();
+
+        Cache::forget('all_articles_for_management');
+        Cache::forget('eic_articles_for_management');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Article permanently deleted.',
+        ]);
     }
 
     public function reviewArticles(Request $request)

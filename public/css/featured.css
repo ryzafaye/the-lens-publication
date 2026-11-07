@@ -18,7 +18,7 @@
 
 .featured-title {
     margin: 0 0 12px;
-    color: var(--wine);
+    color: #1c1917;
     font-family: var(--heading-font);
     font-size: clamp(31px, 4vw, 47px);
     font-weight: 800;
@@ -33,10 +33,15 @@
     color: inherit;
     font: inherit;
     text-align: left;
+    text-decoration: none;
 }
 
 .article-title-button:hover {
-    color: var(--burgundy);
+    color: #700f2b;
+    text-decoration: underline;
+    text-decoration-color: #700f2b;
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 4px;
 }
 
 .featured-divider {

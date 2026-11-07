@@ -3,100 +3,207 @@
 @section('title', $authorName . ' | Author Profile')
 
 @section('content')
-<main class="author-profile-page page-shell max-w-5xl mx-auto px-6 py-10" data-page="author-profile">
+<main class="author-profile-page" data-page="author-profile">
 
-    <a class="author-back-link inline-flex items-center gap-2 text-xs font-semibold text-stone-500 hover:text-wine mb-8 transition-colors" href="{{ route('public.category', 'latest') }}">
-        <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Back to articles
-    </a>
+    <!-- Top Navigation -->
+    <nav class="author-nav-bar" aria-label="Author navigation">
+        <a class="author-back-btn" href="{{ route('public.archives') }}">
+            <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+            <span>Back to All Articles</span>
+        </a>
+    </nav>
 
-    <section id="author-profile-content" aria-live="polite">
+    <div id="author-profile-content" aria-live="polite">
         @if(!$author && $articles->isEmpty())
-            <section class="author-not-found p-12 text-center border border-dashed border-stone-200 rounded-2xl">
-                <span class="inline-block p-4 rounded-full bg-stone-100 text-stone-400 text-3xl mb-4">
-                    <i class="fa-regular fa-user" aria-hidden="true"></i>
+            <div class="author-empty-state">
+                <span class="author-empty-icon" aria-hidden="true">
+                    <i class="fa-regular fa-id-card"></i>
                 </span>
-                <h1 class="font-display text-2xl font-bold text-stone-800 mb-2">Author not found</h1>
-                <p class="text-stone-500 text-xs mb-6">We couldn't find public articles under that author name.</p>
-                <a href="{{ route('public.category', 'latest') }}" class="author-primary-link inline-flex items-center gap-2 px-4 py-2 bg-wine text-white rounded-lg text-xs font-bold hover:bg-rose-950 transition-colors">
-                    <span>Explore latest articles</span>
+                <h1 class="author-empty-title">Journalist Profile Not Found</h1>
+                <p class="author-empty-desc">
+                    We could not locate published dispatches or an accredited portfolio associated with "{{ $authorName }}".
+                </p>
+                <a href="{{ route('public.home') }}" class="author-explore-btn">
+                    <span>Explore Newsroom Home</span>
                     <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
                 </a>
-            </section>
+            </div>
         @else
-            <!-- Author Summary Card -->
-            <section class="author-summary-card mb-12 p-6 sm:p-8 bg-stone-50 rounded-2xl border border-stone-200 flex flex-col sm:flex-row items-center gap-6">
-                <div class="author-avatar w-20 h-20 rounded-full bg-rose-900/10 text-wine flex items-center justify-center text-3xl flex-shrink-0">
-                    <i class="fa-solid fa-user-pen" aria-hidden="true"></i>
-                </div>
-                <div class="author-summary-copy flex-grow text-center sm:text-left">
-                    <p class="author-role-chip inline-block px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-rose-100 text-rose-900 mb-2">
-                        {{ $roleName }}
-                    </p>
-                    <h1 class="font-display text-2xl sm:text-3xl font-extrabold text-stone-900 mb-2">
-                        {{ $authorName }}
-                    </h1>
-                    <p class="author-summary-bio text-xs sm:text-sm text-stone-600 max-w-xl">
-                        Staff contributor covering university news, campus affairs, and community developments for The Lens Publication.
-                    </p>
-                </div>
-                <div class="author-article-count text-center border-t sm:border-t-0 sm:border-l border-stone-200 pt-4 sm:pt-0 sm:pl-6">
-                    <strong class="block text-3xl font-display font-extrabold text-wine">{{ $articles->count() }}</strong>
-                    <span class="text-xs text-stone-500">{{ Str::plural('Published article', $articles->count()) }}</span>
-                </div>
-            </section>
+            @php
+                $nameParts = preg_split('/\s+/', trim($authorName));
+                $firstLetter = !empty($nameParts[0]) ? mb_substr($nameParts[0], 0, 1) : 'L';
+                $lastLetter = count($nameParts) > 1 ? mb_substr(end($nameParts), 0, 1) : '';
+                $initials = strtoupper($firstLetter . $lastLetter);
+                $hasCustomAvatar = $author && !empty($author->profile_picture_url);
+            @endphp
 
-            <!-- Articles By Author -->
-            <section class="author-articles-section" aria-labelledby="articles-by-author-title">
-                <div class="author-articles-heading flex items-center justify-between pb-4 mb-6 border-b border-stone-200">
-                    <div>
-                        <p class="author-profile-eyebrow text-xs font-bold uppercase tracking-widest text-wine">BYLINE ARCHIVE</p>
-                        <h2 id="articles-by-author-title" class="font-display text-xl sm:text-2xl font-bold text-stone-900 mt-0.5">
-                            Articles by {{ $authorName }}
+            <!-- Editorial Press Pass / Journalist Masthead Hero -->
+            <header class="author-dossier-card">
+                <div class="author-dossier-layout">
+                    
+                    <!-- Portrait / Monogram Avatar -->
+                    <div class="author-avatar-wrap">
+                        <div class="author-avatar-ring">
+                            @if($hasCustomAvatar)
+                                <img src="{{ $author->avatar_url }}" alt="{{ $authorName }}" class="author-avatar-img">
+                            @else
+                                <div class="author-avatar-fallback" aria-hidden="true">
+                                    {{ $initials }}
+                                </div>
+                            @endif
+                        </div>
+                        <span class="author-avatar-badge" title="The Lens Contributor" aria-hidden="true">
+                            <i class="fa-solid fa-feather-pointed"></i>
+                        </span>
+                    </div>
+
+                    <!-- Author Identity -->
+                    <div class="author-details">
+                        <h1 class="author-dossier-name">{{ $authorName }}</h1>
+
+                        <!-- Role Badge -->
+                        <div class="author-badges-row">
+                            <span class="author-role-pill">
+                                <i class="fa-solid fa-pen-nib" aria-hidden="true"></i>
+                                <span>{{ $roleName }}</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Published Articles Count -->
+                    <div class="author-article-count-box" aria-label="Author publication count">
+                        <strong class="author-article-count-number">{{ $articles->count() }}</strong>
+                        <span class="author-article-count-label">{{ Str::plural('Published article', $articles->count()) }}</span>
+                    </div>
+
+                </div>
+            </header>
+
+            <!-- Byline Articles Section -->
+            <section class="author-byline-section" aria-labelledby="byline-heading">
+                <div class="author-byline-header">
+                    <div class="byline-header-titles">
+                        <h2 id="byline-heading" class="byline-main-title">
+                            Published articles and campus reporting filed by {{ $authorName }}.
                         </h2>
                     </div>
-                    <span class="author-count-chip text-xs bg-stone-100 text-stone-600 px-3 py-1 rounded-full font-medium">
-                        {{ $articles->count() }} {{ Str::plural('story', $articles->count()) }}
-                    </span>
+
+                    <!-- Category Filter Tabs -->
+                    @if($beats->count() > 1)
+                        <div class="byline-filter-tabs" role="tablist" aria-label="Filter articles by category">
+                            <button type="button" class="filter-tab-btn active" data-filter="all" role="tab" aria-selected="true">
+                                <span>All Stories</span>
+                                <span class="tab-count">({{ $articles->count() }})</span>
+                            </button>
+                            @foreach($beatsWithCount as $beatName => $count)
+                                <button type="button" class="filter-tab-btn" data-filter="{{ Str::slug($beatName) }}" role="tab" aria-selected="false">
+                                    <span>{{ $beatName }}</span>
+                                    <span class="tab-count">({{ $count }})</span>
+                                </button>
+                            @endforeach
+                        </div>
+                    @endif
                 </div>
 
-                <div class="author-articles-grid grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Articles Grid -->
+                <div class="author-byline-grid" id="author-articles-grid">
                     @forelse($articles as $article)
                         @php
                             $words = str_word_count(strip_tags($article->content ?? ''));
                             $readingTime = max(1, (int) ceil($words / 200));
                             $coverUrl = $article->cover_url ?: asset('images/maroon.jpg');
+                            $catSlug = Str::slug($article->category->name ?? 'general');
+                            $publishedDate = $article->published_at ? $article->published_at->format('M d, Y') : $article->created_at->format('M d, Y');
                         @endphp
-                        <article class="author-article-card border border-stone-200 rounded-xl overflow-hidden hover:shadow-md transition-shadow bg-white flex flex-col" data-article-id="{{ $article->id }}">
-                            <a class="author-article-image block aspect-video overflow-hidden bg-stone-100" href="{{ route('public.article', $article->slug) }}" aria-label="Read article: {{ $article->title }}">
-                                <img src="{{ $coverUrl }}" alt="{{ $article->title }}" class="w-full h-full object-cover hover:scale-105 transition-transform duration-300" loading="lazy">
+                        <article class="author-story-card" data-category="{{ $catSlug }}">
+                            <a class="author-story-thumb-frame" href="{{ route('public.article', $article->slug) }}" aria-label="Read story: {{ $article->title }}">
+                                <img src="{{ $coverUrl }}" alt="{{ $article->title }}" loading="lazy">
+                                <span class="story-category-tag">
+                                    {{ $article->category->name ?? 'The Lens' }}
+                                </span>
                             </a>
-                            <div class="author-article-copy p-4 flex flex-col flex-grow">
-                                <div class="article-meta text-xs text-stone-500 mb-1">
-                                    <span class="article-category-label font-bold text-wine">{{ $article->category->name ?? 'The Lens' }}</span>
-                                    <span class="article-meta-separator" aria-hidden="true">·</span>
-                                    <time>{{ $article->published_at ? $article->published_at->format('M d, Y') : $article->created_at->format('M d, Y') }}</time>
+                            <div class="author-story-body">
+                                <div class="story-meta-row">
+                                    <span class="story-meta-date">
+                                        <i class="fa-regular fa-calendar" aria-hidden="true"></i>
+                                        <time datetime="{{ $article->published_at?->toDateString() ?? $article->created_at->toDateString() }}">{{ $publishedDate }}</time>
+                                    </span>
+                                    <span aria-hidden="true">·</span>
+                                    <span><i class="fa-regular fa-clock" aria-hidden="true"></i> {{ $readingTime }} min read</span>
                                 </div>
-                                <h2 class="font-display font-bold text-base text-stone-900 mb-2 line-clamp-2 hover:text-wine transition-colors">
-                                    <a href="{{ route('public.article', $article->slug) }}" class="author-article-title">
+
+                                <h3 class="author-story-title">
+                                    <a href="{{ route('public.article', $article->slug) }}">
                                         {{ $article->title }}
                                     </a>
-                                </h2>
-                                <p class="author-article-excerpt text-xs text-stone-500 line-clamp-2 mb-4 flex-grow">
-                                    {{ $article->excerpt ?: 'Read this story from The Lens.' }}
+                                </h3>
+
+                                <p class="author-story-excerpt">
+                                    {{ $article->excerpt ?: 'Read this campus report published by The Lens Publication.' }}
                                 </p>
-                                <div class="author-article-footer pt-3 border-t border-stone-100 flex items-center justify-between text-xs text-stone-400">
-                                    <span><i class="fa-regular fa-clock mr-1" aria-hidden="true"></i> {{ $readingTime }} min read</span>
-                                    <span><i class="fa-regular fa-eye mr-1" aria-hidden="true"></i> {{ number_format($article->views) }} views</span>
+
+                                <div class="author-story-footer">
+                                    <div class="story-footer-stats">
+                                        <span><i class="fa-regular fa-eye" aria-hidden="true"></i> {{ number_format($article->views) }} reads</span>
+                                        <span><i class="fa-solid fa-share-nodes" aria-hidden="true"></i> {{ number_format($article->shares) }}</span>
+                                    </div>
+                                    <a href="{{ route('public.article', $article->slug) }}" class="read-story-link" aria-label="Read full article {{ $article->title }}">
+                                        <span>Read Dispatch</span>
+                                        <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                                    </a>
                                 </div>
                             </div>
                         </article>
                     @empty
-                        <p class="text-xs text-stone-400 italic py-4 col-span-full">No published articles under this author yet.</p>
+                        <div class="author-empty-state">
+                            <span class="author-empty-icon" aria-hidden="true">
+                                <i class="fa-solid fa-newspaper"></i>
+                            </span>
+                            <h3 class="author-empty-title">No Published Dispatches Yet</h3>
+                            <p class="author-empty-desc">
+                                {{ $authorName }} has not published articles on the public website yet. Check back soon for upcoming investigative reports and coverage.
+                            </p>
+                            <a href="{{ route('public.category', 'latest') }}" class="author-explore-btn">
+                                <span>Browse Latest Newsroom Coverage</span>
+                                <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                            </a>
+                        </div>
                     @endforelse
                 </div>
             </section>
         @endif
-    </section>
+    </div>
 
 </main>
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const filterBtns = document.querySelectorAll('.filter-tab-btn');
+        const cards = document.querySelectorAll('.author-story-card');
+
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', function () {
+                const filter = this.getAttribute('data-filter');
+
+                filterBtns.forEach(b => {
+                    b.classList.remove('active');
+                    b.setAttribute('aria-selected', 'false');
+                });
+                this.classList.add('active');
+                this.setAttribute('aria-selected', 'true');
+
+                cards.forEach(card => {
+                    const cardCategory = card.getAttribute('data-category');
+                    if (filter === 'all' || cardCategory === filter) {
+                        card.style.display = 'flex';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+        });
+    });
+</script>
+@endpush
 @endsection

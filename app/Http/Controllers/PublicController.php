@@ -263,6 +263,10 @@ class PublicController extends Controller
                 'authorName' => urldecode($author_id),
                 'articles' => $authorArticles,
                 'roleName' => 'Contributing Writer',
+                'totalViews' => 0,
+                'beats' => collect(),
+                'beatsWithCount' => collect(),
+                'latestArticleDate' => null,
             ]);
         }
 
@@ -274,12 +278,21 @@ class PublicController extends Controller
             ->get();
 
         $roleName = $user->role->role_name ?? 'Staff Contributor';
+        $totalViews = (int) $articles->sum('views');
+        $beatsWithCount = $articles->groupBy(fn ($a) => $a->category->name ?? 'General')
+            ->map(fn ($group) => $group->count());
+        $beats = $beatsWithCount->keys();
+        $latestArticleDate = $articles->first()?->published_at ?? $articles->first()?->created_at;
 
         return view('author', [
             'author' => $user,
             'authorName' => $user->full_name,
             'articles' => $articles,
             'roleName' => $roleName,
+            'totalViews' => $totalViews,
+            'beats' => $beats,
+            'beatsWithCount' => $beatsWithCount,
+            'latestArticleDate' => $latestArticleDate,
         ]);
     }
 

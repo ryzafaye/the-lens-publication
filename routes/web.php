@@ -68,6 +68,10 @@ Route::middleware(['auth', 'role:President,Executive Vice President,Secretary,As
     // Strict Role-Based Access Control (RBAC): Restricted to President and Vice President
     Route::middleware(['role:President,Vice President,Executive Vice President'])->group(function () {
         Route::get('/manage-articles', [ExecutiveController::class, 'manageArticles'])->name('manage-articles');
+        Route::post('/manage-articles/{id}/archive', [ExecutiveController::class, 'archiveArticle'])->name('manage-articles.archive');
+        Route::post('/manage-articles/{id}/restore', [ExecutiveController::class, 'restoreArticle'])->name('manage-articles.restore');
+        Route::match(['put', 'post'], '/manage-articles/{id}', [ExecutiveController::class, 'updateArticle'])->name('manage-articles.update');
+        Route::delete('/manage-articles/{id}', [ExecutiveController::class, 'destroyArticle'])->name('manage-articles.destroy');
         Route::get('/review-articles', [ExecutiveController::class, 'reviewArticles'])->name('review-articles');
         Route::get('/review-article', function () {
             return redirect()->route('executive.review-articles');
@@ -134,6 +138,10 @@ Route::middleware(['auth', 'role:Editor-in-Chief,Associate Editor-in-Chief'])
     ->group(function () {
         Route::get('/dashboard', [EicController::class, 'dashboard'])->name('dashboard');
         Route::get('/manage-articles', [EicController::class, 'manageArticles'])->name('manage-articles');
+        Route::post('/manage-articles/{id}/archive', [EicController::class, 'archiveArticle'])->name('manage-articles.archive');
+        Route::post('/manage-articles/{id}/restore', [EicController::class, 'restoreArticle'])->name('manage-articles.restore');
+        Route::match(['put', 'post'], '/manage-articles/{id}', [EicController::class, 'updateArticle'])->name('manage-articles.update');
+        Route::delete('/manage-articles/{id}', [EicController::class, 'destroyArticle'])->name('manage-articles.destroy');
         Route::get('/manage-my-articles', [EicController::class, 'manageMyArticles'])->name('manage-my-articles');
         Route::get('/my-articles', function () {
             return redirect()->route('eic.manage-my-articles');
@@ -187,6 +195,8 @@ Route::middleware(['auth', 'role:Media and Public Communications Head,Associate 
         Route::post('/articles/{id}/assign-cover', [MpcController::class, 'assignCover'])->name('assign-cover');
         Route::post('/articles/{id}/revision', [MpcController::class, 'returnArticleForRevision'])->name('returnArticleForRevision');
         Route::get('/media-desk', [MpcController::class, 'mediaDesk'])->name('media-desk');
+        Route::post('/media/{id}/endorse', [MpcController::class, 'endorseMedia'])->name('endorse-media');
+        Route::post('/media/{id}/revision', [MpcController::class, 'returnMediaForRevision'])->name('return-media');
         Route::get('/submit-media', [MpcController::class, 'submitMedia'])->name('submit-media');
         Route::post('/submit-media', [MpcController::class, 'storeMedia'])->name('store-media');
         Route::get('/manage-media', [MpcController::class, 'manageMedia'])->name('manage-media');

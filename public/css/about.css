@@ -46,21 +46,18 @@
 .member-profile-card-compact .member-profile-photo { aspect-ratio: 4/3; }
 .staffer-grid { margin-top: 5px; }
 /* Inline document library: restrained paper-white cards, not a separate red banner/page. */
-.document-library-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 20px; }
-.document-card { display: flex; flex-direction: column; height: 100%; min-width: 0; overflow: hidden; border: 1px solid #e7d9df; border-radius: 13px; background: #fff; box-shadow: 0 7px 20px rgba(45,8,22,.04); transition: transform .22s,box-shadow .22s,border-color .22s; }
-.document-card:hover { transform: translateY(-3px); border-color: #caabb7; box-shadow: 0 16px 30px rgba(45,8,22,.09); }
-.document-preview-button { position: relative; display: block; width: 100%; padding: 0; overflow: hidden; border: 0; background: #f3edf0; text-align: left; cursor: zoom-in; }
-.document-preview-button img { display: block; width: 100%; aspect-ratio: 5/4; object-fit: cover; transition: transform .35s ease; }
-.document-card:hover .document-preview-button img { transform: scale(1.025); }
-.document-preview-action { position: absolute; right: 12px; bottom: 12px; display: inline-flex; align-items: center; gap: 6px; padding: 7px 9px; border: 1px solid rgba(255,255,255,.65); border-radius: 6px; background: rgba(58,8,24,.9); color: #fff; font-size: 9px; font-weight: 800; }
-.document-card-copy { display: flex; flex-direction: column; justify-content: space-between; height: 100%; flex-grow: 1; padding: 22px; }
-.document-file-type { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 10px; color: #896d78; font-size: 9px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
-.document-card-copy h3 { display: flex; align-items: flex-start; gap: 9px; margin: 0; color: var(--wine,#571525); font-family: var(--heading-font); font-size: 20px; font-weight: 800; line-height: 1.28; }
-.document-card-copy h3 i { margin-top: 4px; color: var(--wine); font-size: 15px; }
-.document-card-copy > p { min-height: 59px; margin: 10px 0 17px; color: #6d5b63; font-size: 11px; line-height: 1.8; }
-.document-download-link { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 11px 12px; border: 1px solid #5a1126; border-radius: 8px; background: #5a1126; color: #fff; font-size: 10px; font-weight: 900; text-decoration: none; transition: background .2s,transform .2s; }
+/* Inline document library matching reference preview cards */
+.document-library-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 24px; }
+.document-card { display: flex; flex-direction: column; height: 100%; min-width: 0; overflow: hidden; border: 1px solid #ebdbe2; border-radius: 16px; background: #fff; box-shadow: 0 7px 24px rgba(45,8,22,.05); transition: transform .22s,box-shadow .22s,border-color .22s; }
+.document-card:hover { transform: translateY(-4px); border-color: #caabb7; box-shadow: 0 16px 36px rgba(45,8,22,.1); }
+.document-card-copy { display: flex; flex-direction: column; justify-content: space-between; height: 100%; flex-grow: 1; padding: 24px; }
+.document-file-type { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 10px; color: #8c737d; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+.document-card-copy h3 { display: flex; align-items: center; gap: 10px; margin: 0 0 10px; color: var(--wine,#571525); font-family: var(--heading-font); font-size: 21px; font-weight: 800; line-height: 1.25; }
+.document-card-copy h3 i { color: var(--wine,#571525); font-size: 17px; }
+.document-card-copy > p { margin: 0 0 20px; color: #6d5b63; font-size: 12px; line-height: 1.7; flex-grow: 1; }
+.document-download-link { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 13px 16px; border: 1px solid #5a1126; border-radius: 10px; background: #5a1126; color: #fff; font-size: 12px; font-weight: 800; text-decoration: none; transition: background .2s,transform .2s; }
 .document-download-link:hover { transform: translateY(-1px); background: #400817; color: #fff; }
-.document-download-link span { padding: 3px 5px; border-radius: 4px; background: rgba(255,255,255,.16); font-size: 8px; letter-spacing: .05em; }
+.document-download-link span.badge { padding: 2px 7px; border-radius: 4px; background: rgba(255,255,255,.2); font-size: 10px; letter-spacing: .05em; font-weight: 900; }
 .document-preview-dialog { width: min(94vw,1100px); max-width: 94vw; max-height: 94dvh; padding: 0; overflow: hidden; border: 1px solid #eadde2; border-radius: 15px; background: #fff; color: #2c1820; box-shadow: 0 28px 80px rgba(22,3,10,.28); }
 .document-preview-dialog::backdrop { background: rgba(28,5,14,.72); backdrop-filter: blur(3px); }
 .document-preview-dialog-shell { display: flex; flex-direction: column; max-height: 94dvh; }

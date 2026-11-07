@@ -85,8 +85,14 @@
 }
 
 .story-card:hover .story-card-title,
-.story-card:hover .article-title-button {
-    color: #720f2a;
+.story-card:hover .story-card-title a,
+.story-card:hover .article-title-button,
+.story-card-title a:hover {
+    color: #700f2b !important;
+    text-decoration: underline !important;
+    text-decoration-color: #700f2b !important;
+    text-decoration-thickness: 1.5px !important;
+    text-underline-offset: 4px !important;
 }
 
 .story-card:hover .story-card-image img {
@@ -119,8 +125,14 @@
 }
 
 .category-card:hover h3,
-.category-card:hover .article-title-button {
-    color: #720f2a;
+.category-card:hover h3 a,
+.category-card:hover .article-title-button,
+.category-card-title a:hover {
+    color: #700f2b !important;
+    text-decoration: underline !important;
+    text-decoration-color: #700f2b !important;
+    text-decoration-thickness: 1.5px !important;
+    text-underline-offset: 4px !important;
 }
 
 .category-card:hover .small-image img {

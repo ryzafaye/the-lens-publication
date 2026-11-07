@@ -118,86 +118,231 @@
         <div class="about-section-heading mb-8">
             <p class="about-section-kicker text-xs font-bold tracking-widest text-wine uppercase">DOCUMENT LIBRARY</p>
             <h2 id="documents-title" class="font-display text-2xl sm:text-3xl font-extrabold text-stone-900 mt-1">Financial Records &amp; Documents</h2>
-            <p class="about-section-lead text-xs sm:text-sm text-stone-600 mt-1">Browse transparency records, reports, and publication guidelines.</p>
+            <p class="about-section-lead text-xs sm:text-sm text-stone-600 mt-1">Browse document formats and download the available files.</p>
         </div>
 
         <div id="document-library-grid" class="document-library-grid">
             <!-- Card 1: Financial Summary -->
             <article class="document-card" data-document-id="financial-summary">
+                <!-- Document Mockup Preview Container -->
+                <div class="relative bg-[#f8f2f5] p-5 pb-7 rounded-t-[15px] overflow-hidden border-b border-stone-200/60">
+                    <div class="bg-white rounded-lg shadow-sm border border-stone-200/80 p-4 pt-3 flex flex-col items-center relative overflow-hidden w-full max-w-[240px] mx-auto min-h-[195px]">
+                        <!-- Top Maroon Header Strip -->
+                        <div class="w-full h-2 bg-[#571525] rounded-t mb-2.5"></div>
+                        <h4 class="font-serif font-black text-xs text-stone-900 tracking-wider text-center uppercase">FINANCIAL SUMMARY</h4>
+                        <p class="text-[8px] text-stone-400 font-bold tracking-widest text-center uppercase mt-0.5">INCOME / EXPENSES / BALANCE</p>
+                        
+                        <!-- Table Column Headings -->
+                        <div class="w-full mt-3 bg-stone-100/90 border-y border-stone-200 py-1 px-1.5 flex items-center justify-between text-[7px] font-bold text-stone-500 uppercase tracking-tighter">
+                            <span>DATE</span>
+                            <span>ITEM</span>
+                            <span>AMOUNT</span>
+                            <span>REFERENCE</span>
+                        </div>
+
+                        <!-- Ruled Table Lines -->
+                        <div class="w-full space-y-2 mt-2 px-0.5">
+                            <div class="w-full h-1.5 bg-rose-900/10 rounded"></div>
+                            <div class="w-full h-1.5 bg-rose-900/10 rounded"></div>
+                            <div class="w-full h-1.5 bg-rose-900/10 rounded"></div>
+                        </div>
+
+                        <!-- Angled Sample Template Stamp -->
+                        <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                            <div class="border-2 border-[#571525] text-[#571525] font-black text-[11px] uppercase tracking-wider px-3 py-1 rounded transform -rotate-12 bg-white/95 shadow-sm">
+                                SAMPLE TEMPLATE
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Preview Document Trigger Button -->
+                    <button type="button" class="document-preview-trigger absolute bottom-3 right-3 bg-[#571525] hover:bg-[#400817] text-white text-[10px] font-bold py-1.5 px-3 rounded-md flex items-center gap-1.5 shadow transition-colors cursor-pointer" data-doc-title="Financial Summary" data-doc-sub="Income / Expenses / Balance" data-doc-cols="Date, Item, Amount, Reference" data-doc-desc="An organized format for summarizing income, expenses, and the running balance for a reporting period." data-doc-file="{{ asset('documents/financial-summary-template.csv') }}">
+                        <i class="fa-solid fa-up-right-and-down-left-from-center text-[9px]" aria-hidden="true"></i>
+                        <span>Preview document</span>
+                    </button>
+                </div>
+
+                <!-- Document Copy & Download Action -->
                 <div class="document-card-copy">
                     <div>
                         <span class="document-file-type">
-                            <i class="fa-regular fa-file-lines" aria-hidden="true"></i> Financial Record
+                            <i class="fa-regular fa-file-lines" aria-hidden="true"></i> CSV TEMPLATE
                         </span>
                         <h3>
                             <i class="fa-solid fa-chart-pie" aria-hidden="true"></i>
                             <span>Financial Summary</span>
                         </h3>
-                        <p>An organized summary of publication receipts, operating expenses, and financial balance.</p>
-                        <div class="mb-4 text-[11px] text-stone-500 flex items-center gap-1.5 font-medium">
-                            <i class="fa-solid fa-circle-check text-rose-900 text-[10px]" aria-hidden="true"></i>
-                            <span>Published quarterly by Executive Office</span>
-                        </div>
+                        <p>An organized format for summarizing income, expenses, and the running balance for a reporting period.</p>
                     </div>
                     <a class="document-download-link" href="{{ asset('documents/financial-summary-template.csv') }}" download="the-lens-financial-summary-template.csv">
                         <i class="fa-solid fa-download" aria-hidden="true"></i>
-                        <span>Download CSV Template</span>
-                        <span>.CSV</span>
+                        <span>Download template</span>
+                        <span class="badge">CSV</span>
                     </a>
                 </div>
             </article>
 
             <!-- Card 2: Receipts & Disbursements -->
             <article class="document-card" data-document-id="receipts-disbursements">
+                <!-- Document Mockup Preview Container -->
+                <div class="relative bg-[#f8f2f5] p-5 pb-7 rounded-t-[15px] overflow-hidden border-b border-stone-200/60">
+                    <div class="bg-white rounded-lg shadow-sm border border-stone-200/80 p-4 pt-3 flex flex-col items-center relative overflow-hidden w-full max-w-[240px] mx-auto min-h-[195px]">
+                        <!-- Top Maroon Header Strip -->
+                        <div class="w-full h-2 bg-[#571525] rounded-t mb-2.5"></div>
+                        <h4 class="font-serif font-black text-xs text-stone-900 tracking-wider text-center uppercase">RECEIPTS &amp; DISBURSEMENTS</h4>
+                        <p class="text-[8px] text-stone-400 font-bold tracking-widest text-center uppercase mt-0.5">TRANSACTION REGISTER</p>
+                        
+                        <!-- Table Column Headings -->
+                        <div class="w-full mt-3 bg-stone-100/90 border-y border-stone-200 py-1 px-1.5 flex items-center justify-between text-[7px] font-bold text-stone-500 uppercase tracking-tighter">
+                            <span>DATE</span>
+                            <span>ITEM</span>
+                            <span>AMOUNT</span>
+                            <span>REFERENCE</span>
+                        </div>
+
+                        <!-- Ruled Table Lines -->
+                        <div class="w-full space-y-2 mt-2 px-0.5">
+                            <div class="w-full h-1.5 bg-rose-900/10 rounded"></div>
+                            <div class="w-full h-1.5 bg-rose-900/10 rounded"></div>
+                            <div class="w-full h-1.5 bg-rose-900/10 rounded"></div>
+                        </div>
+
+                        <!-- Angled Sample Template Stamp -->
+                        <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                            <div class="border-2 border-[#571525] text-[#571525] font-black text-[11px] uppercase tracking-wider px-3 py-1 rounded transform -rotate-12 bg-white/95 shadow-sm">
+                                SAMPLE TEMPLATE
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Preview Document Trigger Button -->
+                    <button type="button" class="document-preview-trigger absolute bottom-3 right-3 bg-[#571525] hover:bg-[#400817] text-white text-[10px] font-bold py-1.5 px-3 rounded-md flex items-center gap-1.5 shadow transition-colors cursor-pointer" data-doc-title="Receipts & Disbursements" data-doc-sub="Transaction Register" data-doc-cols="Date, Item, Amount, Reference" data-doc-desc="A register for documenting funds received and approved payments with reference details." data-doc-file="{{ asset('documents/receipts-disbursements-template.csv') }}">
+                        <i class="fa-solid fa-up-right-and-down-left-from-center text-[9px]" aria-hidden="true"></i>
+                        <span>Preview document</span>
+                    </button>
+                </div>
+
+                <!-- Document Copy & Download Action -->
                 <div class="document-card-copy">
                     <div>
                         <span class="document-file-type">
-                            <i class="fa-regular fa-file-lines" aria-hidden="true"></i> Transparency Report
+                            <i class="fa-regular fa-file-lines" aria-hidden="true"></i> CSV TEMPLATE
                         </span>
                         <h3>
                             <i class="fa-solid fa-receipt" aria-hidden="true"></i>
                             <span>Receipts &amp; Disbursements</span>
                         </h3>
-                        <p>Official register of funds received and authorized expenditures with audit records.</p>
-                        <div class="mb-4 text-[11px] text-stone-500 flex items-center gap-1.5 font-medium">
-                            <i class="fa-solid fa-circle-check text-rose-900 text-[10px]" aria-hidden="true"></i>
-                            <span>Audited by Publication Auditor</span>
-                        </div>
+                        <p>A register for documenting funds received and approved payments with reference details.</p>
                     </div>
                     <a class="document-download-link" href="{{ asset('documents/receipts-disbursements-template.csv') }}" download="the-lens-receipts-disbursements-template.csv">
                         <i class="fa-solid fa-download" aria-hidden="true"></i>
-                        <span>Download CSV Template</span>
-                        <span>.CSV</span>
+                        <span>Download template</span>
+                        <span class="badge">CSV</span>
                     </a>
                 </div>
             </article>
 
             <!-- Card 3: Project Liquidation -->
             <article class="document-card" data-document-id="project-liquidation">
+                <!-- Document Mockup Preview Container -->
+                <div class="relative bg-[#f8f2f5] p-5 pb-7 rounded-t-[15px] overflow-hidden border-b border-stone-200/60">
+                    <div class="bg-white rounded-lg shadow-sm border border-stone-200/80 p-4 pt-3 flex flex-col items-center relative overflow-hidden w-full max-w-[240px] mx-auto min-h-[195px]">
+                        <!-- Top Maroon Header Strip -->
+                        <div class="w-full h-2 bg-[#571525] rounded-t mb-2.5"></div>
+                        <h4 class="font-serif font-black text-xs text-stone-900 tracking-wider text-center uppercase">PROJECT LIQUIDATION</h4>
+                        <p class="text-[8px] text-stone-400 font-bold tracking-widest text-center uppercase mt-0.5">BUDGET / EXPENSES / BALANCE</p>
+                        
+                        <!-- Table Column Headings -->
+                        <div class="w-full mt-3 bg-stone-100/90 border-y border-stone-200 py-1 px-1.5 flex items-center justify-between text-[7px] font-bold text-stone-500 uppercase tracking-tighter">
+                            <span>DATE</span>
+                            <span>ITEM</span>
+                            <span>AMOUNT</span>
+                            <span>REFERENCE</span>
+                        </div>
+
+                        <!-- Ruled Table Lines -->
+                        <div class="w-full space-y-2 mt-2 px-0.5">
+                            <div class="w-full h-1.5 bg-rose-900/10 rounded"></div>
+                            <div class="w-full h-1.5 bg-rose-900/10 rounded"></div>
+                            <div class="w-full h-1.5 bg-rose-900/10 rounded"></div>
+                        </div>
+
+                        <!-- Angled Sample Template Stamp -->
+                        <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                            <div class="border-2 border-[#571525] text-[#571525] font-black text-[11px] uppercase tracking-wider px-3 py-1 rounded transform -rotate-12 bg-white/95 shadow-sm">
+                                SAMPLE TEMPLATE
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Preview Document Trigger Button -->
+                    <button type="button" class="document-preview-trigger absolute bottom-3 right-3 bg-[#571525] hover:bg-[#400817] text-white text-[10px] font-bold py-1.5 px-3 rounded-md flex items-center gap-1.5 shadow transition-colors cursor-pointer" data-doc-title="Project Liquidation" data-doc-sub="Budget / Expenses / Balance" data-doc-cols="Date, Item, Amount, Reference" data-doc-desc="A format for comparing an approved activity budget with documented project expenses." data-doc-file="{{ asset('documents/project-liquidation-template.csv') }}">
+                        <i class="fa-solid fa-up-right-and-down-left-from-center text-[9px]" aria-hidden="true"></i>
+                        <span>Preview document</span>
+                    </button>
+                </div>
+
+                <!-- Document Copy & Download Action -->
                 <div class="document-card-copy">
                     <div>
                         <span class="document-file-type">
-                            <i class="fa-regular fa-file-lines" aria-hidden="true"></i> Activity Report
+                            <i class="fa-regular fa-file-lines" aria-hidden="true"></i> CSV TEMPLATE
                         </span>
                         <h3>
                             <i class="fa-solid fa-file-invoice-dollar" aria-hidden="true"></i>
                             <span>Project Liquidation</span>
                         </h3>
-                        <p>Documented coverage of publication projects, event workshops, and student outreach.</p>
-                        <div class="mb-4 text-[11px] text-stone-500 flex items-center gap-1.5 font-medium">
-                            <i class="fa-solid fa-circle-check text-rose-900 text-[10px]" aria-hidden="true"></i>
-                            <span>Maintained by Editorial Board</span>
-                        </div>
+                        <p>A format for comparing an approved activity budget with documented project expenses.</p>
                     </div>
                     <a class="document-download-link" href="{{ asset('documents/project-liquidation-template.csv') }}" download="the-lens-project-liquidation-template.csv">
                         <i class="fa-solid fa-download" aria-hidden="true"></i>
-                        <span>Download CSV Template</span>
-                        <span>.CSV</span>
+                        <span>Download template</span>
+                        <span class="badge">CSV</span>
                     </a>
                 </div>
             </article>
         </div>
     </section>
+
+    <!-- Document Preview Modal Dialog -->
+    <dialog id="document-preview-dialog" class="document-preview-dialog max-w-2xl w-full rounded-2xl p-0 shadow-2xl border border-stone-200 backdrop:bg-black/60">
+        <div class="document-preview-dialog-shell bg-white rounded-2xl overflow-hidden flex flex-col">
+            <div class="document-preview-dialog-header flex items-center justify-between p-5 border-b border-stone-200 bg-stone-50">
+                <div class="flex items-center gap-2.5">
+                    <span class="w-8 h-8 rounded-full bg-rose-900/10 text-wine flex items-center justify-center text-sm font-bold">
+                        <i class="fa-regular fa-file-lines"></i>
+                    </span>
+                    <div>
+                        <h2 id="modal-doc-title" class="font-display font-extrabold text-base text-stone-900">Document Template</h2>
+                        <p id="modal-doc-sub" class="text-[11px] text-stone-500 uppercase tracking-wider font-semibold">CSV Preview</p>
+                    </div>
+                </div>
+                <button type="button" id="close-doc-preview" class="w-8 h-8 rounded-full bg-stone-200/70 hover:bg-stone-300 text-stone-600 flex items-center justify-center transition-colors text-xs font-bold" aria-label="Close dialog">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="p-6 overflow-y-auto max-h-[70vh] bg-stone-50/50">
+                <p id="modal-doc-desc" class="text-xs text-stone-600 mb-4 leading-relaxed"></p>
+                <div class="bg-white rounded-xl border border-stone-200 p-4 shadow-sm overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead>
+                            <tr id="modal-doc-table-head" class="border-b border-stone-200 text-stone-700 font-bold uppercase text-[11px]"></tr>
+                        </thead>
+                        <tbody id="modal-doc-table-body" class="divide-y divide-stone-100 text-stone-600"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="p-4 border-t border-stone-200 bg-white flex items-center justify-end gap-3">
+                <button type="button" id="modal-doc-close-btn" class="px-4 py-2 border border-stone-300 hover:bg-stone-100 rounded-lg text-xs font-bold text-stone-700 transition-colors">
+                    Close
+                </button>
+                <a id="modal-doc-download-btn" href="#" download="" class="px-4 py-2 bg-wine hover:bg-rose-950 text-white rounded-lg text-xs font-bold transition-colors inline-flex items-center gap-1.5 shadow-sm">
+                    <i class="fa-solid fa-download"></i>
+                    <span>Download Template</span>
+                </a>
+            </div>
+        </div>
+    </dialog>
 
     <!-- Socials Card -->
     <section class="about-social-section mb-12" id="socials" aria-label="The Lens official Facebook page">
@@ -236,4 +381,77 @@
     </section>
 
 </main>
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const dialog = document.getElementById('document-preview-dialog');
+        const closeBtn = document.getElementById('close-doc-preview');
+        const modalCloseBtn = document.getElementById('modal-doc-close-btn');
+        const modalTitle = document.getElementById('modal-doc-title');
+        const modalSub = document.getElementById('modal-doc-sub');
+        const modalDesc = document.getElementById('modal-doc-desc');
+        const modalHead = document.getElementById('modal-doc-table-head');
+        const modalBody = document.getElementById('modal-doc-table-body');
+        const modalDownload = document.getElementById('modal-doc-download-btn');
+
+        document.querySelectorAll('.document-preview-trigger').forEach(button => {
+            button.addEventListener('click', function () {
+                const title = this.getAttribute('data-doc-title') || 'Document Preview';
+                const sub = this.getAttribute('data-doc-sub') || 'CSV Template';
+                const desc = this.getAttribute('data-doc-desc') || '';
+                const cols = (this.getAttribute('data-doc-cols') || 'Date, Item, Amount, Reference').split(',').map(s => s.trim());
+                const file = this.getAttribute('data-doc-file') || '#';
+
+                if (modalTitle) modalTitle.textContent = title;
+                if (modalSub) modalSub.textContent = sub;
+                if (modalDesc) modalDesc.textContent = desc;
+                if (modalDownload) {
+                    modalDownload.href = file;
+                    modalDownload.download = file.split('/').pop() || 'template.csv';
+                }
+
+                if (modalHead) {
+                    modalHead.innerHTML = cols.map(c => `<th class="py-2.5 px-3 bg-stone-100/70">${c}</th>`).join('');
+                }
+                if (modalBody) {
+                    modalBody.innerHTML = [
+                        ['2026-10-01', 'Editorial Printing Supplies', 'PHP 2,450.00', 'REC-2026-001'],
+                        ['2026-10-08', 'Coverage Logistics', 'PHP 1,200.00', 'REC-2026-002'],
+                        ['2026-10-15', 'Production Outreach Workshop', 'PHP 4,300.00', 'REC-2026-003'],
+                        ['2026-10-22', 'Audio/Podcast Equipment Repair', 'PHP 1,850.00', 'REC-2026-004']
+                    ].map(row => `
+                        <tr class="hover:bg-stone-50 transition-colors">
+                            ${row.map(cell => `<td class="py-2 px-3 font-mono text-[11px]">${cell}</td>`).join('')}
+                        </tr>
+                    `).join('');
+                }
+
+                if (dialog && !dialog.open) {
+                    dialog.showModal();
+                }
+            });
+        });
+
+        function closePreview() {
+            if (dialog && dialog.open) {
+                dialog.close();
+            }
+        }
+
+        if (closeBtn) closeBtn.addEventListener('click', closePreview);
+        if (modalCloseBtn) modalCloseBtn.addEventListener('click', closePreview);
+        if (dialog) {
+            dialog.addEventListener('click', function (e) {
+                const rect = dialog.getBoundingClientRect();
+                const isInDialog = (rect.top <= e.clientY && e.clientY <= rect.top + rect.height
+                    && rect.left <= e.clientX && e.clientX <= rect.left + rect.width);
+                if (!isInDialog) {
+                    dialog.close();
+                }
+            });
+        }
+    });
+</script>
+@endpush
 @endsection

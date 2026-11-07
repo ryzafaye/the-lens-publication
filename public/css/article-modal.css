@@ -95,7 +95,8 @@
     max-height: min(72vh, 580px);
     overflow: hidden;
     border-radius: 12px;
-    background: radial-gradient(circle at center, #24060f 0%, #0d0105 100%);
+    background: radial-gradient(circle at center, #7b1113 0%, #571525 100%);
+    background-color: #571525;
     box-shadow: 0 8px 24px rgba(18, 3, 7, 0.16);
     position: relative;
 }
@@ -143,15 +144,22 @@
     border-color: #8f1d35;
     box-shadow: 0 14px 28px -4px rgba(87, 21, 37, 0.16);
 }
-.continue-story-card:hover .continue-story-title {
-    color: #720f2a;
+.continue-story-card:hover .continue-story-title,
+.continue-story-card:hover h3 a,
+.continue-story-title:hover {
+    color: #700f2b !important;
+    text-decoration: underline !important;
+    text-decoration-color: #700f2b !important;
+    text-decoration-thickness: 1.5px !important;
+    text-underline-offset: 4px !important;
 }
 .continue-story-image { display: block; width: 100%; padding: 0; border: 0; overflow: hidden; background: #f4edf0; text-align: left; cursor: pointer; }
 .continue-story-thumb {
     width: 100%;
     aspect-ratio: 16 / 9;
     border-radius: 0;
-    background: radial-gradient(circle at center, #24060f 0%, #0d0105 100%);
+    background: radial-gradient(circle at center, #7b1113 0%, #571525 100%);
+    background-color: #571525;
     overflow: hidden;
 }
 .continue-story-thumb img {
@@ -198,15 +206,75 @@
 }
 @media (prefers-reduced-motion: reduce) { .article-modal *, .article-modal *::before, .article-modal *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; } }
 
+.more-in-category-link {
+    color: var(--wine, #571525);
+    font-weight: 700;
+    font-size: 12px;
+    text-decoration: none;
+    transition: color 0.18s ease;
+}
+.more-in-category-link:hover {
+    color: var(--maroon, #700f2b);
+    text-decoration: underline;
+}
+
+/* ==========================================================================
+   Full-screen dedicated reader view (no header, no footer, hidden scrollbar)
+   ========================================================================== */
+.article-reader-fullscreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    max-width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    background: #ffffff;
+    z-index: 9999;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+    -webkit-overflow-scrolling: touch;
+}
+
+.article-reader-fullscreen::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+
+body.article-reader-body,
+html:has(body.article-reader-body) {
+    overflow: hidden !important;
+    height: 100% !important;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+}
+
+body.article-reader-body::-webkit-scrollbar,
+html:has(body.article-reader-body)::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+
 /* Hide every visual scrollbar in the reader (including browser-specific dialog scrollbars).
    Scrolling itself remains enabled for mouse wheel, touch, keyboard, and trackpad. */
 .article-modal,
-.article-modal * {
+.article-modal *,
+.article-reader-fullscreen,
+.article-reader-fullscreen * {
     scrollbar-width: none !important;
     -ms-overflow-style: none !important;
 }
 .article-modal::-webkit-scrollbar,
-.article-modal *::-webkit-scrollbar {
+.article-modal *::-webkit-scrollbar,
+.article-reader-fullscreen::-webkit-scrollbar,
+.article-reader-fullscreen *::-webkit-scrollbar {
     display: none !important;
     width: 0 !important;
     height: 0 !important;

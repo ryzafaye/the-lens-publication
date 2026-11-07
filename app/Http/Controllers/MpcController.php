@@ -186,7 +186,66 @@ class MpcController extends Controller
 
     public function mediaDesk()
     {
-        return view('mpc.media-desk');
+        $pending = ArticleImage::whereIn('status', ['pending_head', 'pending', 'Pending with Head', 'Pending Review'])
+            ->with(['uploader.role', 'headApprover.role'])
+            ->latest()
+            ->get();
+
+        $approved = ArticleImage::approved()
+            ->with(['uploader.role', 'headApprover.role', 'eicApprover.role', 'article'])
+            ->latest()
+            ->get();
+
+        $coverList = $pending->merge($approved)
+            ->map(fn($item) => $this->imageService->formatForView($item))
+            ->values()
+            ->all();
+
+        return view('mpc.media-desk', compact('coverList'));
+    }
+
+    public function endorseMedia(int|string $id, Request $request)
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        $image = ArticleImage::findOrFail($id);
+
+        $this->imageService->endorseByHead($image, $user);
+        ActivityLog::logAction($user->id, 'endorsed visual asset to EIC');
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Visual asset endorsed to Editor-in-Chief successfully.',
+                'media' => $this->imageService->formatForView($image),
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Visual asset endorsed to Editor-in-Chief.');
+    }
+
+    public function returnMediaForRevision(int|string $id, Request $request)
+    {
+        $request->validate([
+            'remarks' => 'required|string',
+        ]);
+
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        $image = ArticleImage::findOrFail($id);
+
+        $this->imageService->returnForRevision($image, $user, (string) $request->remarks);
+        ActivityLog::logAction($user->id, 'returned visual asset for revision');
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Visual asset returned for revision.',
+                'media' => $this->imageService->formatForView($image),
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Visual asset returned for revision.');
     }
 
     public function submitMedia()

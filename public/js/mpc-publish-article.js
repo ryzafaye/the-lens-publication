@@ -29,9 +29,17 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (err) {}
         }
 
-        // Purge mock cover pools
-        localStorage.removeItem(STORAGE_KEY_COVERS);
-        localStorage.removeItem('mpcApprovedCoversPool_v1');
+        // Sanitize cover pools to retain genuine approved visual assets
+        const rawPool = localStorage.getItem('mpcApprovedCoversPool_v1');
+        if (rawPool) {
+            try {
+                const pool = JSON.parse(rawPool);
+                if (Array.isArray(pool)) {
+                    const cleaned = pool.filter(c => c && c.image && !String(c.id).includes('mock') && !String(c.id).includes('sample') && !String(c.id).includes('seed'));
+                    localStorage.setItem('mpcApprovedCoversPool_v1', JSON.stringify(cleaned));
+                }
+            } catch (err) {}
+        }
     } catch (e) {}
 
     // -------------------------------------------------------------------------
@@ -313,10 +321,10 @@ document.addEventListener('DOMContentLoaded', () => {
             // Reject any hardcoded or mock image paths
             if (typeof item.image === 'string') {
                 const img = item.image.trim();
-                if (img.includes('images/') || img.includes('covers/') || img.includes('maroon.jpg') || img.includes('portal-pubmat') || img.includes('election-guidelines') || img.includes('faculty-overload') || img.includes('press-freedom')) {
+                if (img.includes('maroon.jpg') || img.includes('portal-pubmat') || img.includes('election-guidelines') || img.includes('faculty-overload') || img.includes('press-freedom')) {
                     return;
                 }
-                if (!img.startsWith('data:image/') && !img.startsWith('/storage/') && !img.startsWith('http')) {
+                if (!img.startsWith('data:image/') && !img.startsWith('/storage/') && !img.startsWith('http') && !img.startsWith('/uploads/') && !img.startsWith('uploads/')) {
                     return;
                 }
             }
@@ -346,6 +354,24 @@ document.addEventListener('DOMContentLoaded', () => {
         if (window.INITIAL_COVERS && Array.isArray(window.INITIAL_COVERS)) {
             window.INITIAL_COVERS.forEach(addCover);
         }
+
+        // Also merge any approved covers from session storage
+        try {
+            const rawPool = localStorage.getItem('mpcApprovedCoversPool_v1');
+            if (rawPool) {
+                const parsedPool = JSON.parse(rawPool);
+                if (Array.isArray(parsedPool)) {
+                    parsedPool.forEach(addCover);
+                }
+            }
+            const rawCovers = localStorage.getItem(STORAGE_KEY_COVERS);
+            if (rawCovers) {
+                const parsedCovers = JSON.parse(rawCovers);
+                if (Array.isArray(parsedCovers)) {
+                    parsedCovers.forEach(addCover);
+                }
+            }
+        } catch (e) {}
 
         return covers;
     }

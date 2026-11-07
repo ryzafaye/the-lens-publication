@@ -20,3 +20,81 @@
 
 @import url("feedback.css");
 @import url("author-profile.css");
+
+/* =====================================================
+   GLOBAL INVARIANTS:
+   1. Frame Matte: Maroon background when picture doesn't fill frame.
+   2. Article Titles: Default near-black, Maroon font + Maroon underline strictly on hover.
+   ===================================================== */
+.article-image,
+.modal-image,
+.continue-story-thumb,
+.featured-image,
+.latest-image,
+.story-card-image,
+.small-image,
+.category-list-thumb,
+.archive-image,
+.author-card-image,
+.continue-story-image {
+    background: radial-gradient(circle at center, #7b1113 0%, #571525 100%) !important;
+    background-color: #571525 !important;
+}
+
+.article-image img,
+.modal-image img,
+.continue-story-thumb img,
+.continue-story-image img {
+    object-fit: contain !important;
+}
+
+/* Article Titles: Default near-black, Maroon font + Maroon underline ONLY on hover */
+.article-title-button,
+.featured-title a,
+.latest-title a,
+.story-card-title a,
+.category-card-title a,
+.category-list-title a,
+.author-article-title,
+.author-article-title a,
+.continue-story-title,
+.continue-story-title a,
+.archive-item h3 a,
+.continue-story-card h3 a {
+    color: #1c1917 !important;
+    text-decoration: none !important;
+    transition: color 0.18s ease, text-decoration-color 0.18s ease;
+}
+
+.article-title-button:hover,
+.article-title-button:focus-visible,
+.featured-title a:hover,
+.featured-title a:focus-visible,
+.latest-title a:hover,
+.latest-title a:focus-visible,
+.story-card-title a:hover,
+.story-card-title a:focus-visible,
+.category-card-title a:hover,
+.category-card-title a:focus-visible,
+.category-list-title a:hover,
+.category-list-title a:focus-visible,
+.author-article-title:hover,
+.author-article-title:focus-visible,
+.author-article-title a:hover,
+.author-article-title a:focus-visible,
+.continue-story-title:hover,
+.continue-story-title:focus-visible,
+.continue-story-title a:hover,
+.continue-story-title a:focus-visible,
+.archive-item h3 a:hover,
+.archive-item h3 a:focus-visible,
+.continue-story-card h3 a:hover,
+.continue-story-card h3 a:focus-visible,
+a.article-title-button:hover,
+button.article-title-button:hover {
+    color: #700f2b !important;
+    text-decoration: underline !important;
+    text-decoration-color: #700f2b !important;
+    text-decoration-thickness: 1.5px !important;
+    text-underline-offset: 4px !important;
+}

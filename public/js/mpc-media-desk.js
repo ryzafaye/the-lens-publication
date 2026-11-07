@@ -123,13 +123,13 @@ document.addEventListener('DOMContentLoaded', () => {
         list = list.filter(item => {
             if (!item || !item.image) return false;
             const img = String(item.image).trim();
-            if (img.includes('images/') || img.includes('covers/') || img.includes('maroon.jpg') || img.includes('portal-pubmat') || img.includes('election-guidelines') || img.includes('faculty-overload') || img.includes('press-freedom')) {
+            if (img.includes('maroon.jpg') || img.includes('portal-pubmat') || img.includes('election-guidelines') || img.includes('faculty-overload') || img.includes('press-freedom')) {
                 return false;
             }
             if (String(item.id).includes('mock') || String(item.id).includes('sample') || String(item.id).includes('seed') || String(item.id).includes('default')) {
                 return false;
             }
-            return img.startsWith('data:image/') || img.startsWith('/storage/') || img.startsWith('http');
+            return img.startsWith('data:image/') || img.startsWith('/storage/') || img.startsWith('http') || img.startsWith('/uploads/') || img.startsWith('uploads/');
         });
 
         // Exclude all cartoons: cartoons submitted by cartoonists belong exclusively to the Cartoonist Head desk
@@ -712,6 +712,22 @@ document.addEventListener('DOMContentLoaded', () => {
                     console.warn(e);
                 }
 
+                // Backend sync if running on Laravel
+                try {
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                    if (csrfToken && target.id) {
+                        fetch(`/mpc/media/${target.id}/revision`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': csrfToken,
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({ remarks: remarks })
+                        }).catch(err => console.warn('Backend MPC return sync failed:', err));
+                    }
+                } catch (e) {}
+
                 saveCoverQueue(coverList);
 
                 closeReturnModal();
@@ -750,6 +766,21 @@ document.addEventListener('DOMContentLoaded', () => {
                     subs = subs.map(s => (String(s.id) === String(target.id) ? { ...s, status: 'Pending EIC Review', endorsedBy: target.endorsedBy } : s));
                     localStorage.setItem('mediaTeamSubmissions_v2', JSON.stringify(subs));
                 }
+            }
+        } catch (e) {}
+
+        // Backend sync if running on Laravel
+        try {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            if (csrfToken && target.id) {
+                fetch(`/mpc/media/${target.id}/endorse`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json'
+                    }
+                }).catch(err => console.warn('Backend MPC endorse sync failed:', err));
             }
         } catch (e) {}
 

@@ -249,10 +249,6 @@
 
             <div class="form-row-2">
                 <div class="form-field">
-                    <label for="edit-author-input">Author</label>
-                    <input type="text" id="edit-author-input" class="form-input" required>
-                </div>
-                <div class="form-field">
                     <label for="edit-category-select">Category</label>
                     <select id="edit-category-select" class="form-select">
                         <option value="News">News</option>
@@ -262,16 +258,23 @@
                         <option value="Literature">Literature</option>
                     </select>
                 </div>
-            </div>
-
-            <div class="form-field">
-                <label for="edit-readtime-input">Estimated Read Time</label>
-                <input type="text" id="edit-readtime-input" class="form-input" placeholder="e.g. 2 min read">
+                <div class="form-field">
+                    <label>Estimated Read Time (Auto-calculated)</label>
+                    <div id="edit-readtime-display" class="form-readtime-badge" title="Automatically calculated from word count">
+                        <i class="fa-regular fa-clock"></i>
+                        <span id="edit-readtime-text">2 min read</span>
+                    </div>
+                </div>
             </div>
 
             <div class="form-field">
                 <label for="edit-excerpt-input">Excerpt / Brief Summary</label>
-                <textarea id="edit-excerpt-input" class="form-textarea" rows="3" required></textarea>
+                <textarea id="edit-excerpt-input" class="form-textarea" rows="3" placeholder="Brief summary of the article..." required></textarea>
+            </div>
+
+            <div class="form-field">
+                <label for="edit-body-input">Article Body / Content</label>
+                <textarea id="edit-body-input" class="form-textarea edit-body-textarea" rows="8" placeholder="Full article body content..." required></textarea>
             </div>
 
             <div class="modal-footer">
@@ -304,9 +307,16 @@
         </div>
     </div>
 </div>
+
+<!-- Toast Notification Container -->
+<div id="toast-container" class="toast-container" aria-live="polite"></div>
 @endsection
 
 @push('scripts')
+<script>
+    window.INITIAL_DATA = @json($articles ?? []);
+    window.INITIAL_ARTICLES = @json($articles ?? []);
+</script>
 <script type="module" src="{{ asset('js/executive-manage-articles.js') }}"></script>
 @endpush
 
